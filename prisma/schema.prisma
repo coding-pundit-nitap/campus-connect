@@ -1,0 +1,212 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  STAFF
+  ADMIN
+}
+
+enum OrderStatus {
+  NEW
+  PREPARING
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum SellerVerificationStatus {
+  NOT_STARTED
+  PENDING
+  REQUIRES_ACTION
+  VERIFIED
+  REJECTED
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+}
+
+enum PayoutStatus {
+  PENDING
+  IN_TRANSIT
+  PAID
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  phone         String
+  hash_password String
+  role          Role
+  image_url     String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  ownedShop Shop? @relation("ownedShop")
+
+  reviews Review[]
+  carts   Cart[]
+  orders  Order[]
+
+  @@index([role])
+}
+
+model Shop {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  location    String
+  opening     String
+  closing     String
+  is_active   Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  owner_id String @unique
+  owner    User   @relation("ownedShop", fields: [owner_id], references: [id])
+
+  pg_seller_id        String?                  @unique
+  verification_status SellerVerificationStatus @default(NOT_STARTED)
+
+  products Product[]
+  orders   Order[]
+  payouts  Payout[]
+
+  @@index([verification_status])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  user_id    String
+  product_id String
+  rating     Int
+  comment    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user    User    @relation(fields: [user_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@index([product_id])
+  @@index([user_id])
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  price          Decimal
+  discount       Decimal?
+  stock_quantity Int      @default(0)
+  rating         Float    @default(0)
+  image_url      String
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  shop_id String
+  shop    Shop   @relation(fields: [shop_id], references: [id])
+
+  reviews    Review[]
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  @@index([shop_id])
+}
+
+model Cart {
+  id      String     @id @default(cuid())
+  user_id String     @unique
+  items   CartItem[]
+
+  User User @relation(fields: [user_id], references: [id])
+}
+
+model CartItem {
+  id         String @id @default(cuid())
+  cart_id    String
+  product_id String
+  quantity   Int
+
+  cart    Cart    @relation(fields: [cart_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@index([cart_id])
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  total_price    Decimal
+  payment_method PaymentMethod
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  payment_status PaymentStatus @default(PENDING)
+  order_status   OrderStatus   @default(NEW)
+
+  pg_payment_id String? @unique
+  pg_refund_id  String? @unique
+
+  user_id String
+  user    User        @relation(fields: [user_id], references: [id])
+  shop_id String
+  shop    Shop        @relation(fields: [shop_id], references: [id])
+  items   OrderItem[]
+
+  @@index([user_id])
+  @@index([shop_id])
+  @@index([order_status])
+  @@index([payment_status])
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  quantity Int
+  price    Float
+
+  order_id   String
+  order      Order   @relation(fields: [order_id], references: [id])
+  product_id String
+  product    Product @relation(fields: [product_id], references: [id])
+
+  @@index([order_id])
+}
+
+model Payout {
+  id           String       @id @default(cuid())
+  amount       Decimal
+  status       PayoutStatus @default(PENDING)
+  pg_payout_id String       @unique
+  arrival_date DateTime
+  created_at   DateTime     @default(now())
+
+  shop_id String
+  shop    Shop   @relation(fields: [shop_id], references: [id])
+
+  @@index([shop_id])
+  @@index([status])
+}
