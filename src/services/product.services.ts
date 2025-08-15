@@ -99,4 +99,6 @@ class ProductServices {
   }
 }
 
-export default new ProductServices();
+const productServices = new ProductServices();
+
+export default productServices;

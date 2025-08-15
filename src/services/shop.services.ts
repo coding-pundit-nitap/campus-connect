@@ -22,7 +22,7 @@ class ShopServices {
     Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | Shop | null
   > {
     const query = { where: { owner_id: ownerId }, ...(options ?? {}) };
-    return prisma.shop.findUnique(query as any);
+    return prisma.shop.findUnique(query);
   }
 
   async createShop(data: CreateShopDto): Promise<Shop>;
@@ -35,7 +35,7 @@ class ShopServices {
     options?: T,
   ): Promise<Prisma.ShopGetPayload<{ data: CreateShopDto } & T> | Shop> {
     const query = { data, ...(options ?? {}) };
-    return prisma.shop.create(query as any);
+    return prisma.shop.create(query);
   }
 
   async updateShop(shopId: string, data: UpdateShopDto): Promise<Shop>;
@@ -55,7 +55,7 @@ class ShopServices {
     | Shop
   > {
     const query = { where: { id: shopId }, data, ...(options ?? {}) };
-    return prisma.shop.update(query as any);
+    return prisma.shop.update(query);
   }
 
   async deleteShop(shopId: string): Promise<Shop>;
@@ -68,8 +68,10 @@ class ShopServices {
     options?: T,
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop> {
     const query = { where: { id: shopId }, ...(options ?? {}) };
-    return prisma.shop.delete(query as any);
+    return prisma.shop.delete(query);
   }
 }
 
-export default new ShopServices();
+const shopServices = new ShopServices();
+
+export default shopServices;

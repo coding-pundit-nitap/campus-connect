@@ -134,4 +134,6 @@ class OrderServices {
   }
 }
 
-export default new OrderServices();
+const orderServices = new OrderServices();
+
+export default orderServices;
