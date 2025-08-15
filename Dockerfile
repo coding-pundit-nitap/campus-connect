@@ -49,7 +49,10 @@ RUN npm install -g pnpm
 
 # Install ONLY production dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod
+RUN --mount=type=bind,source=package.json,target=package.json \
+    --mount=type=bind,source=pnpm-lock.yaml,target=pnpm-lock.yaml \
+    --mount=type=cache,target=/root/.local/share/pnpm/store \
+    pnpm install --prod --frozen-lockfile
 
 # Copy the built application and necessary files from the 'builder' stage
 # And set the correct ownership for the non-root user
