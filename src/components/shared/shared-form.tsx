@@ -1,18 +1,18 @@
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import type { FieldValues, UseFormReturn, Path } from 'react-hook-form';
-import type { ButtonConfig } from '@/types/ui';
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import type { FieldValues, UseFormReturn, Path } from "react-hook-form";
+import type { ButtonConfig } from "@/types/ui";
 
 interface FormFieldConfig<T extends FieldValues> {
   name: Path<T>;
@@ -41,7 +41,7 @@ export function SharedForm<T extends FieldValues>({
   onSubmit,
   isLoading = false,
   error,
-  className = '',
+  className = "",
   children,
 }: SharedFormProps<T>) {
   return (
@@ -80,7 +80,7 @@ export function SharedForm<T extends FieldValues>({
 
         <Button
           className="w-full"
-          type={submitButton.type || 'submit'}
+          type={submitButton.type || "submit"}
           variant={submitButton.variant}
           size={submitButton.size}
           disabled={submitButton.disabled || isLoading}
@@ -92,4 +92,3 @@ export function SharedForm<T extends FieldValues>({
     </Form>
   );
 }
-

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,7 @@ export function useLoginForm() {
   const handleSubmit = useCallback(
     (
       onSubmit: (data: LoginFormData) => Promise<void> | void,
-      onError?: (error: Error) => void
+      onError?: (error: Error) => void,
     ) => {
       return form.handleSubmit(async (data) => {
         try {
@@ -36,7 +36,7 @@ export function useLoginForm() {
         }
       });
     },
-    [form]
+    [form],
   );
 
   return {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardContent,
@@ -6,8 +6,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import type { CardConfig } from '@/types/ui';
+} from "@/components/ui/card";
+import type { CardConfig } from "@/types/ui";
 
 interface SharedCardProps extends CardConfig {
   children: React.ReactNode;
@@ -15,13 +15,12 @@ interface SharedCardProps extends CardConfig {
   footerContent?: React.ReactNode;
 }
 
-
 export function SharedCard({
   title,
   description,
   showHeader = true,
   showFooter = false,
-  className = '',
+  className = "",
   children,
   headerContent,
   footerContent,
@@ -42,9 +41,7 @@ export function SharedCard({
         </CardHeader>
       )}
 
-      <CardContent className="space-y-6">
-        {children}
-      </CardContent>
+      <CardContent className="space-y-6">{children}</CardContent>
 
       {showFooter && (
         <CardFooter className="flex flex-col items-center space-y-2 pt-0">

@@ -1,5 +1,3 @@
-
-
 export const USER_ROLES = {
   CUSTOMER: "customer",
   STAFF: "staff",
@@ -23,4 +21,3 @@ export const FORM_FIELD_NAMES = {
   NAME: "name",
   PHONE: "phone",
 } as const;
-

@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { VALIDATION_MESSAGES } from "@/constants";
 
-
 export const emailSchema = z
   .string()
   .min(1, VALIDATION_MESSAGES.EMAIL_REQUIRED)
