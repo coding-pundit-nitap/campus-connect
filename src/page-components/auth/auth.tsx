@@ -1,7 +1,4 @@
-import React from "react";
-import LoginCard from "@/components/login/login-card";
-
-export default function LoginPage() {
+export default function AuthPage({children}:{children: React.ReactNode}) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-0 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="grid w-full h-screen max-w-none grid-cols-1 gap-0 md:grid-cols-2">
@@ -17,12 +14,9 @@ export default function LoginPage() {
           </div>
         </aside>
 
-        <div className="flex items-center justify-center h-screen w-full bg-white">
+        <div className="flex items-center justify-center h-screen bg-white">
           <div className="w-full flex items-center justify-center">
-            <LoginCard
-              title="Welcome Back"
-              description="Sign in to your account to continue"
-            />
+            {children}
           </div>
         </div>
       </div>

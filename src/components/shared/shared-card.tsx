@@ -15,6 +15,19 @@ interface SharedCardProps extends CardConfig {
   footerContent?: React.ReactNode;
 }
 
+/**
+ * SharedCard component for displaying a card with a title, description, and optional header/footer content.
+ * @param title - The title of the card.
+ * @param description - The description of the card.
+ * @param showHeader - Whether to show the header content.
+ * @param showFooter - Whether to show the footer content.
+ * @param className - Additional class names for the card.
+ * @param children - The main content of the card.
+ * @param headerContent - Optional custom content for the header.
+ * @param footerContent - Optional custom content for the footer.
+ * @returns A React component that renders a card with the specified title and content.
+ */
+
 export function SharedCard({
   title,
   description,

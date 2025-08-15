@@ -1,25 +1,26 @@
 "use client";
 import React from "react";
 import { SharedForm } from "@/components/shared/shared-form";
-import { useLoginForm } from "@/hooks/useAuth";
+import { useRegisterForm } from "@/hooks/useAuth";
 import { FORM_FIELD_NAMES } from "@/constants";
 import type { FormFieldConfig, ButtonConfig } from "@/types/ui";
-import type { LoginFormData } from "@/lib/validations/auth";
-import { loginAction } from "@/actions/authentication/login";
+import type { RegisterFormData } from "@/lib/validations/auth";
 
-interface LoginFormProps {
+import { registerAction } from "@/actions/authentication/register";
+
+interface RegisterFormProps {
   isStaff?: boolean;
   onError?: (error: Error) => void;
   className?: string;
 }
 
-export default function LoginForm({
+export default function RegisterForm({
   isStaff = false,
   className = "",
-}: LoginFormProps) {
-  const { form, isLoading, error, handleSubmit } = useLoginForm();
+}: RegisterFormProps) {
+  const { form, isLoading, error, handleSubmit } = useRegisterForm();
 
-  const formFields: FormFieldConfig<LoginFormData>[] = [
+  const formFields: FormFieldConfig<RegisterFormData>[] = [
     {
       name: FORM_FIELD_NAMES.EMAIL,
       label: "Email",
@@ -28,10 +29,24 @@ export default function LoginForm({
       required: true,
     },
     {
+      name: FORM_FIELD_NAMES.NAME,
+      label: "Name",
+      type: "text",
+      placeholder: "Enter your name",
+      required: true,
+    },
+    {
       name: FORM_FIELD_NAMES.PASSWORD,
       label: "Password",
       type: "password",
       placeholder: "Enter your password",
+      required: true,
+    },
+    {
+      name: FORM_FIELD_NAMES.CONFIRM_PASSWORD,
+      label: "Confirm Password",
+      type: "password",
+      placeholder: "Confirm your password",
       required: true,
     },
   ];
@@ -43,8 +58,8 @@ export default function LoginForm({
     loading: isLoading,
   };
 
-  const onSubmit = async (data: LoginFormData) => {
-    return await loginAction(data);
+  const onSubmit = async (data: RegisterFormData) => {
+    return await registerAction(data);
   };
 
   const submitHandler = handleSubmit(onSubmit);

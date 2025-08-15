@@ -3,43 +3,43 @@ import { SharedCard } from "@/components/shared/shared-card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import LoginForm from "./login-form";
+import RegisterForm from "./register-form";
 import { useRouter } from "next/navigation";
-import { signIn } from "@/auth";
 
-interface LoginCardProps {
+interface RegisterCardProps {
   className?: string;
   title?: string;
   description?: string;
 }
 
-export default function LoginCard({
+export default function RegisterCard({
   className = "mx-4 w-full md:w-1/2",
-  title = "Welcome Back",
+  title = "Welcome",
   description = "Please enter your details",
-}: LoginCardProps) {
+}: RegisterCardProps) {
   const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
-      await signIn("google");
+      console.log("Google login initiated");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (err) {
       console.error("Google login failed:", err);
       throw new Error("Google login is not yet implemented");
     }
   };
 
-  const handleSignUp = () => {
-    router.push("/register");
+  const handleSignIn = () => {
+    router.push("/login");
   };
 
   const footerContent = (
     <Button
       variant="link"
       className="text-sm text-blue-600 hover:underline"
-      onClick={handleSignUp}
+      onClick={handleSignIn}
       type="button"
     >
-      Don&apos;t have an account?
+      Already have an account?
     </Button>
   );
 
@@ -52,7 +52,7 @@ export default function LoginCard({
       footerContent={footerContent}
       className={className}
     >
-      <LoginForm isStaff={false} />,
+      <RegisterForm isStaff={false} />,
 
       <Separator className="my-4" />
 
