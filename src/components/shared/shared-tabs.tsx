@@ -1,6 +1,6 @@
-import React from 'react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import type { TabItem } from '@/types/ui';
+import React from "react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import type { TabItem } from "@/types/ui";
 
 interface SharedTabsProps {
   tabs: TabItem[];
@@ -12,16 +12,16 @@ interface SharedTabsProps {
 export function SharedTabs({
   tabs,
   defaultValue,
-  className = '',
-  tabsListClassName = '',
-  tabsContentClassName = '',
+  className = "",
+  tabsListClassName = "",
+  tabsContentClassName = "",
 }: SharedTabsProps) {
   return (
-    <Tabs
-      defaultValue={defaultValue}
-      className={`w-full ${className}`}
-    >
-      <TabsList className={`grid w-full ${tabsListClassName}`} style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
+    <Tabs defaultValue={defaultValue} className={`w-full ${className}`}>
+      <TabsList
+        className={`grid w-full ${tabsListClassName}`}
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}
+      >
         {tabs.map((tab) => (
           <TabsTrigger
             key={tab.value}

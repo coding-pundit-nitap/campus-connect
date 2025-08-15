@@ -1,7 +1,6 @@
 import { HTMLInputTypeAttribute } from "react";
 import { FieldValues, Path } from "react-hook-form";
 
-
 export interface TabItem {
   value: string;
   label: string;

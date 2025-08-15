@@ -16,7 +16,6 @@ datasource db {
 
 enum Role {
   USER
-  STAFF
   ADMIN
 }
 
@@ -60,12 +59,14 @@ model User {
   id            String   @id @default(cuid())
   email         String   @unique
   name          String
-  phone         String
-  hash_password String
+  phone         String?
+  hash_password String?
   role          Role
   image_url     String?
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+
+  accounts Account[]
 
   ownedShop Shop? @relation("ownedShop")
 
@@ -74,6 +75,34 @@ model User {
   orders  Order[]
 
   @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Shop {
@@ -96,6 +125,7 @@ model Shop {
   products Product[]
   orders   Order[]
   payouts  Payout[]
+  cart     Cart[]
 
   @@index([verification_status])
 }
@@ -140,10 +170,14 @@ model Product {
 
 model Cart {
   id      String     @id @default(cuid())
-  user_id String     @unique
+  user_id String     
   items   CartItem[]
+  shop_id String
+  shop    Shop       @relation(fields: [shop_id], references: [id])
 
-  User User @relation(fields: [user_id], references: [id])
+  user User @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, shop_id])
 }
 
 model CartItem {
@@ -184,14 +218,14 @@ model Order {
 }
 
 model OrderItem {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   quantity Int
-  price    Float
+  price    Decimal
 
   order_id   String
   order      Order   @relation(fields: [order_id], references: [id])
   product_id String
-  product    Product @relation(fields: [product_id], references: [id])
+  product    Product @relation(fields: [product_id], references: [id], onDelete: Restrict)
 
   @@index([order_id])
 }

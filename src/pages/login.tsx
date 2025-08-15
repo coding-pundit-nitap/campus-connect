@@ -1,8 +1,7 @@
-import React from 'react';
-import LoginCard from '@/components/login/login-card';
+import React from "react";
+import LoginCard from "@/components/login/login-card";
 
 export default function LoginPage() {
-
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-0 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="grid w-full h-screen max-w-none grid-cols-1 gap-0 md:grid-cols-2">
@@ -10,7 +9,9 @@ export default function LoginPage() {
           <div className="relative h-full w-full overflow-hidden">
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <div className="text-center text-white">
-                <h1 className="text-4xl font-bold mb-4">Welcome to College Connect</h1>
+                <h1 className="text-4xl font-bold mb-4">
+                  Welcome to College Connect
+                </h1>
               </div>
             </div>
           </div>

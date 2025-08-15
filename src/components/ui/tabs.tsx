@@ -33,7 +33,7 @@ const TabsList = React.forwardRef<
     ref={ref}
     className={cn(
       "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
-      className
+      className,
     )}
     {...props}
   />
@@ -56,7 +56,7 @@ const TabsTrigger = React.forwardRef<
         currentValue === value
           ? "bg-background text-foreground shadow-sm"
           : "hover:text-foreground/80",
-        className
+        className,
       )}
       onClick={() => setValue(value)}
       {...props}
@@ -79,7 +79,7 @@ const TabsContent = React.forwardRef<
       className={cn(
         "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
         className,
-        currentValue !== value ? "hidden" : "block"
+        currentValue !== value ? "hidden" : "block",
       )}
       {...props}
     />

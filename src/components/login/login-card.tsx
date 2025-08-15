@@ -1,8 +1,8 @@
 "use client";
-import { SharedCard } from '@/components/shared/shared-card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import LoginTabs from './login-tabs';
+import { SharedCard } from "@/components/shared/shared-card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import LoginTabs from "./login-tabs";
 
 interface LoginCardProps {
   className?: string;
@@ -11,23 +11,22 @@ interface LoginCardProps {
 }
 
 export default function LoginCard({
-  className = 'mx-4 w-full md:w-1/2',
-  title = 'Welcome Back',
-  description = 'Please enter your details',
+  className = "mx-4 w-full md:w-1/2",
+  title = "Welcome Back",
+  description = "Please enter your details",
 }: LoginCardProps) {
-
   const handleGoogleLogin = async () => {
     try {
-      console.log('Google login initiated');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log("Google login initiated");
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (err) {
-      console.error('Google login failed:', err);
-      throw new Error('Google login is not yet implemented');
+      console.error("Google login failed:", err);
+      throw new Error("Google login is not yet implemented");
     }
   };
 
   const handleSignUp = () => {
-    console.log('Navigate to sign up');
+    console.log("Navigate to sign up");
   };
 
   const footerContent = (
