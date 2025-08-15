@@ -9,8 +9,7 @@
     "lint": "next lint",
     "format": "prettier --write \"./\"",
     "format:check": "prettier --check \"./\"",
-    "validate": "npm run lint && npm run format:check",
-    "postinstall": "prisma generate"
+    "validate": "pnpm lint && pnpm format:check"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
@@ -20,7 +19,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.12",
     "autoprefixer": "^10.4.21",
-    "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.539.0",
@@ -37,6 +36,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

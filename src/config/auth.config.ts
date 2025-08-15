@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 import { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google, { GoogleProfile } from "next-auth/providers/google";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import userServices from "@/services/user.services";
 import shopServices from "@/services/shop.services";
 
@@ -163,13 +163,5 @@ export const authConfig: NextAuthConfig = {
     signOut: "/", // Redirect after sign out
     error: "/", // Error page for authentication errors
     newUser: "/register", // New user registration page
-  },
-  /**
-   * UI theme configuration for NextAuth default pages
-   * (Only applies if using default NextAuth pages instead of custom ones)
-   */
-  theme: {
-    colorScheme: "auto", // Auto-detect light/dark mode
-    brandColor: "#00ff00", // Primary brand color
   },
 };

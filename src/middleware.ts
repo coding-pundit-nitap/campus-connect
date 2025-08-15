@@ -8,17 +8,15 @@ import {
   apiAuthPrefix,
 } from "@/rbac";
 import { NextAuthRequest } from "next-auth";
-import { NextResponse } from "next/server";
-import { Role } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
 // Define a mapping of role prefixes to Prisma Role values
 const roleBasedPrefixes: {
   prefixes: string[];
   isStaff: boolean;
-  role: Role;
 }[] = [
-  { prefixes: staffPrefix, isStaff: true, role: Role.USER },
-  { prefixes: consumerPrefix, isStaff: false, role: Role.USER },
+  { prefixes: staffPrefix, isStaff: true },
+  { prefixes: consumerPrefix, isStaff: false },
 ];
 
 export default middleware((req: NextAuthRequest) => {
@@ -36,11 +34,6 @@ export default middleware((req: NextAuthRequest) => {
 
   // In development, allow any route once authenticated
   if (process.env.NODE_ENV !== "production" && isLoggedIn) {
-    return NextResponse.next();
-  }
-
-  // Admins bypass all checks
-  if (isLoggedIn && req.auth?.user.role === Role.ADMIN) {
     return NextResponse.next();
   }
 
@@ -77,7 +70,7 @@ export default middleware((req: NextAuthRequest) => {
 });
 
 // Utility to redirect to login with callback
-function redirectToLogin(req: NextAuthRequest) {
+function redirectToLogin(req: NextRequest) {
   const { nextUrl } = req;
   const loginUrl = new URL("/login", nextUrl);
   loginUrl.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
