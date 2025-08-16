@@ -53,9 +53,7 @@ export default function RegisterCard({
       className={className}
     >
       <RegisterForm isStaff={false} />,
-
       <Separator className="my-4" />
-
       <Button
         variant="outline"
         className="w-full"

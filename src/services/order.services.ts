@@ -63,13 +63,21 @@ class OrderServices {
     payment_method: PaymentMethod,
     pg_payment_id?: string,
   ): Promise<Order> {
-    const cart = await CartServices.getCartForShop(user_id, shop_id);
-
-    if (cart.items.length === 0) {
-      throw new Error("Cannot create an order from an empty cart.");
-    }
-
     return prisma.$transaction(async (tx) => {
+      const cart = await tx.cart.findUnique({
+        where: { user_id_shop_id: { user_id, shop_id } },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+
+      if (!cart || cart.items.length === 0) {
+        throw new Error("Cannot create an order from an empty cart.");
+      }
       for (const item of cart.items) {
         if (item.product.stock_quantity < item.quantity) {
           throw new Error(
@@ -77,22 +85,21 @@ class OrderServices {
           );
         }
       }
-
       const totalPrice = cart.items.reduce((sum, item) => {
         return sum + Number(item.product.price) * item.quantity;
       }, 0);
 
       const order = await tx.order.create({
         data: {
-          user_id: user_id,
-          shop_id: shop_id,
+          user_id,
+          shop_id,
           total_price: totalPrice,
-          payment_method: payment_method,
+          payment_method,
           payment_status:
             payment_method === PaymentMethod.ONLINE
               ? PaymentStatus.COMPLETED
               : PaymentStatus.PENDING,
-          pg_payment_id: pg_payment_id,
+          pg_payment_id,
           items: {
             create: cart.items.map((item) => ({
               product_id: item.product_id,
@@ -104,17 +111,17 @@ class OrderServices {
         include: { items: true },
       });
 
-      for (const item of cart.items) {
-        await tx.product.update({
+      const stockUpdatePromises = cart.items.map((item) =>
+        tx.product.update({
           where: { id: item.product_id },
           data: {
             stock_quantity: {
               decrement: item.quantity,
             },
           },
-        });
-      }
-
+        }),
+      );
+      await Promise.all(stockUpdatePromises);
       await tx.cartItem.deleteMany({
         where: { cart_id: cart.id },
       });

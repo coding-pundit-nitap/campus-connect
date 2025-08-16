@@ -53,9 +53,7 @@ export default function LoginCard({
       className={className}
     >
       <LoginForm isStaff={false} />,
-
       <Separator className="my-4" />
-
       <Button
         variant="outline"
         className="w-full"

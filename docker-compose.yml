@@ -44,6 +44,5 @@ services:
     env_file:
       - .env.production
 
-
 volumes:
   postgres_data:

@@ -1,4 +1,4 @@
-export default function AuthPage({children}:{children: React.ReactNode}) {
+export default function AuthPage({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-0 bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="grid w-full h-screen max-w-none grid-cols-1 gap-0 md:grid-cols-2">

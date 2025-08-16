@@ -1,6 +1,7 @@
 import { Prisma, Role, User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth";
+import { registerSchema } from "@/lib/validations/auth";
 
 export type CreateUserDto = {
   email: string;
@@ -19,11 +20,11 @@ class UserServices {
   async getUserByEmail(email: string): Promise<User | null>;
   async getUserByEmail<T extends UserFindOptions>(
     email: string,
-    options: T
+    options: T,
   ): Promise<Prisma.UserGetPayload<{ where: { email: string } } & T> | null>;
   async getUserByEmail<T extends UserFindOptions>(
     email: string,
-    options?: T
+    options?: T,
   ): Promise<
     Prisma.UserGetPayload<{ where: { email: string } } & T> | User | null
   > {
@@ -34,13 +35,17 @@ class UserServices {
   async createUser(data: CreateUserDto): Promise<User>;
   async createUser<T extends UserCreateOptions>(
     data: CreateUserDto,
-    options: T
+    options: T,
   ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T>>;
   async createUser<T extends UserCreateOptions>(
     data: CreateUserDto,
-    options?: T
+    options?: T,
   ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T> | User> {
-    const { email, name, password } = data;
+    const parsedData = registerSchema.safeParse(data);
+    if (!parsedData.success) {
+      throw new Error("Invalid user data");
+    }
+    const { email, name, password } = parsedData.data;
     const query = {
       data: {
         email,
@@ -51,56 +56,27 @@ class UserServices {
       ...(options ?? {}),
     };
 
-    if (
-      Object.entries(data).some(
-        ([_, value]) =>
-          !value || (typeof value === "string" && value.trim() === "")
-      )
-    ) {
-      throw new Error("All fields are required");
-    }
-
-    if (data.confirmPassword !== data.password) {
-      throw new Error("Passwords do not match");
-    }
-
-    const existingUser = await prisma.user.findMany({
+    const existingUser = await prisma.user.findUnique({
       where: { email },
     });
     if (existingUser) {
       throw new Error("User with this email already exists");
     }
-
-    const newUser = await prisma.$transaction(async (tx) => {
-      await tx.user.deleteMany({
-        where: { email },
-      });
-
-      const conflictCount = await tx.user.count({
-        where: { email },
-      });
-      if (conflictCount > 0) {
-        throw new Error("User with this email already exists");
-      }
-
-      return tx.user.create(query);
-    });
-
-    return newUser;
+    return prisma.user.create(query);
   }
 
   async updateUser(userId: string, data: UpdateUserDto): Promise<User>;
   async updateUser<T extends UserUpdateOptions>(
     userId: string,
     data: UpdateUserDto,
-    options: T
+    options: T,
   ): Promise<
     Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
   >;
   async updateUser<T extends UserUpdateOptions>(
     userId: string,
     data: UpdateUserDto,
-    options?: T
+    options?: T,
   ): Promise<
     | Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
     | User
@@ -112,11 +88,11 @@ class UserServices {
   async deleteUser(userId: string): Promise<User>;
   async deleteUser<T extends UserDeleteOptions>(
     userId: string,
-    options: T
+    options: T,
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T>>;
   async deleteUser<T extends UserDeleteOptions>(
     userId: string,
-    options?: T
+    options?: T,
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T> | User> {
     const query = { where: { id: userId }, ...(options ?? {}) };
     return prisma.user.delete(query);

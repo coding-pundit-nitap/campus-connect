@@ -190,6 +190,7 @@ model CartItem {
   product Product @relation(fields: [product_id], references: [id])
 
   @@index([cart_id])
+  @@unique([cart_id, product_id])
 }
 
 model Order {

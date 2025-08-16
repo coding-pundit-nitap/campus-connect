@@ -2,7 +2,12 @@
 import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, RegisterFormData, registerSchema, type LoginFormData } from "@/lib/validations/auth";
+import {
+  loginSchema,
+  RegisterFormData,
+  registerSchema,
+  type LoginFormData,
+} from "@/lib/validations/auth";
 import { AuthResponse } from "@/types/response.type";
 
 export function useLoginForm() {

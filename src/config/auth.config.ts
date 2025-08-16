@@ -81,7 +81,10 @@ export const authConfig: NextAuthConfig = {
           }
 
           // 3. Compare the provided password with the stored hash
-          const passwordsMatch = await verifyPassword(password, user.hash_password);
+          const passwordsMatch = await verifyPassword(
+            password,
+            user.hash_password,
+          );
 
           // 4. If passwords match, return the user object
           if (passwordsMatch) {

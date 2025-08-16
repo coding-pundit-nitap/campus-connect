@@ -50,33 +50,31 @@ class CartServices {
       throw new Error("Product not found.");
     }
 
-    const shop_id = product.shop_id;
+    const { shop_id } = product;
+    const cart = await prisma.cart.upsert({
+      where: { user_id_shop_id: { user_id, shop_id } },
+      update: {},
+      create: { user_id, shop_id },
+    });
 
-    const cart = await this.getCartForShop(user_id, shop_id);
-
-    const existingItem = cart.items.find(
-      (item) => item.product_id === product_id,
-    );
-
-    if (existingItem) {
-      if (quantity <= 0) {
-        await prisma.cartItem.delete({ where: { id: existingItem.id } });
-      } else {
-        await prisma.cartItem.update({
-          where: { id: existingItem.id },
-          data: { quantity },
-        });
-      }
-    } else if (quantity > 0) {
-      await prisma.cartItem.create({
-        data: {
-          cart_id: cart.id,
-          product_id,
-          quantity,
+    if (quantity > 0) {
+      await prisma.cartItem.upsert({
+        where: {
+          id:
+            (
+              await prisma.cartItem.findFirst({
+                where: { cart_id: cart.id, product_id },
+              })
+            )?.id || "",
         },
+        create: { cart_id: cart.id, product_id, quantity },
+        update: { quantity },
+      });
+    } else {
+      await prisma.cartItem.deleteMany({
+        where: { cart_id: cart.id, product_id },
       });
     }
-
     return this.getCartForShop(user_id, shop_id);
   }
 

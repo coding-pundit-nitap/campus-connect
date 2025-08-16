@@ -1,11 +1,13 @@
-"use server"
+"use server";
 import { signIn } from "@/auth";
 import { handleActionError } from "@/lib/auth";
 import { LoginFormData, loginSchema } from "@/lib/validations/auth";
 import { AuthResponse, createAuthResponse } from "@/types/response.type";
 import { AuthError } from "next-auth";
 
-export const loginAction = async (credentials: LoginFormData):Promise<AuthResponse> => {
+export const loginAction = async (
+  credentials: LoginFormData,
+): Promise<AuthResponse> => {
   try {
     const parsedData = loginSchema.safeParse(credentials);
     if (!parsedData.success) {
@@ -21,7 +23,7 @@ export const loginAction = async (credentials: LoginFormData):Promise<AuthRespon
         case "AccessDenied":
           return createAuthResponse(
             false,
-            "Access denied. Please verify your email first."
+            "Access denied. Please verify your email first.",
           );
         default:
           return createAuthResponse(false, "An authentication error occurred");
