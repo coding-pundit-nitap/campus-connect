@@ -26,7 +26,7 @@ export function useLoginForm() {
   const handleSubmit = useCallback(
     (
       onSubmit: (data: LoginFormData) => Promise<AuthResponse>,
-      onError?: (error: Error) => void,
+      onError?: (error: Error) => void
     ) => {
       return form.handleSubmit(async (data) => {
         try {
@@ -34,9 +34,9 @@ export function useLoginForm() {
           setError(null);
           const response = await onSubmit(data);
           if (response.success) {
-            setSuccess(response.message);
+            setSuccess(response.details);
           } else {
-            setError(response.message);
+            setError(response.details);
           }
         } catch (err) {
           const errorMessage =
@@ -48,7 +48,7 @@ export function useLoginForm() {
         }
       });
     },
-    [form],
+    [form]
   );
 
   return {
@@ -77,7 +77,7 @@ export function useRegisterForm() {
   const handleSubmit = useCallback(
     (
       onSubmit: (data: RegisterFormData) => Promise<AuthResponse>,
-      onError?: (error: Error) => void,
+      onError?: (error: Error) => void
     ) => {
       return form.handleSubmit(async (data) => {
         try {
@@ -85,9 +85,9 @@ export function useRegisterForm() {
           setError(null);
           const response = await onSubmit(data);
           if (response.success) {
-            setSuccess(response.message);
+            setSuccess(response.details);
           } else {
-            setError(response.message);
+            setError(response.details);
           }
         } catch (err) {
           const errorMessage =
@@ -99,7 +99,7 @@ export function useRegisterForm() {
         }
       });
     },
-    [form],
+    [form]
   );
 
   return {

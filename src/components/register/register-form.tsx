@@ -6,7 +6,7 @@ import { FORM_FIELD_NAMES } from "@/constants";
 import type { FormFieldConfig, ButtonConfig } from "@/types/ui";
 import type { RegisterFormData } from "@/lib/validations/auth";
 
-import { registerAction } from "@/actions/authentication/register";
+import { registerAction } from "@/actions/authentication/register-actions";
 
 interface RegisterFormProps {
   isStaff?: boolean;

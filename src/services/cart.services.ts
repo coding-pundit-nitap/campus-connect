@@ -51,26 +51,23 @@ class CartServices {
     }
 
     const { shop_id } = product;
-    const cart = await prisma.cart.upsert({
-      where: { user_id_shop_id: { user_id, shop_id } },
-      update: {},
-      create: { user_id, shop_id },
-    });
-
     if (quantity > 0) {
       await prisma.cartItem.upsert({
         where: {
-          id:
-            (
-              await prisma.cartItem.findFirst({
-                where: { cart_id: cart.id, product_id },
-              })
-            )?.id || "",
+          cart_id_product_id: {
+            cart_id: (await this.getCartForShop(user_id, shop_id)).id,
+            product_id: product_id,
+          },
         },
-        create: { cart_id: cart.id, product_id, quantity },
         update: { quantity },
+        create: {
+          quantity,
+          cart: { connect: { user_id_shop_id: { user_id, shop_id } } },
+          product: { connect: { id: product_id } },
+        }
       });
     } else {
+      const cart = await this.getCartForShop(user_id, shop_id);
       await prisma.cartItem.deleteMany({
         where: { cart_id: cart.id, product_id },
       });

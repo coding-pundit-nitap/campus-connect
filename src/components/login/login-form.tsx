@@ -5,7 +5,7 @@ import { useLoginForm } from "@/hooks/useAuth";
 import { FORM_FIELD_NAMES } from "@/constants";
 import type { FormFieldConfig, ButtonConfig } from "@/types/ui";
 import type { LoginFormData } from "@/lib/validations/auth";
-import { loginAction } from "@/actions/authentication/login";
+import { loginAction } from "@/actions/authentication/login-actions";
 
 interface LoginFormProps {
   isStaff?: boolean;

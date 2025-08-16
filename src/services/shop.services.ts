@@ -38,37 +38,52 @@ class ShopServices {
     return prisma.shop.create(query);
   }
 
-  async updateShop(shopId: string, data: UpdateShopDto): Promise<Shop>;
+  async updateShop(shop_id: string, data: UpdateShopDto): Promise<Shop>;
   async updateShop<T extends ShopUpdateOptions>(
-    shopId: string,
+    shop_id: string,
     data: UpdateShopDto,
     options: T,
   ): Promise<
     Prisma.ShopGetPayload<{ where: { id: string }; data: UpdateShopDto } & T>
   >;
   async updateShop<T extends ShopUpdateOptions>(
-    shopId: string,
+    shop_id: string,
     data: UpdateShopDto,
     options?: T,
   ): Promise<
     | Prisma.ShopGetPayload<{ where: { id: string }; data: UpdateShopDto } & T>
     | Shop
   > {
-    const query = { where: { id: shopId }, data, ...(options ?? {}) };
+    const query = { where: { id: shop_id }, data, ...(options ?? {}) };
     return prisma.shop.update(query);
   }
 
-  async deleteShop(shopId: string): Promise<Shop>;
+  async deleteShop(shop_id: string): Promise<Shop>;
   async deleteShop<T extends ShopDeleteOptions>(
-    shopId: string,
+    shop_id: string,
     options: T,
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T>>;
   async deleteShop<T extends ShopDeleteOptions>(
-    shopId: string,
+    shop_id: string,
     options?: T,
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop> {
-    const query = { where: { id: shopId }, ...(options ?? {}) };
+    const query = { where: { id: shop_id }, ...(options ?? {}) };
     return prisma.shop.delete(query);
+  }
+
+  async getShopById(shop_id : string): Promise<Shop | null>;
+  async getShopById<T extends ShopFindOptions>(
+    shop_id: string,
+    options: T,
+  ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | null>;
+  async getShopById<T extends ShopFindOptions>(
+    shop_id: string,
+    options?: T,
+  ): Promise<
+    Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop | null
+  > {
+    const query = { where: { id: shop_id }, ...(options ?? {}) };
+    return prisma.shop.findUnique(query);
   }
 }
 

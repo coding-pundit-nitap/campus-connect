@@ -1,13 +1,10 @@
 import { Prisma, Role, User } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { hashPassword } from "@/lib/auth";
-import { registerSchema } from "@/lib/validations/auth";
 
 export type CreateUserDto = {
   email: string;
   name: string;
-  password: string;
-  confirmPassword: string;
+  hashed_password: string;
 };
 export type UpdateUserDto = Prisma.UserUpdateInput;
 
@@ -41,27 +38,13 @@ class UserServices {
     data: CreateUserDto,
     options?: T,
   ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T> | User> {
-    const parsedData = registerSchema.safeParse(data);
-    if (!parsedData.success) {
-      throw new Error("Invalid user data");
-    }
-    const { email, name, password } = parsedData.data;
     const query = {
       data: {
-        email,
-        name,
-        hash_password: await hashPassword(password),
         role: Role.USER,
+        ...data,
       },
       ...(options ?? {}),
     };
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-    if (existingUser) {
-      throw new Error("User with this email already exists");
-    }
     return prisma.user.create(query);
   }
 

@@ -2,17 +2,17 @@ export interface ActionResponse<T = unknown> {
   success: boolean;
   error: boolean;
   data?: T;
-  message: string;
+  details: string;
 }
 
 export interface AuthResponse {
   success: boolean;
-  message: string;
+  details: string;
 }
 
 export interface HealthCheckResponse {
   status: "ok" | "error";
-  message: string;
+  details: string;
 }
 
 export interface FileUploadResponse {
@@ -24,34 +24,34 @@ export interface FileUploadResponse {
 
 export const createSuccessResponse = <T>(
   data: T,
-  message: string = "Operation completed successfully",
+  details: string = "Operation completed successfully",
 ): ActionResponse<T> => ({
   success: true,
   error: false,
   data,
-  message,
+  details,
 });
 
 export const createErrorResponse = (
-  message: string = "An error occurred",
+  details: string = "An error occurred",
 ): ActionResponse => ({
   success: false,
   error: true,
-  message,
+  details,
 });
 
 export const createAuthResponse = (
   success: boolean,
-  message: string,
+  details: string,
 ): AuthResponse => ({
   success,
-  message,
+  details,
 });
 
 export const createHealthResponse = (
   status: "ok" | "error",
-  message: string,
+  details: string,
 ): HealthCheckResponse => ({
   status,
-  message,
+  details,
 });

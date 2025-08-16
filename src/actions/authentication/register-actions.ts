@@ -1,5 +1,5 @@
 "use server";
-import { handleActionError } from "@/lib/auth";
+import { handleActionError, hashPassword } from "@/lib/auth";
 import { RegisterFormData, registerSchema } from "@/lib/validations/auth";
 import userServices from "@/services/user.services";
 import { AuthResponse, createAuthResponse } from "@/types/response.type";
@@ -12,7 +12,7 @@ export const registerAction = async (
     if (!parsedData.success) {
       return createAuthResponse(false, parsedData.error.message);
     }
-    const user = await userServices.createUser(parsedData.data, {
+    const user = await userServices.createUser({email:parsedData.data.email, name:parsedData.data.name, hashed_password:await hashPassword(parsedData.data.password)}, {
       select: {
         id: true,
       },
