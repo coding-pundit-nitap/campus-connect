@@ -1,23 +1,97 @@
 "use client";
 import React from "react";
 import { SharedForm } from "@/components/shared/shared-form";
-import { useLoginForm } from "@/hooks/useAuth";
 import { FORM_FIELD_NAMES } from "@/constants";
 import type { FormFieldConfig, ButtonConfig } from "@/types/ui";
-import type { LoginFormData } from "@/lib/validations/auth";
-import { loginAction } from "@/actions/authentication/login";
+import { loginSchema, type LoginFormData } from "@/lib/validations/auth";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useLoginUser } from "@/hooks";
 
+/**
+ * Configuration properties for the LoginForm component.
+ *
+ * @interface LoginFormProps
+ */
 interface LoginFormProps {
+  /**
+   * Determines if the login form is for staff members or regular customers.
+   * When true, the submit button displays "Sign in as Staff", otherwise "Sign in as Customer".
+   *
+   * @default false
+   */
   isStaff?: boolean;
+
+  /**
+   * Optional error handling callback function that receives error objects.
+   * Currently not implemented in the component but available for future use.
+   *
+   * @param error - The error object that occurred during login process
+   */
   onError?: (error: Error) => void;
+
+  /**
+   * Additional CSS classes to apply to the form container for custom styling.
+   *
+   * @default ""
+   */
   className?: string;
 }
 
+/**
+ * A reusable login form component that handles user authentication for both staff and customers.
+ *
+ * This component provides a complete login form with email and password fields, validation,
+ * and integration with the authentication system. It uses react-hook-form for form management,
+ * Zod for validation, and a custom hook for handling the login mutation. The form adapts its
+ * submit button text based on whether it's for staff or customer login.
+ *
+ * @param props - The component props
+ * @param props.isStaff - Whether this is a staff login form (affects button text)
+ * @param props.onError - Optional error handler callback (currently unused)
+ * @param props.className - Additional CSS classes for styling
+ *
+ * @returns A JSX element containing the complete login form
+ *
+ * @example
+ * ```tsx
+ * // Basic customer login form
+ * <LoginForm />
+ *
+ * // Staff login form with custom styling
+ * <LoginForm
+ *   isStaff={true}
+ *   className="max-w-md mx-auto"
+ *   onError={(error) => console.error('Login failed:', error)}
+ * />
+ * ```
+ *
+ * @remarks
+ * - The form validates email format and password requirements using Zod schema
+ * - Displays loading state during authentication process
+ * - Shows error messages from the authentication hook
+ * - Uses SharedForm component for consistent form styling and behavior
+ * - Form fields are configured with proper labels, placeholders, and validation
+ * - Submit button text dynamically changes based on isStaff prop
+ * - Integrates with useLoginUser hook for authentication logic
+ *
+ * @see {@link SharedForm} for the underlying form component
+ * @see {@link useLoginUser} for the authentication hook
+ * @see {@link loginSchema} for form validation rules
+ * @see {@link LoginFormData} for the form data type definition
+ */
 export default function LoginForm({
   isStaff = false,
   className = "",
 }: LoginFormProps) {
-  const { form, isLoading, error, handleSubmit } = useLoginForm();
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+  const { mutate: loginUser, isPending, error } = useLoginUser();
 
   const formFields: FormFieldConfig<LoginFormData>[] = [
     {
@@ -40,14 +114,10 @@ export default function LoginForm({
     text: `Sign in as ${isStaff ? "Staff" : "Customer"}`,
     type: "submit",
     variant: "default",
-    loading: isLoading,
+    loading: isPending,
   };
 
-  const onSubmit = async (data: LoginFormData) => {
-    return await loginAction(data);
-  };
-
-  const submitHandler = handleSubmit(onSubmit);
+  const submitHandler = form.handleSubmit((data) => loginUser(data));
 
   return (
     <SharedForm
@@ -55,8 +125,8 @@ export default function LoginForm({
       fields={formFields}
       submitButton={submitButton}
       onSubmit={submitHandler}
-      isLoading={isLoading}
-      error={error}
+      isLoading={isPending}
+      error={error?.message}
       className={className}
     />
   );
