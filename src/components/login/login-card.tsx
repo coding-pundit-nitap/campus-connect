@@ -1,33 +1,102 @@
 "use client";
-import { SharedCard } from '@/components/shared/shared-card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import LoginTabs from './login-tabs';
+import { SharedCard } from "@/components/shared/shared-card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import Image from "next/image";
+import LoginForm from "./login-form";
+import { useRouter } from "next/navigation";
+import { signIn } from "@/auth";
 
+/**
+ * Configuration properties for the LoginCard component.
+ *
+ * @interface LoginCardProps
+ */
 interface LoginCardProps {
+  /**
+   * Additional CSS classes to apply to the card container for custom styling.
+   *
+   * @default "mx-4 w-full md:w-1/2"
+   */
   className?: string;
+
+  /**
+   * The main heading text displayed at the top of the login card.
+   *
+   * @default "Welcome Back"
+   */
   title?: string;
+
+  /**
+   * The descriptive text displayed below the title to provide context or instructions.
+   *
+   * @default "Please enter your details"
+   */
   description?: string;
 }
 
+/**
+ * A comprehensive login card component that provides multiple authentication options.
+ *
+ * This component renders a complete login interface including email/password authentication
+ * via a login form, Google OAuth sign-in, and navigation to the registration page. It's
+ * built using the SharedCard component for consistent styling and layout. The card includes
+ * a header with customizable title and description, a login form for customer authentication,
+ * a separator, a Google sign-in button, and a footer with a link to the registration page.
+ *
+ * @param props - The component props
+ * @param props.className - Additional CSS classes for styling the card container
+ * @param props.title - The main heading text for the card
+ * @param props.description - Descriptive text below the title
+ *
+ * @returns A JSX element containing the complete login card interface
+ *
+ * @example
+ * ```tsx
+ * // Basic login card with default styling and text
+ * <LoginCard />
+ *
+ * // Customized login card with custom title and styling
+ * <LoginCard
+ *   title="Sign In"
+ *   description="Access your account"
+ *   className="max-w-md mx-auto shadow-lg"
+ * />
+ * ```
+ *
+ * @remarks
+ * - Integrates LoginForm component for email/password authentication
+ * - Provides Google OAuth authentication via NextAuth.js signIn function
+ * - Includes navigation to registration page using Next.js router
+ * - Uses SharedCard component for consistent UI design
+ * - Displays appropriate error handling for failed Google authentication
+ * - Responsive design with mobile and desktop layout considerations
+ * - Footer contains a link to navigate users to the registration page
+ * - All authentication flows are handled asynchronously with proper error handling
+ *
+ * @see {@link LoginForm} for the email/password authentication form
+ * @see {@link SharedCard} for the underlying card component
+ * @see {@link signIn} for the authentication function from NextAuth.js
+ *
+ * @throws {Error} Throws an error if Google login fails or is not properly configured
+ */
 export default function LoginCard({
-  className = 'mx-4 w-full md:w-1/2',
-  title = 'Welcome Back',
-  description = 'Please enter your details',
+  className = "mx-4 w-full md:w-1/2",
+  title = "Welcome Back",
+  description = "Please enter your details",
 }: LoginCardProps) {
-
+  const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
-      console.log('Google login initiated');
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await signIn("google");
     } catch (err) {
-      console.error('Google login failed:', err);
-      throw new Error('Google login is not yet implemented');
+      console.error("Google login failed:", err);
+      throw new Error("Google login is not yet implemented");
     }
   };
 
   const handleSignUp = () => {
-    console.log('Navigate to sign up');
+    router.push("/register");
   };
 
   const footerContent = (
@@ -50,16 +119,20 @@ export default function LoginCard({
       footerContent={footerContent}
       className={className}
     >
-      <LoginTabs />
-
+      <LoginForm isStaff={false} />,
       <Separator className="my-4" />
-
       <Button
         variant="outline"
         className="w-full"
         onClick={handleGoogleLogin}
         type="button"
       >
+        <Image
+          src="/svg/google-icon.svg"
+          alt="Google Icon"
+          width={16}
+          height={16}
+        />
         Sign in with Google
       </Button>
     </SharedCard>
