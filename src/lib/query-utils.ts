@@ -48,19 +48,6 @@
  * }
  * ```
  *
- * @remarks
- * **Key Features:**
- * - **Cache Invalidation:** Targeted invalidation for specific data domains
- * - **Prefetching:** Optimistic data loading for improved UX
- * - **Cache Manipulation:** Direct cache data access and modification
- * - **Type Safety:** Full TypeScript support with query key integration
- *
- * **Performance Benefits:**
- * - Reduces redundant API calls through intelligent prefetching
- * - Improves perceived performance with cache-first strategies
- * - Enables optimistic updates for better user experience
- * - Provides fine-grained cache control for memory efficiency
- *
  * @see {@link queryKeys} for the underlying query key structure
  * @see {@link https://tanstack.com/query/latest/docs/react/reference/QueryClient} QueryClient Reference
  *
@@ -68,6 +55,7 @@
  */
 import { QueryClient, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "./query-keys";
+import { FullCart } from "@/services/cart.services";
 
 /**
  * Utility class for centralized React Query cache management operations.
@@ -93,20 +81,6 @@ import { queryKeys } from "./query-keys";
  *   return <button onClick={handleClearCache}>Clear Cache</button>;
  * }
  * ```
- *
- * @remarks
- * **Method Categories:**
- * - **Invalidation Methods:** `invalidate*` - Trigger cache updates
- * - **Prefetch Methods:** `prefetch*` - Preload data for better UX
- * - **Cache Access Methods:** `getCached*` - Direct cache data access
- * - **Cache Mutation Methods:** `setCached*` - Direct cache data modification
- * - **Utility Methods:** `clearAllCache` - Global cache operations
- *
- * **Best Practices:**
- * - Use invalidation methods after successful mutations
- * - Leverage prefetching for anticipated user navigation
- * - Use cached data access for optimistic updates
- * - Clear cache only when necessary (e.g., user logout)
  *
  * @param queryClient - The React Query client instance for cache operations
  *
@@ -507,7 +481,7 @@ export class QueryUtils {
    *
    * @since 1.0.0
    */
-  setCachedCart(shop_id: string, data: any) {
+  setCachedCart(shop_id: string, data: FullCart) {
     return this.queryClient.setQueryData(queryKeys.cart.byShop(shop_id), data);
   }
 }

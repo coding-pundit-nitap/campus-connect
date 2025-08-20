@@ -50,24 +50,6 @@ import { queryKeys } from "@/lib/query-keys";
  * }
  * ```
  *
- * @remarks
- * **Query Behavior:**
- * - Query is only enabled when shop_id is truthy (not empty string, null, or undefined)
- * - Results are cached per shop_id for efficient data reuse across components
- * - Automatically refetches on window focus and network reconnection
- * - Gracefully handles shop_id changes without causing unnecessary requests
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.shops.detail(shop_id)`
- * - Each shop's data is cached independently for optimal performance
- * - Cache is invalidated when shop information is updated
- * - Supports concurrent fetching of multiple shops' details
- *
- * **Performance Features:**
- * - Conditional execution prevents unnecessary network requests when shop_id is invalid
- * - Efficient cache management reduces server load and improves response times
- * - Background refetching ensures data freshness without blocking UI interactions
- *
  * @see {@link shopAPIService.fetchShop} for the underlying API call
  * @see {@link queryKeys.shops.detail} for cache key generation
  * @see {@link useShopProducts} for fetching shop's product catalog
@@ -144,37 +126,6 @@ export function useShop(shop_id: string) {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Infinite Query Behavior:**
- * - Uses cursor-based pagination for efficient and consistent data loading
- * - Automatically manages page state and cursor progression
- * - Query is only enabled when shop_id is truthy to prevent unnecessary requests
- * - Supports both manual and automatic page fetching patterns
- *
- * **Pagination Strategy:**
- * - Initial page parameter starts as null for first page request
- * - Each page response contains nextCursor for subsequent page requests
- * - getNextPageParam extracts cursor from last page response
- * - Undefined cursor indicates no more pages available
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.shops.products(shop_id)`
- * - Each page is cached independently for optimal memory usage
- * - Cache persists across component unmounts for improved navigation performance
- * - Automatic cache invalidation when shop products are modified
- *
- * **Performance Optimizations:**
- * - Lazy loading reduces initial bundle size and improves page load times
- * - Cursor-based pagination eliminates offset-based performance issues
- * - Background refetching keeps data fresh without disrupting user experience
- * - Efficient memory management for large product catalogs
- *
- * **User Experience Features:**
- * - Smooth infinite scrolling without pagination controls
- * - Optimistic loading states for better perceived performance
- * - Error boundaries and retry mechanisms for robust error handling
- * - Maintains scroll position during navigation and page transitions
  *
  * @see {@link productAPIService.fetchShopProducts} for the underlying API call
  * @see {@link queryKeys.shops.products} for cache key generation
@@ -270,33 +221,6 @@ export const useShopProducts = (shop_id: string) => {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Data Transformation:**
- * - Automatically flattens paginated infinite query results into single array
- * - Preserves all original query properties (isLoading, error, refetch, etc.)
- * - Adds computed convenience properties for common use cases
- * - Maintains reactivity to underlying infinite query state changes
- *
- * **Convenience Properties:**
- * - `products`: Flattened array of all loaded products across all pages
- * - `hasProducts`: Boolean indicating if any products are available
- * - `totalProducts`: Count of currently loaded products (may increase with pagination)
- *
- * **Performance Considerations:**
- * - Flattening operation is efficient but creates new array on each render
- * - Best suited for scenarios where all products need to be processed together
- * - For large catalogs, consider using useShopProducts directly for better memory efficiency
- * - Automatic memoization prevents unnecessary re-computations
- *
- * **Use Case Recommendations:**
- * - **Use this hook when:** Need simple array access, client-side filtering, analytics
- * - **Use useShopProducts when:** Implementing infinite scroll, large catalogs, memory optimization
- *
- * **Caching Inheritance:**
- * - Inherits all caching benefits from underlying useShopProducts hook
- * - No additional network requests - purely transforms existing cached data
- * - Cache invalidation triggers automatic re-flattening of updated data
  *
  * @see {@link useShopProducts} for the underlying infinite query implementation
  * @see {@link productAPIService.fetchShopProducts} for the API service

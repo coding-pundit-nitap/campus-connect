@@ -15,14 +15,6 @@
  * const updatedCart = await cartAPIService.upsertCartItem('product456', 2);
  * ```
  *
- * @remarks
- * **Features:**
- * - Shop-specific cart fetching
- * - Cart item upsert operations (add/update)
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link FullCart} for cart data structure
  * @see {@link ActionResponse} for API response format
  *
@@ -68,18 +60,6 @@ import { FullCart } from "../cart.services";
  * }
  * ```
  *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed cart data
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
  * @see {@link fetchCartForShop} for retrieving cart data
  * @see {@link upsertCartItem} for cart item management
  *
@@ -119,20 +99,6 @@ class CartAPIService {
    *
    * @param shop_id - The unique identifier of the shop to fetch cart for
    * @returns A promise that resolves to the complete cart data
-   *
-   * @remarks
-   * **API Endpoint:** `GET /cart?shop_id={shop_id}`
-   *
-   * **Response Handling:**
-   * - Validates response success status
-   * - Extracts cart data from ActionResponse wrapper
-   * - Throws error if request fails or data is missing
-   *
-   * **Use Cases:**
-   * - Loading cart on shop page entry
-   * - Refreshing cart after external changes
-   * - Calculating cart totals for display
-   * - Preparing data for checkout process
    *
    * @throws {Error} When API request fails or returns invalid data
    *
@@ -201,29 +167,6 @@ class CartAPIService {
    * @param product_id - The unique identifier of the product to add/update
    * @param quantity - The quantity to set (0 to remove item)
    * @returns A promise that resolves to the updated cart data
-   *
-   * @remarks
-   * **API Endpoint:** `POST /cart`
-   *
-   * **Request Body:**
-   * ```json
-   * {
-   *   "product_id": "string",
-   *   "quantity": number
-   * }
-   * ```
-   *
-   * **Behavior:**
-   * - **New item:** Adds product with specified quantity
-   * - **Existing item:** Updates quantity to new value
-   * - **Zero quantity:** Removes item from cart
-   * - **Returns:** Complete updated cart state
-   *
-   * **Use Cases:**
-   * - Adding products from shop pages
-   * - Updating quantities in cart view
-   * - Removing items by setting quantity to 0
-   * - Bulk quantity updates
    *
    * @throws {Error} When API request fails or returns invalid data
    *

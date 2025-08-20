@@ -35,23 +35,6 @@ import { FullCart } from "@/services/cart.services";
  * }
  * ```
  *
- * @remarks
- * **Query Behavior:**
- * - Query is only enabled when shop_id is truthy (not empty string, null, or undefined)
- * - Automatically refetches on window focus and network reconnection
- * - Results are cached and shared across all components using the same shop_id
- * - Uses optimistic updates when cart is modified through other hooks
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.cart.byShop(shop_id)`
- * - Cache is automatically invalidated when cart items are modified
- * - Stale data is served immediately while fresh data is fetched in background
- *
- * **Error Handling:**
- * - Network errors are automatically retried with exponential backoff
- * - Error state is exposed through the returned query result
- * - Failed queries don't crash the component, allowing graceful error handling
- *
  * @see {@link cartAPIService.fetchCartForShop} for the underlying API call
  * @see {@link queryKeys.cart.byShop} for cache key generation
  * @see {@link FullCart} for the cart data structure
@@ -131,26 +114,6 @@ export function useCartForShop(shop_id: string) {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Mutation Parameters:**
- * - `product_id`: String identifier of the product to add/update
- * - `quantity`: Number representing the desired quantity (0 to remove)
- *
- * **Cache Management:**
- * - Automatically updates the specific shop cart cache on success
- * - Invalidates all cart queries to ensure consistency across the app
- * - Uses the returned cart data to update the cache with fresh server state
- *
- * **Error Handling:**
- * - Logs errors to console for debugging purposes
- * - Exposes error state through the mutation result
- * - Allows custom error handling through onError callback
- *
- * **Performance Features:**
- * - Optimized cache updates prevent unnecessary network requests
- * - Batch invalidation ensures all cart-related queries stay synchronized
- * - Mutation state provides loading indicators for better UX
  *
  * @see {@link cartAPIService.upsertCartItem} for the underlying API call
  * @see {@link useAddToCart} for a specialized add-to-cart variant
@@ -245,31 +208,6 @@ export function useUpsertCartItem() {
  * }
  * ```
  *
- * @remarks
- * **Optimistic Updates:**
- * - Implements onMutate callback for immediate UI feedback
- * - Preserves mutation context for potential rollback scenarios
- * - Provides smooth user experience even with slow network connections
- *
- * **Mutation Parameters:**
- * - `product_id`: String identifier of the product to add to cart
- * - `quantity`: Number of items to add (must be positive for add operation)
- *
- * **Cache Strategy:**
- * - Updates specific shop cart cache immediately on success
- * - Invalidates all cart queries to maintain global consistency
- * - Uses returned cart data to ensure cache accuracy
- *
- * **Error Recovery:**
- * - Preserves mutation context through onMutate for potential rollbacks
- * - Logs detailed error information for debugging
- * - Allows graceful error handling without breaking user flow
- *
- * **Integration Features:**
- * - Works seamlessly with cart display components
- * - Integrates with global cart state management
- * - Supports batch operations and concurrent mutations
- *
  * @see {@link cartAPIService.upsertCartItem} for the underlying API implementation
  * @see {@link useUpsertCartItem} for the generic upsert functionality
  * @see {@link useCartForShop} for reading cart data
@@ -302,7 +240,7 @@ export function useAddToCart() {
       queryClient.setQueryData(queryKeys.cart.byShop(data.shop_id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
     },
-    onError: (error, variables, context) => {
+    onError: (error) => {
       console.error("Failed to add to cart:", error);
     },
   });
@@ -378,31 +316,6 @@ export function useAddToCart() {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Removal Strategy:**
- * - Uses quantity 0 to indicate item removal rather than a separate delete endpoint
- * - Maintains consistency with the upsert pattern used throughout the cart system
- * - Ensures proper cleanup of cart state when items are removed
- *
- * **Mutation Parameters:**
- * - `product_id`: String identifier of the product to remove from cart
- * - Quantity is automatically set to 0 to indicate removal
- *
- * **Cache Management:**
- * - Immediately updates the specific shop cart cache on successful removal
- * - Invalidates all cart queries to ensure UI consistency across components
- * - Uses returned cart data to maintain accurate cache state
- *
- * **Performance Considerations:**
- * - Optimized for single item removal operations
- * - Minimal network overhead by reusing existing upsert endpoint
- * - Efficient cache updates prevent unnecessary re-renders
- *
- * **Integration Benefits:**
- * - Works seamlessly with cart display components
- * - Maintains cart total calculations automatically
- * - Supports undo functionality through cache restoration
  *
  * @see {@link cartAPIService.upsertCartItem} for the underlying API call
  * @see {@link useUpsertCartItem} for the generic upsert functionality

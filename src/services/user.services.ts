@@ -27,16 +27,6 @@
  * });
  * ```
  *
- * @remarks
- * **Features:**
- * - Full CRUD operations for users
- * - Email-based user retrieval
- * - Role-based user management
- * - Flexible query options with Prisma
- * - Type-safe operations with overloads
- * - Authentication and profile management
- * - Validation and error handling
- *
  * @see {@link User} for user data structure
  * @see {@link CreateUserDto} for user creation data
  * @see {@link UpdateUserDto} for user update data

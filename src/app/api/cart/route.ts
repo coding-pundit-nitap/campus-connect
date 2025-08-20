@@ -7,6 +7,10 @@ import {
   createErrorResponse,
 } from "@/types/response.type";
 
+export const config = {
+  runtime: "edge",
+}
+
 /**
  * Retrieves the shopping cart for a specific shop and authenticated user.
  *
@@ -39,13 +43,6 @@ import {
  *   console.error('Failed to get cart:', result.message);
  * }
  * ```
- *
- * @remarks
- * - Requires valid user session for authentication
- * - shop_id must be provided as a query parameter
- * - Returns cart items specific to the requested shop
- * - Cart data includes product details, quantities, and pricing
- * - Logs errors for debugging while returning generic error messages
  *
  * @see {@link cartServices.getCartForShop} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
@@ -133,42 +130,7 @@ const upsertItemSchema = z.object({
  *   - 500: Internal server error for unexpected failures
  *
  * @throws {Error} When cart operation fails due to service errors
- *
- * @example
- * ```typescript
- * // Add 3 items to cart
- * const response = await fetch('/api/cart', {
- *   method: 'POST',
- *   headers: {
- *     'Content-Type': 'application/json',
- *     'Cookie': 'session=...'
- *   },
- *   body: JSON.stringify({
- *     product_id: 'prod_123',
- *     quantity: 3
- *   })
- * });
- *
- * // Remove item from cart
- * const removeResponse = await fetch('/api/cart', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify({
- *     product_id: 'prod_123',
- *     quantity: 0
- *   })
- * });
- * ```
- *
- * @remarks
- * - Requires valid user session for authentication
- * - Uses upsert operation: creates new cart item or updates existing one
- * - Setting quantity to 0 removes the item from cart
- * - Automatically creates cart if user doesn't have one
- * - Validates product existence and availability before adding
- * - Updates cart totals and item counts automatically
- * - Operation is atomic to prevent race conditions
- *
+ * 
  * @see {@link upsertItemSchema} for input validation rules
  * @see {@link cartServices.upsertCartItem} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting

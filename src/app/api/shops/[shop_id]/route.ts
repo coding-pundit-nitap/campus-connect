@@ -5,6 +5,9 @@ import {
   createErrorResponse,
 } from "@/types/response.type";
 
+export const config = {
+  runtime: "edge",
+}
 /**
  * Retrieves detailed information for a specific shop by its unique identifier.
  *
@@ -24,38 +27,15 @@ import {
  *
  * @throws {Error} When shop retrieval fails due to service errors or database issues
  *
- * @example
- * ```typescript
- * // GET /api/shops/shop123
- * const response = await fetch('/api/shops/shop123');
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('Shop details:', result.data);
- *   console.log(`Shop name: ${result.data.name}`);
- *   console.log(`Shop location: ${result.data.location}`);
- * } else {
- *   console.error('Shop not found:', result.message);
- * }
- * ```
- *
- * @remarks
- * - No authentication required - public endpoint for accessing shop information
- * - Shop ID is extracted from the URL path parameter
- * - Returns complete shop profile including business details and contact information
- * - Useful for displaying shop information on product pages or shop directories
- * - Logs errors for debugging while returning user-friendly error messages
- * - Returns 404 status when shop doesn't exist instead of empty response
- *
  * @see {@link shopServices.getShopById} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(
   request: Request,
-  { params }: { params: { shop_id: string } },
+  { params }: { params: Promise<{ shop_id: string }> },
 ) {
   try {
-    const { shop_id } = params;
+    const { shop_id } = await params;
     const shop = await shopServices.getShopById(shop_id);
 
     if (!shop) {

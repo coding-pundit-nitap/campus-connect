@@ -90,31 +90,6 @@ import { toast } from "sonner";
  * }
  * ```
  *
- * @remarks
- * **Mutation Behavior:**
- * - Validates form data including password confirmation
- * - Handles server-side validation errors gracefully
- * - Automatically shows success/error toast notifications
- * - Invalidates user cache to ensure data consistency
- *
- * **Form Data Requirements:**
- * - `name`: User's display name (required, non-empty string)
- * - `email`: Valid email address (required, unique in system)
- * - `password`: Secure password meeting system requirements
- * - `confirmPassword`: Must match password field exactly
- *
- * **Success Handling:**
- * - Returns user data with id, email, name, and role
- * - Displays success toast notification
- * - Invalidates user queries for fresh data
- * - Prepares system for immediate login
- *
- * **Error Handling:**
- * - Displays descriptive error messages via toast
- * - Handles network errors, validation errors, and server errors
- * - Maintains form state for user correction
- * - Provides detailed error information for debugging
- *
  * @see {@link userAPIService.registerUser} for the underlying API call
  * @see {@link useLoginUser} for user authentication after registration
  * @see {@link queryKeys.users.all} for cache key management
@@ -131,7 +106,7 @@ export function useRegisterUser() {
       name: string;
       confirmPassword: string;
     }) => userAPIService.registerUser(data),
-    onSuccess: (data: Pick<User, "id" | "email" | "name" | "role">) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.all,
       });
@@ -237,43 +212,6 @@ export function useRegisterUser() {
  *   return <>{children}</>;
  * }
  * ```
- *
- * @remarks
- * **Authentication Flow:**
- * - Validates email and password credentials
- * - Processes authentication through secure login action
- * - Establishes user session upon successful authentication
- * - Automatically redirects to home page after login
- *
- * **Session Management:**
- * - Creates secure authentication session
- * - Invalidates existing user cache data
- * - Refreshes router to update authentication state
- * - Ensures immediate access to authenticated features
- *
- * **Navigation Behavior:**
- * - Automatically redirects to home page ("/") on success
- * - Triggers router refresh to update authentication context
- * - Preserves intended destination for post-login navigation
- * - Handles deep linking and protected route access
- *
- * **Security Features:**
- * - Secure credential transmission
- * - Server-side authentication validation
- * - Automatic session token management
- * - Protection against credential stuffing attacks
- *
- * **Error Handling:**
- * - Displays user-friendly error messages
- * - Handles invalid credentials gracefully
- * - Manages network connectivity issues
- * - Provides clear feedback for user action
- *
- * **Cache Management:**
- * - Invalidates all user-related queries on login
- * - Ensures fresh data for authenticated user
- * - Prevents stale data from previous sessions
- * - Optimizes subsequent user data requests
  *
  * @see {@link loginAction} for the underlying authentication action
  * @see {@link useRegisterUser} for user registration flow
@@ -397,42 +335,6 @@ export function useLoginUser() {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Optimistic Update Strategy:**
- * - `updateUserLocally`: Immediately updates user data in local cache
- * - Provides instant UI feedback without server round-trip
- * - Maintains user experience responsiveness during network operations
- * - Preserves existing user data while applying partial updates
- *
- * **Cache Management:**
- * - `invalidateUser`: Forces fresh data fetch from server
- * - Useful for error recovery and data synchronization
- * - Triggers automatic refetch of user data
- * - Ensures cache consistency after failed optimistic updates
- *
- * **Data Consistency:**
- * - Optimistic updates are temporary until server confirmation
- * - Failed operations should trigger cache invalidation
- * - Server response always takes precedence over local updates
- * - Handles concurrent updates gracefully
- *
- * **Performance Benefits:**
- * - Eliminates perceived latency for user interactions
- * - Reduces server load through batched operations
- * - Improves user experience with immediate feedback
- * - Maintains responsiveness during network delays
- *
- * **Error Recovery:**
- * - Automatic rollback capability through invalidation
- * - Graceful handling of network failures
- * - User notification of update failures
- * - Preservation of user intent for retry operations
- *
- * **Use Case Guidelines:**
- * - **Best for:** Profile updates, preferences, status changes, toggles
- * - **Avoid for:** Critical data, financial transactions, irreversible actions
- * - **Pattern:** Optimistic update → Server request → Handle success/failure
  *
  * @see {@link queryKeys.users.profile} for user-specific cache keys
  * @see {@link useUser} for user data fetching

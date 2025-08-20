@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import orderServices from "@/services/order.services";
 
+export const config = {
+  runtime: "edge",
+}
 /**
  * Retrieves all orders for a specific authenticated user.
  *
@@ -23,40 +26,12 @@ import orderServices from "@/services/order.services";
  *
  * @throws {Error} When order retrieval fails due to service errors or database issues
  *
- * @example
- * ```typescript
- * // GET /api/users/user123/orders
- * const response = await fetch('/api/users/user123/orders', {
- *   headers: { 'Cookie': 'session=...' }
- * });
- *
- * const orders = await response.json();
- * if (response.ok) {
- *   console.log('User orders:', orders);
- *   orders.forEach(order => {
- *     console.log(`Order ${order.id}: ${order.status} - Shop: ${order.shop_name}`);
- *   });
- * } else {
- *   console.error('Failed to get orders:', orders.error);
- * }
- * ```
- *
- * @remarks
- * - Requires valid user session for authentication
- * - Users can only access their own order history (user_id must match session user ID)
- * - Order data includes shop details, product information, quantities, and pricing
- * - Orders typically include timestamps, delivery status, and payment information
- * - Useful for users to track their purchase history and order status
- * - Logs errors for debugging while returning user-friendly error messages
- * - No pagination implemented - returns all user orders
- * - Authorization check prevents users from accessing other users' order data
- *
  * @see {@link orderServices.getOrdersByUserId} for the underlying service method
  * @see {@link auth} for the authentication mechanism
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { user_id: string } },
+  { params }: { params: Promise<{ user_id: string }> },
 ) {
   try {
     const session = await auth();
@@ -64,7 +39,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { user_id } = params;
+    const { user_id } = await params;
 
     if (session.user.id !== user_id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });

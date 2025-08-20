@@ -51,29 +51,6 @@ interface LoginCardProps {
  *
  * @returns A JSX element containing the complete login card interface
  *
- * @example
- * ```tsx
- * // Basic login card with default styling and text
- * <LoginCard />
- *
- * // Customized login card with custom title and styling
- * <LoginCard
- *   title="Sign In"
- *   description="Access your account"
- *   className="max-w-md mx-auto shadow-lg"
- * />
- * ```
- *
- * @remarks
- * - Integrates LoginForm component for email/password authentication
- * - Provides Google OAuth authentication via NextAuth.js signIn function
- * - Includes navigation to registration page using Next.js router
- * - Uses SharedCard component for consistent UI design
- * - Displays appropriate error handling for failed Google authentication
- * - Responsive design with mobile and desktop layout considerations
- * - Footer contains a link to navigate users to the registration page
- * - All authentication flows are handled asynchronously with proper error handling
- *
  * @see {@link LoginForm} for the email/password authentication form
  * @see {@link SharedCard} for the underlying card component
  * @see {@link signIn} for the authentication function from NextAuth.js

@@ -28,34 +28,7 @@ import {
  *   - message: success or error message with instructions for accessing seller dashboard
  *
  * @throws {Error} When shop creation fails due to service errors
- *
- * @example
- * ```typescript
- * const formData = new FormData();
- * formData.append("name", "Campus Bookstore");
- * formData.append("description", "Books and stationery for students");
- * formData.append("location", "Building A, Room 101");
- * formData.append("opening", "09:00");
- * formData.append("closing", "18:00");
- *
- * const result = await createShopAction(formData);
- *
- * if (result.success) {
- *   console.log("Shop created:", result.data);
- *   // User needs to log out and back in to access seller features
- * } else {
- *   console.error("Creation failed:", result.message);
- * }
- * ```
- *
- * @remarks
- * - Requires user authentication via session
- * - Enforces one shop per user policy
- * - Validates input using shopSchema before creation
- * - User must log out and back in after creation to access seller dashboard
- * - Creates a bidirectional relationship between user and shop
- * - TODO: Add revalidatePath for cache invalidation
- *
+ * 
  * @see {@link shopSchema} for input validation rules
  * @see {@link shopServices.createShop} for the underlying service method
  * @see {@link shopServices.getShopByOwnerId} for ownership verification
@@ -137,12 +110,7 @@ export async function createShopAction(formData: FormData) {
  * }
  * ```
  *
- * @remarks
- * - Requires seller authentication (user must have a shop_id)
- * - Only shop owners can update their own shop information
- * - Validates all input data using shopSchema before updating
- * - Updates are applied immediately without requiring re-authentication
- * - TODO: Add revalidatePath for cache invalidation
+ * @todo Add revalidatePath for cache invalidation
  *
  * @see {@link shopSchema} for input validation rules
  * @see {@link shopServices.updateShop} for the underlying service method

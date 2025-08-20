@@ -17,14 +17,6 @@
  * console.log(`Registered user: ${user.name}`);
  * ```
  *
- * @remarks
- * **Features:**
- * - User order fetching by user ID
- * - User registration with form validation
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link Order} for order data structure
  * @see {@link User} for user data structure
  * @see {@link RegisterFormData} for registration form data
@@ -100,23 +92,6 @@ import { RegisterFormData } from "@/lib/validations/auth";
  * };
  * ```
  *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed user and order data
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
- * **Authentication:**
- * - fetchUserOrders requires authenticated session
- * - registerUser is public endpoint for new user creation
- * - Uses session-based authentication via axios instance
- *
  * @see {@link fetchUserOrders} for retrieving user orders
  * @see {@link registerUser} for user registration
  *
@@ -173,27 +148,6 @@ class UserAPIService {
    * @param params - The parameters for fetching user orders
    * @param params.user_id - The unique identifier of the user whose orders to fetch
    * @returns A promise that resolves to an array of user orders
-   *
-   * @remarks
-   * **API Endpoint:** `GET /users/{user_id}/orders`
-   *
-   * **Response Data:**
-   * - Complete order information for the specified user
-   * - Order status, items, pricing, and timestamps
-   * - Seller and shop information for each order
-   * - Payment and delivery details
-   *
-   * **Use Cases:**
-   * - User order history pages
-   * - Order tracking and status updates
-   * - Purchase analytics and reporting
-   * - Customer support and order management
-   * - User profile and account management
-   *
-   * **Authentication:**
-   * - Requires authenticated user session
-   * - Users can only access their own orders (enforced by API)
-   * - Admin users may access orders for any user
    *
    * @throws {Error} When API request fails, user is not found, or returns invalid data
    *
@@ -257,39 +211,6 @@ class UserAPIService {
    *
    * @param data - The registration form data containing user information
    * @returns A promise that resolves to essential user data (id, email, name, role)
-   *
-   * @remarks
-   * **API Endpoint:** `POST /auth/register`
-   *
-   * **Input Validation:**
-   * - Email format and uniqueness validation
-   * - Password strength requirements
-   * - Name and role validation
-   * - College domain verification (if applicable)
-   *
-   * **Response Data:**
-   * - User ID for future operations
-   * - Email (confirmed and validated)
-   * - Display name
-   * - User role (STUDENT, SELLER, ADMIN)
-   *
-   * **Security Features:**
-   * - Password hashing before storage
-   * - Email verification workflow (if enabled)
-   * - Rate limiting protection
-   * - Input sanitization
-   *
-   * **Post-Registration:**
-   * - Creates user profile
-   * - Sets up default preferences
-   * - Sends welcome email (if configured)
-   * - Initializes user session
-   *
-   * **Use Cases:**
-   * - New user registration forms
-   * - Account creation workflows
-   * - Student/seller onboarding
-   * - Administrative user creation
    *
    * @throws {Error} When registration fails due to validation errors, duplicate email, or server issues
    *

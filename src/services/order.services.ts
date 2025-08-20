@@ -24,16 +24,6 @@
  * await orderServices.updateOrderStatus('order789', OrderStatus.SHIPPED);
  * ```
  *
- * @remarks
- * **Features:**
- * - Cart-to-order conversion with validation
- * - Atomic transaction processing
- * - Stock management integration
- * - Payment method handling
- * - Order status management
- * - User and shop order retrieval
- * - Flexible query options support
- *
  * @see {@link Order} for order data structure
  * @see {@link OrderStatus} for available order statuses
  * @see {@link PaymentMethod} for payment method options
@@ -174,34 +164,6 @@ type OrderFindManyOptions = Omit<Prisma.OrderFindManyArgs, "where">;
  * };
  * ```
  *
- * @remarks
- * **Database Operations:**
- * - Uses Prisma ORM for type-safe database access
- * - Implements atomic transactions for order creation
- * - Maintains referential integrity across operations
- * - Optimized queries with flexible include options
- *
- * **Order Creation Process:**
- * - Validates cart existence and contents
- * - Checks product stock availability
- * - Calculates total price from cart items
- * - Creates order with items atomically
- * - Updates product stock quantities
- * - Clears cart after successful order creation
- *
- * **Error Handling:**
- * - Validates cart state before order creation
- * - Checks stock availability for all items
- * - Handles database constraint violations
- * - Provides descriptive error messages
- * - Ensures transaction rollback on failures
- *
- * **Payment Integration:**
- * - Supports multiple payment methods
- * - Handles payment gateway integration
- * - Sets appropriate payment status based on method
- * - Stores payment gateway references
- *
  * @see {@link getOrderById} for single order retrieval
  * @see {@link createOrderFromCart} for order creation from cart
  * @see {@link updateOrderStatus} for order status management
@@ -242,19 +204,6 @@ class OrderServices {
    * @param options - Optional Prisma query options for customizing the result
    * @returns A promise that resolves to the order if found, null otherwise
    *
-   * @remarks
-   * **Method Overloading:**
-   * - Without options: Returns basic Order object
-   * - With options: Returns typed result based on provided options
-   * - Maintains type safety through Prisma payload types
-   *
-   * **Use Cases:**
-   * - Order detail page display
-   * - Order status checking
-   * - Payment verification
-   * - Customer service lookup
-   * - Order modification operations
-   *
    * @see {@link OrderFindOptions} for available query options
    * @see {@link Order} for basic order structure
    *
@@ -263,11 +212,11 @@ class OrderServices {
   async getOrderById(order_id: string): Promise<Order | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
   > {
@@ -330,26 +279,6 @@ class OrderServices {
    * @param options - Optional Prisma query options for customizing the result
    * @returns A promise that resolves to an array of orders belonging to the user
    *
-   * @remarks
-   * **Behavior:**
-   * - Returns all orders for the specified user
-   * - Includes orders from all shops
-   * - Returns empty array if user has no orders
-   * - Supports flexible querying and pagination
-   *
-   * **Use Cases:**
-   * - User order history display
-   * - Order tracking and status updates
-   * - Customer account management
-   * - Order analytics and reporting
-   * - Support ticket references
-   *
-   * **Performance Considerations:**
-   * - Consider pagination for users with many orders
-   * - Use appropriate includes to avoid over-fetching
-   * - Index on user_id for efficient querying
-   * - Sort by created_at for chronological display
-   *
    * @see {@link OrderFindManyOptions} for available query options
    * @see {@link Order} for order structure
    *
@@ -358,11 +287,11 @@ class OrderServices {
   async getOrdersByUserId(user_id: string): Promise<Order[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
   > {
@@ -425,29 +354,6 @@ class OrderServices {
    * @param options - Optional Prisma query options for customizing the result
    * @returns A promise that resolves to an array of orders belonging to the shop
    *
-   * @remarks
-   * **Shop Management Features:**
-   * - Order fulfillment tracking
-   * - Customer relationship management
-   * - Inventory impact analysis
-   * - Revenue and sales reporting
-   * - Order status workflow management
-   *
-   * **Use Cases:**
-   * - Shop order management dashboard
-   * - Order fulfillment processing
-   * - Sales analytics and reporting
-   * - Customer service operations
-   * - Inventory planning and restocking
-   * - Financial reconciliation
-   *
-   * **Business Intelligence:**
-   * - Track order volumes and trends
-   * - Analyze customer purchasing patterns
-   * - Monitor order processing efficiency
-   * - Calculate revenue and profitability
-   * - Identify popular products and services
-   *
    * @see {@link OrderFindManyOptions} for available query options
    * @see {@link Order} for order structure
    * @see {@link OrderStatus} for order status values
@@ -457,11 +363,11 @@ class OrderServices {
   async getOrdersByShopId(shop_id: string): Promise<Order[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[] | Order[]
   > {
@@ -541,40 +447,6 @@ class OrderServices {
    * @throws {Error} When insufficient stock is available for any cart item
    * @throws {Error} When database transaction fails
    *
-   * @remarks
-   * **Atomic Transaction Process:**
-   * 1. **Cart Validation**: Verifies cart exists and contains items
-   * 2. **Stock Validation**: Ensures sufficient inventory for all items
-   * 3. **Price Calculation**: Computes total from current product prices
-   * 4. **Order Creation**: Creates order record with all items
-   * 5. **Inventory Update**: Decrements stock quantities atomically
-   * 6. **Cart Cleanup**: Removes all items from the original cart
-   *
-   * **Payment Processing:**
-   * - Online payments: Marked as COMPLETED with payment gateway ID
-   * - Cash on delivery: Marked as PENDING for payment upon delivery
-   * - Supports future payment method extensions
-   *
-   * **Error Handling:**
-   * - Validates cart existence before processing
-   * - Checks each item's stock availability
-   * - Provides specific error messages for debugging
-   * - Ensures transaction rollback on any failure
-   * - Maintains data consistency across all operations
-   *
-   * **Business Logic:**
-   * - Uses current product prices (not cart-stored prices)
-   * - Validates stock at order creation time
-   * - Automatically sets payment status based on method
-   * - Preserves audit trail with timestamps
-   * - Supports payment gateway integration
-   *
-   * **Performance Considerations:**
-   * - Single transaction for all database operations
-   * - Efficient bulk stock updates using Promise.all
-   * - Optimized cart item deletion
-   * - Minimal database round trips
-   *
    * @see {@link PaymentMethod} for supported payment options
    * @see {@link PaymentStatus} for payment status values
    * @see {@link Order} for order structure
@@ -585,7 +457,7 @@ class OrderServices {
     user_id: string,
     shop_id: string,
     payment_method: PaymentMethod,
-    pg_payment_id?: string,
+    pg_payment_id?: string
   ): Promise<Order> {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -605,19 +477,20 @@ class OrderServices {
       for (const item of cart.items) {
         if (item.product.stock_quantity < item.quantity) {
           throw new Error(
-            `Insufficient stock for product: ${item.product.name}`,
+            `Insufficient stock for product: ${item.product.name}`
           );
         }
       }
-      const totalPrice = cart.items.reduce((sum, item) => {
+      const total_price = cart.items.reduce((sum, item) => {
         return sum + Number(item.product.price) * item.quantity;
       }, 0);
 
+      // TODO: Delhivery address
       const order = await tx.order.create({
         data: {
           user_id,
           shop_id,
-          total_price: totalPrice,
+          total_price,
           payment_method,
           payment_status:
             payment_method === PaymentMethod.ONLINE
@@ -631,6 +504,8 @@ class OrderServices {
               price: item.product.price,
             })),
           },
+          display_id: `ORDER-${cart.id}`,
+          delivery_address_snapshot: "",
         },
         include: { items: true },
       });
@@ -643,7 +518,7 @@ class OrderServices {
               decrement: item.quantity,
             },
           },
-        }),
+        })
       );
       await Promise.all(stockUpdatePromises);
       await tx.cartItem.deleteMany({
@@ -721,35 +596,6 @@ class OrderServices {
    * @throws {Error} When invalid status transition is attempted
    * @throws {Error} When database update fails
    *
-   * @remarks
-   * **Order Status Workflow:**
-   * - PENDING: Order placed, awaiting processing
-   * - CONFIRMED: Order confirmed and being prepared
-   * - SHIPPED: Order dispatched for delivery
-   * - DELIVERED: Order successfully delivered
-   * - CANCELLED: Order cancelled by user or shop
-   *
-   * **Use Cases:**
-   * - Order fulfillment tracking
-   * - Customer status notifications
-   * - Workflow automation triggers
-   * - Shipping and logistics updates
-   * - Customer service operations
-   * - Business process management
-   *
-   * **Integration Points:**
-   * - Email/SMS notification systems
-   * - Shipping provider APIs
-   * - Customer service platforms
-   * - Analytics and reporting systems
-   * - Inventory management systems
-   *
-   * **Audit Trail:**
-   * - Automatically updates modified timestamp
-   * - Preserves status change history
-   * - Enables status transition tracking
-   * - Supports compliance requirements
-   *
    * @see {@link OrderStatus} for available status values
    * @see {@link Order} for order structure
    *
@@ -757,7 +603,7 @@ class OrderServices {
    */
   async updateOrderStatus(
     order_id: string,
-    status: OrderStatus,
+    status: OrderStatus
   ): Promise<Order> {
     return prisma.order.update({
       where: { id: order_id },

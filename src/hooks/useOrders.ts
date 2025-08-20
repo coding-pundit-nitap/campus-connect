@@ -44,24 +44,6 @@ import { queryKeys } from "@/lib/query-keys";
  * }
  * ```
  *
- * @remarks
- * **Query Behavior:**
- * - Automatically fetches orders for the authenticated user on component mount
- * - Results are cached and shared across all components using this hook
- * - Automatically refetches on window focus and network reconnection
- * - Uses optimistic updates when orders are modified through other operations
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.orders.all`
- * - Cache is automatically invalidated when new orders are created or updated
- * - Stale data is served immediately while fresh data is fetched in background
- * - Cache persists across route changes for improved navigation performance
- *
- * **Authentication Requirements:**
- * - Requires valid user authentication token
- * - Automatically handles authentication errors and redirects
- * - Only returns orders belonging to the authenticated user
- *
  * @see {@link orderAPIService.fetchUserOrders} for the underlying API call
  * @see {@link queryKeys.orders.all} for cache key generation
  * @see {@link useOrder} for fetching individual order details
@@ -118,29 +100,6 @@ export function useUserOrders() {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Query Behavior:**
- * - Query is only enabled when user_id is truthy (not empty string, null, or undefined)
- * - Results are cached per user_id for efficient data reuse
- * - Automatically refetches when user_id changes or on window focus
- * - Gracefully handles user_id changes without causing unnecessary requests
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.users.orders(user_id)`
- * - Each user's orders are cached independently for optimal performance
- * - Cache is invalidated when orders are modified for the specific user
- * - Supports concurrent fetching of multiple users' orders
- *
- * **Authorization Considerations:**
- * - Requires appropriate permissions to view other users' orders
- * - API automatically filters results based on user permissions
- * - Admin users can access all user orders, regular users only their own
- *
- * **Performance Features:**
- * - Conditional execution prevents unnecessary network requests
- * - Efficient cache management reduces server load
- * - Background refetching ensures data freshness without blocking UI
  *
  * @see {@link userAPIService.fetchUserOrders} for the underlying API call
  * @see {@link queryKeys.users.orders} for cache key generation
@@ -219,34 +178,6 @@ export function useSpecificUserOrders(user_id: string) {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Query Behavior:**
- * - Query is only enabled when order_id is truthy (not empty string, null, or undefined)
- * - Results are cached per order_id for efficient data reuse across components
- * - Automatically refetches on window focus to ensure order status is current
- * - Supports real-time updates when order status changes
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.orders.detail(order_id)`
- * - Each order's details are cached independently with appropriate TTL
- * - Cache is invalidated when order status updates or modifications occur
- * - Optimized for frequently accessed order details
- *
- * **Data Completeness:**
- * - Returns comprehensive order information including nested relationships
- * - Includes order items, customer details, shipping information, and payment status
- * - Provides real-time order tracking and status information
- *
- * **Error Handling:**
- * - Gracefully handles invalid or non-existent order IDs
- * - Provides detailed error information for debugging and user feedback
- * - Supports retry mechanisms for transient network failures
- *
- * **Security Features:**
- * - Automatically enforces order access permissions
- * - Users can only access their own orders unless they have admin privileges
- * - Sensitive payment information is properly masked in responses
  *
  * @see {@link orderAPIService.fetchOrderById} for the underlying API call
  * @see {@link queryKeys.orders.detail} for cache key generation
@@ -332,40 +263,6 @@ export function useOrder(order_id: string) {
  *   );
  * }
  * ```
- *
- * @remarks
- * **Query Behavior:**
- * - Automatically fetches all orders for products owned by the authenticated seller
- * - Results are cached and shared across all seller dashboard components
- * - Automatically refetches on window focus to ensure order status is current
- * - Uses optimistic updates when order status is modified through seller actions
- *
- * **Caching Strategy:**
- * - Query key is generated using `queryKeys.seller.orders()`
- * - Cache is automatically invalidated when order statuses are updated
- * - Stale data is served immediately while fresh data is fetched in background
- * - Efficient cache management reduces API calls for seller dashboard operations
- *
- * **Seller Authentication:**
- * - Requires valid seller authentication and proper seller role permissions
- * - Automatically filters orders to only include seller's products
- * - Handles seller account verification and status requirements
- *
- * **Order Management Features:**
- * - Provides complete order lifecycle management capabilities
- * - Includes order status tracking, customer information, and payment details
- * - Supports bulk operations and order status updates
- * - Real-time notifications for new orders and status changes
- *
- * **Performance Optimizations:**
- * - Efficiently handles large order volumes with proper pagination support
- * - Background synchronization ensures data consistency without blocking UI
- * - Optimized query patterns reduce server load and improve response times
- *
- * **Business Intelligence:**
- * - Provides data foundation for seller analytics and reporting
- * - Supports revenue tracking, order trend analysis, and performance metrics
- * - Enables data-driven decision making for seller operations
  *
  * @see {@link sellerAPIService.fetchSellerOrders} for the underlying API call
  * @see {@link queryKeys.seller.orders} for cache key generation

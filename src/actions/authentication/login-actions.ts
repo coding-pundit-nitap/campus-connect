@@ -20,28 +20,6 @@ import { AuthError } from "next-auth";
  *   - details: string message describing the result or error
  *
  * @throws {AuthError} When NextAuth encounters authentication errors
- *
- * @example
- * ```typescript
- * const result = await loginAction({
- *   email: "user@example.com",
- *   password: "securePassword123"
- * });
- *
- * if (result.success) {
- *   console.log("Login successful:", result.details);
- * } else {
- *   console.error("Login failed:", result.details);
- * }
- * ```
- *
- * @remarks
- * - Validates input using loginSchema before attempting authentication
- * - Handles various AuthError types with specific error messages
- * - Uses NextAuth's "credentials" provider for authentication
- * - Does not redirect automatically (redirect: false)
- * - Returns user-friendly error messages for different failure scenarios
- *
  * @see {@link loginSchema} for input validation rules
  * @see {@link createAuthResponse} for response structure
  */

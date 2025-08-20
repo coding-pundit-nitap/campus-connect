@@ -95,34 +95,6 @@ interface SharedCardProps extends CardConfig {
  * </SharedCard>
  * ```
  *
- * @remarks
- * **Layout Structure:**
- * - **Header**: Contains title, description, and optional custom content
- * - **Content**: Main body area with consistent spacing for child components
- * - **Footer**: Optional section for actions or additional information
- *
- * **Styling Features:**
- * - Borderless design with prominent shadow for modern appearance
- * - Centered text alignment for title and description
- * - Consistent spacing using Tailwind CSS utilities
- * - Responsive design considerations built-in
- *
- * **Flexibility:**
- * - Conditional rendering of header and footer sections
- * - Custom content injection in header and footer areas
- * - Extensible styling through className prop
- * - Inherits all CardConfig properties for additional customization
- *
- * **Accessibility:**
- * - Semantic HTML structure using proper card elements
- * - Proper heading hierarchy with CardTitle component
- * - Screen reader friendly content organization
- *
- * **Performance:**
- * - Efficient conditional rendering prevents unnecessary DOM elements
- * - Optimized for React rendering with proper key usage patterns
- * - Minimal re-renders through stable prop structure
- *
  * @see {@link CardConfig} for inherited configuration options
  * @see {@link Card} for the underlying UI card component
  * @see {@link CardHeader} for header section implementation

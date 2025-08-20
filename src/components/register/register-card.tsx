@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import RegisterForm from "./register-form";
 import { useRouter } from "next/navigation";
+import { signIn } from "@/auth";
 
 /**
  * Configuration properties for the RegisterCard component.
@@ -54,64 +55,12 @@ interface RegisterCardProps {
  *
  * @returns A JSX element containing the complete registration interface
  *
- * @example
- * ```tsx
- * // Basic usage with default props
- * <RegisterCard />
- *
- * // Custom styling and content
- * <RegisterCard
- *   className="w-full max-w-md mx-auto"
- *   title="Join College Connect"
- *   description="Create your account to get started"
- * />
- *
- * // Minimal custom title
- * <RegisterCard title="Sign Up" />
- * ```
- *
- * @remarks
- * **Features:**
- * - Standard registration form for non-staff users
- * - Google OAuth integration (currently placeholder implementation)
- * - Navigation link to login page for existing users
- * - Responsive design with mobile-first approach
- * - Consistent styling with SharedCard component
- *
- * **Authentication Options:**
- * - Email/password registration via RegisterForm
- * - Google Sign-In button (implementation pending)
- * - Quick access to login page for existing users
- *
- * **Error Handling:**
- * - Console logging for Google authentication failures
- * - Proper error throwing for unimplemented features
- * - User-friendly error messaging
- *
- * **Layout Structure:**
- * - Header with title and description
- * - Registration form section
- * - Visual separator
- * - Google authentication button
- * - Footer with login page link
- *
- * **Responsive Behavior:**
- * - Default: 4-unit horizontal margin, full width
- * - Medium screens and up: Half width with maintained margins
- * - Flexible layout adapts to different screen sizes
- *
- * **Navigation:**
- * - Programmatic navigation to "/login" route
- * - Uses Next.js router for client-side navigation
- * - Maintains application state during navigation
- *
  * @see {@link SharedCard} for the underlying card layout component
  * @see {@link RegisterForm} for the main registration form implementation
  * @see {@link Button} for the UI button components used throughout
  *
  * @throws {Error} Throws error when Google login is attempted (not yet implemented)
  *
- * @todo Implement actual Google OAuth integration
  * @todo Add form validation feedback integration
  * @todo Consider adding loading states for authentication actions
  */
@@ -123,8 +72,7 @@ export default function RegisterCard({
   const router = useRouter();
   const handleGoogleLogin = async () => {
     try {
-      console.log("Google login initiated");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await signIn("google");
     } catch (err) {
       console.error("Google login failed:", err);
       throw new Error("Google login is not yet implemented");

@@ -21,14 +21,6 @@
  * });
  * ```
  *
- * @remarks
- * **Features:**
- * - Paginated product fetching for shops
- * - Cursor-based pagination support
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link Product} for product data structure
  * @see {@link PaginatedProductsResponse} for paginated response format
  * @see {@link ActionResponse} for API response format
@@ -58,12 +50,6 @@ import { ActionResponse } from "@/types/response.type";
  *   console.log('More products available');
  * }
  * ```
- *
- * @remarks
- * **Pagination Strategy:**
- * - Uses cursor-based pagination for consistent results
- * - Provides nextCursor for loading additional pages
- * - Supports efficient scrolling through large product catalogs
  *
  * @since 1.0.0
  */
@@ -134,23 +120,6 @@ interface PaginatedProductsResponse {
  *   }
  * }
  * ```
- *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed product data with pagination
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
- * **Performance:**
- * - Implements cursor-based pagination for efficient data loading
- * - Supports infinite scrolling and lazy loading patterns
- * - Optimized for large product catalogs
  *
  * @see {@link fetchShopProducts} for retrieving shop products
  *
@@ -228,30 +197,6 @@ class ProductAPIService {
    * @param params.shop_id - The unique identifier of the shop
    * @param params.cursor - The pagination cursor for fetching next page (null for first page)
    * @returns A promise that resolves to paginated product data
-   *
-   * @remarks
-   * **API Endpoint:** `GET /shops/{shop_id}/products`
-   *
-   * **Query Parameters:**
-   * - `limit=10` - Fixed page size for consistent loading
-   * - `cursor` - Optional cursor for pagination (omitted for first page)
-   *
-   * **Response Handling:**
-   * - Validates response success status
-   * - Extracts paginated data from ActionResponse wrapper
-   * - Throws error if request fails or data is missing
-   *
-   * **Use Cases:**
-   * - Displaying shop product catalogs
-   * - Implementing infinite scroll product lists
-   * - Product browsing and discovery features
-   * - Shop inventory management interfaces
-   *
-   * **Pagination Details:**
-   * - Uses cursor-based pagination for consistency
-   * - Fixed page size of 10 products per request
-   * - Returns nextCursor for loading additional pages
-   * - Null nextCursor indicates no more products available
    *
    * @throws {Error} When API request fails or returns invalid data
    *

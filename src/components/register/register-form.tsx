@@ -57,82 +57,12 @@ interface RegisterFormProps {
  *
  * @returns A JSX element containing the registration form with validation
  *
- * @example
- * ```tsx
- * // Basic customer registration form
- * <RegisterForm />
- *
- * // Staff registration form
- * <RegisterForm isStaff={true} />
- *
- * // Custom styling and error handling
- * <RegisterForm
- *   className="max-w-md mx-auto"
- *   onError={(error) => console.error('Registration failed:', error)}
- * />
- *
- * // Complete configuration
- * <RegisterForm
- *   isStaff={false}
- *   className="w-full p-4"
- *   onError={handleRegistrationError}
- * />
- * ```
- *
- * @remarks
- * **Form Fields:**
- * - **Email**: Required email input with validation
- * - **Name**: Required text input for user's full name
- * - **Password**: Required password input with strength requirements
- * - **Confirm Password**: Required password confirmation for verification
- *
- * **Validation:**
- * - Uses Zod schema validation for type-safe form validation
- * - Email format validation and required field checks
- * - Password confirmation matching validation
- * - Real-time validation feedback as user types
- *
- * **Form State Management:**
- * - Powered by React Hook Form for optimal performance
- * - Minimal re-renders and efficient validation
- * - Default values set for all form fields
- * - Automatic form reset after successful submission
- *
- * **Loading States:**
- * - Submit button shows loading state during registration
- * - Form is disabled during submission to prevent duplicate requests
- * - Loading state sourced from useRegisterUser mutation hook
- *
- * **Error Handling:**
- * - Displays server-side validation errors from API
- * - Client-side validation errors shown in real-time
- * - Error messages are user-friendly and actionable
- *
- * **Accessibility:**
- * - Proper form labels and ARIA attributes
- * - Keyboard navigation support
- * - Screen reader compatible error announcements
- *
- * **Integration:**
- * - Uses SharedForm component for consistent UI/UX
- * - Integrates with useRegisterUser hook for API communication
- * - Follows application-wide form field naming conventions
- *
- * **Security Features:**
- * - Password confirmation to prevent typos
- * - Client-side validation before API submission
- * - Secure form submission handling
- *
  * @see {@link SharedForm} for the underlying form component implementation
  * @see {@link useRegisterUser} for the registration mutation hook
  * @see {@link registerSchema} for the Zod validation schema
  * @see {@link RegisterFormData} for the TypeScript form data interface
  *
  * @throws {Error} May throw validation errors during form submission
- *
- * @todo Implement proper error handling integration with onError prop
- * @todo Add password strength indicator
- * @todo Consider adding optional fields for user profile information
  */
 export default function RegisterForm({
   isStaff = false,

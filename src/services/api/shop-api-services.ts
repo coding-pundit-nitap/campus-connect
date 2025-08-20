@@ -12,13 +12,6 @@
  * console.log(`Shop: ${shop.name}`);
  * ```
  *
- * @remarks
- * **Features:**
- * - Shop detail fetching by shop ID
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link Shop} for shop data structure
  * @see {@link ActionResponse} for API response format
  *
@@ -81,24 +74,6 @@ import { ActionResponse } from "@/types/response.type";
  * }
  * ```
  *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed shop data
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
- * **Use Cases:**
- * - Shop detail pages and profiles
- * - Shop discovery and browsing
- * - Seller shop management
- * - Shop validation and verification
- *
  * @see {@link fetchShop} for retrieving shop details
  *
  * @since 1.0.0
@@ -152,29 +127,6 @@ class ShopAPIService {
    * @param params - The parameters for fetching shop details
    * @param params.shop_id - The unique identifier of the shop to fetch
    * @returns A promise that resolves to the complete shop data
-   *
-   * @remarks
-   * **API Endpoint:** `GET /shops/{shop_id}`
-   *
-   * **Response Data:**
-   * - Complete shop information (name, description, logo, etc.)
-   * - Seller/owner details
-   * - Shop configuration and settings
-   * - Timestamps for creation and updates
-   *
-   * **Use Cases:**
-   * - Shop detail pages and profiles
-   * - Shop verification and validation
-   * - Navigation and breadcrumb generation
-   * - Shop-specific product listings
-   * - Seller dashboard shop management
-   *
-   * **Shop Information Included:**
-   * - Basic details (name, description, logo)
-   * - Contact and location information
-   * - Business hours and availability
-   * - Shop categories and tags
-   * - Seller/owner relationship data
    *
    * @throws {Error} When API request fails, shop is not found, or returns invalid data
    *

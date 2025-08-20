@@ -15,14 +15,6 @@
  * const order = await orderAPIService.fetchOrderById('order123');
  * ```
  *
- * @remarks
- * **Features:**
- * - User order history fetching
- * - Individual order detail retrieval
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link Order} for order data structure
  * @see {@link ActionResponse} for API response format
  *
@@ -70,18 +62,6 @@ import { ActionResponse } from "@/types/response.type";
  * }
  * ```
  *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed order data
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
  * @see {@link fetchUserOrders} for retrieving order history
  * @see {@link fetchOrderById} for specific order details
  *
@@ -120,24 +100,6 @@ class OrderAPIService {
    * ```
    *
    * @returns A promise that resolves to an array of user orders
-   *
-   * @remarks
-   * **API Endpoint:** `GET /orders`
-   *
-   * **Response Handling:**
-   * - Validates response success status
-   * - Extracts order array from ActionResponse wrapper
-   * - Throws error if request fails or data is missing
-   *
-   * **Use Cases:**
-   * - Displaying order history in user dashboard
-   * - Tracking order status and progress
-   * - Order management and customer support
-   * - Analytics and reporting features
-   *
-   * **Authentication:**
-   * - Requires valid user authentication
-   * - Returns only orders belonging to authenticated user
    *
    * @throws {Error} When API request fails or returns invalid data
    *
@@ -188,24 +150,6 @@ class OrderAPIService {
    *
    * @param order_id - The unique identifier of the order to fetch
    * @returns A promise that resolves to the complete order data
-   *
-   * @remarks
-   * **API Endpoint:** `GET /orders/{order_id}`
-   *
-   * **Response Handling:**
-   * - Validates response success status
-   * - Extracts order data from ActionResponse wrapper
-   * - Throws error if request fails or data is missing
-   *
-   * **Use Cases:**
-   * - Displaying detailed order information
-   * - Order tracking and status updates
-   * - Customer support and order management
-   * - Receipt and invoice generation
-   *
-   * **Security:**
-   * - Validates user access to requested order
-   * - Returns 404 for non-existent or unauthorized orders
    *
    * @throws {Error} When API request fails, order not found, or access denied
    *

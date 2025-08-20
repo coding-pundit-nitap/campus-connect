@@ -32,15 +32,6 @@
  * });
  * ```
  *
- * @remarks
- * **Features:**
- * - Full CRUD operations for products
- * - Shop-specific product management
- * - Flexible query options with Prisma
- * - Type-safe operations with overloads
- * - Stock management integration
- * - Validation and error handling
- *
  * @see {@link Product} for product data structure
  * @see {@link CreateProductDto} for product creation data
  * @see {@link UpdateProductDto} for product update data
@@ -624,13 +615,6 @@ class ProductServices {
    * @throws {Error} When product has active orders (referential integrity)
    * @throws {Error} When database deletion fails
    * @throws {Error} When unauthorized deletion is attempted
-   *
-   * @remarks
-   * **Important Considerations:**
-   * - Deletion is permanent and cannot be undone
-   * - Products with active orders may not be deletable
-   * - Consider soft deletion for products with order history
-   * - Ensure proper authorization before deletion
    *
    * @see {@link ProductDeleteOptions} for available deletion options
    * @see {@link Product} for deleted product structure

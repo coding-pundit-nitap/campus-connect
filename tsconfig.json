@@ -28,6 +28,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next-auth.d.ts"
-  ],
-  "exclude": ["node_modules"]
+, "prisma/tsconfig.json"  ],
+  "exclude": ["node_modules", "prisma/tsconfig.jsonc"]
 }

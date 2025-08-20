@@ -46,12 +46,6 @@ interface QueryErrorFallbackProps {
  * />
  * ```
  *
- * @remarks
- * - Displays error message with fallback text for undefined messages
- * - Includes a prominent "Try again" button for error recovery
- * - Uses red color scheme to clearly indicate error state
- * - Responsive design with proper spacing and typography
- * - Minimum height ensures consistent layout even with short error messages
  */
 function QueryErrorFallback({
   error,
@@ -113,29 +107,6 @@ interface QueryErrorBoundaryProps {
  * @param props.fallback - Optional custom error fallback component
  *
  * @returns A JSX element wrapping children with error boundary protection
- *
- * @example
- * ```tsx
- * // Basic usage with default error fallback
- * <QueryErrorBoundary>
- *   <DataComponent />
- * </QueryErrorBoundary>
- *
- * // With custom error fallback component
- * <QueryErrorBoundary fallback={CustomErrorComponent}>
- *   <UserList />
- *   <PostList />
- * </QueryErrorBoundary>
- * ```
- *
- * @remarks
- * - Integrates with TanStack Query's error reset functionality
- * - Provides automatic error recovery when queries are retried
- * - Uses resetKeys to ensure proper error boundary reset behavior
- * - Supports custom fallback components for different error display needs
- * - Should be placed high in the component tree to catch query errors
- * - Works seamlessly with React Query's built-in error handling
- * - Automatically passes reset functionality to the fallback component
  *
  * @see {@link QueryErrorFallback} for the default error display component
  * @see {@link QueryErrorResetBoundary} from TanStack Query for error reset functionality

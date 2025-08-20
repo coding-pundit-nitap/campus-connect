@@ -33,15 +33,6 @@
  * });
  * ```
  *
- * @remarks
- * **Features:**
- * - Full CRUD operations for shops
- * - Owner-specific shop management
- * - Flexible query options with Prisma
- * - Type-safe operations with overloads
- * - Business management integration
- * - Validation and error handling
- *
  * @see {@link Shop} for shop data structure
  * @see {@link CreateShopDto} for shop creation data
  * @see {@link UpdateShopDto} for shop update data
@@ -590,13 +581,6 @@ class ShopServices {
    * @throws {Error} When shop has active orders (referential integrity)
    * @throws {Error} When unauthorized deletion is attempted
    * @throws {Error} When database deletion fails
-   *
-   * @remarks
-   * **Important Considerations:**
-   * - Deletion is permanent and cannot be undone
-   * - All associated products will be deleted
-   * - Consider soft deletion for shops with order history
-   * - Ensure proper authorization before deletion
    *
    * @see {@link ShopDeleteOptions} for available deletion options
    * @see {@link Shop} for deleted shop structure

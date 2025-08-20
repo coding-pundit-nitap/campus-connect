@@ -53,28 +53,6 @@ interface LoginFormProps {
  *
  * @returns A JSX element containing the complete login form
  *
- * @example
- * ```tsx
- * // Basic customer login form
- * <LoginForm />
- *
- * // Staff login form with custom styling
- * <LoginForm
- *   isStaff={true}
- *   className="max-w-md mx-auto"
- *   onError={(error) => console.error('Login failed:', error)}
- * />
- * ```
- *
- * @remarks
- * - The form validates email format and password requirements using Zod schema
- * - Displays loading state during authentication process
- * - Shows error messages from the authentication hook
- * - Uses SharedForm component for consistent form styling and behavior
- * - Form fields are configured with proper labels, placeholders, and validation
- * - Submit button text dynamically changes based on isStaff prop
- * - Integrates with useLoginUser hook for authentication logic
- *
  * @see {@link SharedForm} for the underlying form component
  * @see {@link useLoginUser} for the authentication hook
  * @see {@link loginSchema} for form validation rules

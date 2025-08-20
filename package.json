@@ -9,12 +9,16 @@
     "lint": "next lint",
     "format": "prettier --write \"./\"",
     "format:check": "prettier --check \"./\"",
-    "validate": "pnpm lint && pnpm format:check"
+    "validate": "pnpm lint && pnpm format:check",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",
     "@hookform/resolvers": "^5.2.1",
-    "@noble/hashes": "^1.8.0",
     "@prisma/client": "6.14.0",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
@@ -39,17 +43,23 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@faker-js/faker": "^9.9.0",
     "@tailwindcss/postcss": "^4",
-    "@types/bcrypt": "^6.0.0",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "bcryptjs": "^3.0.2",
     "eslint": "^9",
     "eslint-config-next": "15.4.4",
     "prettier": "^3.6.2",
     "prisma": "^6.14.0",
     "tailwindcss": "^4.1.11",
+    "ts-node": "^10.9.2",
     "tw-animate-css": "^1.3.6",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node --project prisma/tsconfig.json prisma/seed.ts"
   }
 }

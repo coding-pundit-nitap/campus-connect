@@ -1,37 +1,4 @@
 /**
- * Authentication utility module for the college connect application.
- *
- * This module provides secure password hashing, verification, and error handling
- * utilities for authentication workflows. It implements industry-standard security
- * practices including PBKDF2 key derivation, random salt generation, and timing-safe
- * comparison to prevent timing attacks.
- *
- * @example
- * ```typescript
- * // Hash a password for storage
- * const hashedPassword = await hashPassword('userPassword123');
- *
- * // Verify password during login
- * const isValid = await verifyPassword('userPassword123', hashedPassword);
- * ```
- *
- * @remarks
- * **Security Features:**
- * - PBKDF2 with SHA-256 for key derivation
- * - 100,000 iterations for computational cost
- * - 16-byte random salt per password
- * - Timing-safe comparison to prevent timing attacks
- * - Base64 encoding for storage compatibility
- *
- * @see {@link https://noble.js.org/} Noble cryptography library
- * @see {@link https://tools.ietf.org/html/rfc2898} PBKDF2 RFC specification
- *
- * @since 1.0.0
- */
-import { pbkdf2 } from "@noble/hashes/pbkdf2";
-import { sha256 } from "@noble/hashes/sha2";
-
-/**
  * Handles and normalizes errors from authentication actions.
  *
  * Provides consistent error message extraction from various error types
@@ -67,17 +34,6 @@ import { sha256 } from "@noble/hashes/sha2";
  * @param error - The error object or value to handle
  * @param defaultMessage - Fallback message when error cannot be processed
  * @returns A user-friendly error message string
- *
- * @remarks
- * **Error Type Handling:**
- * - **Error objects:** Extracts the message property
- * - **String errors:** Returns the string directly
- * - **Unknown types:** Logs to console and returns default message
- *
- * **Security Considerations:**
- * - Avoid exposing sensitive system information in error messages
- * - Use generic messages for production environments
- * - Log detailed errors for debugging purposes
  *
  * @see {@link hashPassword} for password hashing errors
  * @see {@link verifyPassword} for verification errors
@@ -135,23 +91,6 @@ export const handleActionError = (
  * @param password - The plain text password to hash
  * @returns A promise that resolves to a base64-encoded hash string
  *
- * @remarks
- * **Security Specifications:**
- * - **Algorithm:** PBKDF2 with SHA-256
- * - **Salt:** 16 bytes of cryptographically random data
- * - **Iterations:** 100,000 (meets OWASP recommendations)
- * - **Key Length:** 32 bytes (256 bits)
- * - **Encoding:** Base64 for database compatibility
- *
- * **Storage Format:**
- * The returned string contains both salt and hash concatenated and base64-encoded.
- * This eliminates the need for separate salt storage and simplifies verification.
- *
- * **Performance Considerations:**
- * - Hashing is intentionally slow (100,000 iterations)
- * - Consider using web workers for client-side hashing
- * - Cache results appropriately to avoid repeated hashing
- *
  * @throws {Error} When crypto.getRandomValues is not available
  *
  * @see {@link verifyPassword} for password verification
@@ -160,9 +99,13 @@ export const handleActionError = (
  * @since 1.0.0
  */
 export async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const hash = pbkdf2(sha256, password, salt, { c: 100000, dkLen: 32 });
 
+  const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+  const deriveBits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 }, keyMaterial, 256);
+
+  const hash = new Uint8Array(deriveBits);
   const combined = new Uint8Array(salt.length + hash.length);
   combined.set(salt);
   combined.set(hash, salt.length);
@@ -215,25 +158,6 @@ export async function hashPassword(password: string): Promise<string> {
  * @param hash - The base64-encoded hash string from storage
  * @returns A promise that resolves to true if password matches, false otherwise
  *
- * @remarks
- * **Security Features:**
- * - **Timing-safe comparison:** Prevents timing attacks
- * - **Salt extraction:** Automatically extracts salt from stored hash
- * - **Error handling:** Returns false for any verification errors
- * - **Constant-time operation:** Comparison time doesn't leak information
- *
- * **Verification Process:**
- * 1. Decode the base64 hash to extract salt and stored hash
- * 2. Hash the provided password with the extracted salt
- * 3. Compare the new hash with the stored hash using timing-safe comparison
- * 4. Return true only if hashes match exactly
- *
- * **Error Handling:**
- * Returns false for any error during verification process, including:
- * - Invalid base64 encoding
- * - Corrupted hash format
- * - Cryptographic errors
- *
  * @see {@link hashPassword} for password hashing
  * @see {@link timingSafeEqual} for secure comparison implementation
  * @see {@link https://codahale.com/a-lesson-in-timing-attacks/} Understanding Timing Attacks
@@ -254,7 +178,10 @@ export async function verifyPassword(
     const salt = combined.slice(0, 16);
     const storedHash = combined.slice(16);
 
-    const newHash = pbkdf2(sha256, password, salt, { c: 100000, dkLen: 32 });
+    const encoder = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey("raw", encoder.encode(password), { name: "PBKDF2" }, false, ["deriveBits"]);
+    const deriveBits = await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 }, keyMaterial, 256);
+    const newHash = new Uint8Array(deriveBits);
 
     return timingSafeEqual(storedHash, newHash);
   } catch {
@@ -268,38 +195,6 @@ export async function verifyPassword(
  * Implements constant-time comparison to prevent timing attacks that could
  * reveal information about the compared values. Essential for secure password
  * verification and other cryptographic operations.
- *
- * @example
- * ```typescript
- * // Compare cryptographic hashes safely
- * const hash1 = new Uint8Array([1, 2, 3, 4]);
- * const hash2 = new Uint8Array([1, 2, 3, 4]);
- * const isEqual = timingSafeEqual(hash1, hash2); // true
- * ```
- *
- * @param a - First byte array to compare
- * @param b - Second byte array to compare
- * @returns True if arrays are identical, false otherwise
- *
- * @remarks
- * **Security Properties:**
- * - **Constant-time execution:** Comparison time doesn't vary based on input
- * - **No early termination:** Processes all bytes regardless of differences
- * - **Timing attack resistance:** Prevents information leakage through timing
- *
- * **Implementation Details:**
- * - Uses bitwise XOR to compare all bytes
- * - Accumulates differences without early exit
- * - Returns true only when accumulated result is zero
- * - Handles different array lengths securely
- *
- * **Use Cases:**
- * - Password hash verification
- * - HMAC verification
- * - Token comparison
- * - Any cryptographic equality check
- *
- * @internal This function is used internally by verifyPassword
  *
  * @see {@link verifyPassword} for password verification usage
  * @see {@link https://www.chosenplaintext.ca/articles/beginners-guide-constant-time-cryptography.html} Constant-Time Cryptography Guide

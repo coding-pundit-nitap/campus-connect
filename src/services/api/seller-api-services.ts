@@ -12,13 +12,6 @@
  * console.log(`Found ${orders.length} orders`);
  * ```
  *
- * @remarks
- * **Features:**
- * - Order fetching for authenticated sellers
- * - Comprehensive error handling
- * - Type-safe API responses
- * - Axios-based HTTP client integration
- *
  * @see {@link Order} for order data structure
  * @see {@link ActionResponse} for API response format
  *
@@ -85,23 +78,6 @@ import { ActionResponse } from "@/types/response.type";
  * }
  * ```
  *
- * @remarks
- * **API Integration:**
- * - Uses configured axios instance for HTTP requests
- * - Handles ActionResponse wrapper format
- * - Provides consistent error handling across methods
- * - Returns strongly typed order data
- *
- * **Error Handling:**
- * - Throws descriptive errors for failed requests
- * - Extracts error details from API responses
- * - Provides fallback error messages
- *
- * **Authentication:**
- * - Requires authenticated seller session
- * - Uses session-based authentication via axios instance
- * - Returns orders specific to the authenticated seller
- *
  * @see {@link fetchSellerOrders} for retrieving seller orders
  *
  * @since 1.0.0
@@ -162,29 +138,6 @@ class SellerAPIService {
    * ```
    *
    * @returns A promise that resolves to an array of seller orders
-   *
-   * @remarks
-   * **API Endpoint:** `GET /seller/orders`
-   *
-   * **Authentication Required:** Yes - seller session
-   *
-   * **Response Data:**
-   * - Returns all orders associated with the authenticated seller
-   * - Includes complete order information (items, customer, status, etc.)
-   * - Orders are returned in descending order by creation date
-   *
-   * **Use Cases:**
-   * - Seller dashboard order management
-   * - Order analytics and reporting
-   * - Inventory tracking and fulfillment
-   * - Revenue calculation and financial reporting
-   *
-   * **Order Information Included:**
-   * - Order details (ID, total, status, dates)
-   * - Customer information
-   * - Ordered items and quantities
-   * - Payment and shipping information
-   * - Order history and status changes
    *
    * @throws {Error} When API request fails, user is not authenticated as seller, or returns invalid data
    *

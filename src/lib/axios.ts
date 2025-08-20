@@ -43,19 +43,6 @@
  * };
  * ```
  *
- * @remarks
- * **Configuration Features:**
- * - **Base URL:** Automatically configured from environment variables
- * - **Content-Type:** Pre-configured for JSON communication
- * - **Centralized Setup:** Single source of truth for HTTP client configuration
- * - **Environment Aware:** Uses NEXT_PUBLIC_API_URL for flexible deployment
- *
- * **Usage Guidelines:**
- * - Import this instance instead of creating new axios instances
- * - Ensure NEXT_PUBLIC_API_URL environment variable is properly set
- * - Add interceptors here for global request/response handling
- * - Use TypeScript generics for type-safe API responses
- *
  * @see {@link https://axios-http.com/docs/instance} Axios Instance Documentation
  * @see {@link https://nextjs.org/docs/app/building-your-application/configuring/environment-variables} Next.js Environment Variables
  *
@@ -109,24 +96,6 @@ import axios from "axios";
  *   return response.data.data;
  * };
  * ```
- *
- * @remarks
- * **Default Configuration:**
- * - **Base URL:** Set from `NEXT_PUBLIC_API_URL` environment variable
- * - **Content-Type:** `application/json` for consistent JSON communication
- * - **Timeout:** Uses axios default (no timeout configured)
- * - **Headers:** Minimal default headers for JSON content
- *
- * **Integration Points:**
- * - Used by all API service classes (e.g., CartAPIService, ShopAPIService)
- * - Integrates with React Query for data fetching and caching
- * - Foundation for authenticated requests (can be extended with interceptors)
- *
- * **Extension Possibilities:**
- * - Add request interceptors for authentication tokens
- * - Add response interceptors for global error handling
- * - Configure request/response transformers
- * - Add retry logic for failed requests
  *
  * @see {@link cartAPIService} Example usage in API service classes
  * @see {@link https://axios-http.com/docs/config_defaults} Axios Default Configuration

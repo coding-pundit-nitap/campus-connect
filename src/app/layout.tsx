@@ -3,10 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
-<<<<<<< HEAD
 import { Toaster } from "sonner";
-=======
->>>>>>> 2f09b984263f16e812a819afdddb1bb29a2c00bc
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -26,10 +23,7 @@ export default function RootLayout({
         <QueryProvider>
           <QueryErrorBoundary>
             {children}
-<<<<<<< HEAD
             <Toaster position="top-right" richColors closeButton />
-=======
->>>>>>> 2f09b984263f16e812a819afdddb1bb29a2c00bc
           </QueryErrorBoundary>
         </QueryProvider>
       </body>

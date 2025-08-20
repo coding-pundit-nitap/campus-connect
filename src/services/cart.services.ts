@@ -20,15 +20,6 @@
  * console.log(`User has carts in ${allCarts.length} shops`);
  * ```
  *
- * @remarks
- * **Features:**
- * - Multi-shop cart management
- * - Automatic cart creation per shop
- * - Cart item upsert operations
- * - Cart clearing functionality
- * - Comprehensive cart retrieval
- * - Product relationship management
- *
  * @see {@link Cart} for cart data structure
  * @see {@link CartItem} for cart item data structure
  * @see {@link Product} for product data structure
@@ -66,19 +57,6 @@ import { prisma } from "@/lib/prisma";
  *   );
  * };
  * ```
- *
- * @remarks
- * **Structure:**
- * - Base cart properties (id, user_id, shop_id, timestamps)
- * - Array of cart items with full product details
- * - Maintains referential integrity between cart, items, and products
- *
- * **Use Cases:**
- * - Cart page rendering
- * - Checkout process
- * - Order creation
- * - Cart summary displays
- * - Price calculations
  *
  * @see {@link Cart} for base cart structure
  * @see {@link CartItem} for cart item structure
@@ -149,25 +127,6 @@ export type FullCart = Cart & {
  * };
  * ```
  *
- * @remarks
- * **Database Operations:**
- * - Uses Prisma ORM for type-safe database access
- * - Implements proper transaction handling
- * - Maintains referential integrity
- * - Optimized queries with appropriate includes
- *
- * **Multi-Shop Support:**
- * - Each user can have multiple carts (one per shop)
- * - Automatic cart creation when needed
- * - Shop-specific cart operations
- * - Isolated cart management per shop
- *
- * **Error Handling:**
- * - Validates product existence before cart operations
- * - Handles database constraint violations
- * - Provides descriptive error messages
- * - Graceful handling of missing entities
- *
  * @see {@link getCartForShop} for shop-specific cart retrieval
  * @see {@link upsertCartItem} for cart item management
  * @see {@link clearShopCart} for cart clearing operations
@@ -215,26 +174,6 @@ class CartServices {
    * @param user_id - The unique identifier of the user
    * @param shop_id - The unique identifier of the shop
    * @returns A promise that resolves to the complete cart with items and product details
-   *
-   * @remarks
-   * **Behavior:**
-   * - Returns existing cart if found
-   * - Creates new empty cart if none exists
-   * - Always includes complete item and product data
-   * - Orders items by ID for consistent display
-   *
-   * **Database Operations:**
-   * - Uses composite key lookup (user_id + shop_id)
-   * - Includes nested product data in single query
-   * - Creates cart with proper foreign key relationships
-   * - Maintains referential integrity
-   *
-   * **Use Cases:**
-   * - Cart page initialization
-   * - Product page cart status
-   * - Checkout process setup
-   * - Shop-specific cart operations
-   * - Cart widget display
    *
    * @see {@link FullCart} for return type structure
    * @see {@link upsertCartItem} for adding items to cart
@@ -323,34 +262,6 @@ class CartServices {
    * @param product_id - The unique identifier of the product to add/update/remove
    * @param quantity - The desired quantity (0 or negative to remove item)
    * @returns A promise that resolves to the updated cart with all items
-   *
-   * @remarks
-   * **Behavior:**
-   * - Validates product existence before operation
-   * - Automatically determines shop from product
-   * - Creates cart if it doesn't exist for the shop
-   * - Updates existing item quantity or creates new item
-   * - Removes item completely when quantity ≤ 0
-   * - Returns complete updated cart state
-   *
-   * **Database Operations:**
-   * - Uses upsert for efficient item management
-   * - Handles cart-product relationships
-   * - Maintains foreign key constraints
-   * - Optimizes with single query where possible
-   *
-   * **Error Handling:**
-   * - Throws error if product doesn't exist
-   * - Handles database constraint violations
-   * - Validates input parameters
-   * - Provides meaningful error messages
-   *
-   * **Use Cases:**
-   * - Add to cart functionality
-   * - Update item quantities
-   * - Remove items from cart
-   * - Bulk quantity updates
-   * - Cart synchronization
    *
    * @throws {Error} When product is not found or database operation fails
    *
@@ -443,32 +354,6 @@ class CartServices {
    * @param shop_id - The unique identifier of the shop whose cart to clear
    * @returns A promise that resolves to the empty cart entity
    *
-   * @remarks
-   * **Behavior:**
-   * - Removes all cart items but preserves cart entity
-   * - Uses cart lookup to ensure proper ownership
-   * - Efficient bulk deletion of items
-   * - Returns empty cart for consistency
-   *
-   * **Database Operations:**
-   * - Performs batch deletion of cart items
-   * - Maintains cart entity for future use
-   * - Uses proper foreign key relationships
-   * - Optimized for performance with bulk operations
-   *
-   * **Use Cases:**
-   * - Post-checkout cart cleanup
-   * - User-initiated cart clearing
-   * - Administrative cart management
-   * - Fresh start for shopping session
-   * - Error recovery scenarios
-   *
-   * **Performance:**
-   * - Efficient batch deletion
-   * - Minimal database round trips
-   * - Preserves cart for immediate reuse
-   * - No orphaned records
-   *
    * @see {@link getCartForShop} for cart retrieval
    * @see {@link Cart} for return type structure
    *
@@ -535,39 +420,6 @@ class CartServices {
    *
    * @param user_id - The unique identifier of the user whose carts to retrieve
    * @returns A promise that resolves to an array of complete carts with items and products
-   *
-   * @remarks
-   * **Behavior:**
-   * - Returns all carts associated with the user
-   * - Includes complete item and product data
-   * - Returns empty array if user has no carts
-   * - Maintains consistent data structure across carts
-   *
-   * **Database Operations:**
-   * - Efficient query with nested includes
-   * - Fetches all related data in single operation
-   * - Optimized for displaying multiple carts
-   * - Maintains referential integrity
-   *
-   * **Use Cases:**
-   * - User dashboard cart overview
-   * - Cross-shop cart comparison
-   * - Total cart value calculations
-   * - Multi-shop checkout preparation
-   * - Cart analytics and reporting
-   * - Administrative user cart review
-   *
-   * **Performance Considerations:**
-   * - Single query for all carts and items
-   * - Efficient data loading with includes
-   * - Suitable for dashboard-type views
-   * - Consider pagination for users with many carts
-   *
-   * **Data Structure:**
-   * - Array of FullCart objects
-   * - Each cart contains complete item details
-   * - Items include full product information
-   * - Consistent ordering and structure
    *
    * @see {@link FullCart} for cart structure with items
    * @see {@link getCartForShop} for single cart retrieval
