@@ -8,7 +8,7 @@ import {
 
 export const config = {
   runtime: "edge",
-}
+};
 /**
  * Retrieves products from a specific shop with cursor-based pagination.
  *

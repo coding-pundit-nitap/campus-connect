@@ -9,7 +9,7 @@ import {
 
 export const config = {
   runtime: "edge",
-}
+};
 
 /**
  * Retrieves the shopping cart for a specific shop and authenticated user.
@@ -130,7 +130,7 @@ const upsertItemSchema = z.object({
  *   - 500: Internal server error for unexpected failures
  *
  * @throws {Error} When cart operation fails due to service errors
- * 
+ *
  * @see {@link upsertItemSchema} for input validation rules
  * @see {@link cartServices.upsertCartItem} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting

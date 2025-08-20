@@ -4,7 +4,7 @@ import orderServices from "@/services/order.services";
 
 export const config = {
   runtime: "edge",
-}
+};
 /**
  * Retrieves all orders for a specific authenticated user.
  *

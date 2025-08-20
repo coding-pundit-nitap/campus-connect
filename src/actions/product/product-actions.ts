@@ -27,7 +27,7 @@ import {
  *   - message: success or error message
  *
  * @throws {Error} When product creation fails due to service errors
- * 
+ *
  * @see {@link productSchema} for input validation rules
  * @see {@link productServices.createProduct} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response structure

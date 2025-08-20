@@ -8,7 +8,7 @@ import {
 
 export const config = {
   runtime: "edge",
-}
+};
 /**
  * Retrieves all orders for the authenticated user.
  *

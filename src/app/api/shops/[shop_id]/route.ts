@@ -7,7 +7,7 @@ import {
 
 export const config = {
   runtime: "edge",
-}
+};
 /**
  * Retrieves detailed information for a specific shop by its unique identifier.
  *

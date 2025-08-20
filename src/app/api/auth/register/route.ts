@@ -9,7 +9,7 @@ import {
 
 export const config = {
   runtime: "edge",
-}
+};
 
 /**
  * Handles user registration requests via POST method.

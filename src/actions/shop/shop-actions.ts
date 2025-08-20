@@ -28,7 +28,7 @@ import {
  *   - message: success or error message with instructions for accessing seller dashboard
  *
  * @throws {Error} When shop creation fails due to service errors
- * 
+ *
  * @see {@link shopSchema} for input validation rules
  * @see {@link shopServices.createShop} for the underlying service method
  * @see {@link shopServices.getShopByOwnerId} for ownership verification

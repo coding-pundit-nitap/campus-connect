@@ -212,11 +212,11 @@ class OrderServices {
   async getOrderById(order_id: string): Promise<Order | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options: T
+    options: T,
   ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options?: T
+    options?: T,
   ): Promise<
     Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
   > {
@@ -287,11 +287,11 @@ class OrderServices {
   async getOrdersByUserId(user_id: string): Promise<Order[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options: T
+    options: T,
   ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options?: T
+    options?: T,
   ): Promise<
     Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
   > {
@@ -363,11 +363,11 @@ class OrderServices {
   async getOrdersByShopId(shop_id: string): Promise<Order[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options: T
+    options: T,
   ): Promise<Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options?: T
+    options?: T,
   ): Promise<
     Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[] | Order[]
   > {
@@ -457,7 +457,7 @@ class OrderServices {
     user_id: string,
     shop_id: string,
     payment_method: PaymentMethod,
-    pg_payment_id?: string
+    pg_payment_id?: string,
   ): Promise<Order> {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -477,7 +477,7 @@ class OrderServices {
       for (const item of cart.items) {
         if (item.product.stock_quantity < item.quantity) {
           throw new Error(
-            `Insufficient stock for product: ${item.product.name}`
+            `Insufficient stock for product: ${item.product.name}`,
           );
         }
       }
@@ -518,7 +518,7 @@ class OrderServices {
               decrement: item.quantity,
             },
           },
-        })
+        }),
       );
       await Promise.all(stockUpdatePromises);
       await tx.cartItem.deleteMany({
@@ -603,7 +603,7 @@ class OrderServices {
    */
   async updateOrderStatus(
     order_id: string,
-    status: OrderStatus
+    status: OrderStatus,
   ): Promise<Order> {
     return prisma.order.update({
       where: { id: order_id },
