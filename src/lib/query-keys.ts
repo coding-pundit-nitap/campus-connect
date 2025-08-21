@@ -5,50 +5,6 @@
  * management across the application. It follows the hierarchical query key pattern recommended
  * by TanStack Query for optimal cache invalidation and data synchronization.
  *
- * @example
- * ```typescript
- * // Basic usage in React Query hooks
- * function useUserProfile(userId: string) {
- *   return useQuery({
- *     queryKey: queryKeys.users.profile(userId),
- *     queryFn: () => fetchUserProfile(userId)
- *   });
- * }
- *
- * // Cache invalidation after mutations
- * function useUpdateUser() {
- *   const queryClient = useQueryClient();
- *
- *   return useMutation({
- *     mutationFn: updateUserProfile,
- *     onSuccess: (data, variables) => {
- *       // Invalidate specific user profile
- *       queryClient.invalidateQueries({
- *         queryKey: queryKeys.users.profile(variables.userId)
- *       });
- *
- *       // Invalidate all user queries
- *       queryClient.invalidateQueries({
- *         queryKey: queryKeys.users.all
- *       });
- *     }
- *   });
- * }
- *
- * // Shop products with pagination
- * function useShopProducts(shopId: string, cursor?: string) {
- *   return useInfiniteQuery({
- *     queryKey: queryKeys.shops.products(shopId, cursor),
- *     queryFn: ({ pageParam }) => fetchShopProducts(shopId, pageParam)
- *   });
- * }
- * ```
- *
- * @see {@link https://tanstack.com/query/latest/docs/react/guides/query-keys} TanStack Query Key Guide
- * @see {@link useOptimisticUserUpdate} for cache manipulation examples
- * @see {@link useLoginUser} for authentication-related query usage
- *
- * @since 1.0.0
  */
 export const queryKeys = {
   /**
@@ -126,18 +82,4 @@ export const queryKeys = {
   },
 } as const;
 
-/**
- * Type definition for the complete query keys structure.
- *
- * @example
- * ```typescript
- * // Type-safe query key usage
- * function createUserQuery(keys: QueryKeys['users']) {
- *   return useQuery({
- *     queryKey: keys.all,
- *     queryFn: fetchAllUsers
- *   });
- * }
- * ```
- */
 export type QueryKeys = typeof queryKeys;

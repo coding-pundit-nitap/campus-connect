@@ -1,34 +1,6 @@
-/**
- * Cart service module for the college connect application.
- *
- * This module provides comprehensive cart management functionality including cart creation,
- * item management, and cart operations across different shops. It handles multi-shop cart
- * functionality with proper database operations and type safety for e-commerce operations.
- *
- * @example
- * ```typescript
- * // Get or create cart for a specific shop
- * const cart = await cartServices.getCartForShop('user123', 'shop456');
- * console.log(`Cart has ${cart.items.length} items`);
- *
- * // Add item to cart
- * const updatedCart = await cartServices.upsertCartItem('user123', 'product789', 2);
- * console.log(`Added 2 items to cart`);
- *
- * // Get all user carts across shops
- * const allCarts = await cartServices.getAllUserCarts('user123');
- * console.log(`User has carts in ${allCarts.length} shops`);
- * ```
- *
- * @see {@link Cart} for cart data structure
- * @see {@link CartItem} for cart item data structure
- * @see {@link Product} for product data structure
- * @see {@link FullCart} for extended cart type with items and products
- *
- * @since 1.0.0
- */
 import { Cart, CartItem, Product } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 /**
  * Extended cart type with populated items and product details.
@@ -37,35 +9,18 @@ import { prisma } from "@/lib/prisma";
  * product information. Used for displaying comprehensive cart data with product details
  * in the user interface.
  *
- * @example
- * ```typescript
- * // Usage in cart display component
- * const CartDisplay = ({ cart }: { cart: FullCart }) => {
- *   const totalItems = cart.items.reduce((sum, item) => sum + item.quantity, 0);
- *   const totalPrice = cart.items.reduce((sum, item) =>
- *     sum + (item.quantity * item.product.price), 0
- *   );
- *
- *   return (
- *     <div>
- *       <h3>Cart ({totalItems} items)</h3>
- *       <p>Total: ${totalPrice.toFixed(2)}</p>
- *       {cart.items.map(item => (
- *         <CartItemComponent key={item.id} item={item} />
- *       ))}
- *     </div>
- *   );
- * };
- * ```
- *
- * @see {@link Cart} for base cart structure
- * @see {@link CartItem} for cart item structure
- * @see {@link Product} for product structure
- *
- * @since 1.0.0
  */
 export type FullCart = Cart & {
-  items: (CartItem & { product: Product })[];
+  items: (CartItem & {
+    product: Pick<
+      Product,
+      "name" | "price" | "description" | "image_url" | "shop_id" | "discount"
+    > & {
+      shop: {
+        name: string;
+      };
+    };
+  })[];
 };
 
 /**
@@ -75,64 +30,6 @@ export type FullCart = Cart & {
  * item management, and multi-shop cart operations. Implements proper database
  * transactions and error handling for all cart operations.
  *
- * @example
- * ```typescript
- * // Usage in cart management component
- * const CartManager = ({ userId }: { userId: string }) => {
- *   const [carts, setCarts] = useState<FullCart[]>([]);
- *   const [loading, setLoading] = useState(false);
- *
- *   const loadUserCarts = async () => {
- *     try {
- *       setLoading(true);
- *       const userCarts = await cartServices.getAllUserCarts(userId);
- *       setCarts(userCarts);
- *     } catch (error) {
- *       console.error('Failed to load carts:', error);
- *     } finally {
- *       setLoading(false);
- *     }
- *   };
- *
- *   const addToCart = async (productId: string, quantity: number) => {
- *     try {
- *       await cartServices.upsertCartItem(userId, productId, quantity);
- *       await loadUserCarts(); // Refresh carts
- *     } catch (error) {
- *       console.error('Failed to add to cart:', error);
- *     }
- *   };
- *
- *   return <CartInterface carts={carts} onAddItem={addToCart} />;
- * };
- * ```
- *
- * @example
- * ```typescript
- * // Usage in shop-specific cart operations
- * const ShopCart = ({ userId, shopId }: { userId: string; shopId: string }) => {
- *   const [cart, setCart] = useState<FullCart | null>(null);
- *
- *   const loadShopCart = async () => {
- *     const shopCart = await cartServices.getCartForShop(userId, shopId);
- *     setCart(shopCart);
- *   };
- *
- *   const clearCart = async () => {
- *     await cartServices.clearShopCart(userId, shopId);
- *     await loadShopCart(); // Refresh cart
- *   };
- *
- *   return <ShopCartComponent cart={cart} onClear={clearCart} />;
- * };
- * ```
- *
- * @see {@link getCartForShop} for shop-specific cart retrieval
- * @see {@link upsertCartItem} for cart item management
- * @see {@link clearShopCart} for cart clearing operations
- * @see {@link getAllUserCarts} for comprehensive cart retrieval
- *
- * @since 1.0.0
  */
 class CartServices {
   /**
@@ -186,7 +83,15 @@ class CartServices {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                shop: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: { id: "asc" },
         },
@@ -202,7 +107,15 @@ class CartServices {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                shop: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: { id: "asc" },
         },
@@ -427,15 +340,27 @@ class CartServices {
    *
    * @since 1.0.0
    */
-  async getAllUserCarts(user_id: string): Promise<FullCart[]> {
+  async getAllUserCarts(): Promise<FullCart[]> {
+    const session = await auth();
+    const user_id = session?.user?.id;
+    if (!user_id) throw new Error("User not authenticated");
+
     return prisma.cart.findMany({
       where: {
-        user_id: user_id,
+        user_id,
       },
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                shop: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -443,64 +368,5 @@ class CartServices {
   }
 }
 
-/**
- * Singleton instance of the CartServices class.
- *
- * Pre-configured service instance ready for use throughout the application.
- * Provides a consistent interface for all cart-related database operations
- * including cart management, item operations, and multi-shop cart functionality.
- *
- * @example
- * ```typescript
- * // Import and use directly
- * import cartServices from '@/services/cart.services';
- *
- * // Get cart for specific shop
- * const cart = await cartServices.getCartForShop('user123', 'shop456');
- *
- * // Add item to cart
- * const updatedCart = await cartServices.upsertCartItem('user123', 'product789', 2);
- *
- * // Get all user carts
- * const allCarts = await cartServices.getAllUserCarts('user123');
- *
- * // Clear shop cart
- * await cartServices.clearShopCart('user123', 'shop456');
- * ```
- *
- * @example
- * ```typescript
- * // Usage in React hooks
- * const useCart = (userId: string, shopId: string) => {
- *   const [cart, setCart] = useState<FullCart | null>(null);
- *   const [loading, setLoading] = useState(false);
- *
- *   const loadCart = useCallback(async () => {
- *     setLoading(true);
- *     try {
- *       const shopCart = await cartServices.getCartForShop(userId, shopId);
- *       setCart(shopCart);
- *     } catch (error) {
- *       console.error('Failed to load cart:', error);
- *     } finally {
- *       setLoading(false);
- *     }
- *   }, [userId, shopId]);
- *
- *   const addItem = useCallback(async (productId: string, quantity: number) => {
- *     const updatedCart = await cartServices.upsertCartItem(userId, productId, quantity);
- *     setCart(updatedCart);
- *     return updatedCart;
- *   }, [userId]);
- *
- *   return { cart, loading, loadCart, addItem };
- * };
- * ```
- *
- * @see {@link CartServices} for available methods and detailed documentation
- * @see {@link FullCart} for cart data structure
- *
- * @since 1.0.0
- */
 const cartServices = new CartServices();
 export default cartServices;

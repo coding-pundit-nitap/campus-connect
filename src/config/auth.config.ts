@@ -154,10 +154,6 @@ export const authConfig: NextAuthConfig = {
       return session;
     },
   },
-  /**
-   * Custom page routes for authentication flows
-   * Override default NextAuth pages with custom implementations
-   */
   pages: {
     signIn: "/login", // Custom login page
     signOut: "/", // Redirect after sign out

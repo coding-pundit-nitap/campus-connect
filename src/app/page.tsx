@@ -1,7 +1,9 @@
+import { CartDrawer } from "@/components/cart-drawer";
+
 const page = () => {
   return (
     <>
-      <div>Hello</div>
+      <CartDrawer />
     </>
   );
 };

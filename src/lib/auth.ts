@@ -5,40 +5,10 @@
  * encountered during authentication operations. Safely handles unknown error
  * types and provides fallback messaging for better user experience.
  *
- * @example
- * ```typescript
- * // Handle errors in authentication flow
- * try {
- *   await loginUser(credentials);
- * } catch (error) {
- *   const message = handleActionError(error, 'Login failed');
- *   setErrorMessage(message);
- * }
- * ```
- *
- * @example
- * ```typescript
- * // Use in server actions
- * export async function signUpAction(formData: FormData) {
- *   try {
- *     // ... signup logic
- *   } catch (error) {
- *     return {
- *       success: false,
- *       message: handleActionError(error, 'Registration failed')
- *     };
- *   }
- * }
- * ```
- *
  * @param error - The error object or value to handle
  * @param defaultMessage - Fallback message when error cannot be processed
  * @returns A user-friendly error message string
  *
- * @see {@link hashPassword} for password hashing errors
- * @see {@link verifyPassword} for verification errors
- *
- * @since 1.0.0
  */
 export const handleActionError = (
   error: unknown,
@@ -63,40 +33,11 @@ export const handleActionError = (
  * Uses a random 16-byte salt and 100,000 iterations to provide strong
  * protection against rainbow table and brute-force attacks.
  *
- * @example
- * ```typescript
- * // Hash password during user registration
- * const registerUser = async (email: string, password: string) => {
- *   const hashedPassword = await hashPassword(password);
- *   await saveUser({ email, password: hashedPassword });
- * };
- * ```
- *
- * @example
- * ```typescript
- * // Hash password in server action
- * export async function createAccount(formData: FormData) {
- *   const password = formData.get('password') as string;
- *   const hashedPassword = await hashPassword(password);
- *
- *   await prisma.user.create({
- *     data: {
- *       email: formData.get('email') as string,
- *       password: hashedPassword,
- *     },
- *   });
- * }
- * ```
- *
  * @param password - The plain text password to hash
  * @returns A promise that resolves to a base64-encoded hash string
  *
  * @throws {Error} When crypto.getRandomValues is not available
  *
- * @see {@link verifyPassword} for password verification
- * @see {@link https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html} OWASP Password Storage Guidelines
- *
- * @since 1.0.0
  */
 export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -130,49 +71,10 @@ export async function hashPassword(password: string): Promise<string> {
  * Uses the same PBKDF2 parameters and implements timing-safe comparison to
  * prevent timing attacks that could reveal information about the stored hash.
  *
- * @example
- * ```typescript
- * // Verify password during login
- * const loginUser = async (email: string, password: string) => {
- *   const user = await findUserByEmail(email);
- *   if (!user) return false;
- *
- *   const isValid = await verifyPassword(password, user.password);
- *   return isValid;
- * };
- * ```
- *
- * @example
- * ```typescript
- * // Use in authentication middleware
- * export async function authenticate(credentials: LoginCredentials) {
- *   const user = await getUserByEmail(credentials.email);
- *   if (!user) {
- *     throw new Error('Invalid credentials');
- *   }
- *
- *   const isValidPassword = await verifyPassword(
- *     credentials.password,
- *     user.hashedPassword
- *   );
- *
- *   if (!isValidPassword) {
- *     throw new Error('Invalid credentials');
- *   }
- *
- *   return user;
- * }
- * ```
- *
  * @param password - The plain text password to verify
  * @param hash - The base64-encoded hash string from storage
  * @returns A promise that resolves to true if password matches, false otherwise
  *
- * @see {@link hashPassword} for password hashing
- * @see {@link timingSafeEqual} for secure comparison implementation
- * @see {@link https://codahale.com/a-lesson-in-timing-attacks/} Understanding Timing Attacks
- *
- * @since 1.0.0
  */
 export async function verifyPassword(
   password: string,
@@ -216,10 +118,6 @@ export async function verifyPassword(
  * reveal information about the compared values. Essential for secure password
  * verification and other cryptographic operations.
  *
- * @see {@link verifyPassword} for password verification usage
- * @see {@link https://www.chosenplaintext.ca/articles/beginners-guide-constant-time-cryptography.html} Constant-Time Cryptography Guide
- *
- * @since 1.0.0
  */
 function timingSafeEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;

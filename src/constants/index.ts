@@ -15,20 +15,6 @@
  * @property {string} GENERIC_ERROR - Generic fallback error message for unexpected failures
  * @property {string} LOGIN_FAILED - Error message for failed authentication attempts
  *
- * @example
- * ```typescript
- * // Use in form validation schemas
- * const emailValidation = z.string()
- *   .min(1, VALIDATION_MESSAGES.EMAIL_REQUIRED)
- *   .email(VALIDATION_MESSAGES.EMAIL_INVALID);
- *
- * // Display error in components
- * {error && <ErrorMessage>{VALIDATION_MESSAGES.LOGIN_FAILED}</ErrorMessage>}
- * ```
- *
- * @see {@link loginSchema} for validation schema implementation
- * @see {@link SharedFormProps} for form error handling
- * @since 1.0.0
  */
 export const VALIDATION_MESSAGES = {
   EMAIL_REQUIRED: "Email is required",
@@ -55,24 +41,6 @@ export const VALIDATION_MESSAGES = {
  * @property {string} NAME - Field name for user name input fields
  * @property {string} PHONE - Field name for phone number input fields
  *
- * @example
- * ```typescript
- * // Use in form schemas
- * const formSchema = z.object({
- *   [FORM_FIELD_NAMES.EMAIL]: z.string().email(),
- *   [FORM_FIELD_NAMES.PASSWORD]: z.string().min(6),
- * });
- *
- * // Use in form field configurations
- * const loginFields = [
- *   { name: FORM_FIELD_NAMES.EMAIL, label: "Email", type: "email" },
- *   { name: FORM_FIELD_NAMES.PASSWORD, label: "Password", type: "password" }
- * ];
- * ```
- *
- * @see {@link FormFieldConfig} for form field configuration structure
- * @see {@link SharedFormProps} for form component implementation
- * @since 1.0.0
  */
 export const FORM_FIELD_NAMES = {
   EMAIL: "email",
