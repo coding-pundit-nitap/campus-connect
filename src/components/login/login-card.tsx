@@ -1,73 +1,49 @@
 "use client";
+
+import React from "react";
 import { SharedCard } from "@/components/shared/shared-card";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import Image from "next/image";
-import LoginForm from "./login-form";
-import { useRouter } from "next/navigation";
-import { signIn } from "@/auth";
+import { LoginForm } from "./login-form";
+import { useLogin } from "../../hooks/useLogin";
+import { LoginCardConfig } from "@/types/login.types";
+import { AuthProviderConfig } from "@/types/ui";
+import { Separator } from "../ui/separator";
+import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
+import { LoginFooter } from "./login-footer";
+import loginUIService from "@/lib/login.utils";
 
-interface LoginCardProps {
-  className?: string;
-  title?: string;
-  description?: string;
-}
-
-export default function LoginCard({
-  className = "mx-4 w-full md:w-1/2",
-  title = "Welcome Back",
-  description = "Please enter your details",
-}: LoginCardProps) {
-  const router = useRouter();
-  const handleGoogleLogin = async () => {
-    try {
-      await signIn("google");
-    } catch (err) {
-      console.error("Google login failed:", err);
-      throw new Error("Google login is not yet implemented");
-    }
+export function LoginCard({ className, title, description }: LoginCardConfig) {
+  const config = loginUIService.getDefaultLoginCardConfig();
+  const { handlers, state } = useLogin();
+  const googleAuthConfig: AuthProviderConfig = {
+    provider: "google",
+    iconSrc: "/svg/google-icon.svg",
+    label: "Sign in with Google",
+    onClick: handlers.onGoogleLogin,
   };
 
-  const handleSignUp = () => {
-    router.push("/register");
+  const finalConfig = {
+    className: className || config.className,
+    title: title || config.title,
+    description: description || config.description,
   };
-
-  const footerContent = (
-    <Button
-      variant="link"
-      className="text-sm text-blue-600 hover:underline"
-      onClick={handleSignUp}
-      type="button"
-    >
-      Don&apos;t have an account?
-    </Button>
-  );
 
   return (
     <SharedCard
-      title={title}
-      description={description}
+      title={finalConfig.title}
+      description={finalConfig.description}
       showHeader={true}
       showFooter={true}
-      footerContent={footerContent}
-      className={className}
+      footerContent={
+        <LoginFooter onNavigateToRegister={handlers.onNavigateToRegister} />
+      }
+      className={finalConfig.className}
     >
-      <LoginForm isStaff={false} />,
-      <Separator className="my-4" />
-      <Button
-        variant="outline"
-        className="w-full"
-        onClick={handleGoogleLogin}
-        type="button"
-      >
-        <Image
-          src="/svg/google-icon.svg"
-          alt="Google Icon"
-          width={16}
-          height={16}
-        />
-        Sign in with Google
-      </Button>
+      <LoginForm />
+      <Separator className={"my-4"} />
+      <SharedAuthProviderButton
+        config={googleAuthConfig}
+        disabled={state.isLoading}
+      />
     </SharedCard>
   );
 }

@@ -28,7 +28,7 @@ services:
     env_file:
       - .env.local
     # Use pnpm to run the dev server
-    command: sh -c "pnpm prisma generate && pnpm dev"
+    command: sh -c "pnpm install && pnpm prisma generate && pnpm dev"
 
   # --- Production Service ---
   app-prod:

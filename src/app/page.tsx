@@ -1,10 +1,12 @@
+import { CartDrawer } from "@/components/cart-drawer";
+
 import React from "react";
 import Login from "@/page-components/auth/login";
 
 const page = () => {
   return (
     <>
-      <Login />
+      <div>Hello</div>
     </>
   );
 };

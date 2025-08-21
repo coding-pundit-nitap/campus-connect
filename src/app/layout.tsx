@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
         <QueryProvider>
           <QueryErrorBoundary>
             {children}
+            <Toaster position="top-right" richColors closeButton />
           </QueryErrorBoundary>
         </QueryProvider>
       </body>

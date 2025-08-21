@@ -41,3 +41,17 @@ export interface ButtonConfig {
   loading?: boolean;
   onClick?: () => void;
 }
+
+export interface CartConfig {
+  showBadge?: boolean;
+  currency?: string;
+  showItemCount?: boolean;
+  emptyMessage?: string;
+}
+
+export interface AuthProviderConfig {
+  provider: "google" | "facebook" | "github";
+  iconSrc: string;
+  label: string;
+  onClick: () => Promise<void>;
+}
