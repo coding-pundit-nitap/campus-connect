@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { TabItem } from "@/types/ui";
@@ -90,39 +91,6 @@ interface SharedTabsProps {
  *   { value: "audit", label: "Audit", content: <AuditLog />, disabled: !hasAuditAccess }
  * ];
  * ```
- *
- * @remarks
- * **Tab Layout:**
- * - Automatically distributes tab triggers evenly using CSS Grid
- * - Full-width responsive design that adapts to container size
- * - Dynamic grid columns based on the number of tabs provided
- *
- * **Content Management:**
- * - Each tab content is rendered in a separate TabsContent component
- * - Content is only mounted when the corresponding tab is active
- * - Consistent padding and spacing applied to all tab content areas
- *
- * **Styling Features:**
- * - Granular styling control for tabs container, list, and content areas
- * - Default full-width layout with customizable additional classes
- * - Consistent 4-unit top padding for all tab content (pt-4)
- * - Integration with design system components and styling
- *
- * **Accessibility Features:**
- * - Proper ARIA attributes and keyboard navigation support
- * - Screen reader friendly tab labels and content association
- * - Focus management when switching between tabs
- * - Support for disabled tab states with appropriate ARIA attributes
- *
- * **Responsive Design:**
- * - Mobile-friendly tab layout that works on all screen sizes
- * - Equal-width tab distribution regardless of label length
- * - Flexible content areas that adapt to different content types
- *
- * **Performance Features:**
- * - Efficient rendering with unique keys for tab mapping
- * - Minimal re-renders when switching between tabs
- * - Optimized DOM structure for smooth animations
  *
  * @see {@link Tabs} from @/components/ui/tabs for the underlying tabs wrapper
  * @see {@link TabsList} from @/components/ui/tabs for the tabs header component

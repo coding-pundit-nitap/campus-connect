@@ -28,31 +28,6 @@ import {
  *
  * @throws {Error} When product creation fails due to service errors
  *
- * @example
- * ```typescript
- * const formData = new FormData();
- * formData.append("name", "Laptop");
- * formData.append("description", "High-performance laptop");
- * formData.append("price", "999.99");
- * formData.append("stock_quantity", "10");
- *
- * const result = await createProductAction(formData);
- *
- * if (result.success) {
- *   console.log("Product created:", result.data);
- * } else {
- *   console.error("Creation failed:", result.message);
- * }
- * ```
- *
- * @remarks
- * - Requires user authentication and shop ownership
- * - Validates input using productSchema before creation
- * - Currently sets image_url to empty string (image upload not implemented)
- * - Associates the product with the authenticated user's shop
- * - TODO: Implement actual image upload functionality
- * - TODO: Add revalidatePath for cache invalidation
- *
  * @see {@link productSchema} for input validation rules
  * @see {@link productServices.createProduct} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response structure
@@ -88,6 +63,7 @@ export async function createProductAction(formData: FormData) {
 
     return createSuccessResponse(newProduct, "Product created successfully");
   } catch (error) {
+    console.error("CREATE PRODUCT ERROR:", error);
     return createErrorResponse("An error occurred while creating the product");
   }
 }

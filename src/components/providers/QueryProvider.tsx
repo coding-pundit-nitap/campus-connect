@@ -33,47 +33,6 @@ interface QueryProviderProps {
  *
  * @returns A JSX element providing React Query context to child components
  *
- * @example
- * ```tsx
- * // Basic usage wrapping the entire application
- * <QueryProvider>
- *   <App />
- * </QueryProvider>
- *
- * // Wrapping specific sections that need query functionality
- * <QueryProvider>
- *   <UserDashboard />
- *   <DataTable />
- * </QueryProvider>
- * ```
- *
- * @remarks
- * **Query Configuration:**
- * - **Stale Time**: 5 minutes - Data is considered fresh for 5 minutes
- * - **Garbage Collection Time**: 10 minutes - Unused data is kept in cache for 10 minutes
- * - **Window Focus Refetch**: Disabled - Queries don't automatically refetch on window focus
- * - **Retry Logic**: Smart retry strategy based on HTTP status codes
- *
- * **Retry Strategy:**
- * - Client errors (4xx except 408, 409, 429): No retry
- * - Server errors (5xx): Retry up to 3 times
- * - Network errors: Retry up to 3 times
- * - Timeout (408), Conflict (409), Rate limit (429): Retry up to 3 times
- *
- * **Mutation Configuration:**
- * - **Retry Count**: 1 - Mutations are retried once on failure
- *
- * **Development Features:**
- * - Includes React Query DevTools for debugging in development
- * - DevTools are initially closed but can be opened for inspection
- * - Provides detailed query state information and cache inspection
- *
- * **Performance Benefits:**
- * - Reduces unnecessary network requests through intelligent caching
- * - Prevents redundant retries for permanent failures
- * - Optimizes background refetching behavior
- * - Provides automatic garbage collection of unused data
- *
  * @see {@link QueryClient} from TanStack Query for client configuration options
  * @see {@link QueryClientProvider} for the provider implementation
  * @see {@link ReactQueryDevtools} for development debugging tools
@@ -90,7 +49,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
             gcTime: 1000 * 60 * 10,
             retry: (failureCount, error) => {
               if (error instanceof Error && "status" in error) {
-                const status = (error as any).status;
+                const status = (error as { status: number }).status;
                 if (
                   status >= 400 &&
                   status < 500 &&

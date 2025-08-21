@@ -6,6 +6,9 @@ import {
   createErrorResponse,
 } from "@/types/response.type";
 
+export const config = {
+  runtime: "edge",
+};
 /**
  * Retrieves products from a specific shop with cursor-based pagination.
  *
@@ -26,43 +29,15 @@ import {
  *
  * @throws {Error} When product retrieval fails due to service errors or database issues
  *
- * @example
- * ```typescript
- * // GET /api/shops/123/products?limit=5&cursor=abc123
- * const response = await fetch('/api/shops/123/products?limit=5&cursor=abc123');
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('Products:', result.data.data);
- *   console.log('Next cursor:', result.data.nextCursor);
- *
- *   // Load next page
- *   if (result.data.nextCursor) {
- *     const nextPage = await fetch(`/api/shops/123/products?cursor=${result.data.nextCursor}`);
- *   }
- * } else {
- *   console.error('Failed to get products:', result.message);
- * }
- * ```
- *
- * @remarks
- * - Uses cursor-based pagination for better performance with large datasets
- * - Default page size is 10 products, configurable via 'limit' query parameter
- * - Products are ordered by creation date in descending order (newest first)
- * - Returns nextCursor for pagination when more products are available
- * - Shop ID validation ensures only valid shop identifiers are processed
- * - Logs errors for debugging while returning user-friendly error messages
- * - Response includes both product data and pagination metadata
- *
  * @see {@link productServices.getProductsByShopId} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(
   request: Request,
-  { params }: { params: { shop_id: string } },
+  { params }: { params: Promise<{ shop_id: string }> },
 ) {
   try {
-    const { shop_id } = params;
+    const { shop_id } = await params;
 
     if (!shop_id) {
       const errorResponse = createErrorResponse("Shop ID is required.");

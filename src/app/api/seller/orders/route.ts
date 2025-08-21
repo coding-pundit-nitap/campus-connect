@@ -6,6 +6,9 @@ import {
   createErrorResponse,
 } from "@/types/response.type";
 
+export const config = {
+  runtime: "edge",
+};
 /**
  * Retrieves all orders for the authenticated seller's shop.
  *
@@ -23,37 +26,10 @@ import {
  *
  * @throws {Error} When order retrieval fails due to service errors
  *
- * @example
- * ```typescript
- * // GET /api/seller/orders
- * const response = await fetch('/api/seller/orders', {
- *   headers: { 'Cookie': 'session=...' }
- * });
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('Shop orders:', result.data);
- *   result.data.forEach(order => {
- *     console.log(`Order ${order.id}: ${order.status} - Customer: ${order.customer_name}`);
- *   });
- * } else {
- *   console.error('Failed to get shop orders:', result.message);
- * }
- * ```
- *
- * @remarks
- * - Requires valid seller session with shop_id for authentication
- * - Only returns orders placed at the authenticated seller's shop
- * - Order data includes customer details, product information, quantities, and pricing
- * - Orders typically include timestamps, delivery status, and payment information
- * - Useful for sellers to manage their shop's orders and fulfillment
- * - Logs errors for debugging while returning user-friendly error messages
- * - No pagination implemented - returns all shop orders
- *
  * @see {@link orderServices.getOrdersByShopId} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const session = await auth();
     const shop_id = session?.user?.shop_id;

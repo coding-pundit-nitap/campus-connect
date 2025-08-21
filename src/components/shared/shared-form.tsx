@@ -180,41 +180,6 @@ interface SharedFormProps<T extends FieldValues = FieldValues> {
  * />
  * ```
  *
- * @remarks
- * **Form Structure:**
- * - Error alert display at the top when errors exist
- * - Dynamic field rendering based on field configuration array
- * - Optional custom content section between fields and submit button
- * - Full-width submit button with loading state and icon
- *
- * **Field Rendering:**
- * - Each field is wrapped in FormField for React Hook Form integration
- * - Automatic label, input, and validation message rendering
- * - Support for various input types (text, email, password, etc.)
- * - Individual field disable state with global loading override
- *
- * **Loading States:**
- * - Global loading state disables all form inputs
- * - Submit button shows loading spinner during async operations
- * - Maintains form accessibility during loading states
- *
- * **Error Handling:**
- * - Top-level error display with destructive styling
- * - Individual field validation messages through React Hook Form
- * - Consistent error styling and positioning
- *
- * **Accessibility Features:**
- * - Proper form labeling and semantic HTML structure
- * - Screen reader friendly error announcements
- * - Keyboard navigation support for all form elements
- * - Focus management during loading and error states
- *
- * **Styling Features:**
- * - Consistent spacing with space-y-4 between form elements
- * - Full-width submit button for mobile-friendly design
- * - Extensible styling through className prop
- * - Integration with design system components
- *
  * @see {@link Form} from @/components/ui/form for the underlying form wrapper
  * @see {@link FormField} from @/components/ui/form for individual field rendering
  * @see {@link Button} from @/components/ui/button for submit button component

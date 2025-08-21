@@ -7,6 +7,10 @@ import {
   createErrorResponse,
 } from "@/types/response.type";
 
+export const config = {
+  runtime: "edge",
+};
+
 /**
  * Handles user registration requests via POST method.
  *
@@ -28,35 +32,6 @@ import {
  *   - 500: Internal server error for unexpected failures
  *
  * @throws {Error} When user creation fails due to database errors
- *
- * @example
- * ```typescript
- * // POST /api/auth/register
- * const response = await fetch('/api/auth/register', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify({
- *     name: 'John Doe',
- *     email: 'john@example.com',
- *     password: 'securePassword123'
- *   })
- * });
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('User registered:', result.data);
- * } else {
- *   console.error('Registration failed:', result.message);
- * }
- * ```
- *
- * @remarks
- * - Validates input using registerSchema before processing
- * - Enforces unique email constraint across all users
- * - Passwords are securely hashed using bcrypt before storage
- * - Returns sanitized user data (excludes hashed_password)
- * - All responses follow standardized success/error format
- * - Logs errors for debugging while returning generic error messages to clients
  *
  * @see {@link registerSchema} for input validation rules
  * @see {@link hashPassword} for password hashing implementation
