@@ -1,53 +1,20 @@
 "use client";
+
 import React from "react";
 import { SharedForm } from "@/components/shared/shared-form";
-import { useLoginForm } from "@/hooks/useAuth";
-import { FORM_FIELD_NAMES } from "@/constants";
-import type { FormFieldConfig, ButtonConfig } from "@/types/ui";
-import type { LoginFormData } from "@/lib/validations/auth";
-import { loginAction } from "@/actions/authentication/login";
+import { LoginFormConfig } from "../../types/login.types";
+import { useLogin } from "../../hooks/useLogin";
+import loginUIService from "@/lib/login.utils";
+export function LoginForm({ className = "" }: LoginFormConfig) {
+  const { form, state, handlers } = useLogin();
 
-interface LoginFormProps {
-  isStaff?: boolean;
-  onError?: (error: Error) => void;
-  className?: string;
-}
+  const formFields = loginUIService.createLoginFormFields();
+  const submitButton = loginUIService.createLoginSubmitButton(state.isLoading);
+  const formattedError = loginUIService.formatLoginError(
+    state.error ? new Error(state.error) : null,
+  );
 
-export default function LoginForm({
-  isStaff = false,
-  className = "",
-}: LoginFormProps) {
-  const { form, isLoading, error, handleSubmit } = useLoginForm();
-
-  const formFields: FormFieldConfig<LoginFormData>[] = [
-    {
-      name: FORM_FIELD_NAMES.EMAIL,
-      label: "Email",
-      type: "email",
-      placeholder: "Enter your email",
-      required: true,
-    },
-    {
-      name: FORM_FIELD_NAMES.PASSWORD,
-      label: "Password",
-      type: "password",
-      placeholder: "Enter your password",
-      required: true,
-    },
-  ];
-
-  const submitButton: ButtonConfig = {
-    text: `Sign in as ${isStaff ? "Staff" : "Customer"}`,
-    type: "submit",
-    variant: "default",
-    loading: isLoading,
-  };
-
-  const onSubmit = async (data: LoginFormData) => {
-    return await loginAction(data);
-  };
-
-  const submitHandler = handleSubmit(onSubmit);
+  const submitHandler = form.handleSubmit(handlers.onFormSubmit);
 
   return (
     <SharedForm
@@ -55,8 +22,8 @@ export default function LoginForm({
       fields={formFields}
       submitButton={submitButton}
       onSubmit={submitHandler}
-      isLoading={isLoading}
-      error={error}
+      isLoading={state.isLoading}
+      error={formattedError}
       className={className}
     />
   );

@@ -2,9 +2,9 @@ import { z } from "zod";
 import { VALIDATION_MESSAGES } from "@/constants";
 
 export const emailSchema = z
-  .string()
+  .email(VALIDATION_MESSAGES.EMAIL_INVALID)
   .min(1, VALIDATION_MESSAGES.EMAIL_REQUIRED)
-  .email(VALIDATION_MESSAGES.EMAIL_INVALID);
+  ;
 
 export const passwordSchema = z
   .string()

@@ -10,7 +10,6 @@ import {
 import { NextAuthRequest } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
-// Define a mapping of role prefixes to Prisma Role values
 const roleBasedPrefixes: {
   prefixes: string[];
   isStaff: boolean;
