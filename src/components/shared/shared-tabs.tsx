@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import type { TabItem } from "@/types/ui";
+import type { TabItem } from "@/types/ui.types";
 
 /**
  * Props interface for the SharedTabs component.

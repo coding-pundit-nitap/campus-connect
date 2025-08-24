@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { CardConfig } from "@/types/ui";
+import type { CardConfig } from "@/types/ui.types";
 
 /**
  * Configuration properties for the SharedCard component.

@@ -1,6 +1,6 @@
 import React from "react";
 import { SharedTabs } from "../shared/shared-tabs";
-import { TabItem } from "@/types/ui";
+import { TabItem } from "@/types/ui.types";
 import { CartSummary } from "@/types/cart.type";
 import { CartDrawerWrapper } from "./cart-states";
 import { CartItems } from "./cart-items";

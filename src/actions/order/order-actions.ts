@@ -41,7 +41,7 @@ export async function createOrderAction({
 
     // TODO: Implement payment processing
     const pg_payment_id =
-      payment_method === "ONLINE" ? `txn_${new Date().getTime()}` : undefined;
+      payment_method === "ONLINE" ? `txn_${new Date().getTime()}` : "offline";
 
     const order = await orderServices.createOrderFromCart(
       session.user.id,

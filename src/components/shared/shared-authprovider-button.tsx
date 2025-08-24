@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
-import { AuthProviderConfig } from "@/types/ui";
+import { AuthProviderConfig } from "@/types/ui.types";
 
 interface AuthProviderButtonProps {
   config: AuthProviderConfig;

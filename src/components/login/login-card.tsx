@@ -5,7 +5,7 @@ import { SharedCard } from "@/components/shared/shared-card";
 import { LoginForm } from "./login-form";
 import { useLogin } from "../../hooks/useLogin";
 import { LoginCardConfig } from "@/types/login.types";
-import { AuthProviderConfig } from "@/types/ui";
+import { AuthProviderConfig } from "@/types/ui.types";
 import { Separator } from "../ui/separator";
 import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
 import { LoginFooter } from "./login-footer";

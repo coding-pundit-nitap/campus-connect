@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { registerSchema, RegisterFormData } from "@/lib/validations/auth";
 import { useRegisterUser } from "@/hooks";
 import { RegisterState, RegisterHandlers } from "../types/register.types";
-import registerUIService from "@/lib/register.utils";
 import loginUIService from "@/lib/login.utils";
+import { useCallback } from "react";
 
 export function useRegister() {
   const router = useRouter();
@@ -28,9 +28,19 @@ export function useRegister() {
   };
 
   const handlers: RegisterHandlers = {
-    onGoogleLogin: loginUIService.handleGoogleLogin,
-    onNavigateToLogin: registerUIService.handleNavigateToLogin(router),
-    onFormSubmit: registerUIService.handleRegisterFormSubmit(registerUser),
+    onGoogleLogin: useCallback(() => {
+      loginUIService.handleGoogleLogin();
+    }, []),
+    onNavigateToLogin: useCallback(() => {
+      router.push("/login");
+    }, [router]),
+
+    onFormSubmit: useCallback(
+      (data: RegisterFormData) => {
+        registerUser(data);
+      },
+      [registerUser],
+    ),
   };
 
   return {

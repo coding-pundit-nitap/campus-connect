@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
 import type { FieldValues, UseFormReturn, Path } from "react-hook-form";
-import type { ButtonConfig } from "@/types/ui";
+import type { ButtonConfig } from "@/types/ui.types";
 
 /**
  * Configuration interface for individual form fields in the SharedForm component.

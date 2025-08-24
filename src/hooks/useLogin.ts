@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { loginSchema, LoginFormData } from "@/lib/validations/auth";
 import { useLoginUser } from "@/hooks";
-import { LoginState, LoginHandlers } from "../types/login.types";
+import { LoginState, LoginHandlers } from "@/types/login.types";
 import loginUIService from "@/lib/login.utils";
 import { useCallback } from "react";
 
@@ -26,14 +26,19 @@ export function useLogin() {
   };
 
   const handlers: LoginHandlers = {
-    onGoogleLogin: useCallback(loginUIService.handleGoogleLogin, []),
-    onNavigateToRegister: useCallback(
-      loginUIService.handleNavigateToRegister(router),
-      [],
-    ),
+    onGoogleLogin: useCallback(() => {
+      loginUIService.handleGoogleLogin();
+    }, []),
+
+    onNavigateToRegister: useCallback(() => {
+      router.push("/register");
+    }, [router]),
+
     onFormSubmit: useCallback(
-      loginUIService.handleLoginFormSubmit(loginUser),
-      [],
+      (data: LoginFormData) => {
+        loginUser(data);
+      },
+      [loginUser]
     ),
   };
 

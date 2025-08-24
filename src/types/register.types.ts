@@ -18,7 +18,7 @@ export interface RegisterState {
 }
 
 export interface RegisterHandlers {
-  onGoogleLogin: () => Promise<void>;
+  onGoogleLogin: () => void;
   onNavigateToLogin: () => void;
   onFormSubmit: (data: RegisterFormData) => void;
 }

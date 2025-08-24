@@ -1,8 +1,7 @@
 import { signIn } from "@/auth";
 import { LoginFormData } from "@/lib/validations/auth";
-import { FormFieldConfig, ButtonConfig } from "@/types/ui";
+import { FormFieldConfig, ButtonConfig } from "@/types/ui.types";
 import { FORM_FIELD_NAMES } from "@/constants";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 /**
  * A service class to manage all business logic, event handling,
@@ -20,23 +19,6 @@ class LoginUIService {
       throw new Error("Failed to initiate Google login.");
     }
   };
-
-  /**
-   * Returns a memoizable callback function for navigating to the register page.
-   * @param router - The Next.js App Router instance.
-   */
-  handleNavigateToRegister = (router: AppRouterInstance) => () => {
-    router.push("/register");
-  };
-
-  /**
-   * Returns a memoizable callback function for handling the form submission.
-   * @param loginUser - The mutation function to call with form data.
-   */
-  handleLoginFormSubmit =
-    (loginUser: (data: LoginFormData) => void) => (data: LoginFormData) => {
-      loginUser(data);
-    };
 
   /**
    * Handles successful login events for analytics or logging.

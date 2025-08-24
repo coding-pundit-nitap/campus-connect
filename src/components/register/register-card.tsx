@@ -8,7 +8,7 @@ import { RegisterCardConfig } from "../../types/register.types";
 import { RegisterFooter } from "./register-footer";
 import { Separator } from "../ui/separator";
 import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
-import { AuthProviderConfig } from "@/types/ui";
+import { AuthProviderConfig } from "@/types/ui.types";
 import registerUIService from "@/lib/register.utils";
 
 export function RegisterCard({

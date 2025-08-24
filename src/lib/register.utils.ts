@@ -1,31 +1,12 @@
-import { FormFieldConfig, ButtonConfig } from "@/types/ui";
+import { FormFieldConfig, ButtonConfig } from "@/types/ui.types";
 import { RegisterFormData } from "@/lib/validations/auth";
 import { FORM_FIELD_NAMES } from "@/constants";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 /**
  * A service class to manage all business logic, event handling,
  * and configuration for the Registration UI.
  */
 class RegisterUIService {
-  /**
-   * Returns a memoizable callback function for navigating to the login page.
-   * @param router - The Next.js App Router instance.
-   */
-  handleNavigateToLogin = (router: AppRouterInstance) => () => {
-    router.push("/login");
-  };
-
-  /**
-   * Returns a memoizable callback function for handling the registration form submission.
-   * @param registerUser - The mutation function to call with form data.
-   */
-  handleRegisterFormSubmit =
-    (registerUser: (data: RegisterFormData) => void) =>
-    (data: RegisterFormData) => {
-      registerUser(data);
-    };
-
   /**
    * Generates the configuration for the registration form fields.
    */
