@@ -66,7 +66,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
             retry: 1,
           },
         },
-      }),
+      })
   );
 
   return (

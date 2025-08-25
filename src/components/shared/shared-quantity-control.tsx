@@ -1,6 +1,7 @@
-import React from "react";
-import { Button } from "../ui/button";
 import { Minus, Plus } from "lucide-react";
+import React from "react";
+
+import { Button } from "../ui/button";
 
 type Props = {
   quantity: number;

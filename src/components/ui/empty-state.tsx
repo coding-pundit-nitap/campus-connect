@@ -1,5 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, FileQuestion, Loader2 } from "lucide-react";
+
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 interface EmptyStateProps {
@@ -47,7 +48,7 @@ export function EmptyState({
       <CardContent
         className={cn(
           "flex flex-col items-center justify-center text-center p-6",
-          getBackgroundColor(),
+          getBackgroundColor()
         )}
       >
         <div className="mb-4">{icon || getDefaultIcon()}</div>

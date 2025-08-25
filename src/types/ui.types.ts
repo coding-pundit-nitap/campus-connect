@@ -53,5 +53,5 @@ export interface AuthProviderConfig {
   provider: "google" | "facebook" | "github";
   iconSrc: string;
   label: string;
-  onClick: () => Promise<void>;
+  onClick: () => void;
 }

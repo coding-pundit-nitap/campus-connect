@@ -1,6 +1,7 @@
 import { Cart, CartItem, Product } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
  * Extended cart type with populated items and product details.
@@ -187,7 +188,7 @@ class CartServices {
   async upsertCartItem(
     user_id: string,
     product_id: string,
-    quantity: number,
+    quantity: number
   ): Promise<FullCart> {
     const product = await prisma.product.findUnique({
       where: { id: product_id },

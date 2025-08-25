@@ -1,10 +1,12 @@
 import React from "react";
-import { SharedTabs } from "../shared/shared-tabs";
-import { TabItem } from "@/types/ui";
-import { CartSummary } from "@/types/cart.type";
-import { CartDrawerWrapper } from "./cart-states";
-import { CartItems } from "./cart-items";
+
 import cartUIService from "@/lib/cart.utils";
+import { CartSummary } from "@/types/cart.type";
+import { TabItem } from "@/types/ui.types";
+
+import { SharedTabs } from "../shared/shared-tabs";
+import { CartItems } from "./cart-items";
+import { CartDrawerWrapper } from "./cart-states";
 
 interface CartContentProps {
   summary: CartSummary;

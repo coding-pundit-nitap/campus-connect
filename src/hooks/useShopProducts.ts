@@ -1,8 +1,9 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { productAPIService, shopAPIService } from "@/services/api";
+
 import { queryKeys } from "@/lib/query-keys";
+import { productAPIService, shopAPIService } from "@/services/api";
 
 /**
  * Hook to fetch shop details by shop ID with conditional query execution and automatic caching.
