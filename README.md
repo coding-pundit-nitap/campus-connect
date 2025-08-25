@@ -69,6 +69,7 @@ College Connect is a modern web application built with Next.js that serves as a 
 - **[Prettier](https://prettier.io/)** - Code formatting
 - **[Docker](https://www.docker.com/)** - Containerization
 - **[pnpm](https://pnpm.io/)** - Package manager
+- **[Husky](https://typicode.github.io/husky/#/)** - Git hooks
 
 ## 📋 Prerequisites
 
