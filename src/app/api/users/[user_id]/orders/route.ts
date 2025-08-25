@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { auth } from "@/auth";
 import orderServices from "@/services/order.services";
 
@@ -31,7 +32,7 @@ export const config = {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> },
+  { params }: { params: Promise<{ user_id: string }> }
 ) {
   try {
     const session = await auth();
@@ -51,7 +52,7 @@ export async function GET(
     console.error("GET USER ORDERS ERROR:", error);
     return NextResponse.json(
       { error: "An internal server error occurred." },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

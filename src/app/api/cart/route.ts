@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { z } from "zod";
+
+import { auth } from "@/auth";
 import cartServices from "@/services/cart.services";
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
 } from "@/types/response.type";
 
 export const config = {
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
 
     if (!shop_id) {
       const errorResponse = createErrorResponse(
-        "shop_id query parameter is required",
+        "shop_id query parameter is required"
       );
       return NextResponse.json(errorResponse, { status: 400 });
     }
@@ -68,13 +69,13 @@ export async function GET(request: Request) {
     const cart = await cartServices.getCartForShop(session.user.id, shop_id);
     const successResponse = createSuccessResponse(
       cart,
-      "Cart retrieved successfully",
+      "Cart retrieved successfully"
     );
     return NextResponse.json(successResponse);
   } catch (error) {
     console.error("GET CART ERROR:", error);
     const errorResponse = createErrorResponse(
-      "An internal server error occurred.",
+      "An internal server error occurred."
     );
     return NextResponse.json(errorResponse, { status: 500 });
   }
@@ -156,17 +157,17 @@ export async function POST(request: Request) {
     const updatedCart = await cartServices.upsertCartItem(
       session.user.id,
       product_id,
-      quantity,
+      quantity
     );
     const successResponse = createSuccessResponse(
       updatedCart,
-      "Cart updated successfully",
+      "Cart updated successfully"
     );
     return NextResponse.json(successResponse);
   } catch (error) {
     console.error("UPSERT CART ITEM ERROR:", error);
     const errorResponse = createErrorResponse(
-      "An internal server error occurred.",
+      "An internal server error occurred."
     );
     return NextResponse.json(errorResponse, { status: 500 });
   }

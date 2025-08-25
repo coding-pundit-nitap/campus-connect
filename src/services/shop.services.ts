@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { Prisma, Shop } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * Type alias for shop creation data.
@@ -80,11 +81,11 @@ class ShopServices {
   async getShopByOwnerId(ownerId: string): Promise<Shop | null>;
   async getShopByOwnerId<T extends ShopFindOptions>(
     ownerId: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | null>;
   async getShopByOwnerId<T extends ShopFindOptions>(
     ownerId: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | Shop | null
   > {
@@ -112,11 +113,11 @@ class ShopServices {
   async createShop(data: CreateShopDto): Promise<Shop>;
   async createShop<T extends ShopCreateOptions>(
     data: CreateShopDto,
-    options: T,
+    options: T
   ): Promise<Prisma.ShopGetPayload<{ data: CreateShopDto } & T>>;
   async createShop<T extends ShopCreateOptions>(
     data: CreateShopDto,
-    options?: T,
+    options?: T
   ): Promise<Prisma.ShopGetPayload<{ data: CreateShopDto } & T> | Shop> {
     const query = { data, ...(options ?? {}) };
     return prisma.shop.create(query);
@@ -135,14 +136,14 @@ class ShopServices {
   async updateShop<T extends ShopUpdateOptions>(
     shop_id: string,
     data: UpdateShopDto,
-    options: T,
+    options: T
   ): Promise<
     Prisma.ShopGetPayload<{ where: { id: string }; data: UpdateShopDto } & T>
   >;
   async updateShop<T extends ShopUpdateOptions>(
     shop_id: string,
     data: UpdateShopDto,
-    options?: T,
+    options?: T
   ): Promise<
     | Prisma.ShopGetPayload<{ where: { id: string }; data: UpdateShopDto } & T>
     | Shop
@@ -171,11 +172,11 @@ class ShopServices {
   async deleteShop(shop_id: string): Promise<Shop>;
   async deleteShop<T extends ShopDeleteOptions>(
     shop_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T>>;
   async deleteShop<T extends ShopDeleteOptions>(
     shop_id: string,
-    options?: T,
+    options?: T
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop> {
     const query = { where: { id: shop_id }, ...(options ?? {}) };
     return prisma.shop.delete(query);
@@ -278,11 +279,11 @@ class ShopServices {
   async getShopById(shop_id: string): Promise<Shop | null>;
   async getShopById<T extends ShopFindOptions>(
     shop_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | null>;
   async getShopById<T extends ShopFindOptions>(
     shop_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop | null
   > {

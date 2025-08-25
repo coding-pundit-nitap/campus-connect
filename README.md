@@ -45,6 +45,7 @@ College Connect is a modern web application built with Next.js that serves as a 
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - **[Next.js 15](https://nextjs.org/)** - React framework with App Router
 - **[TypeScript](https://www.typescriptlang.org/)** - Type safety
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
@@ -52,20 +53,22 @@ College Connect is a modern web application built with Next.js that serves as a 
 - **[Lucide React](https://lucide.dev/)** - Icons
 
 ### Backend & Database
+
 - **[Prisma](https://www.prisma.io/)** - Database ORM
 - **[PostgreSQL](https://www.postgresql.org/)** - Primary database
 - **[NextAuth.js](https://next-auth.js.org/)** - Authentication
 
 ### State Management & Data Fetching
+
 - **[TanStack Query](https://tanstack.com/query)** - Server state management
 - **[Zod](https://zod.dev/)** - Schema validation
 
 ### Development Tools
+
 - **[ESLint](https://eslint.org/)** - Code linting
 - **[Prettier](https://prettier.io/)** - Code formatting
 - **[Docker](https://www.docker.com/)** - Containerization
 - **[pnpm](https://pnpm.io/)** - Package manager
-
 
 ## 📋 Prerequisites
 
@@ -79,33 +82,38 @@ Before running this project, make sure you have the following installed:
 ## 🚀 Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone https://github.com/connects-college/college-connect.git
    cd college-connect
    ```
 
 2. **Install dependencies**
+
    ```bash
    pnpm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Fill in your environment variables (see [Configuration](#configuration))
 
 4. **Set up the database**
+
    ```bash
    # Using Docker (recommended)
    pnpm docker:dev:up
-   
+
    # Or start just the database
    docker-compose up db -d
    ```
 
 5. **Run database migrations**
+
    ```bash
    pnpm db:migrate
    ```
@@ -138,34 +146,34 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 ### Available Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm dev` | Start development server with Turbopack |
-| `pnpm build` | Build for production |
-| `pnpm start` | Start production server |
-| `pnpm lint` | Run ESLint |
-| `pnpm format` | Format code with Prettier |
-| `pnpm typecheck` | Run TypeScript type checking |
-| `pnpm validate` | Run linting and format checking |
+| Script           | Description                             |
+| ---------------- | --------------------------------------- |
+| `pnpm dev`       | Start development server with Turbopack |
+| `pnpm build`     | Build for production                    |
+| `pnpm start`     | Start production server                 |
+| `pnpm lint`      | Run ESLint                              |
+| `pnpm format`    | Format code with Prettier               |
+| `pnpm typecheck` | Run TypeScript type checking            |
+| `pnpm validate`  | Run linting and format checking         |
 
 ### Database Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm db:generate` | Generate Prisma client |
-| `pnpm db:migrate` | Run database migrations |
-| `pnpm db:deploy` | Deploy migrations to production |
-| `pnpm db:studio` | Open Prisma Studio |
+| Script             | Description                     |
+| ------------------ | ------------------------------- |
+| `pnpm db:generate` | Generate Prisma client          |
+| `pnpm db:migrate`  | Run database migrations         |
+| `pnpm db:deploy`   | Deploy migrations to production |
+| `pnpm db:studio`   | Open Prisma Studio              |
 
 ### Docker Scripts
 
-| Script | Description |
-|--------|-------------|
-| `pnpm docker:dev:build` | Build development container |
-| `pnpm docker:dev:up` | Start development environment |
-| `pnpm docker:dev:down` | Stop development environment |
-| `pnpm docker:prod:up` | Start production environment |
-| `pnpm docker:db:psql` | Connect to PostgreSQL in container |
+| Script                  | Description                        |
+| ----------------------- | ---------------------------------- |
+| `pnpm docker:dev:build` | Build development container        |
+| `pnpm docker:dev:up`    | Start development environment      |
+| `pnpm docker:dev:down`  | Stop development environment       |
+| `pnpm docker:prod:up`   | Start production environment       |
+| `pnpm docker:db:psql`   | Connect to PostgreSQL in container |
 
 ## 🗄️ Database
 
@@ -270,11 +278,13 @@ The application includes several API routes:
 6. Open a Pull Request
 
 ### Branch Naming Convention
+
 - `yourname/feature-description` - For new features
 - `yourname/fix-issue-description` - For bug fixes
 - `yourname/update-component-name` - For updates/improvements
 
 ### Pull Request Guidelines
+
 - **Maximum 300 lines** of code changes per PR
 - Include a clear description of what was changed
 - Reference any related issues

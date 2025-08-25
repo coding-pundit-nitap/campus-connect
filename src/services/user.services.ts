@@ -34,6 +34,7 @@
  * @since 1.0.0
  */
 import { Prisma, Role, User } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -69,7 +70,7 @@ export type CreateUserDto = {
  * Defines the structure for updating existing users in the system.
  * Based on Prisma's UserUpdateInput with partial updates support
  * for flexible user profile modification operations.
- * 
+ *
  */
 export type UpdateUserDto = Prisma.UserUpdateInput;
 
@@ -139,11 +140,11 @@ class UserServices {
   async getUserByEmail(email: string): Promise<User | null>;
   async getUserByEmail<T extends UserFindOptions>(
     email: string,
-    options: T,
+    options: T
   ): Promise<Prisma.UserGetPayload<{ where: { email: string } } & T> | null>;
   async getUserByEmail<T extends UserFindOptions>(
     email: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.UserGetPayload<{ where: { email: string } } & T> | User | null
   > {
@@ -170,11 +171,11 @@ class UserServices {
   async createUser(data: CreateUserDto): Promise<User>;
   async createUser<T extends UserCreateOptions>(
     data: CreateUserDto,
-    options: T,
+    options: T
   ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T>>;
   async createUser<T extends UserCreateOptions>(
     data: CreateUserDto,
-    options?: T,
+    options?: T
   ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T> | User> {
     const query = {
       data: {
@@ -207,14 +208,14 @@ class UserServices {
   async updateUser<T extends UserUpdateOptions>(
     user_id: string,
     data: UpdateUserDto,
-    options: T,
+    options: T
   ): Promise<
     Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
   >;
   async updateUser<T extends UserUpdateOptions>(
     user_id: string,
     data: UpdateUserDto,
-    options?: T,
+    options?: T
   ): Promise<
     | Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
     | User
@@ -242,11 +243,11 @@ class UserServices {
   async deleteUser(user_id: string): Promise<User>;
   async deleteUser<T extends UserDeleteOptions>(
     user_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T>>;
   async deleteUser<T extends UserDeleteOptions>(
     user_id: string,
-    options?: T,
+    options?: T
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T> | User> {
     const query = { where: { id: user_id }, ...(options ?? {}) };
     return prisma.user.delete(query);

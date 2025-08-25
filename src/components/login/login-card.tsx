@@ -1,15 +1,17 @@
 "use client";
 
 import React from "react";
+
 import { SharedCard } from "@/components/shared/shared-card";
-import { LoginForm } from "./login-form";
-import { useLogin } from "../../hooks/useLogin";
+import loginUIService from "@/lib/login.utils";
 import { LoginCardConfig } from "@/types/login.types";
 import { AuthProviderConfig } from "@/types/ui.types";
-import { Separator } from "../ui/separator";
+
+import { useLogin } from "../../hooks/useLogin";
 import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
+import { Separator } from "../ui/separator";
 import { LoginFooter } from "./login-footer";
-import loginUIService from "@/lib/login.utils";
+import { LoginForm } from "./login-form";
 
 export function LoginCard({ className, title, description }: LoginCardConfig) {
   const config = loginUIService.getDefaultLoginCardConfig();

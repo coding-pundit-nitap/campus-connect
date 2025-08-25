@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
+
 import { auth } from "@/auth";
 import orderServices from "@/services/order.services";
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
 } from "@/types/response.type";
 
 export const config = {
@@ -41,7 +42,7 @@ export async function GET() {
     const orders = await orderServices.getOrdersByShopId(shop_id);
     const successResponse = createSuccessResponse(
       orders,
-      "Seller orders retrieved successfully",
+      "Seller orders retrieved successfully"
     );
     return NextResponse.json(successResponse);
   } catch (error) {

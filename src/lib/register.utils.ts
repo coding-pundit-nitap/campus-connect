@@ -1,6 +1,6 @@
-import { FormFieldConfig, ButtonConfig } from "@/types/ui.types";
-import { RegisterFormData } from "@/lib/validations/auth";
 import { FORM_FIELD_NAMES } from "@/constants";
+import { RegisterFormData } from "@/lib/validations/auth";
+import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
 
 /**
  * A service class to manage all business logic, event handling,

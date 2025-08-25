@@ -1,4 +1,8 @@
+import { Loader2 } from "lucide-react";
 import React from "react";
+import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -9,9 +13,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import type { FieldValues, UseFormReturn, Path } from "react-hook-form";
 import type { ButtonConfig } from "@/types/ui.types";
 
 /**

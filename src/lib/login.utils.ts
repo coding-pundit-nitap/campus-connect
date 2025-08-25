@@ -1,7 +1,7 @@
 import { signIn } from "@/auth";
-import { LoginFormData } from "@/lib/validations/auth";
-import { FormFieldConfig, ButtonConfig } from "@/types/ui.types";
 import { FORM_FIELD_NAMES } from "@/constants";
+import { LoginFormData } from "@/lib/validations/auth";
+import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
 
 /**
  * A service class to manage all business logic, event handling,

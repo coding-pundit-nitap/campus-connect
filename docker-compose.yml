@@ -12,7 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-# --- Development ---
+  # --- Development ---
   app-dev:
     build:
       context: .
