@@ -1,10 +1,11 @@
+import { NextRequest, NextResponse } from "next/server";
+
 import { hashPassword } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations/auth";
 import userServices from "@/services/user.services";
-import { NextRequest, NextResponse } from "next/server";
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
 } from "@/types/response.type";
 
 export const config = {
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
     const existingUser = await userServices.getUserByEmail(email);
     if (existingUser) {
       const errorResponse = createErrorResponse(
-        "User with this email already exists.",
+        "User with this email already exists."
       );
       return NextResponse.json(errorResponse, { status: 409 });
     }
@@ -70,18 +71,18 @@ export async function POST(request: NextRequest) {
           name: true,
           role: true,
         },
-      },
+      }
     );
 
     const successResponse = createSuccessResponse(
       user,
-      "User registered successfully",
+      "User registered successfully"
     );
     return NextResponse.json(successResponse, { status: 201 });
   } catch (error) {
     console.error("REGISTRATION ERROR:", error);
     const errorResponse = createErrorResponse(
-      "An internal server error occurred.",
+      "An internal server error occurred."
     );
     return NextResponse.json(errorResponse, { status: 500 });
   }

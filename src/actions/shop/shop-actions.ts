@@ -63,7 +63,7 @@ export async function createShopAction(formData: FormData) {
 
     return createSuccessResponse(
       newShop,
-      "Shop created successfully! Please log out and back in to access the seller dashboard.",
+      "Shop created successfully! Please log out and back in to access the seller dashboard."
     );
   } catch (error) {
     console.error("CREATE SHOP ERROR:", error);

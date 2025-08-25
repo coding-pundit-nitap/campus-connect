@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+
 import shopServices from "@/services/shop.services";
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
 } from "@/types/response.type";
 
 export const config = {
@@ -32,7 +33,7 @@ export const config = {
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ shop_id: string }> },
+  { params }: { params: Promise<{ shop_id: string }> }
 ) {
   try {
     const { shop_id } = await params;
@@ -45,13 +46,13 @@ export async function GET(
 
     const successResponse = createSuccessResponse(
       shop,
-      "Shop retrieved successfully",
+      "Shop retrieved successfully"
     );
     return NextResponse.json(successResponse, { status: 200 });
   } catch (error) {
     console.error("GET SHOP ERROR:", error);
     const errorResponse = createErrorResponse(
-      "An internal server error occurred.",
+      "An internal server error occurred."
     );
     return NextResponse.json(errorResponse, { status: 500 });
   }

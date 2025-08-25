@@ -1,14 +1,15 @@
+import { NextRequest, NextResponse } from "next/server";
+import { NextAuthRequest } from "next-auth";
+
 import { auth as middleware } from "@/auth";
 import {
-  DEFAULT_LOGIN_REDIRECT,
-  staffPrefix,
-  publicRoutes,
-  consumerPrefix,
-  authRoutes,
   apiAuthPrefix,
+  authRoutes,
+  consumerPrefix,
+  DEFAULT_LOGIN_REDIRECT,
+  publicRoutes,
+  staffPrefix,
 } from "@/rbac";
-import { NextAuthRequest } from "next-auth";
-import { NextRequest, NextResponse } from "next/server";
 
 const roleBasedPrefixes: {
   prefixes: string[];

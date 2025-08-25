@@ -1,5 +1,5 @@
-import { CartItemData, CartSummary, ShopCart } from "@/types/cart.type";
 import { FullCart } from "@/services/cart.services";
+import { CartItemData, CartSummary, ShopCart } from "@/types/cart.type";
 
 /**
  * Type alias for a single cart item from the FullCart structure
@@ -74,11 +74,11 @@ class CartDrawerServices {
   createCartSummary = (shopCarts: ShopCart[]): CartSummary => {
     const totalPrice = shopCarts.reduce(
       (total, cart) => total + cart.totalPrice,
-      0,
+      0
     );
     const totalItems = shopCarts.reduce(
       (total, cart) => total + cart.totalItems,
-      0,
+      0
     );
 
     return {
@@ -117,7 +117,7 @@ class CartDrawerServices {
   updateItemQuantity = (
     productId: string,
     newQuantity: number,
-    mutationFn: (data: { product_id: string; quantity: number }) => void,
+    mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
     mutationFn({ product_id: productId, quantity: newQuantity });
   };
@@ -131,7 +131,7 @@ class CartDrawerServices {
   increaseItemQuantity = (
     productId: string,
     currentQuantity: number,
-    mutationFn: (data: { product_id: string; quantity: number }) => void,
+    mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
     this.updateItemQuantity(productId, currentQuantity + 1, mutationFn);
   };
@@ -145,7 +145,7 @@ class CartDrawerServices {
   decreaseItemQuantity = (
     productId: string,
     currentQuantity: number,
-    mutationFn: (data: { product_id: string; quantity: number }) => void,
+    mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
     this.updateItemQuantity(productId, currentQuantity - 1, mutationFn);
   };

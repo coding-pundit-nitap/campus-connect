@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
+import { NextResponse } from "next/server";
+
 import productServices from "@/services/product.services";
 import {
-  createSuccessResponse,
   createErrorResponse,
+  createSuccessResponse,
 } from "@/types/response.type";
 
 export const config = {
@@ -34,7 +35,7 @@ export const config = {
  */
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ shop_id: string }> },
+  { params }: { params: Promise<{ shop_id: string }> }
 ) {
   try {
     const { shop_id } = await params;
@@ -59,7 +60,7 @@ export async function GET(
 
     const products = await productServices.getProductsByShopId(
       shop_id,
-      queryOptions,
+      queryOptions
     );
 
     let nextCursor: typeof cursor | null = null;
@@ -74,13 +75,13 @@ export async function GET(
     };
     const successResponse = createSuccessResponse(
       responseData,
-      "Products retrieved successfully",
+      "Products retrieved successfully"
     );
     return NextResponse.json(successResponse);
   } catch (error) {
     console.error("GET PRODUCTS ERROR:", error);
     const errorResponse = createErrorResponse(
-      "An internal server error occurred.",
+      "An internal server error occurred."
     );
     return NextResponse.json(errorResponse, { status: 500 });
   }

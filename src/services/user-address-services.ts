@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import { Prisma, UserAddress } from "@prisma/client";
+
+import { prisma } from "@/lib/prisma";
 
 /**
  * Type alias for user address creation data.

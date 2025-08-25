@@ -1,9 +1,11 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { QueryProvider } from "@/components/providers/QueryProvider";
-import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { Toaster } from "sonner";
+
+import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 

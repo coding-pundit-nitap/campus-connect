@@ -1,5 +1,7 @@
 import { ShoppingCart } from "lucide-react";
+
 import { CartItemData } from "@/types/cart.type";
+
 import { CartItem } from "./cart-item";
 
 interface CartItemsProps {

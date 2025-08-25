@@ -1,9 +1,11 @@
 "use server";
+
+import { AuthError } from "next-auth";
+
 import { signIn } from "@/auth";
 import { handleActionError } from "@/lib/auth";
 import { LoginFormData, loginSchema } from "@/lib/validations/auth";
 import { AuthResponse, createAuthResponse } from "@/types/response.type";
-import { AuthError } from "next-auth";
 
 /**
  * Authenticates a user with email and password credentials using NextAuth.
@@ -24,7 +26,7 @@ import { AuthError } from "next-auth";
  * @see {@link createAuthResponse} for response structure
  */
 export const loginAction = async (
-  credentials: LoginFormData,
+  credentials: LoginFormData
 ): Promise<AuthResponse> => {
   try {
     const parsedData = loginSchema.safeParse(credentials);
@@ -41,7 +43,7 @@ export const loginAction = async (
         case "AccessDenied":
           return createAuthResponse(
             false,
-            "Access denied. Please verify your email first.",
+            "Access denied. Please verify your email first."
           );
         default:
           return createAuthResponse(false, "An authentication error occurred");
