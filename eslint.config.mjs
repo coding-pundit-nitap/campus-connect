@@ -6,7 +6,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 import prettierConfig from "eslint-config-prettier";
-import prettierPlugin from "eslint-plugin-prettier";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 
 const compat = new FlatCompat({
@@ -36,7 +35,6 @@ const eslintConfig = [
         { argsIgnorePattern: "^_" },
       ],
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/prefer-const": "error",
 
       // React specific rules
       "react/no-unescaped-entities": "off",
@@ -58,17 +56,8 @@ const eslintConfig = [
   },
 
   {
-    plugins: {
-      prettier: prettierPlugin,
-    },
     rules: {
       ...prettierConfig.rules,
-      "prettier/prettier": [
-        "warn",
-        {
-          endOfLine: "auto",
-        },
-      ],
     },
   },
 ];
