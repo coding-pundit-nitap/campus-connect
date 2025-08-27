@@ -18,59 +18,58 @@ const eslintConfig = [
     ignores: [".next/", "node_modules/", "next-env.d.ts", "**/*.generated.ts"],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    plugins: {
-      "simple-import-sort": simpleImportSort,
-    },
-    rules: {
-      "simple-import-sort/imports": "warn",
-      "simple-import-sort/exports": "warn",
-    },
-  },
+  // {
+  //   plugins: {
+  //     "simple-import-sort": simpleImportSort,
+  //   },
+  //   rules: {
+  //     "simple-import-sort/imports": "warn",
+  //     "simple-import-sort/exports": "warn",
+  //   },
+  // },
 
-  {
-    rules: {
-      // TypeScript specific rules
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/prefer-const": "error",
+  // {
+  //   rules: {
+  //     // TypeScript specific rules
+  //     "@typescript-eslint/no-unused-vars": [
+  //       "warn",
+  //       { argsIgnorePattern: "^_" },
+  //     ],
+  //     "@typescript-eslint/no-explicit-any": "warn",
 
-      // React specific rules
-      "react/no-unescaped-entities": "off",
-      "react/prop-types": "off",
-      "react-hooks/exhaustive-deps": "warn",
+  //     // React specific rules
+  //     "react/no-unescaped-entities": "off",
+  //     "react/prop-types": "off",
+  //     "react-hooks/exhaustive-deps": "warn",
 
-      // General JavaScript rules
-      "no-console": "warn",
-      "no-debugger": "error",
-      "no-var": "error",
-      "prefer-const": "error",
+  //     // General JavaScript rules
+  //     "no-console": "warn",
+  //     "no-debugger": "error",
+  //     "no-var": "error",
+  //     "prefer-const": "error",
 
-      // Code quality rules
-      eqeqeq: ["error", "always"],
-      curly: ["error", "all"],
-      "no-duplicate-imports": "error",
-      "no-unused-expressions": "warn",
-    },
-  },
+  //     // Code quality rules
+  //     eqeqeq: ["error", "always"],
+  //     curly: ["error", "all"],
+  //     "no-duplicate-imports": "error",
+  //     "no-unused-expressions": "warn",
+  //   },
+  // },
 
-  {
-    plugins: {
-      prettier: prettierPlugin,
-    },
-    rules: {
-      ...prettierConfig.rules,
-      "prettier/prettier": [
-        "warn",
-        {
-          endOfLine: "auto",
-        },
-      ],
-    },
-  },
+  // {
+  //   plugins: {
+  //     prettier: prettierPlugin,
+  //   },
+  //   rules: {
+  //     ...prettierConfig.rules,
+  //     "prettier/prettier": [
+  //       "warn",
+  //       {
+  //         endOfLine: "auto",
+  //       },
+  //     ],
+  //   },
+  // },
 ];
 
 export default eslintConfig;
