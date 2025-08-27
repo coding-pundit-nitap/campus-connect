@@ -1,9 +1,10 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useLoginUser } from "@/hooks";
+import { useLoginUser } from "@/hooks/useUser";
 import loginUIService from "@/lib/login.utils";
 import { LoginFormData, loginSchema } from "@/lib/validations/auth";
 import { LoginHandlers, LoginState } from "@/types/login.types";
