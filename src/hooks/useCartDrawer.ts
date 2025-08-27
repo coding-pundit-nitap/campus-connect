@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 
-import { useGetUserAllCart } from "@/hooks";
+import { useGetUserAllCart } from "@/hooks/useCart";
 import cartUIService from "@/lib/cart.utils";
 import { CartDrawerState } from "@/types/cart.type";
 

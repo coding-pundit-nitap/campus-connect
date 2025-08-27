@@ -1,11 +1,5 @@
-import { CartDrawer } from "@/components/cart-drawer";
-
 const page = () => {
-  return (
-    <>
-      <CartDrawer />
-    </>
-  );
+  return <>Hello</>;
 };
 
 export default page;

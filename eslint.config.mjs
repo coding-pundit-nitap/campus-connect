@@ -42,7 +42,6 @@ const eslintConfig = [
       "react-hooks/exhaustive-deps": "warn",
 
       // General JavaScript rules
-      "no-console": "warn",
       "no-debugger": "error",
       "no-var": "error",
       "prefer-const": "error",
@@ -52,6 +51,13 @@ const eslintConfig = [
       curly: ["error", "all"],
       "no-duplicate-imports": "error",
       "no-unused-expressions": "warn",
+    },
+  },
+
+  {
+    files: ["**/*.tsx"],
+    rules: {
+      "no-console": "warn",
     },
   },
 

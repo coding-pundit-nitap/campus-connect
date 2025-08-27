@@ -1,9 +1,10 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useRegisterUser } from "@/hooks";
+import { useRegisterUser } from "@/hooks/useUser";
 import loginUIService from "@/lib/login.utils";
 import { RegisterFormData, registerSchema } from "@/lib/validations/auth";
 

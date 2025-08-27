@@ -1,5 +1,3 @@
-import "next-auth";
-
 import { Role } from "@prisma/client";
 import type { DefaultSession } from "next-auth";
 
