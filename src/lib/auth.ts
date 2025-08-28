@@ -12,7 +12,7 @@
  */
 export const handleActionError = (
   error: unknown,
-  defaultMessage: string = "An unexpected error occurred",
+  defaultMessage: string = "An unexpected error occurred"
 ): string => {
   if (error instanceof Error) {
     return error.message;
@@ -48,12 +48,12 @@ export async function hashPassword(password: string): Promise<string> {
     encoder.encode(password),
     { name: "PBKDF2" },
     false,
-    ["deriveBits"],
+    ["deriveBits"]
   );
   const deriveBits = await crypto.subtle.deriveBits(
     { name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 },
     keyMaterial,
-    256,
+    256
   );
 
   const hash = new Uint8Array(deriveBits);
@@ -78,13 +78,13 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(
   password: string,
-  hash: string,
+  hash: string
 ): Promise<boolean> {
   try {
     const combined = new Uint8Array(
       atob(hash)
         .split("")
-        .map((c) => c.charCodeAt(0)),
+        .map((c) => c.charCodeAt(0))
     );
 
     const salt = combined.slice(0, 16);
@@ -96,12 +96,12 @@ export async function verifyPassword(
       encoder.encode(password),
       { name: "PBKDF2" },
       false,
-      ["deriveBits"],
+      ["deriveBits"]
     );
     const deriveBits = await crypto.subtle.deriveBits(
       { name: "PBKDF2", hash: "SHA-256", salt, iterations: 100000 },
       keyMaterial,
-      256,
+      256
     );
     const newHash = new Uint8Array(deriveBits);
 

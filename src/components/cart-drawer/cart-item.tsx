@@ -1,11 +1,13 @@
+import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
-import { Button } from "../ui/button";
-import { Trash2 } from "lucide-react";
-import SharedQuantityControl from "../shared/shared-quantity-control";
+
 import { useUpsertCartItem } from "@/hooks";
-import { CartItemData } from "@/types/cart.type";
 import cartUIService from "@/lib/cart.utils";
+import { CartItemData } from "@/types/cart.type";
+
+import SharedQuantityControl from "../shared/shared-quantity-control";
+import { Button } from "../ui/button";
 
 interface CartItemProps {
   item: CartItemData;
@@ -20,13 +22,13 @@ export function CartItem({ item }: CartItemProps) {
     cartUIService.increaseItemQuantity(
       item.product_id,
       item.quantity,
-      updateQuantity,
+      updateQuantity
     );
   const onDecrease = () =>
     cartUIService.decreaseItemQuantity(
       item.product_id,
       item.quantity,
-      updateQuantity,
+      updateQuantity
     );
 
   return (

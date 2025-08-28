@@ -1,5 +1,6 @@
 import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.type";
+
 import { FullCart } from "../cart.services";
 
 class CartAPIService {
@@ -41,7 +42,7 @@ class CartAPIService {
    */
   async upsertCartItem(
     product_id: string,
-    quantity: number,
+    quantity: number
   ): Promise<FullCart> {
     const url = `/cart`;
     const response = await axiosInstance.post<ActionResponse<FullCart>>(url, {

@@ -1,11 +1,12 @@
 "use client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { userAPIService } from "@/services/api";
-import { queryKeys } from "@/lib/query-keys";
 import { User } from "@prisma/client";
-import { loginAction } from "@/actions/authentication/login-actions";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+import { loginAction } from "@/actions/authentication/login-actions";
+import { queryKeys } from "@/lib/query-keys";
+import { userAPIService } from "@/services/api";
 
 /**
  * Hook to handle user registration with form validation, mutation management, and automatic cache invalidation.
@@ -93,7 +94,7 @@ export function useOptimisticUserUpdate() {
         (oldData: User | undefined) => {
           if (!oldData) return oldData;
           return { ...oldData, ...updates };
-        },
+        }
       );
     },
     invalidateUser: (user_id: string) => {

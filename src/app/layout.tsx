@@ -1,9 +1,13 @@
+import "./globals.css";
+
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { QueryProvider } from "@/components/providers/QueryProvider";
-import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
+import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
+
+import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
+import { QueryProvider } from "@/components/providers/QueryProvider";
+import Layout from "@/components/wrapper/layout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,14 +22,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <QueryProvider>
-          <QueryErrorBoundary>
-            {children}
-            <Toaster position="top-right" richColors closeButton />
-          </QueryErrorBoundary>
-        </QueryProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <QueryErrorBoundary>
+              <Layout>{children}</Layout>
+              <Toaster position="top-right" richColors closeButton />
+            </QueryErrorBoundary>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

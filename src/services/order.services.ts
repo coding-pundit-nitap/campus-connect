@@ -1,10 +1,11 @@
 import {
-  Prisma,
   Order,
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
+  Prisma,
 } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -48,11 +49,11 @@ class OrderServices {
   async getOrderById(order_id: string): Promise<Order | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
   > {
@@ -71,11 +72,11 @@ class OrderServices {
   async getOrdersByUserId(user_id: string): Promise<Order[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
     user_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
   > {
@@ -94,11 +95,11 @@ class OrderServices {
   async getOrdersByShopId(shop_id: string): Promise<Order[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[] | Order[]
   > {
@@ -119,8 +120,8 @@ class OrderServices {
     user_id: string,
     shop_id: string,
     payment_method: PaymentMethod,
-    delivery_address_id:string,
-    pg_payment_id?: string,
+    delivery_address_id: string,
+    pg_payment_id?: string
   ): Promise<Order> {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -140,7 +141,7 @@ class OrderServices {
       cart.items.forEach((item) => {
         if (item.product.stock_quantity < item.quantity) {
           throw new Error(
-            `Insufficient stock for product: ${item.product.name}`,
+            `Insufficient stock for product: ${item.product.name}`
           );
         }
       });
@@ -156,7 +157,9 @@ class OrderServices {
         throw new Error("Selected delivery address not found.");
       }
       if (deliveryAddress.user_id !== user_id) {
-        throw new Error("Unauthorized: Delivery address does not belong to this user.");
+        throw new Error(
+          "Unauthorized: Delivery address does not belong to this user."
+        );
       }
 
       let delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}`;
@@ -196,7 +199,7 @@ class OrderServices {
               decrement: item.quantity,
             },
           },
-        }),
+        })
       );
       await Promise.all(stockUpdatePromises);
       await tx.cartItem.deleteMany({
@@ -217,7 +220,7 @@ class OrderServices {
    */
   async updateOrderStatus(
     order_id: string,
-    status: OrderStatus,
+    status: OrderStatus
   ): Promise<Order> {
     return prisma.order.update({
       where: { id: order_id },
@@ -225,7 +228,6 @@ class OrderServices {
     });
   }
 }
-
 
 const orderServices = new OrderServices();
 

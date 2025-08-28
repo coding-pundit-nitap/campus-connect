@@ -22,7 +22,7 @@ export interface LoginState {
 }
 
 export interface LoginHandlers {
-  onGoogleLogin: () => Promise<void>;
+  onGoogleLogin: () => void;
   onNavigateToRegister: () => void;
   onFormSubmit: (data: LoginFormData) => void;
 }

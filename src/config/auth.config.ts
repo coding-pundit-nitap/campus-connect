@@ -1,11 +1,12 @@
-import { loginSchema } from "@/lib/validations/auth";
 import { Role } from "@prisma/client";
 import { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google, { GoogleProfile } from "next-auth/providers/google";
-import userServices from "@/services/user.services";
-import shopServices from "@/services/shop.services";
+
 import { verifyPassword } from "@/lib/auth";
+import { loginSchema } from "@/lib/validations/auth";
+import shopServices from "@/services/shop.services";
+import userServices from "@/services/user.services";
 
 /**
  * NextAuth configuration object that defines authentication providers, callbacks, and settings.
@@ -83,7 +84,7 @@ export const authConfig: NextAuthConfig = {
           // 3. Compare the provided password with the stored hash
           const passwordsMatch = await verifyPassword(
             password,
-            user.hash_password,
+            user.hash_password
           );
 
           // 4. If passwords match, return the user object

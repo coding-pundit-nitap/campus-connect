@@ -1,6 +1,8 @@
+"use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cartAPIService } from "@/services/api";
+
 import { queryKeys } from "@/lib/query-keys";
+import { cartAPIService } from "@/services/api";
 import cartServices, { FullCart } from "@/services/cart.services";
 
 /**
@@ -85,7 +87,7 @@ export function useAddToCart() {
         queryKey: queryKeys.cart.all,
       });
       const shop_id = allQueries.find(
-        ([key]) => key[0] === queryKeys.cart.byShop(product_id),
+        ([key]) => key[0] === queryKeys.cart.byShop(product_id)
       )?.[0]?.[1];
       if (!shop_id) return { product_id, quantity };
       return { product_id, quantity };

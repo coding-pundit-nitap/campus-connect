@@ -1,12 +1,14 @@
 "use client";
 import React from "react";
+
 import { useCartDrawer } from "@/hooks";
-import {
-  CartLoadingState,
-  CartErrorState,
-  CartEmptyState,
-} from "./cart-states";
+
 import CartContent from "./cart-content";
+import {
+  CartEmptyState,
+  CartErrorState,
+  CartLoadingState,
+} from "./cart-states";
 
 export function CartDrawer() {
   const cartState = useCartDrawer();

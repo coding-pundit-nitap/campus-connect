@@ -1,5 +1,6 @@
-import axiosInstance from "@/lib/axios";
 import { Shop } from "@prisma/client";
+
+import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.type";
 
 /**

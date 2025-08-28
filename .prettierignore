@@ -1,0 +1,17 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+.next/
+dist/
+build/
+
+# Lockfiles
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+**/*.generated.ts
+/prisma/generated/
+
+.eslintcache

@@ -1,4 +1,5 @@
 import { Prisma, Product } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -90,11 +91,11 @@ class ProductServices {
   async getProductById(product_id: string): Promise<Product | null>;
   async getProductById<T extends ProductFindOptions>(
     product_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ProductGetPayload<{ where: { id: string } } & T> | null>;
   async getProductById<T extends ProductFindOptions>(
     product_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product | null
   > {
@@ -120,11 +121,11 @@ class ProductServices {
   async getProductsByShopId(shop_id: string): Promise<Product[]>;
   async getProductsByShopId<T extends ProductFindManyOptions>(
     shop_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ProductGetPayload<{ where: { shop_id: string } } & T>[]>;
   async getProductsByShopId<T extends ProductFindManyOptions>(
     shop_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ProductGetPayload<{ where: { shop_id: string } } & T>[] | Product[]
   > {
@@ -152,11 +153,11 @@ class ProductServices {
   async createProduct(data: CreateProductDto): Promise<Product>;
   async createProduct<T extends ProductCreateOptions>(
     data: CreateProductDto,
-    options: T,
+    options: T
   ): Promise<Prisma.ProductGetPayload<{ data: CreateProductDto } & T>>;
   async createProduct<T extends ProductCreateOptions>(
     data: CreateProductDto,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ProductGetPayload<{ data: CreateProductDto } & T> | Product
   > {
@@ -184,12 +185,12 @@ class ProductServices {
    */
   async updateProduct(
     product_id: string,
-    data: UpdateProductDto,
+    data: UpdateProductDto
   ): Promise<Product>;
   async updateProduct<T extends ProductUpdateOptions>(
     product_id: string,
     data: UpdateProductDto,
-    options: T,
+    options: T
   ): Promise<
     Prisma.ProductGetPayload<
       { where: { id: string }; data: UpdateProductDto } & T
@@ -198,7 +199,7 @@ class ProductServices {
   async updateProduct<T extends ProductUpdateOptions>(
     product_id: string,
     data: UpdateProductDto,
-    options?: T,
+    options?: T
   ): Promise<
     | Prisma.ProductGetPayload<
         { where: { id: string }; data: UpdateProductDto } & T
@@ -229,11 +230,11 @@ class ProductServices {
   async deleteProduct(product_id: string): Promise<Product>;
   async deleteProduct<T extends ProductDeleteOptions>(
     product_id: string,
-    options: T,
+    options: T
   ): Promise<Prisma.ProductGetPayload<{ where: { id: string } } & T>>;
   async deleteProduct<T extends ProductDeleteOptions>(
     product_id: string,
-    options?: T,
+    options?: T
   ): Promise<
     Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product
   > {
