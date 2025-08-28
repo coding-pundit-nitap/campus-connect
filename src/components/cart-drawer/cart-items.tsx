@@ -2,7 +2,7 @@ import { ShoppingCart } from "lucide-react";
 
 import { CartItemData } from "@/types/cart.type";
 
-import { CartItem } from "./cart-item";
+import { CartItemContainer } from "./cart-item-container";
 
 interface CartItemsProps {
   items: CartItemData[];
@@ -19,7 +19,7 @@ export function CartItems({ items }: CartItemsProps) {
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <CartItem key={item.id} item={item} />
+            <CartItemContainer key={item.id} item={item} />
           ))}
         </div>
       )}

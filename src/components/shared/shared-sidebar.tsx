@@ -18,6 +18,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import { Button } from "../ui/button";
+
 /**
  * Configuration interface for navigation items in the sidebar.
  *
@@ -78,6 +80,11 @@ export interface SharedSidebarProps {
   activeClassName?: string;
   /** Optional children components to render at the bottom of the sidebar */
   children?: ReactNode;
+  /** Add loading state */
+  isLoading?: boolean;
+  loadingComponent?: ReactNode;
+  errorMessage?: string;
+  onRetry?: () => void;
 }
 
 export default function SharedSidebar({
@@ -87,6 +94,10 @@ export default function SharedSidebar({
   showHeader = true,
   activeClassName = "",
   children,
+  isLoading = false,
+  loadingComponent,
+  errorMessage,
+  onRetry,
 }: SharedSidebarProps) {
   const pathname = usePathname();
 
@@ -212,6 +223,39 @@ export default function SharedSidebar({
     );
   };
 
+  if (isLoading) {
+    return (
+      <Sidebar className={className}>
+        {Header()}
+        <SidebarContent>
+          {loadingComponent || (
+            <div className="flex items-center justify-center p-4">
+              <span className="text-muted-foreground">Loading...</span>
+            </div>
+          )}
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
+  if (errorMessage) {
+    return (
+      <Sidebar className={className}>
+        {Header()}
+        <SidebarContent>
+          <div className="flex flex-col items-center justify-center p-4 space-y-2">
+            <span className="text-destructive text-sm">{errorMessage}</span>
+            {onRetry && (
+              <Button variant="outline" size="sm" onClick={onRetry}>
+                Try Again
+              </Button>
+            )}
+          </div>
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
+
   return (
     <Sidebar className={className}>
       {Header()}
@@ -219,8 +263,8 @@ export default function SharedSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigation.map((item) => (
-                <Item key={item.url} {...item} />
+              {navigation.map((item, index) => (
+                <Item key={index} {...item} />
               ))}
             </SidebarMenu>
           </SidebarGroupContent>

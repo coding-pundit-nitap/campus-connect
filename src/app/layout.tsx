@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import Layout from "@/components/wrapper/layout";
+import Layout from "@/components/wrapper/layout-container";
 
 const inter = Inter({ subsets: ["latin"] });
 

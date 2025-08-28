@@ -61,46 +61,6 @@ interface SharedCardProps extends CardConfig {
  *
  * @returns A JSX element containing the card with configured header, content, and footer
  *
- * @example
- * ```tsx
- * // Basic card with title and content
- * <SharedCard title="Welcome" description="Please sign in">
- *   <LoginForm />
- * </SharedCard>
- *
- * // Card with custom footer content
- * <SharedCard
- *   title="Register"
- *   showFooter={true}
- *   footerContent={<Button>Already have an account?</Button>}
- * >
- *   <RegisterForm />
- * </SharedCard>
- *
- * // Minimal card without header
- * <SharedCard showHeader={false}>
- *   <CustomContent />
- * </SharedCard>
- *
- * // Full configuration with custom styling
- * <SharedCard
- *   title="User Profile"
- *   description="Manage your account settings"
- *   showHeader={true}
- *   showFooter={true}
- *   className="max-w-md mx-auto"
- *   headerContent={<UserAvatar />}
- *   footerContent={<SaveButton />}
- * >
- *   <ProfileForm />
- * </SharedCard>
- * ```
- *
- * @see {@link CardConfig} for inherited configuration options
- * @see {@link Card} for the underlying UI card component
- * @see {@link CardHeader} for header section implementation
- * @see {@link CardContent} for content area implementation
- * @see {@link CardFooter} for footer section implementation
  */
 export function SharedCard({
   title,

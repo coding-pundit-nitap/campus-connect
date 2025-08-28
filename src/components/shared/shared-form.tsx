@@ -84,24 +84,6 @@ interface FormFieldConfig<T extends FieldValues> {
  * @property {string} [className] - Additional CSS classes for form styling
  * @property {React.ReactNode} [children] - Optional additional content between fields and submit button
  *
- * @example
- * ```tsx
- * const formProps: SharedFormProps<UserRegistration> = {
- *   form: useForm<UserRegistration>(),
- *   fields: [
- *     { name: "username", label: "Username", required: true },
- *     { name: "email", label: "Email", type: "email", required: true }
- *   ],
- *   submitButton: { text: "Register", variant: "default" },
- *   onSubmit: handleSubmit,
- *   isLoading: false,
- *   error: null
- * };
- * ```
- *
- * @see {@link UseFormReturn} from react-hook-form for form state management
- * @see {@link ButtonConfig} for submit button configuration options
- * @see {@link FormFieldConfig} for individual field configuration
  */
 interface SharedFormProps<T extends FieldValues = FieldValues> {
   form: UseFormReturn<T>;
@@ -137,60 +119,6 @@ interface SharedFormProps<T extends FieldValues = FieldValues> {
  *
  * @returns A JSX element containing the complete form with all configured fields and controls
  *
- * @example
- * ```tsx
- * // Basic login form
- * const loginForm = useForm<LoginData>();
- * const loginFields: FormFieldConfig<LoginData>[] = [
- *   { name: "email", label: "Email", type: "email", required: true },
- *   { name: "password", label: "Password", type: "password", required: true }
- * ];
- *
- * <SharedForm
- *   form={loginForm}
- *   fields={loginFields}
- *   submitButton={{ text: "Sign In", variant: "default" }}
- *   onSubmit={handleLogin}
- *   isLoading={isLoading}
- *   error={loginError}
- * />
- *
- * // Registration form with custom content
- * <SharedForm
- *   form={registerForm}
- *   fields={registerFields}
- *   submitButton={{ text: "Create Account", variant: "default" }}
- *   onSubmit={handleRegister}
- *   className="max-w-md mx-auto"
- * >
- *   <div className="text-center text-sm text-gray-600">
- *     By signing up, you agree to our Terms of Service
- *   </div>
- * </SharedForm>
- *
- * // Form with disabled fields during submission
- * <SharedForm
- *   form={profileForm}
- *   fields={profileFields.map(field => ({
- *     ...field,
- *     disabled: isSubmitting
- *   }))}
- *   submitButton={{ text: "Save Changes", variant: "default" }}
- *   onSubmit={handleSave}
- *   isLoading={isSubmitting}
- * />
- * ```
- *
- * @see {@link Form} from @/components/ui/form for the underlying form wrapper
- * @see {@link FormField} from @/components/ui/form for individual field rendering
- * @see {@link Button} from @/components/ui/button for submit button component
- * @see {@link Alert} from @/components/ui/alert for error message display
- * @see {@link UseFormReturn} from react-hook-form for form state management
- * @see {@link ButtonConfig} for submit button configuration options
- *
- * @throws {Error} Form submission errors are handled by the onSubmit handler
- *
- * @since 1.0.0
  */
 export function SharedForm<T extends FieldValues>({
   form,
