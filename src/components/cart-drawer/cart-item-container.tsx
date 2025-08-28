@@ -1,0 +1,38 @@
+"use client";
+import { useUpsertCartItem } from "@/hooks";
+import cartUIService from "@/lib/cart.utils";
+import { CartItemData } from "@/types/cart.type";
+
+import { CartItem } from "./cart-item";
+
+interface CartItemContainerProps {
+  item: CartItemData;
+}
+
+export function CartItemContainer({ item }: CartItemContainerProps) {
+  const { mutate: updateQuantity } = useUpsertCartItem();
+
+  const onRemove = () =>
+    cartUIService.updateItemQuantity(item.product_id, 0, updateQuantity);
+  const onIncrease = () =>
+    cartUIService.increaseItemQuantity(
+      item.product_id,
+      item.quantity,
+      updateQuantity
+    );
+  const onDecrease = () =>
+    cartUIService.decreaseItemQuantity(
+      item.product_id,
+      item.quantity,
+      updateQuantity
+    );
+
+  return (
+    <CartItem
+      item={item}
+      onRemove={onRemove}
+      onIncrease={onIncrease}
+      onDecrease={onDecrease}
+    />
+  );
+}

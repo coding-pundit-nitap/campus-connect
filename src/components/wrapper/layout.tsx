@@ -1,8 +1,9 @@
 import React from "react";
 
 import { CartDrawer } from "@/components/cart-drawer";
-import SearchBar from "@/components/navigation/search-bar";
-import { ThemeToggle } from "@/components/navigation/theme-toggle";
+import SearchBarContainer from "@/components/navigation/search-bar-container";
+import ThemeToggleContainer from "@/components/navigation/theme-toggle-container";
+import { NavigationItem } from "@/components/shared/shared-sidebar";
 import AppSidebar from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -11,27 +12,41 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-type Props = {
+interface LayoutProps {
   children: React.ReactNode;
-};
+  navigation: NavigationItem[];
+  isNavigationLoading?: boolean;
+  navigationError?: string;
+}
 
-export default function Layout({ children }: Props) {
+export function Layout({
+  children,
+  navigation,
+  isNavigationLoading = false,
+  navigationError,
+}: LayoutProps) {
   return (
     <SidebarProvider>
-      <AppSidebar navigation={[]} />
+      <AppSidebar
+        navigation={navigation}
+        isLoading={isNavigationLoading}
+        error={navigationError}
+      />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1 text-foreground" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <SearchBar />
-          <div className="ml-auto flex items-center gap-2">
-            <CartDrawer />
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
-          {children}
-        </main>
+        <div className="flex flex-col items-center justify-center w-full">
+          <header className="flex w-full h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1 text-foreground" />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <SearchBarContainer />
+            <div className="ml-auto flex items-center gap-2">
+              <CartDrawer />
+              <ThemeToggleContainer />
+            </div>
+          </header>
+          <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+            {children}
+          </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

@@ -2,8 +2,6 @@ import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
-import { useUpsertCartItem } from "@/hooks";
-import cartUIService from "@/lib/cart.utils";
 import { CartItemData } from "@/types/cart.type";
 
 import SharedQuantityControl from "../shared/shared-quantity-control";
@@ -11,26 +9,17 @@ import { Button } from "../ui/button";
 
 interface CartItemProps {
   item: CartItemData;
+  onRemove: () => void;
+  onIncrease: () => void;
+  onDecrease: () => void;
 }
 
-export function CartItem({ item }: CartItemProps) {
-  const { mutate: updateQuantity } = useUpsertCartItem();
-
-  const onRemove = () =>
-    cartUIService.updateItemQuantity(item.product_id, 0, updateQuantity);
-  const onIncrease = () =>
-    cartUIService.increaseItemQuantity(
-      item.product_id,
-      item.quantity,
-      updateQuantity
-    );
-  const onDecrease = () =>
-    cartUIService.decreaseItemQuantity(
-      item.product_id,
-      item.quantity,
-      updateQuantity
-    );
-
+export function CartItem({
+  item,
+  onRemove,
+  onIncrease,
+  onDecrease,
+}: CartItemProps) {
   return (
     <div className="flex items-center space-x-3 p-3 border rounded-lg">
       <Image
