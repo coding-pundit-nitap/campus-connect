@@ -6,17 +6,30 @@ import SharedSidebar, {
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
 
-type Props = {
+interface AppSidebarProps {
   navigation: NavigationItem[];
-};
+  isLoading?: boolean;
+  error?: string | null;
+}
 
-export default function AppSidebar({ navigation }: Props) {
+export default function AppSidebar({
+  navigation,
+  isLoading = false,
+  error,
+}: AppSidebarProps) {
   const headerConfig: SidebarHeaderConfig = {
     title: "College Connect",
-    subtitle: "Nit Arunachal Pradesh",
+    subtitle: "NIT Arunachal Pradesh",
     icon: GraduationCap,
     href: "/",
   };
 
-  return <SharedSidebar navigation={navigation} header={headerConfig} />;
+  return (
+    <SharedSidebar
+      navigation={navigation}
+      header={headerConfig}
+      isLoading={isLoading}
+      errorMessage={error || undefined}
+    />
+  );
 }

@@ -3,7 +3,6 @@
 import { Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { useToggleTheme } from "@/hooks";
 
 /**
  * Props interface for the ThemeToggle component.
@@ -31,24 +30,16 @@ export interface ThemeToggleProps {
   darkIcon?: React.ComponentType<{ className?: string }>;
   /** Default icon component shown during hydration */
   defaultIcon?: React.ComponentType<{ className?: string }>;
+  /** Make it controlled */
+  isDarkMode?: boolean;
+  /** Toggle function */
+  onToggle: () => void;
+  /** Mounted state */
+  mounted: boolean;
+  /** Optional label for the toggle button */
+  label?: string;
 }
 
-/**
- * A theme toggle component that switches between light and dark modes.
- *
- * This component provides a user-friendly way to toggle between light and dark themes
- * in the application. It handles the hydration mismatch by showing a default state
- * during server-side rendering and the actual theme state after client-side hydration.
- *
- * @param className - Additional CSS classes to apply to the button
- * @param size - Button size variant
- * @param variant - Button visual variant
- * @param showLabel - Whether to show text label alongside the icon
- * @param lightIcon - Custom icon component for light mode
- * @param darkIcon - Custom icon component for dark mode
- * @param defaultIcon - Default icon component shown during hydration
- * @returns A themed toggle button component
- */
 export function ThemeToggle({
   className = "h-9 w-9",
   size = "icon",
@@ -57,9 +48,11 @@ export function ThemeToggle({
   lightIcon: LightIcon = Moon,
   darkIcon: DarkIcon = Sun,
   defaultIcon: DefaultIcon = Sun,
+  isDarkMode = false,
+  onToggle,
+  mounted,
+  label = "Theme",
 }: ThemeToggleProps) {
-  const { handleToggle, isDarkMode, label, mounted } = useToggleTheme();
-
   if (!mounted) {
     return (
       <Button variant={variant} size={size} className={className}>
@@ -69,13 +62,14 @@ export function ThemeToggle({
       </Button>
     );
   }
+
   const IconComponent = isDarkMode ? DarkIcon : LightIcon;
 
   return (
     <Button
       variant={variant}
       size={size}
-      onClick={handleToggle}
+      onClick={onToggle}
       className={className}
       aria-label={`Switch to ${isDarkMode ? "light" : "dark"} mode`}
     >

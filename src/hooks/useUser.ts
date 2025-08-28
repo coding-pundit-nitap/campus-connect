@@ -2,6 +2,7 @@
 import { User } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useCallback } from "react";
 import { toast } from "sonner";
 
 import { loginAction } from "@/actions/authentication/login-actions";
@@ -41,36 +42,39 @@ export function useRegisterUser() {
   });
 }
 
-/**
- * Hook to handle user authentication with credential validation, session management, and navigation.
- *
- * This hook provides a complete user login flow including credential submission,
- * authentication processing, success/error handling, automatic navigation, and
- * session management. It's designed for login forms, authentication pages, and
- * protected route access flows.
- *
- * @returns UseMutationResult for user login with credential data and session handling
- *
- */
-export function useLoginUser() {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
+export function useLoginUserMutation() {
   return useMutation({
     mutationFn: (data: { email: string; password: string }) =>
       loginAction(data),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.all,
-      });
-      toast.success(data.details);
-      router.push("/");
-      router.refresh();
-    },
-    onError: (error) => {
-      toast.error("Login failed: " + error.message);
-    },
   });
+}
+
+export function useLoginUser() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const mutation = useLoginUserMutation();
+
+  const loginUser = useCallback(
+    (data: { email: string; password: string }) => {
+      mutation.mutate(data, {
+        onSuccess: (result) => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+          toast.success(result.details);
+          router.push("/");
+          router.refresh();
+        },
+        onError: (error) => {
+          toast.error("Login failed: " + error.message);
+        },
+      });
+    },
+    [mutation, queryClient, router]
+  );
+
+  return {
+    ...mutation,
+    loginUser,
+  };
 }
 
 /**
