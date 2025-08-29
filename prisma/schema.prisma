@@ -10,8 +10,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ----------------------------------------
@@ -27,6 +28,7 @@ enum OrderStatus {
   NEW
   PREPARING
   READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
   COMPLETED
   CANCELLED
 }
@@ -64,15 +66,16 @@ enum PaymentStatus {
 // ----------------------------------------
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  name          String
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
   phone         String?
   hash_password String?
-  image_url     String?
-  role          Role
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  image         String?
+  role          Role      @default(USER)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
 
   // Relations
   accounts   Account[]
@@ -260,8 +263,12 @@ model Order {
   pg_payment_id             String?       @unique
   pg_refund_id              String?       @unique
   delivery_address_snapshot String
-  created_at                DateTime      @default(now())
-  updated_at                DateTime      @updatedAt
+  requested_delivery_time   DateTime?
+  estimated_delivery_time   DateTime?
+  actual_delivery_time      DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   assigned_to String?
 

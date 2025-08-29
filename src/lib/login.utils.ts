@@ -1,4 +1,5 @@
-import { signIn } from "@/auth";
+import { signIn } from "next-auth/react";
+
 import { FORM_FIELD_NAMES } from "@/constants";
 import { LoginFormData } from "@/lib/validations/auth";
 import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
@@ -13,7 +14,7 @@ class LoginUIService {
    */
   handleGoogleLogin = async (): Promise<void> => {
     try {
-      await signIn("google", { redirectTo: "/" });
+      await signIn("google", { callbackUrl: "/" });
     } catch (err) {
       console.error("Google login failed:", err);
       throw new Error("Failed to initiate Google login.");

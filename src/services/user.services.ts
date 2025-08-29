@@ -5,36 +5,10 @@
  * retrieval, updating, and deletion. It handles user authentication, profile management,
  * and role-based operations with flexible query options, validation, and type safety.
  *
- * @example
- * ```typescript
- * // Create a new user
- * const user = await userServices.createUser({
- *   email: 'student@college.edu',
- *   name: 'John Doe',
- *   hashed_password: 'hashedpassword123'
- * });
- * console.log(`User created with ID: ${user.id}`);
- *
- * // Get user by email
- * const user = await userServices.getUserByEmail('student@college.edu', {
- *   include: { shops: true, orders: true }
- * });
- *
- * // Update user profile
- * await userServices.updateUser('user123', {
- *   name: 'John Smith',
- *   bio: 'Computer Science student'
- * });
- * ```
- *
- * @see {@link User} for user data structure
- * @see {@link CreateUserDto} for user creation data
- * @see {@link UpdateUserDto} for user update data
- *
- * @since 1.0.0
  */
 import { Prisma, Role, User } from "@prisma/client";
 
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -44,19 +18,6 @@ import { prisma } from "@/lib/prisma";
  * Contains essential user information including email, name, and hashed password
  * for secure user registration and authentication workflows.
  *
- * @example
- * ```typescript
- * const newUser: CreateUserDto = {
- *   email: 'student@university.edu',
- *   name: 'Jane Smith',
- *   hashed_password: '$2b$10$...' // bcrypt hashed password
- * };
- * ```
- *
- * @see {@link UserServices.createUser} for usage in user creation
- * @see {@link User} for complete user data structure
- *
- * @since 1.0.0
  */
 export type CreateUserDto = {
   email: string;
@@ -194,7 +155,6 @@ class UserServices {
    * role changes, and other user information modifications. Essential for
    * user profile management and administrative operations.
    *
-   * @param user_id - The unique identifier of the user to update
    * @param data - The partial user data to update
    * @param options - Optional Prisma query options for includes, selects, etc.
    * @returns A promise that resolves to the updated user
@@ -204,22 +164,23 @@ class UserServices {
    * @throws {Error} When database operation fails
    *
    */
-  async updateUser(user_id: string, data: UpdateUserDto): Promise<User>;
+  async updateUser(data: UpdateUserDto): Promise<User>;
   async updateUser<T extends UserUpdateOptions>(
-    user_id: string,
     data: UpdateUserDto,
     options: T
   ): Promise<
     Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
   >;
   async updateUser<T extends UserUpdateOptions>(
-    user_id: string,
     data: UpdateUserDto,
     options?: T
   ): Promise<
     | Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
     | User
   > {
+    const session = await auth();
+    const user_id = session?.user?.id;
+    if (!user_id) throw new Error("User not authenticated");
     const query = { where: { id: user_id }, data, ...(options ?? {}) };
     return prisma.user.update(query);
   }
@@ -231,7 +192,6 @@ class UserServices {
    * deletions for user-related entities. Use with caution as this operation
    * is irreversible and should include proper authorization checks.
    *
-   * @param user_id - The unique identifier of the user to delete
    * @param options - Optional Prisma query options for includes, selects, etc.
    * @returns A promise that resolves to the deleted user
    *
@@ -240,15 +200,16 @@ class UserServices {
    * @throws {Error} When database operation fails
    *
    */
-  async deleteUser(user_id: string): Promise<User>;
+  async deleteUser(): Promise<User>;
   async deleteUser<T extends UserDeleteOptions>(
-    user_id: string,
     options: T
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T>>;
   async deleteUser<T extends UserDeleteOptions>(
-    user_id: string,
     options?: T
   ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T> | User> {
+    const session = await auth();
+    const user_id = session?.user?.id;
+    if (!user_id) throw new Error("User not authenticated");
     const query = { where: { id: user_id }, ...(options ?? {}) };
     return prisma.user.delete(query);
   }

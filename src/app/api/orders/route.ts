@@ -38,7 +38,9 @@ export async function GET() {
       return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    const orders = await orderServices.getOrdersByUserId(session.user.id);
+    const orders = await orderServices.getOrdersByUserId({
+      include: { items: true, shop: true },
+    });
     const successResponse = createSuccessResponse(
       orders,
       "Orders retrieved successfully"

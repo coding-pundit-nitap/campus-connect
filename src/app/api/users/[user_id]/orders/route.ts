@@ -46,7 +46,9 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const orders = await orderServices.getOrdersByUserId(user_id);
+    const orders = await orderServices.getOrdersByUserId({
+      include: { items: true, shop: true },
+    });
     return NextResponse.json(orders);
   } catch (error) {
     console.error("GET USER ORDERS ERROR:", error);

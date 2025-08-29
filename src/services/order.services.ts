@@ -6,6 +6,7 @@ import {
   Prisma,
 } from "@prisma/client";
 
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -69,17 +70,19 @@ class OrderServices {
    * data including pagination, sorting, and relation includes for order management.
    *
    */
-  async getOrdersByUserId(user_id: string): Promise<Order[]>;
+  async getOrdersByUserId(): Promise<Order[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
-    user_id: string,
     options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
-    user_id: string,
     options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
   > {
+    const session = await auth();
+    const user_id = session?.user?.id;
+    if (!user_id) throw new Error("User not authenticated");
+
     const query = { where: { user_id }, ...(options ?? {}) };
     return prisma.order.findMany(query);
   }
@@ -117,12 +120,15 @@ class OrderServices {
    *
    */
   async createOrderFromCart(
-    user_id: string,
     shop_id: string,
     payment_method: PaymentMethod,
     delivery_address_id: string,
-    pg_payment_id?: string
+    pg_payment_id?: string,
+    requested_delivery_time?: Date
   ): Promise<Order> {
+    const session = await auth();
+    const user_id = session?.user?.id;
+    if (!user_id) throw new Error("User not authenticated");
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id, shop_id } },
@@ -178,6 +184,7 @@ class OrderServices {
               : PaymentStatus.PENDING,
           pg_payment_id,
           delivery_address_id,
+          requested_delivery_time,
           items: {
             create: cart.items.map((item) => ({
               product_id: item.product_id,
