@@ -259,7 +259,7 @@ export default function SharedSidebar({
   return (
     <Sidebar className={className}>
       {Header()}
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between p-4">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

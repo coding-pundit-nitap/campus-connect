@@ -3,21 +3,20 @@
  * Defines route access patterns and authentication requirements for the medcare application
  */
 
-// Routes that can be accessed without authentication
-export const publicRoutes: string[] = ["/"];
+export const publicRoutes: string[] = ["/", "/help"];
 
-// Routes related to authentication (login, register, error pages)
-// These routes are accessible to unauthenticated users
+// Routes related to authentication (login, register, error pages).
+// These routes redirect logged-in users to the default redirect path.
 export const authRoutes = ["/login", "/register", "/error"];
 
-// API routes that handle authentication processes
+// API routes that handle authentication processes. These are always accessible.
 export const apiAuthPrefix = ["/api/auth"];
 
-// Routes accessible only to users with staff role
-export const staffPrefix = ["/staff"];
+// Routes accessible only to users with a shop (sellers).
+export const staffPrefix = ["/staff"]; // Example: /staff/dashboard, /staff/products
 
-// Routes accessible only to users with consumer role
-export const consumerPrefix = ["/consumer"];
+// Routes accessible only to users without a shop (consumers).
+export const consumerPrefix = ["/consumer"]; // Example: /consumer/orders
 
-// Default page to redirect to after successful login
+// Default page to redirect to after successful login.
 export const DEFAULT_LOGIN_REDIRECT = "/";

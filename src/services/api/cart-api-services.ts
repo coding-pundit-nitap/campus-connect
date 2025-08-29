@@ -54,6 +54,27 @@ class CartAPIService {
     }
     return response.data.data;
   }
+
+  /**
+   * Fetches all carts for the authenticated user across all shops.
+   *
+   * Retrieves complete cart information for all shops where the user has items,
+   * including all cart items, quantities, and product details. Used for displaying
+   * comprehensive cart state and managing cross-shop cart operations.
+   *
+   * @returns A promise that resolves to an array of complete cart data
+   *
+   * @throws {Error} When API request fails or returns invalid data
+   *
+   */
+  async fetchAllUserCarts(): Promise<FullCart[]> {
+    const url = `/cart/all`;
+    const response = await axiosInstance.get<ActionResponse<FullCart[]>>(url);
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.details || "Failed to fetch carts");
+    }
+    return response.data.data;
+  }
 }
 
 const cartAPIService = new CartAPIService();

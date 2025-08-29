@@ -1,10 +1,11 @@
-"use client";
 import { GraduationCap } from "lucide-react";
 
 import SharedSidebar, {
   NavigationItem,
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
+
+import { SidebarFooter } from "./sidebar-footer";
 
 interface AppSidebarProps {
   navigation: NavigationItem[];
@@ -30,6 +31,8 @@ export default function AppSidebar({
       header={headerConfig}
       isLoading={isLoading}
       errorMessage={error || undefined}
-    />
+    >
+      <SidebarFooter />
+    </SharedSidebar>
   );
 }

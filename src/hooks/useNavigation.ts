@@ -1,12 +1,5 @@
 "use client";
-import {
-  HelpCircle,
-  Home,
-  Settings,
-  ShoppingBag,
-  Store,
-  User,
-} from "lucide-react";
+import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
 import { useMemo } from "react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
@@ -37,12 +30,6 @@ export function useNavigation() {
         title: "My Orders",
         url: "/orders",
         icon: ShoppingBag,
-      },
-      {
-        id: "profile",
-        title: "Profile",
-        url: "/profile",
-        icon: User,
       },
       {
         id: "settings",

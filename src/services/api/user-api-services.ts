@@ -1,4 +1,4 @@
-import { Order, User } from "@prisma/client";
+import { CartItem, Order, Shop, User } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
 import { RegisterFormData } from "@/lib/validations/auth";
@@ -27,9 +27,14 @@ class UserAPIService {
    * @throws {Error} When API request fails, user is not found, or returns invalid data
    *
    */
-  async fetchUserOrders({ user_id }: { user_id: string }): Promise<Order[]> {
+  async fetchUserOrders({
+    user_id,
+  }: {
+    user_id: string;
+  }): Promise<(Order & Shop & CartItem)[]> {
     const url = `/users/${user_id}/orders`;
-    const response = await axiosInstance.get<ActionResponse<Order[]>>(url);
+    const response =
+      await axiosInstance.get<ActionResponse<(Order & Shop & CartItem)[]>>(url);
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.details || "Failed to fetch user orders");
     }
