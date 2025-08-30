@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import shopServices from "@/services/shop.services";
+import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -28,7 +28,7 @@ export const config = {
  *
  * @throws {Error} When shop retrieval fails due to service errors or database issues
  *
- * @see {@link shopServices.getShopById} for the underlying service method
+ * @see {@link shopRepository.getShopById} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(
@@ -37,7 +37,7 @@ export async function GET(
 ) {
   try {
     const { shop_id } = await params;
-    const shop = await shopServices.getShopById(shop_id);
+    const shop = await shopRepository.getShopById(shop_id);
 
     if (!shop) {
       const errorResponse = createErrorResponse("Shop not found");

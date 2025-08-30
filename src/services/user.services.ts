@@ -1,220 +1,70 @@
-/**
- * User service module for the college connect application.
- *
- * This module provides comprehensive user management functionality including user creation,
- * retrieval, updating, and deletion. It handles user authentication, profile management,
- * and role-based operations with flexible query options, validation, and type safety.
- *
- */
-import { Prisma, Role, User } from "@prisma/client";
+import { User } from "@prisma/client";
 
-import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import axiosInstance from "@/lib/axios";
+import { OrderWithDetails } from "@/types/order.types";
+import { ActionResponse } from "@/types/response.type";
+import { RegisterFormData } from "@/validations/auth";
 
 /**
- * Type definition for user creation data.
+ * Service class for user-related API operations.
  *
- * Defines the required structure for creating new users in the system.
- * Contains essential user information including email, name, and hashed password
- * for secure user registration and authentication workflows.
- *
- */
-export type CreateUserDto = {
-  email: string;
-  name: string;
-  hashed_password: string;
-};
-
-/**
- * Type alias for user update data.
- *
- * Defines the structure for updating existing users in the system.
- * Based on Prisma's UserUpdateInput with partial updates support
- * for flexible user profile modification operations.
+ * Provides methods to interact with the user API endpoints, including fetching
+ * user orders and registering new users. Implements proper error handling and type safety for all
+ * user operations.
  *
  */
-export type UpdateUserDto = Prisma.UserUpdateInput;
-
-/**
- * Type alias for Prisma user find unique options without the where clause.
- *
- * Provides type-safe query options for single user retrieval operations,
- * excluding the where clause which is handled internally by the service methods.
- * Enables flexible data fetching with includes, selects, and other Prisma options.
- *
- */
-type UserFindOptions = Omit<Prisma.UserFindUniqueArgs, "where">;
-
-/**
- * Type alias for Prisma user create options without the data clause.
- *
- * Provides type-safe query options for user creation operations,
- * excluding the data clause which is handled as a separate parameter.
- * Supports includes, selects, and other creation-specific Prisma options.
- *
- */
-type UserCreateOptions = Omit<Prisma.UserCreateArgs, "data">;
-
-/**
- * Type alias for Prisma user update options without where and data clauses.
- *
- * Provides type-safe query options for user update operations,
- * excluding the where and data clauses which are handled as separate parameters.
- * Supports includes, selects, and other update-specific Prisma options.
- *
- */
-type UserUpdateOptions = Omit<Prisma.UserUpdateArgs, "where" | "data">;
-
-/**
- * Type alias for Prisma user delete options without the where clause.
- *
- * Provides type-safe query options for user deletion operations,
- * excluding the where clause which is handled as a separate parameter.
- * Supports includes, selects, and other deletion-specific Prisma options.
- *
- */
-type UserDeleteOptions = Omit<Prisma.UserDeleteArgs, "where">;
-
-/**
- * Service class providing comprehensive user management operations.
- *
- * Handles all user-related database operations including authentication,
- * profile management, and CRUD operations with type safety and flexible
- * query options. Supports role-based access control and user relationship management.
- */
-class UserServices {
+class UserAPIService {
   /**
-   * Retrieves a user by their email address.
+   * Fetches all orders for a specific user.
    *
-   * Finds a specific user using their email address. Essential for user authentication,
-   * login workflows, and user profile access. Supports flexible query options for
-   * including related data such as shops, orders, and reviews.
+   * Retrieves a comprehensive list of orders associated with the specified user ID.
+   * Used for displaying user order history, tracking purchase patterns, and managing
+   * user-specific order operations.
    *
-   * @param email - The email address of the user to retrieve
-   * @param options - Optional Prisma query options for includes, selects, etc.
-   * @returns A promise that resolves to the user or null if not found
+   * @param params - The parameters for fetching user orders
+   * @param params.user_id - The unique identifier of the user whose orders to fetch
+   * @returns A promise that resolves to an array of user orders
    *
-   * @throws {Error} When database query fails
-   * @throws {Error} When invalid email format is provided
+   * @throws {Error} When API request fails, user is not found, or returns invalid data
    *
    */
-  async getUserByEmail(email: string): Promise<User | null>;
-  async getUserByEmail<T extends UserFindOptions>(
-    email: string,
-    options: T
-  ): Promise<Prisma.UserGetPayload<{ where: { email: string } } & T> | null>;
-  async getUserByEmail<T extends UserFindOptions>(
-    email: string,
-    options?: T
-  ): Promise<
-    Prisma.UserGetPayload<{ where: { email: string } } & T> | User | null
-  > {
-    const query = { where: { email }, ...(options ?? {}) };
-    return prisma.user.findUnique(query);
+  async fetchUserOrders(): Promise<OrderWithDetails[]> {
+    const url = `/users/orders`;
+    const response =
+      await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.details || "Failed to fetch user orders");
+    }
+    return response.data.data;
   }
 
   /**
-   * Creates a new user in the system.
+   * Registers a new user in the system.
    *
-   * Registers a new user with default USER role. Handles user creation with
-   * required fields validation and automatic role assignment. Essential for
-   * user registration workflows and account management.
+   * Creates a new user account with the provided registration data, including
+   * validation, password hashing, and initial user setup. Returns essential
+   * user information upon successful registration.
    *
-   * @param data - The user creation data including email, name, and hashed password
-   * @param options - Optional Prisma query options for includes, selects, etc.
-   * @returns A promise that resolves to the created user
+   * @param data - The registration form data containing user information
+   * @returns A promise that resolves to essential user data (id, email, name, role)
    *
-   * @throws {Error} When email already exists
-   * @throws {Error} When required fields are missing
-   * @throws {Error} When database operation fails
+   * @throws {Error} When registration fails due to validation errors, duplicate email, or server issues
    *
    */
-  async createUser(data: CreateUserDto): Promise<User>;
-  async createUser<T extends UserCreateOptions>(
-    data: CreateUserDto,
-    options: T
-  ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T>>;
-  async createUser<T extends UserCreateOptions>(
-    data: CreateUserDto,
-    options?: T
-  ): Promise<Prisma.UserGetPayload<{ data: CreateUserDto } & T> | User> {
-    const query = {
-      data: {
-        role: Role.USER,
-        ...data,
-      },
-      ...(options ?? {}),
-    };
-    return prisma.user.create(query);
-  }
-
-  /**
-   * Updates an existing user's information.
-   *
-   * Modifies user data with partial update support. Handles profile updates,
-   * role changes, and other user information modifications. Essential for
-   * user profile management and administrative operations.
-   *
-   * @param data - The partial user data to update
-   * @param options - Optional Prisma query options for includes, selects, etc.
-   * @returns A promise that resolves to the updated user
-   *
-   * @throws {Error} When user with given ID doesn't exist
-   * @throws {Error} When update data is invalid
-   * @throws {Error} When database operation fails
-   *
-   */
-  async updateUser(data: UpdateUserDto): Promise<User>;
-  async updateUser<T extends UserUpdateOptions>(
-    data: UpdateUserDto,
-    options: T
-  ): Promise<
-    Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
-  >;
-  async updateUser<T extends UserUpdateOptions>(
-    data: UpdateUserDto,
-    options?: T
-  ): Promise<
-    | Prisma.UserGetPayload<{ where: { id: string }; data: UpdateUserDto } & T>
-    | User
-  > {
-    const session = await auth();
-    const user_id = session?.user?.id;
-    if (!user_id) throw new Error("User not authenticated");
-    const query = { where: { id: user_id }, data, ...(options ?? {}) };
-    return prisma.user.update(query);
-  }
-
-  /**
-   * Deletes a user from the system.
-   *
-   * Permanently removes a user and their associated data. Handles cascading
-   * deletions for user-related entities. Use with caution as this operation
-   * is irreversible and should include proper authorization checks.
-   *
-   * @param options - Optional Prisma query options for includes, selects, etc.
-   * @returns A promise that resolves to the deleted user
-   *
-   * @throws {Error} When user with given ID doesn't exist
-   * @throws {Error} When deletion violates referential constraints
-   * @throws {Error} When database operation fails
-   *
-   */
-  async deleteUser(): Promise<User>;
-  async deleteUser<T extends UserDeleteOptions>(
-    options: T
-  ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T>>;
-  async deleteUser<T extends UserDeleteOptions>(
-    options?: T
-  ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T> | User> {
-    const session = await auth();
-    const user_id = session?.user?.id;
-    if (!user_id) throw new Error("User not authenticated");
-    const query = { where: { id: user_id }, ...(options ?? {}) };
-    return prisma.user.delete(query);
+  async registerUser(
+    data: RegisterFormData
+  ): Promise<Pick<User, "id" | "email" | "name" | "role">> {
+    const url = `/auth/register`;
+    const response = await axiosInstance.post<
+      ActionResponse<Pick<User, "id" | "email" | "name" | "role">>
+    >(url, data);
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.details || "Failed to register user");
+    }
+    return response.data.data;
   }
 }
 
-const userServices = new UserServices();
+const userAPIService = new UserAPIService();
 
-export default userServices;
+export default userAPIService;

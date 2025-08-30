@@ -3,11 +3,12 @@
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";
-import registerUIService from "@/lib/register.utils";
+import { useRegister } from "@/hooks/useRegister";
+import registerUIService from "@/lib/utils/register.utils";
 
-import { useRegister } from "../../hooks/useRegister";
-import { RegisterFormConfig } from "../../types/register.types";
-
+interface RegisterFormConfig {
+  className?: string;
+}
 export function RegisterForm({ className = "" }: RegisterFormConfig) {
   const { form, state, handlers } = useRegister();
 

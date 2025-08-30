@@ -4,9 +4,9 @@ import Credentials from "next-auth/providers/credentials";
 import Google, { GoogleProfile } from "next-auth/providers/google";
 
 import { verifyPassword } from "@/lib/auth";
-import { loginSchema } from "@/lib/validations/auth";
-import shopServices from "@/services/shop.services";
-import userServices from "@/services/user.services";
+import shopRepository from "@/repositories/shop.repository";
+import userRepository from "@/repositories/user.repository";
+import { loginSchema } from "@/validations/auth";
 
 /**
  * NextAuth configuration object that defines authentication providers, callbacks, and settings.
@@ -68,7 +68,7 @@ export const authConfig: NextAuthConfig = {
           const { email, password } = parsed.data;
 
           // 1. Find the user in your database
-          const user = await userServices.getUserByEmail(email, {
+          const user = await userRepository.getUserByEmail(email, {
             select: {
               id: true,
               hash_password: true,
@@ -130,7 +130,7 @@ export const authConfig: NextAuthConfig = {
       if (user?.id) {
         token.id = user.id;
         token.role = user.role;
-        const shop = await shopServices.getShopByOwnerId(user.id, {
+        const shop = await shopRepository.getShopByOwnerId(user.id, {
           select: { id: true },
         });
         if (shop) {

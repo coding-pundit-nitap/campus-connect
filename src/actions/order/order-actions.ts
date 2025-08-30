@@ -3,7 +3,7 @@
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
 import { auth } from "@/auth";
-import orderServices from "@/services/order.services";
+import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -24,15 +24,17 @@ import {
  *   - success: boolean indicating if the order was created successfully
  *   - data: the created order object (if successful)
  *   - message: success or error message
- * @see {@link orderServices.createOrderFromCart} for the underlying service method
+ * @see {@link orderRepository.createOrderFromCart} for the underlying service method
  * @see {@link PaymentMethod} for available payment options
  */
 export async function createOrderAction({
   shop_id,
   payment_method,
+  delivery_address_id,
 }: {
   shop_id: string;
   payment_method: PaymentMethod;
+  delivery_address_id: string;
 }) {
   try {
     const session = await auth();
@@ -44,10 +46,10 @@ export async function createOrderAction({
     const pg_payment_id =
       payment_method === "ONLINE" ? `txn_${new Date().getTime()}` : "offline";
 
-    const order = await orderServices.createOrderFromCart(
-      session.user.id,
+    const order = await orderRepository.createOrderFromCart(
       shop_id,
       payment_method,
+      delivery_address_id,
       pg_payment_id
     );
 
@@ -92,7 +94,7 @@ export async function createOrderAction({
  *
  * @todo Add revalidatePath for cache invalidation
  *
- * @see {@link orderServices.updateOrderStatus} for the underlying service method
+ * @see {@link orderRepository.updateOrderStatus} for the underlying service method
  * @see {@link OrderStatus} for available order statuses
  */
 export async function updateOrderStatusAction({
@@ -109,7 +111,7 @@ export async function updateOrderStatusAction({
       return createErrorResponse("Unauthorized: You are not a seller.");
     }
 
-    const order = await orderServices.getOrderById(order_id, {
+    const order = await orderRepository.getOrderById(order_id, {
       select: { shop_id: true },
     });
     if (!order || order.shop_id !== shop_id) {
@@ -118,7 +120,7 @@ export async function updateOrderStatusAction({
       );
     }
 
-    const updatedOrder = await orderServices.updateOrderStatus(
+    const updatedOrder = await orderRepository.updateOrderStatus(
       order_id,
       status
     );

@@ -3,15 +3,20 @@
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
-import registerUIService from "@/lib/register.utils";
+import registerUIService from "@/lib/utils/register.utils";
 import { AuthProviderConfig } from "@/types/ui.types";
 
 import { useRegister } from "../../hooks/useRegister";
-import { RegisterCardConfig } from "../../types/register.types";
 import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
 import { Separator } from "../ui/separator";
 import { RegisterFooter } from "./register-footer";
 import { RegisterForm } from "./register-form";
+
+export interface RegisterCardConfig {
+  className?: string;
+  title?: string;
+  description?: string;
+}
 
 export function RegisterCard({
   className,
