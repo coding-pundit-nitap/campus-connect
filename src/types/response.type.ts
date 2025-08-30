@@ -28,6 +28,11 @@ export interface ActionResponse<T = unknown> {
   details: string;
 }
 
+export interface xyz<T = unknown> {
+  success: boolean;
+  data: T;
+}
+
 /**
  * Response interface for authentication operations.
  *

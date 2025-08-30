@@ -1,6 +1,6 @@
+import items from "@/components/service/whole-sale-sub-components/demo-items";
 import ItemCard from "@/components/service/whole-sale-sub-components/items-card";
 import ItemHeading from "@/components/service/whole-sale-sub-components/items-type-heading";
-import items from "@/components/service/whole-sale-sub-components/demo-items";
 
 export default function WholeSale() {
   return (
