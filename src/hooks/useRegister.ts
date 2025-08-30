@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useRegisterUser } from "@/hooks/useUser";
-import loginUIService from "@/lib/login.utils";
+import { useRegisterUser } from "@/hooks/tanstack/useUser";
+import loginUIService from "@/lib/utils/login.utils";
 import { RegisterFormData, registerSchema } from "@/lib/validations/auth";
-
-import { RegisterHandlers, RegisterState } from "../types/register.types";
+import { FormState } from "@/types/form.types";
+import { RegisterHandlers } from "@/types/register.types";
 
 export function useRegister() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export function useRegister() {
     },
   });
 
-  const state: RegisterState = {
+  const state: FormState = {
     isLoading: isPending,
     error: error?.message || null,
     isSubmitting: isPending,

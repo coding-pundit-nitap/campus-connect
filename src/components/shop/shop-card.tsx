@@ -4,7 +4,6 @@ import React from "react";
 
 import { SharedCard } from "../shared/shared-card";
 import { Badge } from "../ui/badge";
-import { Card, CardContent } from "../ui/card";
 
 interface ShopCardProps {
   shop: Shop;

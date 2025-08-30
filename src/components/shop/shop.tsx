@@ -21,15 +21,13 @@ export default function Shop() {
     return <ShopErrorState />;
   }
 
-  if (!shops.data || shops.data.length === 0) {
+  if (!shops.data) {
     return <ShopEmptyState />;
   }
 
   return (
     <ShopWrapper>
-      {shops.data.map((shop) => (
-        <ShopCard key={shop.id} shop={shop} />
-      ))}
+      <ShopCard key={shops.data.id} shop={shops.data} />
     </ShopWrapper>
   );
 }

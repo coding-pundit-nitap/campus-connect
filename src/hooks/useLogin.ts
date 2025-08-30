@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useLoginUser } from "@/hooks/useUser";
-import loginUIService from "@/lib/login.utils";
+import { useLoginUser } from "@/hooks/tanstack/useUser";
+import loginUIService from "@/lib/utils/login.utils";
 import { LoginFormData, loginSchema } from "@/lib/validations/auth";
-import { LoginHandlers, LoginState } from "@/types/login.types";
+import { FormState } from "@/types/form.types";
+import { LoginHandlers } from "@/types/login.types";
 
 export function useLogin() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export function useLogin() {
     },
   });
 
-  const state: LoginState = {
+  const state: FormState = {
     isLoading: isPending,
     error: error?.message || null,
     isSubmitting: isPending,

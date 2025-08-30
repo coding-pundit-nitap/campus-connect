@@ -1,12 +1,8 @@
-"use client";
-import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
-import { useMemo } from "react";
-
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
-export function useNavigation() {
-  const navigation: NavigationItem[] = useMemo(
-    () => [
+class NavigationUIService {
+  static getNavigationItems(): NavigationItem[] {
+    return [
       {
         id: "home",
         title: "Home",
@@ -43,11 +39,10 @@ export function useNavigation() {
         url: "/help",
         icon: HelpCircle,
       },
-    ],
-    []
-  );
-
-  return {
-    navigation,
-  };
+    ];
+  }
 }
+
+const navigationUIService = new NavigationUIService();
+
+export default navigationUIService;

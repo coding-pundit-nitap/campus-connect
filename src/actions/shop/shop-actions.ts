@@ -39,7 +39,7 @@ export async function createShopAction(formData: FormData) {
     if (!session?.user.id) {
       return createErrorResponse("Unauthorize: Please log in");
     }
-    const existingShop = await shopServices.getShopByOwnerId(session.user.id);
+    const existingShop = await shopServices.getShopByOwnerId();
     if (existingShop) {
       return createErrorResponse("You already own a shop");
     }

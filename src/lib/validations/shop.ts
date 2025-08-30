@@ -7,3 +7,5 @@ export const shopSchema = z.object({
   opening: z.string().min(5, "Opening hours are required"),
   closing: z.string().min(5, "Closing hours are required"),
 });
+
+export type ShopFormData = z.infer<typeof shopSchema>;
