@@ -1,6 +1,7 @@
 "use client";
 
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services/api";
@@ -71,4 +72,14 @@ export function useShopProductsFlat(shop_id: string) {
     hasProducts: products.length > 0,
     totalProducts: products.length,
   };
+}
+
+export function useShopByUser() {
+  const { data: session } = useSession();
+
+  return useQuery({
+    queryKey: queryKeys.shops.byUser(),
+    queryFn: () => shopAPIService.fetchShopsByUser(),
+    enabled: !!session?.user.id,
+  });
 }

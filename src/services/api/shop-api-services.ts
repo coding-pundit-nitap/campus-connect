@@ -34,6 +34,15 @@ class ShopAPIService {
     }
     return response.data.data;
   }
+
+  async fetchShopsByUser(): Promise<Shop[]> {
+    const url = `/shops`;
+    const response = await axiosInstance.get<ActionResponse<Shop[]>>(url);
+    if (!response.data.success || !response.data.data) {
+      throw new Error(response.data.details || "Failed to fetch shops");
+    }
+    return response.data.data;
+  }
 }
 
 /**

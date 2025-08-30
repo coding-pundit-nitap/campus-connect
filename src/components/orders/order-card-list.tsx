@@ -4,20 +4,25 @@ import React from "react";
 import { useUserOrders } from "@/hooks";
 
 import OrderCard from "./order-card";
+import {
+  OrderEmptyState,
+  OrderErrorState,
+  OrderLoadingState,
+} from "./order-state";
 
 export default function OrderCardList() {
   const orders = useUserOrders();
 
   if (orders.isLoading) {
-    return <div>Loading orders...</div>;
+    return <OrderLoadingState />;
   }
 
   if (orders.error) {
-    return <div>Error loading orders: {orders.error.message}</div>;
+    return <OrderErrorState />;
   }
 
   if (!orders.data || orders.data.length === 0) {
-    return <div>No orders found.</div>;
+    return <OrderEmptyState />;
   }
 
   return (

@@ -41,6 +41,7 @@ export const queryKeys = {
     /** Shop products with pagination support query key factory */
     products: (shop_id: string, cursor?: string | null) =>
       ["shops", shop_id, "products", { cursor }] as const,
+    byUser: () => ["shops", "user", "current"] as const,
   },
 
   /**

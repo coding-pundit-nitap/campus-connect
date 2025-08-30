@@ -1,5 +1,6 @@
 import { Prisma, Shop } from "@prisma/client";
 
+import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -64,13 +65,12 @@ type ShopDeleteOptions = Omit<Prisma.ShopDeleteArgs, "where">;
 
 class ShopServices {
   /**
-   * Retrieves a shop by its owner's ID.
+   * Retrieves a shops by its owner's ID.
    *
    * Finds the shop owned by a specific user. Essential for owner-specific operations
    * like managing their shop, viewing analytics, or checking ownership status.
    * Supports flexible query options for including related data.
    *
-   * @param ownerId - The unique identifier of the shop owner
    * @param options - Optional Prisma query options for includes, selects, etc.
    * @returns A promise that resolves to the shop or null if not found
    *
@@ -78,19 +78,21 @@ class ShopServices {
    * @throws {Error} When invalid owner ID is provided
    *
    */
-  async getShopByOwnerId(ownerId: string): Promise<Shop | null>;
+  async getShopByOwnerId(): Promise<Shop[] | null>;
   async getShopByOwnerId<T extends ShopFindOptions>(
-    ownerId: string,
     options: T
   ): Promise<Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | null>;
   async getShopByOwnerId<T extends ShopFindOptions>(
-    ownerId: string,
     options?: T
   ): Promise<
-    Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | Shop | null
+    Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | Shop[] | null
   > {
-    const query = { where: { owner_id: ownerId }, ...(options ?? {}) };
-    return prisma.shop.findUnique(query);
+    const session = await auth();
+    if (!session?.user.id) {
+      throw new Error("Unauthorized");
+    }
+    const query = { where: { owner_id: session.user.id }, ...(options ?? {}) };
+    return prisma.shop.findMany(query);
   }
 
   /**
