@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { loginAction } from "@/actions/authentication/login-actions";
 import { queryKeys } from "@/lib/query-keys";
-import { userAPIService } from "@/services/api";
+import { userAPIService } from "@/services";
 
 /**
  * Hook to handle user registration with form validation, mutation management, and automatic cache invalidation.
@@ -23,12 +23,7 @@ export function useRegisterUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: {
-      email: string;
-      password: string;
-      name: string;
-      confirmPassword: string;
-    }) => userAPIService.registerUser(data),
+    mutationFn: userAPIService.registerUser,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.all,
@@ -44,8 +39,7 @@ export function useRegisterUser() {
 
 export function useLoginUserMutation() {
   return useMutation({
-    mutationFn: (data: { email: string; password: string }) =>
-      loginAction(data),
+    mutationFn: loginAction,
   });
 }
 

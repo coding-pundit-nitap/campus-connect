@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 
 import { useRegisterUser } from "@/hooks/tanstack/useUser";
 import loginUIService from "@/lib/utils/login.utils";
-import { RegisterFormData, registerSchema } from "@/lib/validations/auth";
 import { FormState } from "@/types/form.types";
 import { RegisterHandlers } from "@/types/register.types";
+import { RegisterFormData, registerSchema } from "@/validations/auth";
 
 export function useRegister() {
   const router = useRouter();

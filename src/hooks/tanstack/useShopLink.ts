@@ -1,13 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { createShopAction } from "@/actions/shop/shop-actions";
 import { queryKeys } from "@/lib/query-keys";
-import shopServices from "@/services/shop.services";
 
 export function useShopLink() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: shopServices.createShop,
+    mutationFn: createShopAction,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.shops.byUser(),

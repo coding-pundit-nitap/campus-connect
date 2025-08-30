@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { hashPassword } from "@/lib/auth";
-import { registerSchema } from "@/lib/validations/auth";
-import userServices from "@/services/user.services";
+import userRepository from "@/repositories/user.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.type";
+import { registerSchema } from "@/validations/auth";
 
 export const config = {
   runtime: "edge",
@@ -36,7 +36,7 @@ export const config = {
  *
  * @see {@link registerSchema} for input validation rules
  * @see {@link hashPassword} for password hashing implementation
- * @see {@link userServices.createUser} for user creation service
+ * @see {@link userRepository.createUser} for user creation service
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function POST(request: NextRequest) {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
     const { name, email, password } = parsedData.data;
-    const existingUser = await userServices.getUserByEmail(email);
+    const existingUser = await userRepository.getUserByEmail(email);
     if (existingUser) {
       const errorResponse = createErrorResponse(
         "User with this email already exists."
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const hashed_password = await hashPassword(password);
 
-    const user = await userServices.createUser(
+    const user = await userRepository.createUser(
       {
         name,
         email,

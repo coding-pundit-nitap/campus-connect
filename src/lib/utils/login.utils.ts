@@ -1,8 +1,7 @@
 import { signIn } from "next-auth/react";
 
-import { FORM_FIELD_NAMES } from "@/constants";
-import { LoginFormData } from "@/lib/validations/auth";
 import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
+import { LoginFormData } from "@/validations/auth";
 
 /**
  * A service class to manage all business logic, event handling,
@@ -42,14 +41,14 @@ class LoginUIService {
   createLoginFormFields = (): FormFieldConfig<LoginFormData>[] => {
     return [
       {
-        name: FORM_FIELD_NAMES.EMAIL,
+        name: "email",
         label: "Email",
         type: "email",
         placeholder: "Enter your email",
         required: true,
       },
       {
-        name: FORM_FIELD_NAMES.PASSWORD,
+        name: "password",
         label: "Password",
         type: "password",
         placeholder: "Enter your password",

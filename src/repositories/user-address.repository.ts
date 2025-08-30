@@ -62,7 +62,7 @@ type UserAddressUpdateOptions = Omit<Prisma.UserAddressUpdateArgs, "where">;
  */
 type UserAddressDeleteOptions = Omit<Prisma.UserAddressDeleteArgs, "where">;
 
-class UserAddressServices {
+class UserAddressRepository {
   /**
    * Retrieves all addresses for a specific user.
    *
@@ -81,16 +81,18 @@ class UserAddressServices {
   async getAddressesByUserId<T extends UserAddressFindOptions>(
     id: string,
     options: T
-  ): Promise<Prisma.UserAddressGetPayload<{ where: { id: string } } & T>[]>;
+  ): Promise<
+    Prisma.UserAddressGetPayload<{ where: { user_id: string } } & T>[]
+  >;
   async getAddressesByUserId<T extends UserAddressFindOptions>(
     id: string,
     options?: T
   ): Promise<
     | UserAddress[]
-    | Prisma.UserAddressGetPayload<{ where: { id: string } } & T>[]
+    | Prisma.UserAddressGetPayload<{ where: { user_id: string } } & T>[]
   > {
     const query = {
-      where: { id },
+      where: { user_id: id },
       orderBy: { is_default: Prisma.SortOrder.desc },
       ...(options ?? {}),
     };
@@ -206,6 +208,6 @@ class UserAddressServices {
   }
 }
 
-const userAddressServices = new UserAddressServices();
+const userAddressRepository = new UserAddressRepository();
 
-export default userAddressServices;
+export default userAddressRepository;

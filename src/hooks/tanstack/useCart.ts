@@ -1,9 +1,10 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { upsertCartItem } from "@/actions/cart/cart-actions";
 import { queryKeys } from "@/lib/query-keys";
-import { cartAPIService } from "@/services/api";
-import { type FullCart } from "@/services/cart.services";
+import { cartAPIService } from "@/services";
+import { FullCart } from "@/types/cart.type";
 
 /**
  * Hook to fetch cart data for a specific shop with automatic caching and real-time updates.
@@ -40,13 +41,7 @@ export function useUpsertCartItem() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      product_id,
-      quantity,
-    }: {
-      product_id: string;
-      quantity: number;
-    }) => cartAPIService.upsertCartItem(product_id, quantity),
+    mutationFn: upsertCartItem,
     onSuccess: (data: FullCart) => {
       queryClient.setQueryData(queryKeys.cart.byShop(data.shop_id), data);
 
@@ -75,13 +70,7 @@ export function useAddToCart() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      product_id,
-      quantity,
-    }: {
-      product_id: string;
-      quantity: number;
-    }) => cartAPIService.upsertCartItem(product_id, quantity),
+    mutationFn: upsertCartItem,
     onMutate: async ({ product_id, quantity }) => {
       const allQueries = queryClient.getQueriesData({
         queryKey: queryKeys.cart.all,

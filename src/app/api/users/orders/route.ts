@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import orderServices from "@/services/order.services";
+import authUtils from "@/lib/utils/auth.utils";
+import orderRepository from "@/repositories/order.repository";
 
 export const config = {
   runtime: "edge",
@@ -27,26 +27,14 @@ export const config = {
  *
  * @throws {Error} When order retrieval fails due to service errors or database issues
  *
- * @see {@link orderServices.getOrdersByUserId} for the underlying service method
+ * @see {@link orderRepository.getOrdersByUserId} for the underlying service method
  * @see {@link auth} for the authentication mechanism
  */
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ user_id: string }> }
-) {
+export async function GET(_request: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await authUtils.isAuthenticated();
 
-    const { user_id } = await params;
-
-    if (session.user.id !== user_id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const orders = await orderServices.getOrdersByUserId({
+    const orders = await orderRepository.getOrdersByUserId({
       include: { items: true, shop: true },
     });
     return NextResponse.json(orders);

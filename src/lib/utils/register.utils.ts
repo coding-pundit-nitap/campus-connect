@@ -1,6 +1,5 @@
-import { FORM_FIELD_NAMES } from "@/constants";
-import { RegisterFormData } from "@/lib/validations/auth";
 import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
+import { RegisterFormData } from "@/validations/auth";
 
 /**
  * A service class to manage all business logic, event handling,
@@ -13,28 +12,28 @@ class RegisterUIService {
   createRegisterFormFields = (): FormFieldConfig<RegisterFormData>[] => {
     return [
       {
-        name: FORM_FIELD_NAMES.NAME,
+        name: "name",
         label: "Full Name",
         type: "text",
         placeholder: "Enter your full name",
         required: true,
       },
       {
-        name: FORM_FIELD_NAMES.EMAIL,
+        name: "email",
         label: "Email",
         type: "email",
         placeholder: "Enter your email",
         required: true,
       },
       {
-        name: FORM_FIELD_NAMES.PASSWORD,
+        name: "password",
         label: "Password",
         type: "password",
         placeholder: "Enter your password",
         required: true,
       },
       {
-        name: FORM_FIELD_NAMES.CONFIRM_PASSWORD,
+        name: "confirmPassword",
         label: "Confirm Password",
         type: "password",
         placeholder: "Confirm your password",

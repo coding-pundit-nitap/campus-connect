@@ -6,9 +6,9 @@ import { useForm } from "react-hook-form";
 
 import { useLoginUser } from "@/hooks/tanstack/useUser";
 import loginUIService from "@/lib/utils/login.utils";
-import { LoginFormData, loginSchema } from "@/lib/validations/auth";
 import { FormState } from "@/types/form.types";
 import { LoginHandlers } from "@/types/login.types";
+import { LoginFormData, loginSchema } from "@/validations/auth";
 
 export function useLogin() {
   const router = useRouter();

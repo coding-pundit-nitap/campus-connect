@@ -1,4 +1,4 @@
-import { RegisterFormData } from "@/lib/validations/auth";
+import { RegisterFormData } from "@/validations/auth";
 
 export interface RegisterHandlers {
   onGoogleLogin: () => void;

@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 
 import { useGetUserAllCart } from "@/hooks/tanstack/useCart";
-import cartUIService from "@/lib/cart.utils";
+import cartUIService from "@/lib/utils/cart.utils";
 import { CartDrawerState } from "@/types/cart.type";
 
 export function useCartDrawer(): CartDrawerState {

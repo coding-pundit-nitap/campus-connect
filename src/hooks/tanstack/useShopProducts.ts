@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
 import { queryKeys } from "@/lib/query-keys";
-import { productAPIService, shopAPIService } from "@/services/api";
+import { productAPIService, shopAPIService } from "@/services";
 
 /**
  * Hook to fetch shop details by shop ID with conditional query execution and automatic caching.
@@ -21,7 +21,7 @@ import { productAPIService, shopAPIService } from "@/services/api";
 export function useShop(shop_id: string) {
   return useQuery({
     queryKey: queryKeys.shops.detail(shop_id),
-    queryFn: () => shopAPIService.fetchShop({ shop_id: shop_id }),
+    queryFn: () => shopAPIService.fetchShop({ shop_id }),
     enabled: !!shop_id,
   });
 }

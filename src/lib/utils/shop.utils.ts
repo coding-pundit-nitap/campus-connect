@@ -1,6 +1,6 @@
 import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
 
-import { ShopFormData } from "../validations/shop";
+import { ShopFormData } from "../../validations/shop";
 
 class ShopUIServices {
   createShopLinkFormFields = (): FormFieldConfig<ShopFormData>[] => {

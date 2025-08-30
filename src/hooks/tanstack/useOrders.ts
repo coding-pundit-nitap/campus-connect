@@ -1,11 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import {
-  orderAPIService,
-  sellerAPIService,
-  userAPIService,
-} from "@/services/api";
+import { orderAPIService, sellerAPIService } from "@/services";
 
 /**
  * Hook to fetch all orders for the current authenticated user with automatic caching.
@@ -22,26 +18,6 @@ export function useUserOrders() {
   return useQuery({
     queryKey: queryKeys.orders.all,
     queryFn: () => orderAPIService.fetchUserOrders(),
-  });
-}
-
-/**
- * Hook to fetch orders for a specific user with conditional query execution.
- *
- * This hook provides access to order data for any specified user, typically used
- * in admin interfaces or user management systems. The query is conditionally
- * executed only when a valid user_id is provided, making it safe to use in
- * components where the user_id might not be immediately available.
- *
- * @param user_id - The unique identifier of the user to fetch orders for
- * @returns UseQueryResult containing specified user's orders, loading state, and error information
- *
- */
-export function useSpecificUserOrders(user_id: string) {
-  return useQuery({
-    queryKey: queryKeys.users.orders(user_id),
-    queryFn: () => userAPIService.fetchUserOrders({ user_id: user_id }),
-    enabled: !!user_id,
   });
 }
 
@@ -79,6 +55,6 @@ export function useOrder(order_id: string) {
 export function useSellerOrders() {
   return useQuery({
     queryKey: queryKeys.seller.orders(),
-    queryFn: () => sellerAPIService.fetchSellerOrders(),
+    queryFn: sellerAPIService.fetchSellerOrders,
   });
 }

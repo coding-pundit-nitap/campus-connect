@@ -1,5 +1,9 @@
-import { FullCart } from "@/services/cart.services";
-import { CartItemData, CartSummary, ShopCart } from "@/types/cart.type";
+import {
+  CartItemData,
+  CartSummary,
+  FullCart,
+  ShopCart,
+} from "@/types/cart.type";
 
 /**
  * Type alias for a single cart item from the FullCart structure
