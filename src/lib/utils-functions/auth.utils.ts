@@ -1,5 +1,3 @@
-import "server-only";
-
 import { User } from "next-auth";
 
 import { auth } from "@/auth";
