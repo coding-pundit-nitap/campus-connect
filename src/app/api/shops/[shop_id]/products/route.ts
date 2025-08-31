@@ -1,11 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-import productServices from "@/services/product.services";
+import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -30,7 +30,7 @@ export const config = {
  *
  * @throws {Error} When product retrieval fails due to service errors or database issues
  *
- * @see {@link productServices.getProductsByShopId} for the underlying service method
+ * @see {@link productRepository.getProductsByShopId} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(
@@ -58,7 +58,7 @@ export async function GET(
       },
     };
 
-    const products = await productServices.getProductsByShopId(
+    const products = await productRepository.getProductsByShopId(
       shop_id,
       queryOptions
     );

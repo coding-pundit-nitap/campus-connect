@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import orderServices from "@/services/order.services";
+import authUtils from "@/lib/utils-functions/auth.utils";
+import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -26,19 +26,17 @@ export const config = {
  *   - 500: Internal server error for unexpected failures
  *
  * @throws {Error} When order retrieval fails due to service errors
- *
- * @see {@link orderServices.getOrdersByUserId} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      const errorResponse = createErrorResponse("Unauthorized");
-      return NextResponse.json(errorResponse, { status: 401 });
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
     }
 
-    const orders = await orderServices.getOrdersByUserId({
+    const orders = await orderRepository.getOrdersByUserId({
       include: { items: true, shop: true },
     });
     const successResponse = createSuccessResponse(

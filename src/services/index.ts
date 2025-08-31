@@ -1,6 +1,6 @@
-export { default as cartServices } from "./cart.services";
-export { default as orderServices } from "./order.services";
-export { default as productServices } from "./product.services";
-export { default as shopServices } from "./shop.services";
-export { default as userServices } from "./user.services";
-export { default as userAddressServices } from "./user-address-services";
+export { default as cartAPIService } from "./cart.services";
+export { default as orderAPIService } from "./order.services";
+export { default as productAPIService } from "./product.services";
+export { default as sellerAPIService } from "./seller.services";
+export { default as shopAPIService } from "./shop.services";
+export { default as userAPIService } from "./user.services";

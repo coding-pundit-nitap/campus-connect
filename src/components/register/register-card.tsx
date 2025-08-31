@@ -2,16 +2,21 @@
 
 import React from "react";
 
+import { SharedAuthProviderButton } from "@/components/shared/shared-authprovider-button";
 import { SharedCard } from "@/components/shared/shared-card";
-import registerUIService from "@/lib/register.utils";
-import { AuthProviderConfig } from "@/types/ui.types";
+import { Separator } from "@/components/ui/separator";
+import { useRegister } from "@/hooks/useRegister";
+import { registerUIService } from "@/lib/utils-functions";
+import { AuthProviderConfig } from "@/types";
 
-import { useRegister } from "../../hooks/useRegister";
-import { RegisterCardConfig } from "../../types/register.types";
-import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
-import { Separator } from "../ui/separator";
 import { RegisterFooter } from "./register-footer";
 import { RegisterForm } from "./register-form";
+
+export interface RegisterCardConfig {
+  className?: string;
+  title?: string;
+  description?: string;
+}
 
 export function RegisterCard({
   className,

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import cartServices from "@/services/cart.services";
+import authUtils from "@/lib/utils-functions/auth.utils";
+import cartRepository from "@/repositories/cart.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -28,33 +28,17 @@ export const config = {
  *
  * @throws {Error} When cart retrieval fails due to service errors
  *
- * @example
- * ```typescript
- * // GET /api/cart/all
- * const response = await fetch('/api/cart/all', {
- *   headers: { 'Cookie': 'session=...' }
- * });
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('All user carts:', result.data);
- * } else {
- *   console.error('Failed to get carts:', result.message);
- * }
- * ```
- *
- * @see {@link cartServices.getAllUserCarts} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      const errorResponse = createErrorResponse("Unauthorized");
-      return NextResponse.json(errorResponse, { status: 401 });
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
     }
 
-    const carts = await cartServices.getAllUserCartsForServer();
+    const carts = await cartRepository.getAllUserCarts();
     const successResponse = createSuccessResponse(
       carts,
       "All carts retrieved successfully"

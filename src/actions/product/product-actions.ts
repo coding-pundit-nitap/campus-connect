@@ -1,12 +1,12 @@
 "use server";
 
-import { auth } from "@/auth";
-import { productSchema } from "@/lib/validations/product";
-import productServices from "@/services/product.services";
+import authUtils from "@/lib/utils-functions/auth.utils";
+import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
+import { productSchema } from "@/validations/product";
 
 /**
  * Creates a new product for the authenticated shop owner.
@@ -29,16 +29,12 @@ import {
  * @throws {Error} When product creation fails due to service errors
  *
  * @see {@link productSchema} for input validation rules
- * @see {@link productServices.createProduct} for the underlying service method
+ * @see {@link productRepository.createProduct} for the underlying service method
  * @see {@link createSuccessResponse} and {@link createErrorResponse} for response structure
  */
 export async function createProductAction(formData: FormData) {
   try {
-    const session = await auth();
-    const shop_id = session?.user?.shop_id;
-    if (!shop_id) {
-      return createErrorResponse("User is not associated with a shop");
-    }
+    const shop_id = await authUtils.getShopId();
 
     const parsedData = productSchema.safeParse({
       name: formData.get("name"),
@@ -51,7 +47,7 @@ export async function createProductAction(formData: FormData) {
     }
 
     // Image upload
-    const newProduct = await productServices.createProduct({
+    const newProduct = await productRepository.createProduct({
       ...parsedData.data,
       image_url: "",
       shop: {
