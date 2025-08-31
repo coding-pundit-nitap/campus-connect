@@ -122,10 +122,12 @@ export const authConfig: NextAuthConfig = {
      * Handles JWT token creation and modification
      * Called whenever a JWT is accessed (e.g., during sign-in or when accessing session)
      * @param token - JWT token object
+     * @param user - User object (only available during initial sign-in)
      * @returns Modified token object
      */
     async jwt({ token, user }) {
-      if (user.id) {
+      // Only update token if user is present (during initial sign-in)
+      if (user?.id) {
         token.id = user.id;
         token.role = user.role;
         const shop = await shopServices.getShopByOwnerId(user.id, {

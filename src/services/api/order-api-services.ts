@@ -10,6 +10,7 @@
 import { Order } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
+import { OrderWithDetails } from "@/types/order.types";
 import { ActionResponse } from "@/types/response.type";
 
 /**
@@ -29,9 +30,10 @@ class OrderAPIService {
    * and track order status across the application.
    *
    */
-  async fetchUserOrders(): Promise<Order[]> {
+  async fetchUserOrders(): Promise<OrderWithDetails[]> {
     const url = `/orders`;
-    const response = await axiosInstance.get<ActionResponse<Order[]>>(url);
+    const response =
+      await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.details || "Failed to fetch orders");
     }

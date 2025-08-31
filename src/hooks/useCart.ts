@@ -1,8 +1,9 @@
+"use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
 import { cartAPIService } from "@/services/api";
-import cartServices, { FullCart } from "@/services/cart.services";
+import { type FullCart } from "@/services/cart.services";
 
 /**
  * Hook to fetch cart data for a specific shop with automatic caching and real-time updates.
@@ -104,6 +105,6 @@ export function useAddToCart() {
 export function useGetUserAllCart() {
   return useQuery({
     queryKey: queryKeys.cart.all,
-    queryFn: cartServices.getAllUserCarts,
+    queryFn: cartAPIService.fetchAllUserCarts,
   });
 }

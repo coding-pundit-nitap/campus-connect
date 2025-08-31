@@ -1,9 +1,11 @@
-import React from "react";
+import { CartDrawer } from "@/components/cart-drawer";
 
 const page = () => {
-  <>
-    <div>hy, i am kaushal here</div>
-  </>;
+  return (
+    <>
+      <CartDrawer />
+    </>
+  );
 };
 
 export default page;
