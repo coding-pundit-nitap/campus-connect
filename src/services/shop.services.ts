@@ -1,7 +1,7 @@
 import { Shop } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse } from "@/types/response.types";
 
 /**
  * Service class for shop-related API operations.
@@ -52,6 +52,6 @@ class ShopAPIService {
  * Provides a consistent interface for all shop-related API operations.
  *
  */
-const shopAPIService = new ShopAPIService();
+export const shopAPIService = new ShopAPIService();
 
 export default shopAPIService;

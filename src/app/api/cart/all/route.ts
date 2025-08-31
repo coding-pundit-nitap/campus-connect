@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import cartRepository from "@/repositories/cart.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -31,7 +31,12 @@ export const config = {
  */
 export async function GET() {
   try {
-    await authUtils.isAuthenticated();
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
+    }
 
     const carts = await cartRepository.getAllUserCarts();
     const successResponse = createSuccessResponse(

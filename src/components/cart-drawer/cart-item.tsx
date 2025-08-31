@@ -2,10 +2,9 @@ import { Trash2 } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
-import { CartItemData } from "@/types/cart.type";
-
-import SharedQuantityControl from "../shared/shared-quantity-control";
-import { Button } from "../ui/button";
+import SharedQuantityControl from "@/components/shared/shared-quantity-control";
+import { Button } from "@/components/ui/button";
+import { CartItemData } from "@/types";
 
 interface CartItemProps {
   item: CartItemData;

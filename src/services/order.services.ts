@@ -1,17 +1,7 @@
-/**
- * Order API service module for the college connect application.
- *
- * This module provides HTTP client functionality for order operations including
- * fetching user orders and retrieving specific order details. It handles
- * API communication with proper error handling and type safety for order-related
- * operations in the e-commerce functionality.
- *
- */
 import { Order } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
-import { OrderWithDetails } from "@/types/order.types";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse, OrderWithDetails } from "@/types";
 
 /**
  * Service class for order-related API operations.
@@ -65,6 +55,6 @@ class OrderAPIService {
  * Provides a consistent interface for all order-related API operations.
  *
  */
-const orderAPIService = new OrderAPIService();
+export const orderAPIService = new OrderAPIService();
 
 export default orderAPIService;

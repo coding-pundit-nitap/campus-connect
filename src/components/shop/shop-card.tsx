@@ -2,8 +2,8 @@ import { SellerVerificationStatus, Shop } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 
-import { SharedCard } from "../shared/shared-card";
-import { Badge } from "../ui/badge";
+import { SharedCard } from "@/components/shared/shared-card";
+import { Badge } from "@/components/ui/badge";
 
 interface ShopCardProps {
   shop: Shop;

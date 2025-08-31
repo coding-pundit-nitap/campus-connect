@@ -3,10 +3,9 @@
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";
-import loginUIService from "@/lib/login.utils";
-
-import { useLogin } from "../../hooks/useLogin";
-import { LoginFormConfig } from "../../types/login.types";
+import { useLogin } from "@/hooks/useLogin";
+import { loginUIService } from "@/lib/utils-functions";
+import { LoginFormConfig } from "@/types/login.types";
 export function LoginForm({ className = "" }: LoginFormConfig) {
   const { form, state, handlers } = useLogin();
 

@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import cartRepository from "@/repositories/cart.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -29,27 +29,15 @@ export const config = {
  *
  * @throws {Error} When cart retrieval fails due to service errors
  *
- * @example
- * ```typescript
- * // GET /api/cart?shop_id=123
- * const response = await fetch('/api/cart?shop_id=shop123', {
- *   headers: { 'Cookie': 'session=...' }
- * });
- *
- * const result = await response.json();
- * if (result.success) {
- *   console.log('Cart items:', result.data);
- * } else {
- *   console.error('Failed to get cart:', result.message);
- * }
- * ```
- *
- * @see {@link cartRepository.getCartForShop} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(request: Request) {
   try {
-    await authUtils.isAuthenticated();
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
+    }
     const { searchParams } = new URL(request.url);
     const shop_id = searchParams.get("shop_id");
 

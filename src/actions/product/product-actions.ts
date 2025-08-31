@@ -1,11 +1,11 @@
 "use server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 import { productSchema } from "@/validations/product";
 
 /**

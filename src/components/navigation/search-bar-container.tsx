@@ -2,7 +2,7 @@
 import { debounce } from "lodash";
 import React, { useEffect, useMemo } from "react";
 
-import { useSearch } from "@/hooks/useSearch";
+import { useSearch } from "@/hooks";
 
 import { SearchBar } from "./search-bar";
 

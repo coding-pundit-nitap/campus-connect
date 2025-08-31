@@ -79,6 +79,6 @@ class RegisterUIService {
   };
 }
 
-const registerUIService = new RegisterUIService();
+export const registerUIService = new RegisterUIService();
 
 export default registerUIService;

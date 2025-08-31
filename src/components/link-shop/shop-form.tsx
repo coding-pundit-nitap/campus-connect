@@ -1,8 +1,8 @@
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";
-import { useLinkShop } from "@/hooks/useShop";
-import shopUIServices from "@/lib/utils/shop.utils";
+import { useLinkShop } from "@/hooks";
+import { shopUIServices } from "@/lib/utils-functions";
 interface ShopFormConfig {
   className?: string;
 }

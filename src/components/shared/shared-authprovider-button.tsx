@@ -1,8 +1,7 @@
 import Image from "next/image";
 
-import { AuthProviderConfig } from "@/types/ui.types";
-
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
+import { AuthProviderConfig } from "@/types";
 
 interface SharedAuthProviderButtonProps {
   config: AuthProviderConfig;

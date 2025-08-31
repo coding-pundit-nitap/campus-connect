@@ -65,8 +65,6 @@ export class AuthValidation {
   }
 }
 
-export const emailSchema = AuthValidation.emailSchema;
-export const passwordSchema = AuthValidation.passwordSchema;
 export const loginSchema = AuthValidation.loginSchema;
 export const registerSchema = AuthValidation.registerSchema;
 export const forgotPasswordSchema = AuthValidation.forgotPasswordSchema;

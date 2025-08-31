@@ -1,8 +1,8 @@
 import { Cart } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import authUtils from "@/lib/utils/auth.utils";
-import { FullCart } from "@/types/cart.type";
+import authUtils from "@/lib/utils-functions/auth.utils";
+import { FullCart } from "@/types/cart.types";
 
 /**
  * Service class for cart-related database operations.

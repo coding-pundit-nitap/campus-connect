@@ -4,10 +4,9 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useLoginUser } from "@/hooks/tanstack/useUser";
-import loginUIService from "@/lib/utils/login.utils";
-import { FormState } from "@/types/form.types";
-import { LoginHandlers } from "@/types/login.types";
+import { useLoginUser } from "@/hooks";
+import { loginUIService } from "@/lib/utils-functions";
+import { FormState, LoginHandlers } from "@/types";
 import { LoginFormData, loginSchema } from "@/validations/auth";
 
 export function useLogin() {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-import { loginAction } from "@/actions/authentication/login-actions";
+import { loginAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services";
 

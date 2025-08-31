@@ -1,7 +1,7 @@
 import { Prisma, Shop } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import { ShopFormData } from "@/validations/shop";
 
 /**

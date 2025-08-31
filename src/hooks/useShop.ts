@@ -2,10 +2,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { FormState } from "@/types/form.types";
+import { useShopLink } from "@/hooks";
+import { FormState } from "@/types";
 import { ShopFormData, shopSchema } from "@/validations/shop";
 
-import { useShopLink } from "./tanstack/useShopLink";
 export function useLinkShop() {
   const { mutate: linkShop, isPending, error } = useShopLink();
 

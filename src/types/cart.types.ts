@@ -43,3 +43,4 @@ export type FullCart = Cart & {
     };
   })[];
 };
+export type FullCartItem = FullCart["items"][number];

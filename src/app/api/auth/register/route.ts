@@ -5,7 +5,7 @@ import userRepository from "@/repositories/user.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 import { registerSchema } from "@/validations/auth";
 
 export const config = {
