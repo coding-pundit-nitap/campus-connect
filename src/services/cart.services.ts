@@ -1,6 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { FullCart } from "@/types/cart.type";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse, FullCart } from "@/types";
 class CartAPIService {
   /**
    * Fetches the cart data for a specific shop.
@@ -46,6 +45,6 @@ class CartAPIService {
   }
 }
 
-const cartAPIService = new CartAPIService();
+export const cartAPIService = new CartAPIService();
 
 export default cartAPIService;

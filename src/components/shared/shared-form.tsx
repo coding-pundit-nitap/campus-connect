@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { ButtonConfig } from "@/types/ui.types";
+import type { ButtonConfig } from "@/types";
 
 /**
  * Configuration interface for individual form fields in the SharedForm component.

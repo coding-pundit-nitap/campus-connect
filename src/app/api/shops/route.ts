@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import { shopRepository } from "@/repositories";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export async function GET(_request: NextRequest) {
   try {
-    await authUtils.isAuthenticated();
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
+    }
     const shop = await shopRepository.getShopOwned();
     if (!shop) {
       const errorResponse = createErrorResponse("Shop not found");

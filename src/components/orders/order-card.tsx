@@ -1,8 +1,8 @@
 import React from "react";
 
-import { OrderWithDetails } from "@/types/order.types";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { OrderWithDetails } from "@/types";
 
-import { Card, CardContent, CardFooter } from "../ui/card";
 import OrderCardDetails from "./order-card-details";
 import OrderCardFooter from "./order-card-footer";
 import OrderCardHeader from "./order-card-header";

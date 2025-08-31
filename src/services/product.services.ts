@@ -1,7 +1,7 @@
 import { Product } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse } from "@/types/response.types";
 
 /**
  * Response interface for paginated product queries.
@@ -58,6 +58,6 @@ class ProductAPIService {
   }
 }
 
-const productAPIService = new ProductAPIService();
+export const productAPIService = new ProductAPIService();
 
 export default productAPIService;

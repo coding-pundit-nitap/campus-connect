@@ -3,7 +3,7 @@ import { usePathname } from "next/navigation";
 import { SessionProvider } from "next-auth/react";
 import React from "react";
 
-import { navigationUIServices } from "@/lib/utils/navigation.utils";
+import { navigationUIService } from "@/lib/utils-functions";
 import { authRoutes } from "@/rbac";
 
 import { Layout } from "./layout";
@@ -14,7 +14,7 @@ interface LayoutContainerProps {
 
 export function LayoutContainer({ children }: LayoutContainerProps) {
   const pathname = usePathname();
-  const navigation = navigationUIServices.getNavigationItems();
+  const navigation = navigationUIService.getNavigationItems();
 
   if (authRoutes.includes(pathname)) {
     return <SessionProvider>{children}</SessionProvider>;

@@ -1,11 +1,11 @@
 "use server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 import { ShopFormData, shopSchema } from "@/validations/shop";
 
 /**
@@ -17,7 +17,10 @@ import { ShopFormData, shopSchema } from "@/validations/shop";
  */
 export async function createShopAction(formData: ShopFormData) {
   try {
-    await authUtils.isAuthenticated();
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      throw new Error("User not authenticated");
+    }
     const existingShop = await shopRepository.getShopOwned();
     if (existingShop) {
       return createErrorResponse("You already own a shop");

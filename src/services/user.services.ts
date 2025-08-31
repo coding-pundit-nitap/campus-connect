@@ -2,7 +2,7 @@ import { User } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
 import { OrderWithDetails } from "@/types/order.types";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse } from "@/types/response.types";
 import { RegisterFormData } from "@/validations/auth";
 
 /**
@@ -65,6 +65,6 @@ class UserAPIService {
   }
 }
 
-const userAPIService = new UserAPIService();
+export const userAPIService = new UserAPIService();
 
 export default userAPIService;

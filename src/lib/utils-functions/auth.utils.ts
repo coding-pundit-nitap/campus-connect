@@ -1,3 +1,5 @@
+import "server-only";
+
 import { User } from "next-auth";
 
 import { auth } from "@/auth";
@@ -45,6 +47,6 @@ class AuthUtils implements IAuthUtils {
   }
 }
 
-const authUtils = new AuthUtils();
+export const authUtils = new AuthUtils();
 
 export default authUtils;

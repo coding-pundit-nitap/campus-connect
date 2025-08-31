@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import React from "react";
 
-import { Button } from "../ui/button";
-import { Separator } from "../ui/separator";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function SignOutButton() {
   const router = useRouter();

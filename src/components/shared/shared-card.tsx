@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { CardConfig } from "@/types/ui.types";
+import type { CardConfig } from "@/types";
 
 /**
  * Configuration properties for the SharedCard component.

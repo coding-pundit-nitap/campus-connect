@@ -2,13 +2,9 @@ import {
   CartItemData,
   CartSummary,
   FullCart,
+  FullCartItem,
   ShopCart,
-} from "@/types/cart.type";
-
-/**
- * Type alias for a single cart item from the FullCart structure
- */
-export type FullCartItem = FullCart["items"][number];
+} from "@/types";
 
 /**
  * Service class that provides utility methods for cart operations and transformations.
@@ -158,6 +154,6 @@ class CartDrawerServices {
 /**
  * Singleton instance of CartDrawerServices for cart operations
  */
-const cartUIService = new CartDrawerServices();
+export const cartUIService = new CartDrawerServices();
 
 export default cartUIService;

@@ -29,10 +29,6 @@ export class ProductValidation {
   }
 }
 
-export const nameSchema = ProductValidation.nameSchema;
-export const descriptionSchema = ProductValidation.descriptionSchema;
-export const priceSchema = ProductValidation.priceSchema;
-export const stockQuantitySchema = ProductValidation.stockQuantitySchema;
 export const productSchema = ProductValidation.productSchema;
 
 export type ProductFormData = z.infer<typeof ProductValidation.productSchema>;

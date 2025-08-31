@@ -39,11 +39,6 @@ export class ShopValidation {
   }
 }
 
-export const nameSchema = ShopValidation.nameSchema;
-export const descriptionSchema = ShopValidation.descriptionSchema;
-export const locationSchema = ShopValidation.locationSchema;
-export const openingSchema = ShopValidation.openingSchema;
-export const closingSchema = ShopValidation.closingSchema;
 export const shopSchema = ShopValidation.shopSchema;
 
 export type ShopFormData = z.infer<typeof ShopValidation.shopSchema>;

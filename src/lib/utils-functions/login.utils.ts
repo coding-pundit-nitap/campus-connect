@@ -94,6 +94,6 @@ class LoginUIService {
   };
 }
 
-const loginUIService = new LoginUIService();
+export const loginUIService = new LoginUIService();
 
 export default loginUIService;

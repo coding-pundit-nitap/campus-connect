@@ -1,10 +1,10 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { upsertCartItem } from "@/actions/cart/cart-actions";
+import { upsertCartItem } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { cartAPIService } from "@/services";
-import { FullCart } from "@/types/cart.type";
+import { FullCart } from "@/types";
 
 /**
  * Hook to fetch cart data for a specific shop with automatic caching and real-time updates.

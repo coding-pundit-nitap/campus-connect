@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",

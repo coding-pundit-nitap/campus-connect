@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 import orderRepository from "@/repositories/order.repository";
+import {
+  createErrorResponse,
+  createSuccessResponse,
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
@@ -32,16 +36,22 @@ export const config = {
  */
 export async function GET(_request: NextRequest) {
   try {
-    await authUtils.isAuthenticated();
+    const isAuth = await authUtils.isAuthenticated();
+    if (!isAuth) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
+    }
 
     const orders = await orderRepository.getOrdersByUserId({
       include: { items: true, shop: true },
     });
-    return NextResponse.json(orders);
+
+    return NextResponse.json(createSuccessResponse(orders));
   } catch (error) {
     console.error("GET USER ORDERS ERROR:", error);
     return NextResponse.json(
-      { error: "An internal server error occurred." },
+      createErrorResponse("An internal server error occurred."),
       { status: 500 }
     );
   }

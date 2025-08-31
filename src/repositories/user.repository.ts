@@ -9,7 +9,7 @@
 import { Prisma, Role, User } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils-functions/auth.utils";
 
 /**
  * Type definition for user creation data.

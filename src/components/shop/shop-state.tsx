@@ -1,7 +1,8 @@
 import React from "react";
 
-import { SharedCard } from "../shared/shared-card";
-import { Separator } from "../ui/separator";
+import { SharedCard } from "@/components/shared/shared-card";
+import { Separator } from "@/components/ui/separator";
+
 import ShopAction from "./shop-action";
 
 interface ShopWrapperProps {

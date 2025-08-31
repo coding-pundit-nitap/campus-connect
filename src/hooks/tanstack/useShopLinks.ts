@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createShopAction } from "@/actions/shop/shop-actions";
+import { createShopAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 
 export function useShopLink() {

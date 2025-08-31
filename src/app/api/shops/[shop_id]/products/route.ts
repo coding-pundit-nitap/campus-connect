@@ -5,7 +5,7 @@ import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",

@@ -3,7 +3,7 @@ import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
 class NavigationUIService {
-  static getNavigationItems(): NavigationItem[] {
+  getNavigationItems(): NavigationItem[] {
     return [
       {
         id: "home",
@@ -45,6 +45,6 @@ class NavigationUIService {
   }
 }
 
-const navigationUIService = new NavigationUIService();
+export const navigationUIService = new NavigationUIService();
 
 export default navigationUIService;

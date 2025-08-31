@@ -70,6 +70,6 @@ class ShopUIServices {
   };
 }
 
-const shopUIServices = new ShopUIServices();
+export const shopUIServices = new ShopUIServices();
 
 export default shopUIServices;

@@ -2,7 +2,7 @@
 import React from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { TabItem } from "@/types/ui.types";
+import type { TabItem } from "@/types";
 
 /**
  * Props interface for the SharedTabs component.

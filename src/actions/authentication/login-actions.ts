@@ -4,7 +4,7 @@ import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
 import { handleActionError } from "@/lib/auth";
-import { AuthResponse, createAuthResponse } from "@/types/response.type";
+import { AuthResponse, createAuthResponse } from "@/types/response.types";
 import { LoginFormData, loginSchema } from "@/validations/auth";
 
 /**

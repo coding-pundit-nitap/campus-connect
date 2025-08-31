@@ -3,8 +3,8 @@
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";
-import { useRegister } from "@/hooks/useRegister";
-import registerUIService from "@/lib/utils/register.utils";
+import { useRegister } from "@/hooks";
+import { registerUIService } from "@/lib/utils-functions";
 
 interface RegisterFormConfig {
   className?: string;

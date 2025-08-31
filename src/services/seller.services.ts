@@ -1,7 +1,7 @@
 import { Order } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types/response.type";
+import { ActionResponse } from "@/types/response.types";
 
 /**
  * Service class for seller-related API operations.
@@ -34,6 +34,6 @@ class SellerAPIService {
   }
 }
 
-const sellerAPIService = new SellerAPIService();
+export const sellerAPIService = new SellerAPIService();
 
 export default sellerAPIService;
