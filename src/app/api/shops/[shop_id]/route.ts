@@ -28,8 +28,6 @@ export const config = {
  *
  * @throws {Error} When shop retrieval fails due to service errors or database issues
  *
- * @see {@link shopRepository.getShopById} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET(
   request: Request,

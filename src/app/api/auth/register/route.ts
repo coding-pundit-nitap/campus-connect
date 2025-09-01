@@ -34,10 +34,6 @@ export const config = {
  *
  * @throws {Error} When user creation fails due to database errors
  *
- * @see {@link registerSchema} for input validation rules
- * @see {@link hashPassword} for password hashing implementation
- * @see {@link userRepository.createUser} for user creation service
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function POST(request: NextRequest) {
   try {

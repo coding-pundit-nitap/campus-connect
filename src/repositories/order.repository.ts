@@ -232,6 +232,6 @@ class OrderRepository {
   }
 }
 
-const orderRepository = new OrderRepository();
+export const orderRepository = new OrderRepository();
 
 export default orderRepository;

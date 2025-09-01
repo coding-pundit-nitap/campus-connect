@@ -1,6 +1,7 @@
 import { Shop } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
+import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";
 
 /**
@@ -35,9 +36,10 @@ class ShopAPIService {
     return response.data.data;
   }
 
-  async fetchShopsByUser(): Promise<Shop> {
+  async fetchShopsByUser(): Promise<ShopWithOwner> {
     const url = `/shops`;
-    const response = await axiosInstance.get<ActionResponse<Shop>>(url);
+    const response =
+      await axiosInstance.get<ActionResponse<ShopWithOwner>>(url);
     if (!response.data.success || !response.data.data) {
       throw new Error(response.data.details || "Failed to fetch shops");
     }

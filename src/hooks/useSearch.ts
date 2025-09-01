@@ -6,7 +6,7 @@ type searchProps = {
   /** Callback function when search query changes */
   onSearch: (query: string) => void;
   /** Array of suggestions to check if we should show popover */
-  suggestions: Array<{ id: string; title: string; subtitle: string }>;
+  suggestions: { id: string; title: string; subtitle: string }[];
 };
 export const useSearch = ({
   onSearch,

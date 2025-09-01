@@ -5,7 +5,7 @@ import React from "react";
 import { SharedAuthProviderButton } from "@/components/shared/shared-authprovider-button";
 import { SharedCard } from "@/components/shared/shared-card";
 import { Separator } from "@/components/ui/separator";
-import { useRegister } from "@/hooks/useRegister";
+import { useRegister } from "@/hooks/useRegisterForm";
 import { registerUIService } from "@/lib/utils-functions";
 import { AuthProviderConfig } from "@/types";
 

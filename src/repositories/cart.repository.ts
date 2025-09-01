@@ -181,5 +181,5 @@ class CartRepository {
   }
 }
 
-const cartRepository = new CartRepository();
+export const cartRepository = new CartRepository();
 export default cartRepository;

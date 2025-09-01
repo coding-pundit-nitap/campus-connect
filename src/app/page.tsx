@@ -1,5 +1,8 @@
+"use client";
+import ShopFormContainer from "@/components/link-shop/shop-form-container";
+
 const page = () => {
-  return <>Hello</>;
+  return <ShopFormContainer />;
 };
 
 export default page;

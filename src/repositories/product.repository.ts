@@ -243,6 +243,6 @@ class ProductRepository {
   }
 }
 
-const productReProductRepository = new ProductRepository();
+export const productRepository = new ProductRepository();
 
-export default productReProductRepository;
+export default productRepository;

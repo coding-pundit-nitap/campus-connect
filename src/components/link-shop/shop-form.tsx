@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";

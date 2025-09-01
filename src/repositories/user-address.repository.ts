@@ -208,6 +208,6 @@ class UserAddressRepository {
   }
 }
 
-const userAddressRepository = new UserAddressRepository();
+export const userAddressRepository = new UserAddressRepository();
 
 export default userAddressRepository;

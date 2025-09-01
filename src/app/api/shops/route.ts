@@ -15,7 +15,9 @@ export async function GET(_request: NextRequest) {
         status: 401,
       });
     }
-    const shop = await shopRepository.getShopOwned();
+    const shop = await shopRepository.getShopOwned({
+      include: { owner: { select: { name: true, email: true } } },
+    });
     if (!shop) {
       const errorResponse = createErrorResponse("Shop not found");
       return NextResponse.json(errorResponse, { status: 404 });
