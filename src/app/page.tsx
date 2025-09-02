@@ -1,5 +1,5 @@
-const page = () => {
-  return <>Hello</>;
-};
+import { Shops } from "@/page-components/front-page/shops";
 
-export default page;
+export default function Page() {
+  return <Shops />;
+}

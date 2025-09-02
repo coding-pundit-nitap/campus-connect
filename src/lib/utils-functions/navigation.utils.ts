@@ -20,7 +20,7 @@ class NavigationUIService {
       {
         id: "shops",
         title: "Shops",
-        url: "/shops",
+        url: "/owner-shops",
         icon: Store,
       },
       {
