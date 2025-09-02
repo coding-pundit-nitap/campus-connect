@@ -1,8 +1,11 @@
-"use client";
-import ShopFormContainer from "@/components/link-shop/shop-form-container";
+import { CartDrawer } from "@/components/cart-drawer";
 
 const page = () => {
-  return <ShopFormContainer />;
+  return (
+    <>
+      <CartDrawer />
+    </>
+  );
 };
 
 export default page;
