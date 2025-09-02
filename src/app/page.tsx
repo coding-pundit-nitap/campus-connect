@@ -1,5 +1,5 @@
-const page = () => {
-  return <>Hello</>;
-};
+import FrontPage from "@/page-components/front-page/homepage";
 
-export default page;
+export default function Page() {
+  return <FrontPage />;
+}

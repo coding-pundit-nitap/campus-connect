@@ -27,9 +27,9 @@ export default function UserDetail({ user }: Props) {
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case "ADMIN":
-        return "destructive" as const;
+        return "destructive";
       default:
-        return "secondary" as const;
+        return "secondary";
     }
   };
   return (

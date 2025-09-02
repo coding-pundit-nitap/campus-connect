@@ -13,7 +13,7 @@ interface SearchBarProps {
   onBlur?: () => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSelectItem: (value: string) => void;
-  suggestions: Array<{ id: string; title: string; subtitle: string }>;
+  suggestions: { id: string; title: string; subtitle: string }[];
   isSearching: boolean;
 }
 

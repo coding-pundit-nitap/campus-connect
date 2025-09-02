@@ -9,7 +9,7 @@ export interface TabItem {
 }
 
 export interface CardConfig {
-  title: string;
+  title?: string;
   description?: string;
   showHeader?: boolean;
   showFooter?: boolean;
@@ -20,10 +20,12 @@ export interface CardConfig {
 export interface FormFieldConfig<T extends FieldValues> {
   name: Path<T>;
   label: string;
-  type: HTMLInputTypeAttribute;
+  type: HTMLInputTypeAttribute | "file" | "textarea";
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  accept?: string;
+  maxSize?: number;
 }
 
 export interface ButtonConfig {

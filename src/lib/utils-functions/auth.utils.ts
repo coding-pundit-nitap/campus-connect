@@ -38,6 +38,12 @@ class AuthUtils implements IAuthUtils {
     return !!user && !!user.shop_id;
   }
 
+  async getOwnedShopId(): Promise<string> {
+    const user = await this.getUserData();
+    if (!user || !user.shop_id) this.unAuthorized();
+    return user.shop_id!;
+  }
+
   async getShopId(): Promise<string> {
     const user = await this.getUserData();
     if (!user || !user.shop_id) this.unAuthorized();

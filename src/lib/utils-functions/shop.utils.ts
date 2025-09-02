@@ -15,7 +15,7 @@ class ShopUIServices {
       {
         name: "description",
         label: "Description",
-        type: "text",
+        type: "textarea",
         placeholder: "Enter shop description",
         required: true,
       },

@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import { ShopFormData } from "@/validations/shop";
 
+type ShopFindManyOptions = Prisma.ShopFindManyArgs;
+
 /**
  * Type alias for shop update data.
  *
@@ -235,6 +237,17 @@ class ShopRepository {
     const query = { where: { id: shop_id }, ...(options ?? {}) };
     return prisma.shop.findUnique(query);
   }
+
+  async getShops(): Promise<Shop[]>;
+  async getShops<T extends ShopFindManyOptions>(
+    options: T
+  ): Promise<Prisma.ShopGetPayload<T>[]>;
+  async getShops<T extends ShopFindManyOptions>(
+    options?: T
+  ): Promise<Prisma.ShopGetPayload<T>[] | Shop[]> {
+    const query = { ...(options ?? {}) };
+    return prisma.shop.findMany(query);
+  }
 }
 
 /**
@@ -246,6 +259,6 @@ class ShopRepository {
  * with comprehensive validation and type safety.
  *
  */
-const shopReShopRepository = new ShopRepository();
+export const shopRepository = new ShopRepository();
 
-export default shopReShopRepository;
+export default shopRepository;

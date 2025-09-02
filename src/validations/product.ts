@@ -8,20 +8,33 @@ export class ProductValidation {
 
   static readonly descriptionSchema = z.string().optional();
 
-  static readonly priceSchema = z.coerce
+  static readonly priceSchema = z
     .number()
     .positive("Price must be a positive number");
 
-  static readonly stockQuantitySchema = z.coerce
+  static readonly stockQuantitySchema = z
     .number()
     .int()
     .min(0, "Stock cannot be negative");
+  static readonly imageUrlSchema = z
+    .union([
+      z.string().url("Invalid URL"),
+      z.instanceof(File, { message: "Invalid file" }),
+      z.string().optional(),
+    ])
+    .optional();
+  static readonly discountSchema = z
+    .number()
+    .min(0, "Discount cannot be negative")
+    .optional();
 
   static readonly productSchema = z.object({
     name: this.nameSchema,
     description: this.descriptionSchema,
     price: this.priceSchema,
     stock_quantity: this.stockQuantitySchema,
+    image_url: this.imageUrlSchema,
+    discount: this.discountSchema,
   });
 
   static validateProduct(data: z.infer<typeof this.productSchema>) {

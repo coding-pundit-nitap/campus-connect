@@ -1,22 +1,25 @@
 "use client";
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
+import { createProductAction, updateProductAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services";
+import { ProductFormData } from "@/validations/product";
 
 /**
- * Hook to fetch shop details by shop ID with conditional query execution and automatic caching.
+ * Fetches details for a specific shop by its ID.
+ * - Returns shop metadata, seller info, and stats.
+ * - Query runs only if shop_id is provided.
  *
- * This hook provides reactive access to comprehensive shop information including
- * shop metadata, seller details, and basic shop statistics. It's designed for
- * shop profile pages, shop directories, and any component that needs to display
- * or interact with specific shop information.
- *
- * @param shop_id - The unique identifier of the shop to fetch details for
- * @returns UseQueryResult containing shop details, loading state, and error information
- *
+ * @param shop_id Shop identifier
+ * @returns React Query result with shop details
  */
 export function useShop(shop_id: string) {
   return useQuery({
@@ -27,16 +30,12 @@ export function useShop(shop_id: string) {
 }
 
 /**
- * Hook to fetch shop products with infinite scrolling and cursor-based pagination.
+ * Fetches products for a shop with infinite scrolling (cursor-based pagination).
+ * - Useful for large catalogs and product listings.
+ * - Returns paginated product data and controls for loading more.
  *
- * This hook provides efficient access to a shop's product catalog using infinite
- * scrolling patterns. It's optimized for large product catalogs and provides
- * seamless pagination through cursor-based loading. Perfect for shop pages,
- * product listings, and any interface where users browse through shop inventories.
- *
- * @param shop_id - The unique identifier of the shop to fetch products for
- * @returns UseInfiniteQueryResult containing paginated product data, loading states, and pagination controls
- *
+ * @param shop_id Shop identifier
+ * @returns Infinite Query result with paginated products
  */
 export const useShopProducts = (shop_id: string) => {
   return useInfiniteQuery({
@@ -50,20 +49,15 @@ export const useShopProducts = (shop_id: string) => {
 };
 
 /**
- * Hook to fetch shop products as a flattened array with additional convenience properties.
+ * Provides all shop products as a flat array, plus convenience properties.
+ * - Flattens paginated results from useShopProducts.
+ * - Adds total count and presence flag.
  *
- * This hook builds upon useShopProducts to provide a simplified interface for
- * components that need access to all shop products as a single flat array rather
- * than paginated data. It automatically flattens the infinite query results and
- * provides additional computed properties for easier product catalog management.
- *
- * @param shop_id - The unique identifier of the shop to fetch products for
- * @returns Enhanced query result with flattened products array and convenience properties
- *
+ * @param shop_id Shop identifier
+ * @returns Query result with flat products array and helpers
  */
 export function useShopProductsFlat(shop_id: string) {
   const query = useShopProducts(shop_id);
-
   const products = query.data?.pages.flatMap((page) => page.data) ?? [];
 
   return {
@@ -74,6 +68,12 @@ export function useShopProductsFlat(shop_id: string) {
   };
 }
 
+/**
+ * Fetches all shops associated with the current user.
+ * - Runs only if user session is available.
+ *
+ * @returns React Query result with user's shops
+ */
 export function useShopByUser() {
   const { data: session } = useSession();
 
@@ -81,5 +81,37 @@ export function useShopByUser() {
     queryKey: queryKeys.shops.byUser(),
     queryFn: () => shopAPIService.fetchShopsByUser(),
     enabled: !!session?.user.id,
+  });
+}
+
+export function useShopProductsUpdate(product_id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (
+      formData: Omit<ProductFormData, "image_url"> & {
+        image_url: string | null;
+      }
+    ) => updateProductAction(product_id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.products.detail(product_id),
+      });
+    },
+  });
+}
+
+export function useShopProductsCreate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProductAction,
+    onSuccess: ({ data }) => {
+      if (data) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.products(data.shop_id),
+        });
+      }
+    },
   });
 }

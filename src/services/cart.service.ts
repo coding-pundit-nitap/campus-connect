@@ -14,6 +14,7 @@ class CartAPIService {
    * @throws {Error} When API request fails or returns invalid data
    *
    */
+
   async fetchCartForShop(shop_id: string): Promise<FullCart> {
     const url = `/cart?shop_id=${shop_id}`;
     const response = await axiosInstance.get<ActionResponse<FullCart>>(url);
