@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
-import { updateProductAction } from "@/actions";
+import { createProductAction, updateProductAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services";
 import { ProductFormData } from "@/validations/product";
@@ -104,6 +104,21 @@ export function useShopProductsUpdate(product_id: string) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.detail(product_id),
       });
+    },
+  });
+}
+
+export function useShopProductsCreate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createProductAction,
+    onSuccess: ({ data }) => {
+      if (data) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.products(data.shop_id),
+        });
+      }
     },
   });
 }

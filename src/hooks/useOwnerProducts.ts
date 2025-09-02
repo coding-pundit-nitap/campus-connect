@@ -19,23 +19,6 @@ export const useOwnerProducts = (shop_id: string) => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
-  // const allProducts = [
-  //   {
-  //     created_at: new Date(),
-  //     id: "123",
-  //     image_url: "/placeholders/placeholder.png",
-  //     name: "testing",
-  //     price: 20,
-  //     rating: 5,
-  //     shop_id: "123",
-  //     stock_quantity: 5,
-  //     updated_at: new Date(),
-  //     description: null,
-  //     discount: null,
-  //     category_id: null,
-  //   },
-  // ];
-
   const {
     filters,
     filteredProducts,

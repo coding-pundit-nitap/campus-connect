@@ -28,10 +28,10 @@ export function useLinkShop() {
   };
 
   const handlers = {
-    onFormSubmit: useCallback(
-      (data: ShopFormData) => {
+    onSubmit: useCallback(
+      form.handleSubmit((data: ShopFormData) => {
         linkShop(data);
-      },
+      }),
       [linkShop]
     ),
   };

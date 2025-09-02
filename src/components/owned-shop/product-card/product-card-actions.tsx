@@ -2,7 +2,7 @@ import { Product } from "@prisma/client";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import useProductForm from "@/hooks/useProductForm";
+import { useUpdateProductForm } from "@/hooks/useProductForm";
 import { productUIServices } from "@/lib/utils-functions";
 import { ProductFormData } from "@/validations";
 
@@ -19,7 +19,7 @@ export function ProductCardActions({
   onEdit,
   onDelete,
 }: ProductCardActionsProps) {
-  const productFormHook = useProductForm({ product });
+  const productFormHook = useUpdateProductForm({ product });
   const fields = productUIServices.createProductFormFields();
 
   return (

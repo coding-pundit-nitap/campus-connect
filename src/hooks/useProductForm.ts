@@ -5,13 +5,13 @@ import { useForm } from "react-hook-form";
 import { FormState } from "@/types";
 import { ProductFormData, productSchema } from "@/validations";
 
-import { useShopProductsUpdate } from "./tanstack";
+import { useShopProductsCreate, useShopProductsUpdate } from "./tanstack";
 
 type Props = {
   product: Product;
 };
 
-export default function useProductForm({ product }: Props) {
+export function useUpdateProductForm({ product }: Props) {
   const {
     mutate: updateProduct,
     isPending,
@@ -46,6 +46,46 @@ export default function useProductForm({ product }: Props) {
       const processedData = { ...data, image_url: uploadedImageUrl };
 
       updateProduct(processedData);
+    }),
+  };
+
+  return {
+    form,
+    state,
+    handlers,
+  };
+}
+
+export function useCreateProductForm() {
+  const { mutate: createProduct } = useShopProductsCreate();
+
+  const form = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: 0,
+      stock_quantity: 0,
+      image_url: "",
+      discount: 0,
+    },
+  });
+
+  const state: FormState = {
+    isLoading: false,
+    error: null,
+    isSubmitting: form.formState.isSubmitting,
+  };
+
+  // TODO: Implement image upload logic
+  const handlers = {
+    onSubmit: form.handleSubmit(async (data) => {
+      const uploadedImageUrl =
+        data.image_url instanceof File ? "" : data.image_url;
+
+      const processedData = { ...data, image_url: uploadedImageUrl };
+
+      createProduct(processedData);
     }),
   };
 
