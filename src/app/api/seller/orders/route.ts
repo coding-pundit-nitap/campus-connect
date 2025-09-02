@@ -27,8 +27,6 @@ export const config = {
  *
  * @throws {Error} When order retrieval fails due to service errors
  *
- * @see {@link orderRepository.getOrdersByShopId} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
  */
 export async function GET() {
   try {

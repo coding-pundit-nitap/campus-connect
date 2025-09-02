@@ -1,10 +1,17 @@
 "use client";
 
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 
+import { updateProductAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services";
+import { ProductFormData } from "@/validations/product";
 
 /**
  * Fetches details for a specific shop by its ID.
@@ -74,5 +81,22 @@ export function useShopByUser() {
     queryKey: queryKeys.shops.byUser(),
     queryFn: () => shopAPIService.fetchShopsByUser(),
     enabled: !!session?.user.id,
+  });
+}
+
+export function useShopProductsUpdate(product_id: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (
+      formData: Omit<ProductFormData, "image_url"> & {
+        image_url: string | null;
+      }
+    ) => updateProductAction(product_id, formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.products.detail(product_id),
+      });
+    },
   });
 }

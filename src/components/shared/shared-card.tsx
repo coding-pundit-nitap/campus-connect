@@ -84,9 +84,11 @@ export function SharedCard({
     <Card className={`border-none shadow-xl ${className}`}>
       {showHeader && (
         <CardHeader className={cn("pb-4", headerClassName)}>
-          <CardTitle className="text-center text-2xl font-semibold">
-            {title}
-          </CardTitle>
+          {title && (
+            <CardTitle className="text-center text-2xl font-semibold">
+              {title}
+            </CardTitle>
+          )}
           {description && (
             <CardDescription className="text-center text-sm text-gray-500">
               {description}

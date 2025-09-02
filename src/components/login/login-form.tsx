@@ -3,7 +3,7 @@
 import React from "react";
 
 import { SharedForm } from "@/components/shared/shared-form";
-import { useLogin } from "@/hooks/useLogin";
+import { useLogin } from "@/hooks/useLoginForm";
 import { loginUIService } from "@/lib/utils-functions";
 import { LoginFormConfig } from "@/types/login.types";
 export function LoginForm({ className = "" }: LoginFormConfig) {

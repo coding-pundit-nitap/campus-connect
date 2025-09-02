@@ -24,7 +24,7 @@ export function useLogin() {
   const state: FormState = {
     isLoading: isPending,
     error: error?.message || null,
-    isSubmitting: isPending,
+    isSubmitting: form.formState.isSubmitting,
   };
 
   const handlers: LoginHandlers = {

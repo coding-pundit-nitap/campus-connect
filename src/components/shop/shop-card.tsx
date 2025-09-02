@@ -1,12 +1,13 @@
-import { SellerVerificationStatus, Shop } from "@prisma/client";
+import { SellerVerificationStatus } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
 import { Badge } from "@/components/ui/badge";
+import { ShopWithOwner } from "@/types";
 
 interface ShopCardProps {
-  shop: Shop;
+  shop: ShopWithOwner;
 }
 
 export default function ShopCard({ shop }: ShopCardProps) {
@@ -49,11 +50,13 @@ export default function ShopCard({ shop }: ShopCardProps) {
             Location: {shop.location}
           </span>
           <span className="text-sm text-muted-foreground">
-            Owner: {shop.owner_id}
+            Owner: {shop.owner.name} ({shop.owner.email})
           </span>
-          <span className="text-sm text-muted-foreground">
-            PG Seller: {shop.pg_seller_id}
-          </span>
+          {shop.pg_seller_id && (
+            <span className="text-sm text-muted-foreground">
+              PG Seller: {shop.pg_seller_id}
+            </span>
+          )}
         </div>
       </Link>
     </SharedCard>

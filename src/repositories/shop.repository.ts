@@ -246,6 +246,6 @@ class ShopRepository {
  * with comprehensive validation and type safety.
  *
  */
-const shopReShopRepository = new ShopRepository();
+export const shopReShopRepository = new ShopRepository();
 
 export default shopReShopRepository;

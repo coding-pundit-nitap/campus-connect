@@ -31,8 +31,6 @@ export const config = {
  *
  * @throws {Error} When order retrieval fails due to service errors or database issues
  *
- * @see {@link orderRepository.getOrdersByUserId} for the underlying service method
- * @see {@link auth} for the authentication mechanism
  */
 export async function GET(_request: NextRequest) {
   try {

@@ -78,24 +78,6 @@ export async function createOrderAction({
  *
  * @throws {Error} When status update fails due to service errors or authorization issues
  *
- * @example
- * ```typescript
- * const result = await updateOrderStatusAction({
- *   order_id: "order_456",
- *   status: "SHIPPED"
- * });
- *
- * if (result.success) {
- *   console.log("Status updated:", result.data);
- * } else {
- *   console.error("Update failed:", result.message);
- * }
- * ```
- *
- * @todo Add revalidatePath for cache invalidation
- *
- * @see {@link orderRepository.updateOrderStatus} for the underlying service method
- * @see {@link OrderStatus} for available order statuses
  */
 export async function updateOrderStatusAction({
   order_id,
