@@ -1,10 +1,8 @@
-import Link from "next/link";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { useLinkShop } from "@/hooks";
 import { shopUIServices } from "@/lib/utils-functions";
-import { ButtonConfig } from "@/types";
 
 import SharedDialog from "../shared/shared-dialog";
 import { SharedForm } from "../shared/shared-form";

@@ -10,4 +10,5 @@ export * from "@/hooks/useProductFilters";
 export * from "@/hooks/useRegisterForm";
 export * from "@/hooks/useSearch";
 export * from "@/hooks/useShopForm";
+export * from "@/hooks/useShops";
 export * from "@/hooks/useToggleTheme";

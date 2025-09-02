@@ -83,7 +83,7 @@ export function SharedCard({
   return (
     <Card className={`border-none shadow-xl ${className}`}>
       {showHeader && (
-        <CardHeader className={cn("pb-4", headerClassName)}>
+        <CardHeader className={cn("py-4", headerClassName)}>
           {title && (
             <CardTitle className="text-center text-2xl font-semibold">
               {title}

@@ -30,7 +30,7 @@ export default function ShopCard({ shop }: ShopCardProps) {
   return (
     <SharedCard showHeader={false} title={shop.name}>
       <Link
-        href={`/shops/${shop.id}`}
+        href={`/owner-shops/${shop.id}`}
         className="flex flex-row justify-between gap-2"
       >
         <div className="flex flex-col">

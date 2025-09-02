@@ -173,6 +173,14 @@ export function SharedForm<T extends FieldValues>({
                       type={field.type}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
+                      onChange={(e) => {
+                        if (field.type === "number") {
+                          const value = e.target.value;
+                          formField.onChange(value === "" ? 0 : Number(value));
+                        } else {
+                          formField.onChange(e);
+                        }
+                      }}
                     />
                   )}
                 </FormControl>
