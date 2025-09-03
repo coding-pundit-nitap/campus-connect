@@ -27,7 +27,7 @@ export default function ShopCard({
   const open = isOpen(shop);
 
   return (
-    <Link href={`/owner-shops?name=${shop.id}`}>
+    <Link href={`/shops?shop_id=${shop.id}`}>
       <Card className="w-full max-w-sm hover:shadow-xl [box-shadow:rgba(50,50,93,0.25)_0px_2px_5px_-1px,rgba(0,0,0,0.3)_0px_1px_3px_-1px] overflow-hidden">
         <div className="relative">
           <Image

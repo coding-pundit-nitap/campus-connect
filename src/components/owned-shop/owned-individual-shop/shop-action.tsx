@@ -1,11 +1,10 @@
 import React from "react";
 
+import SharedDialog from "@/components/shared/shared-dialog";
+import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
 import { useLinkShop } from "@/hooks";
 import { shopUIServices } from "@/lib/utils-functions";
-
-import SharedDialog from "../shared/shared-dialog";
-import { SharedForm } from "../shared/shared-form";
 
 export default function ShopAction() {
   const { form, state, handlers } = useLinkShop();

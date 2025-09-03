@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import React from "react";
 
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function SidebarAction() {
   const router = useRouter();
