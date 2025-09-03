@@ -1,9 +1,8 @@
 import React from "react";
 
+import { ProductFiltersContainer } from "@/components/shops/products/product-filters";
 import { useOwnedShop } from "@/hooks/useOwnedShop";
-import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 
-import { ProductFiltersContainer } from "./product-filters";
 import { NoMatchFilter } from "./product-filters/no-match-filter";
 import { ProductListContainer } from "./product-list";
 import { ShopProductListHeader } from "./shop-header/shop-product-list-header";
@@ -25,10 +24,11 @@ export function OwnedShop({ shop_id }: OwnedShopProps) {
     showNoMatchMessage,
     onEditProduct,
     onDeleteProduct,
+    allProducts,
+    displayProducts,
+    hasActiveFilters,
+    onResetFilters,
   } = useOwnedShop(shop_id);
-
-  const { clearFilters, allProducts, displayProducts, hasActiveFilters } =
-    useOwnerProducts(shop_id);
 
   if (isInitialLoading) {
     return <ShopLoadingState />;
@@ -42,7 +42,6 @@ export function OwnedShop({ shop_id }: OwnedShopProps) {
     return <ShopEmptyState />;
   }
 
-  // Calculate count message
   const countMessage = hasActiveFilters
     ? `Showing ${displayProducts.length} of ${allProducts.length} products`
     : `${allProducts.length} products`;
@@ -56,7 +55,7 @@ export function OwnedShop({ shop_id }: OwnedShopProps) {
           <ShopProductListHeader
             countMessage={countMessage}
             hasActiveFilters={hasActiveFilters}
-            onClearFilters={clearFilters}
+            onClearFilters={onResetFilters}
           />
         )}
         <ProductListContainer
@@ -65,7 +64,9 @@ export function OwnedShop({ shop_id }: OwnedShopProps) {
           shop_id={shop_id}
         />
 
-        {showNoMatchMessage && <NoMatchFilter onClearFilters={clearFilters} />}
+        {showNoMatchMessage && (
+          <NoMatchFilter onClearFilters={onResetFilters} />
+        )}
       </div>
     </ShopWrapper>
   );

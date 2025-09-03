@@ -1,3 +1,4 @@
+"use client";
 import { Product } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 

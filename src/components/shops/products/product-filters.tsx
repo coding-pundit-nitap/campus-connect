@@ -1,9 +1,8 @@
 import React from "react";
 
+import { ProductFilters } from "@/components/owned-shop/product-filters/product-filters";
 import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions";
-
-import { ProductFilters } from "./product-filters/product-filters";
 
 interface ProductFiltersProps {
   shop_id: string;

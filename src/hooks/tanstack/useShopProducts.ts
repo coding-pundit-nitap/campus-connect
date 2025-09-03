@@ -25,7 +25,7 @@ export function useShop(shop_id: string) {
   return useQuery({
     queryKey: queryKeys.shops.detail(shop_id),
     queryFn: () => shopAPIService.fetchShop({ shop_id }),
-    enabled: !!shop_id,
+    enabled: !!shop_id && shop_id.trim() !== "",
   });
 }
 
@@ -44,7 +44,7 @@ export const useShopProducts = (shop_id: string) => {
       productAPIService.fetchShopProducts({ shop_id, cursor: pageParam }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    enabled: !!shop_id,
+    enabled: !!shop_id && shop_id.trim() !== "",
   });
 };
 

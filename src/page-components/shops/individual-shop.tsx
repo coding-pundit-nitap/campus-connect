@@ -1,9 +1,11 @@
 import React from "react";
 
+import Shops from "@/components/shops/shops";
+
 type Props = {
   shop_id: string;
 };
 
 export default function IndividualShop({ shop_id }: Props) {
-  return <div>Individual Shop: {shop_id}</div>;
+  return <Shops shop_id={shop_id} />;
 }
