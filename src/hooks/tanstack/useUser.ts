@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { loginAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
-import { userAPIService } from "@/services";
+import { userAPIService } from "@/services/api";
 
 /**
  * Hook to handle user registration with form validation, mutation management, and automatic cache invalidation.

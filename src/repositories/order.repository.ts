@@ -7,46 +7,12 @@ import {
 } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import authUtils from "@/lib/utils-functions/auth.utils";
 
-/**
- * Type alias for Prisma order find unique options without the where clause.
- *
- * Provides type-safe query options for single order retrieval operations,
- * excluding the where clause which is handled internally by the service methods.
- * Enables flexible data fetching with includes, selects, and other Prisma options.
- *
- */
 type OrderFindOptions = Omit<Prisma.OrderFindUniqueArgs, "where">;
 
-/**
- * Type alias for Prisma order find many options without the where clause.
- *
- * Provides type-safe query options for multiple order retrieval operations,
- * excluding the where clause which is handled internally by the service methods.
- * Supports pagination, sorting, filtering, and relation includes for bulk operations.
- *
- */
 type OrderFindManyOptions = Omit<Prisma.OrderFindManyArgs, "where">;
 
-/**
- * Service class for order-related database operations.
- *
- * Provides comprehensive order management functionality including order creation
- * from carts, order retrieval with flexible options, and order status management.
- * Implements atomic transactions for cart-to-order conversion with stock validation
- * and payment processing integration.
- *
- */
 class OrderRepository {
-  /**
-   * Retrieves a single order by its unique identifier.
-   *
-   * Fetches an order from the database using the provided order ID. Supports
-   * method overloading to allow flexible query options including relations,
-   * field selection, and other Prisma query features for customized data retrieval.
-   *
-   */
   async getOrderById(order_id: string): Promise<Order | null>;
   async getOrderById<T extends OrderFindOptions>(
     order_id: string,
@@ -62,37 +28,21 @@ class OrderRepository {
     return prisma.order.findUnique(query);
   }
 
-  /**
-   * Retrieves all orders associated with a specific user.
-   *
-   * Fetches a comprehensive list of orders that belong to the specified user
-   * across all shops. Supports flexible query options for customizing the returned
-   * data including pagination, sorting, and relation includes for order management.
-   *
-   */
-  async getOrdersByUserId(): Promise<Order[]>;
+  async getOrdersByUserId(user_id: string): Promise<Order[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
+    user_id: string,
     options: T
   ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
   async getOrdersByUserId<T extends OrderFindManyOptions>(
+    user_id: string,
     options?: T
   ): Promise<
     Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
   > {
-    const user_id = await authUtils.getUserId();
-
     const query = { where: { user_id }, ...(options ?? {}) };
     return prisma.order.findMany(query);
   }
 
-  /**
-   * Retrieves all orders associated with a specific shop.
-   *
-   * Fetches a comprehensive list of orders that belong to the specified shop
-   * from all customers. Essential for shop management, order fulfillment, and
-   * business analytics. Supports flexible query options for customized data retrieval.
-   *
-   */
   async getOrdersByShopId(shop_id: string): Promise<Order[]>;
   async getOrdersByShopId<T extends OrderFindManyOptions>(
     shop_id: string,
@@ -108,23 +58,14 @@ class OrderRepository {
     return prisma.order.findMany(query);
   }
 
-  /**
-   * Creates a new order from an existing cart with comprehensive validation and atomic processing.
-   *
-   * Converts a user's cart into a completed order through an atomic transaction that validates
-   * cart contents, checks stock availability, calculates totals, processes payment information,
-   * updates inventory, and clears the cart. Ensures data consistency and handles all edge cases
-   * in the cart-to-order conversion process.
-   *
-   */
-  async createOrderFromCart(
+  async create(
+    user_id: string,
     shop_id: string,
     payment_method: PaymentMethod,
     delivery_address_id: string,
     pg_payment_id?: string,
     requested_delivery_time?: Date
   ): Promise<Order> {
-    const user_id = await authUtils.getUserId();
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id, shop_id } },
@@ -213,18 +154,7 @@ class OrderRepository {
     });
   }
 
-  /**
-   * Updates the status of an existing order.
-   *
-   * Changes the order status to reflect the current state in the fulfillment process.
-   * Essential for order tracking, workflow management, and customer communication.
-   * Provides atomic updates with proper validation and audit trail maintenance.
-   *
-   */
-  async updateOrderStatus(
-    order_id: string,
-    status: OrderStatus
-  ): Promise<Order> {
+  async updateStatus(order_id: string, status: OrderStatus): Promise<Order> {
     return prisma.order.update({
       where: { id: order_id },
       data: { order_status: status },

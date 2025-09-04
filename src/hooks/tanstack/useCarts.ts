@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { upsertCartItem } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
-import { cartAPIService } from "@/services";
+import { cartAPIService } from "@/services/api";
 import { FullCart } from "@/types";
 
 /**

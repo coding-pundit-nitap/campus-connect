@@ -10,7 +10,7 @@ import { useSession } from "next-auth/react";
 
 import { createProductAction, updateProductAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
-import { productAPIService, shopAPIService } from "@/services";
+import { productAPIService, shopAPIService } from "@/services/api";
 import { ProductFormData } from "@/validations/product";
 
 /**

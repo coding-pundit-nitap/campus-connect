@@ -32,15 +32,6 @@ export interface CartDrawerState {
 }
 
 export type FullCart = Cart & {
-  items: (CartItem & {
-    product: Pick<
-      Product,
-      "name" | "price" | "description" | "image_url" | "shop_id" | "discount"
-    > & {
-      shop: {
-        name: string;
-      };
-    };
-  })[];
+  items: (CartItem & { product: Product })[];
 };
 export type FullCartItem = FullCart["items"][number];

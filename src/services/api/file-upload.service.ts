@@ -1,9 +1,3 @@
-/**
- * File upload utility service
- * This service can be extended to integrate with cloud storage providers
- * like AWS S3, Cloudinary, or Firebase Storage
- */
-
 export interface UploadResult {
   url: string;
   fileName: string;
@@ -75,10 +69,6 @@ class FileUploadService {
     return Promise.all(uploadPromises);
   }
 
-  /**
-   * Delete a file (for future implementation)
-   * @param url - URL of the file to delete
-   */
   async deleteFile(url: string): Promise<void> {
     // Implementation would depend on your storage provider
     console.log("Deleting file:", url);
