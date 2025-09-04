@@ -1,5 +1,5 @@
 import { Product } from "@prisma/client";
-import { Calendar,Package, Star } from "lucide-react";
+import { Calendar, Package, Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";

@@ -1,19 +1,12 @@
 import { Prisma, Shop } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { ShopFormData } from "@/validations/shop";
 
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;
 
 export type UpdateShopDto = Prisma.ShopUpdateInput;
 
 type ShopFindOptions = Omit<Prisma.ShopFindUniqueArgs, "where">;
-
-type ShopCreateOptions = Omit<Prisma.ShopCreateArgs, "data">;
-
-type ShopUpdateOptions = Omit<Prisma.ShopUpdateArgs, "where" | "data">;
-
-type ShopDeleteOptions = Omit<Prisma.ShopDeleteArgs, "where">;
 
 class ShopRepository {
   async findByOwnerId(owner_id: string): Promise<Shop | null>;

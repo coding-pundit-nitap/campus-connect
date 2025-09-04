@@ -1,20 +1,13 @@
 import { Product } from "@prisma/client";
-import { Eye,Heart, ShoppingCart } from "lucide-react";
+import { Eye, ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { useUpdateProductForm } from "@/hooks/useProductForm";
-import { productUIServices } from "@/lib/utils-functions";
-import { ProductFormData } from "@/validations";
-
-import { ProductEditDialog } from "./product-edit-dialog";
-
 interface ProductCardActionsProps {
   product: Product;
 }
 
 export function ProductCardActions({ product }: ProductCardActionsProps) {
-  const fields = productUIServices.createProductFormFields();
   const isOutOfStock = product.stock_quantity === 0;
 
   return (

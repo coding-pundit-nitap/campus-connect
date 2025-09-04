@@ -1,10 +1,4 @@
-import {
-  Order,
-  OrderStatus,
-  PaymentMethod,
-  PaymentStatus,
-  Prisma,
-} from "@prisma/client";
+import { Order, OrderStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 

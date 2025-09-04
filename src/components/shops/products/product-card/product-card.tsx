@@ -3,7 +3,6 @@ import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
 import { Badge } from "@/components/ui/badge";
-import { ProductFormData } from "@/validations";
 
 import { ProductCardActions } from "./product-card-actions";
 import { ProductCardDetails } from "./product-card-details";
@@ -46,8 +45,8 @@ export function ProductCard({
                 >
                   -
                   {Math.round(
-                    ((product.price - parseFloat(discountedPrice)) /
-                      product.price) *
+                    ((product.price.toNumber() - parseFloat(discountedPrice)) /
+                      product.price.toNumber()) *
                       100
                   )}
                   % OFF

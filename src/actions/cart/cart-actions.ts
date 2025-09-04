@@ -1,6 +1,6 @@
 import authUtils from "@/lib/utils-functions/auth.utils";
 import { cartRepository } from "@/repositories";
-import { CartValidation, UpsertItemData } from "@/validations/cart";
+import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
 
 export const upsertCartItem = async (formData: UpsertItemData) => {
   try {
@@ -8,7 +8,7 @@ export const upsertCartItem = async (formData: UpsertItemData) => {
     if (!user_id) {
       throw new Error("User not authenticated");
     }
-    const result = CartValidation.upsertItemSchema.safeParse(formData);
+    const result = upsertItemSchema.safeParse(formData);
     if (!result.success) {
       throw new Error("Invalid input data");
     }

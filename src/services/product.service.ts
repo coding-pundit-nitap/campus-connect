@@ -30,3 +30,6 @@ class ProductService {
     return productRepository.findManyByShopId(shop_id);
   }
 }
+
+export const productService = new ProductService();
+export default productService;
