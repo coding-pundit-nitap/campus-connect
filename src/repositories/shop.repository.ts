@@ -31,58 +31,16 @@ class ShopRepository {
     return prisma.shop.findUnique(query);
   }
 
-  async create(owner_id: string, data: ShopFormData): Promise<Shop>;
-  async create<T extends ShopCreateOptions>(
-    owner_id: string,
-    data: ShopFormData,
-    options: T
-  ): Promise<Prisma.ShopGetPayload<{ data: ShopFormData } & T>>;
-  async create<T extends ShopCreateOptions>(
-    owner_id: string,
-    data: ShopFormData,
-    options?: T
-  ): Promise<Prisma.ShopGetPayload<{ data: ShopFormData } & T> | Shop> {
-    const query = {
-      data: {
-        ...data,
-        owner: { connect: { id: owner_id } },
-      },
-      ...(options ?? {}),
-    };
-    return prisma.shop.create(query);
+  async create(data: Prisma.ShopCreateInput): Promise<Shop> {
+    return prisma.shop.create({ data });
   }
 
-  async update(shop_id: string, data: ShopFormData): Promise<Shop>;
-  async update<T extends ShopUpdateOptions>(
-    shop_id: string,
-    data: ShopFormData,
-    options: T
-  ): Promise<
-    Prisma.ShopGetPayload<{ where: { id: string }; data: ShopFormData } & T>
-  >;
-  async update<T extends ShopUpdateOptions>(
-    shop_id: string,
-    data: ShopFormData,
-    options?: T
-  ): Promise<
-    | Prisma.ShopGetPayload<{ where: { id: string }; data: ShopFormData } & T>
-    | Shop
-  > {
-    const query = { where: { id: shop_id }, data, ...(options ?? {}) };
-    return prisma.shop.update(query);
+  async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
+    return prisma.shop.update({ where: { id: shop_id }, data });
   }
 
-  async delete(shop_id: string): Promise<Shop>;
-  async delete<T extends ShopDeleteOptions>(
-    shop_id: string,
-    options: T
-  ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T>>;
-  async delete<T extends ShopDeleteOptions>(
-    shop_id: string,
-    options?: T
-  ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop> {
-    const query = { where: { id: shop_id }, ...(options ?? {}) };
-    return prisma.shop.delete(query);
+  async delete(shop_id: string): Promise<Shop> {
+    return prisma.shop.delete({ where: { id: shop_id } });
   }
 
   async findById(shop_id: string): Promise<Shop | null>;

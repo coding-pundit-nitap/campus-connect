@@ -1,7 +1,9 @@
-import { Cart } from "@prisma/client";
+import { Cart, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
+
+export type CartFindOptions = Omit<Prisma.CartFindUniqueArgs, "where">;
 
 class CartRepository {
   async findOrCreate(user_id: string, shop_id: string): Promise<FullCart> {
@@ -10,15 +12,7 @@ class CartRepository {
       include: {
         items: {
           include: {
-            product: {
-              include: {
-                shop: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
+            product: true,
           },
           orderBy: { id: "asc" },
         },
@@ -34,15 +28,7 @@ class CartRepository {
       include: {
         items: {
           include: {
-            product: {
-              include: {
-                shop: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
+            product: true,
           },
           orderBy: { id: "asc" },
         },
@@ -89,34 +75,34 @@ class CartRepository {
     return this.findOrCreate(user_id, shop_id);
   }
 
-  async clear(user_id: string, shop_id: string): Promise<Cart> {
-    const cart = await this.findOrCreate(user_id, shop_id);
-    await prisma.cartItem.deleteMany({
-      where: { cart_id: cart.id },
+  async clear(cart_id: string, product_id: string) {
+    return await prisma.cartItem.deleteMany({
+      where: { cart_id, product_id },
     });
-    return cart;
   }
 
-  async getAllUserCarts(user_id: string): Promise<FullCart[]> {
+  async getAllUserCarts(user_id: string): Promise<Cart[]>;
+  async getAllUserCarts<T extends CartFindOptions>(
+    user_id: string,
+    args: T
+  ): Promise<Prisma.CartGetPayload<{ where: { user_id: string } } & T>[]>;
+  async getAllUserCarts<T extends CartFindOptions>(
+    user_id: string,
+    args?: T
+  ): Promise<
+    Cart[] | Prisma.CartGetPayload<{ where: { user_id: string } } & T>[]
+  > {
     return prisma.cart.findMany({
       where: {
         user_id,
       },
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                shop: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+      ...args,
+    });
+  }
+
+  async removeItem(cart_id: string, product_id: string) {
+    return await prisma.cartItem.deleteMany({
+      where: { cart_id, product_id },
     });
   }
 }

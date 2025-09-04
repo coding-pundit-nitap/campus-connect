@@ -15,14 +15,14 @@ type UserAddressUpdateOptions = Omit<Prisma.UserAddressUpdateArgs, "where">;
 type UserAddressDeleteOptions = Omit<Prisma.UserAddressDeleteArgs, "where">;
 
 class UserAddressRepository {
-  async getAddressesByUserId(id: string): Promise<UserAddress[]>;
-  async getAddressesByUserId<T extends UserAddressFindOptions>(
+  async findByUserId(id: string): Promise<UserAddress[]>;
+  async findByUserId<T extends UserAddressFindOptions>(
     id: string,
     options: T
   ): Promise<
     Prisma.UserAddressGetPayload<{ where: { user_id: string } } & T>[]
   >;
-  async getAddressesByUserId<T extends UserAddressFindOptions>(
+  async findByUserId<T extends UserAddressFindOptions>(
     id: string,
     options?: T
   ): Promise<

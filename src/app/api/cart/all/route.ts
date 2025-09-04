@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import authUtils from "@/lib/utils-functions/auth.utils";
-import cartRepository from "@/repositories/cart.repository";
+import cartService from "@/services/cart.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -11,34 +11,16 @@ export const config = {
   runtime: "edge",
 };
 
-/**
- * Retrieves all shopping carts for the authenticated user across all shops.
- *
- * This API endpoint fetches all carts associated with the authenticated user,
- * including carts from different shops with their complete item details and
- * product information. Used for displaying comprehensive cart state and
- * cross-shop cart management operations.
- *
- * @param request - The Next.js request object
- *
- * @returns A promise that resolves to a NextResponse containing:
- *   - 200: Success response with array of all user carts
- *   - 401: Unauthorized when user is not authenticated
- *   - 500: Internal server error for unexpected failures
- *
- * @throws {Error} When cart retrieval fails due to service errors
- *
- */
 export async function GET() {
   try {
-    const isAuth = await authUtils.isAuthenticated();
-    if (!isAuth) {
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
       return NextResponse.json(createErrorResponse("User not authenticated"), {
         status: 401,
       });
     }
 
-    const carts = await cartRepository.getAllUserCarts();
+    const carts = await cartService.getAllUserCarts(user_id);
     const successResponse = createSuccessResponse(
       carts,
       "All carts retrieved successfully"

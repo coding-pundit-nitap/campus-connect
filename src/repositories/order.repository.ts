@@ -59,105 +59,26 @@ class OrderRepository {
   }
 
   async create(
-    user_id: string,
-    shop_id: string,
-    payment_method: PaymentMethod,
-    delivery_address_id: string,
-    pg_payment_id?: string,
-    requested_delivery_time?: Date
+    data: Prisma.OrderCreateInput,
+    tx?: Prisma.TransactionClient
   ): Promise<Order> {
-    return prisma.$transaction(async (tx) => {
-      const cart = await tx.cart.findUnique({
-        where: { user_id_shop_id: { user_id, shop_id } },
-        include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
-        },
-      });
-
-      if (!cart || cart.items.length === 0) {
-        throw new Error("Cannot create an order from an empty cart.");
-      }
-      cart.items.forEach((item) => {
-        if (item.product.stock_quantity < item.quantity) {
-          throw new Error(
-            `Insufficient stock for product: ${item.product.name}`
-          );
-        }
-      });
-      const total_price = cart.items.reduce((sum, item) => {
-        return sum + Number(item.product.price) * item.quantity;
-      }, 0);
-
-      const deliveryAddress = await tx.userAddress.findUnique({
-        where: { id: delivery_address_id },
-      });
-
-      if (!deliveryAddress) {
-        throw new Error("Selected delivery address not found.");
-      }
-      if (deliveryAddress.user_id !== user_id) {
-        throw new Error(
-          "Unauthorized: Delivery address does not belong to this user."
-        );
-      }
-
-      let delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}`;
-      if (deliveryAddress.notes) {
-        delivery_address_snapshot += ` (${deliveryAddress.notes})`;
-      }
-      const order = await tx.order.create({
-        data: {
-          user_id,
-          shop_id,
-          total_price,
-          payment_method,
-          payment_status:
-            payment_method === PaymentMethod.ONLINE
-              ? PaymentStatus.COMPLETED
-              : PaymentStatus.PENDING,
-          pg_payment_id,
-          delivery_address_id,
-          requested_delivery_time,
-          items: {
-            create: cart.items.map((item) => ({
-              product_id: item.product_id,
-              quantity: item.quantity,
-              price: item.product.price,
-            })),
-          },
-          display_id: `NITAP-${Date.now().toString().slice(-6)}`,
-          delivery_address_snapshot,
-        },
-        include: { items: true },
-      });
-
-      const stockUpdatePromises = cart.items.map((item) =>
-        tx.product.update({
-          where: { id: item.product_id },
-          data: {
-            stock_quantity: {
-              decrement: item.quantity,
-            },
-          },
-        })
-      );
-      await Promise.all(stockUpdatePromises);
-      await tx.cartItem.deleteMany({
-        where: { cart_id: cart.id },
-      });
-
-      return order;
-    });
+    const db = tx || prisma;
+    return db.order.create({ data });
   }
 
-  async updateStatus(order_id: string, status: OrderStatus): Promise<Order> {
+  async updateStatus(
+    order_id: string,
+    order_status: OrderStatus,
+    assigned_to?: string,
+    actual_delivery_time?: Date
+  ): Promise<Order> {
     return prisma.order.update({
       where: { id: order_id },
-      data: { order_status: status },
+      data: {
+        order_status,
+        assigned_to,
+        actual_delivery_time,
+      },
     });
   }
 }

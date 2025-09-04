@@ -10,38 +10,16 @@ import {
 export const config = {
   runtime: "edge",
 };
-/**
- * Retrieves all orders for a specific authenticated user.
- *
- * This API endpoint fetches all orders placed by a specific user identified by the user_id
- * parameter. It requires user authentication and ensures that users can only access their
- * own order history through authorization checks. The endpoint returns all orders associated
- * with the authenticated user, including order details, shop information, item details,
- * and order status. This allows users to view and track their purchase history.
- *
- * @param request - The Next.js request object (no query parameters required)
- * @param params - Route parameters containing the user identifier
- * @param params.user_id - The unique identifier of the user whose orders to retrieve
- *
- * @returns A promise that resolves to a NextResponse containing:
- *   - 200: Success response with array of user's orders
- *   - 401: Unauthorized when user is not authenticated
- *   - 403: Forbidden when user tries to access another user's orders
- *   - 500: Internal server error for unexpected failures
- *
- * @throws {Error} When order retrieval fails due to service errors or database issues
- *
- */
 export async function GET(_request: NextRequest) {
   try {
-    const isAuth = await authUtils.isAuthenticated();
-    if (!isAuth) {
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
       return NextResponse.json(createErrorResponse("User not authenticated"), {
         status: 401,
       });
     }
 
-    const orders = await orderRepository.getOrdersByUserId({
+    const orders = await orderRepository.getOrdersByUserId(user_id, {
       include: { items: true, shop: true },
     });
 

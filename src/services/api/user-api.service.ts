@@ -10,9 +10,6 @@ class UserAPIService {
     const url = `/users/orders`;
     const response =
       await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch user orders");
-    }
     return response.data.data;
   }
 
@@ -23,9 +20,6 @@ class UserAPIService {
     const response = await axiosInstance.post<
       ActionResponse<Pick<User, "id" | "email" | "name" | "role">>
     >(url, data);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to register user");
-    }
     return response.data.data;
   }
 }

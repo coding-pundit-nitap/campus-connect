@@ -68,7 +68,7 @@ export const authConfig: NextAuthConfig = {
           const { email, password } = parsed.data;
 
           // 1. Find the user in your database
-          const user = await userRepository.getUserByEmail(email, {
+          const user = await userRepository.findByEmail(email, {
             select: {
               id: true,
               hash_password: true,
@@ -130,7 +130,7 @@ export const authConfig: NextAuthConfig = {
       if (user?.id) {
         token.id = user.id;
         token.role = user.role;
-        const shop = await shopRepository.getShopByOwnerId(user.id, {
+        const shop = await shopRepository.findByOwnerId(user.id, {
           select: { id: true },
         });
         if (shop) {

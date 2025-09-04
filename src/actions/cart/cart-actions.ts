@@ -4,8 +4,8 @@ import { CartValidation, UpsertItemData } from "@/validations/cart";
 
 export const upsertCartItem = async (formData: UpsertItemData) => {
   try {
-    const isAuth = await authUtils.isAuthenticated();
-    if (!isAuth) {
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
       throw new Error("User not authenticated");
     }
     const result = CartValidation.upsertItemSchema.safeParse(formData);
@@ -14,7 +14,8 @@ export const upsertCartItem = async (formData: UpsertItemData) => {
     }
     const validData = result.data;
 
-    const updatedCart = await cartRepository.upsertCartItem(
+    const updatedCart = await cartRepository.upsertItem(
+      user_id,
       validData.product_id,
       validData.quantity
     );

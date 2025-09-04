@@ -1,80 +1,71 @@
 import { z } from "zod";
 
-export class AuthValidation {
-  static readonly emailSchema = z
-    .string()
-    .email("Email is required")
-    .min(1, "Please enter a valid email address");
+const emailSchema = z
+  .string()
+  .email("Email is required")
+  .min(1, "Please enter a valid email address");
 
-  static readonly passwordSchema = z
-    .string()
-    .min(1, "Password is required")
-    .min(6, "Password must be at least 6 characters long")
-    .max(100, "Password must be at most 100 characters long");
+const passwordSchema = z
+  .string()
+  .min(1, "Password is required")
+  .min(6, "Password must be at least 6 characters long")
+  .max(100, "Password must be at most 100 characters long");
 
-  static readonly loginSchema = z.object({
-    email: this.emailSchema,
-    password: this.passwordSchema,
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
+export const registerSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .min(2, "Name must be at least 2 characters"),
+    email: emailSchema,
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
   });
 
-  static readonly registerSchema = z
-    .object({
-      name: z
-        .string()
-        .min(1, "Name is required")
-        .min(2, "Name must be at least 2 characters"),
-      email: this.emailSchema,
-      password: this.passwordSchema,
-      confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
-      path: ["confirmPassword"],
-    });
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
 
-  static readonly forgotPasswordSchema = z.object({
-    email: this.emailSchema,
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
   });
 
-  static readonly resetPasswordSchema = z
-    .object({
-      password: this.passwordSchema,
-      confirmPassword: z.string(),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-      message: "Passwords don't match",
-      path: ["confirmPassword"],
-    });
-
-  static validateLogin(data: z.infer<typeof this.loginSchema>) {
-    return this.loginSchema.parse(data);
-  }
-
-  static validateRegister(data: z.infer<typeof this.registerSchema>) {
-    return this.registerSchema.parse(data);
-  }
-
-  static validateForgotPassword(
-    data: z.infer<typeof this.forgotPasswordSchema>
-  ) {
-    return this.forgotPasswordSchema.parse(data);
-  }
-
-  static validateResetPassword(data: z.infer<typeof this.resetPasswordSchema>) {
-    return this.resetPasswordSchema.parse(data);
-  }
+export function validateLogin(data: z.infer<typeof loginSchema>) {
+  return loginSchema.parse(data);
 }
 
-export const loginSchema = AuthValidation.loginSchema;
-export const registerSchema = AuthValidation.registerSchema;
-export const forgotPasswordSchema = AuthValidation.forgotPasswordSchema;
-export const resetPasswordSchema = AuthValidation.resetPasswordSchema;
+export function validateRegister(data: z.infer<typeof registerSchema>) {
+  return registerSchema.parse(data);
+}
 
-export type LoginFormData = z.infer<typeof AuthValidation.loginSchema>;
-export type RegisterFormData = z.infer<typeof AuthValidation.registerSchema>;
-export type ForgotPasswordFormData = z.infer<
-  typeof AuthValidation.forgotPasswordSchema
->;
-export type ResetPasswordFormData = z.infer<
-  typeof AuthValidation.resetPasswordSchema
->;
+export function validateForgotPassword(
+  data: z.infer<typeof forgotPasswordSchema>
+) {
+  return forgotPasswordSchema.parse(data);
+}
+
+export function validateResetPassword(
+  data: z.infer<typeof resetPasswordSchema>
+) {
+  return resetPasswordSchema.parse(data);
+}
+
+export type LoginFormData = z.infer<typeof loginSchema>;
+export type RegisterFormData = z.infer<typeof registerSchema>;
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
