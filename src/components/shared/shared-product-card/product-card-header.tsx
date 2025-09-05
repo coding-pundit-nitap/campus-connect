@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
-import { SerializedProduct } from "@/lib/utils-functions/product.utils";
+import { SerializedProduct } from "@/types/product.types";
 
 interface ProductCardHeaderProps {
   product: SerializedProduct;

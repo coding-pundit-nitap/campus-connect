@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { SerializedProduct } from "@/lib/utils-functions";
+import { SerializedProduct } from "@/types/product.types";
 
 import { useShopProducts } from "./tanstack";
 import { useProductFilters } from "./useProductFilters";

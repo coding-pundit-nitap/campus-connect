@@ -5,8 +5,8 @@ import {
   createDefaultFilterState,
   FilterState,
   productUIServices,
-  SerializedProduct,
 } from "@/lib/utils-functions/product.utils";
+import { SerializedProduct } from "@/types/product.types";
 
 export const useProductFilters = (products: SerializedProduct[]) => {
   const [filters, setFilters] = useState<FilterState>(

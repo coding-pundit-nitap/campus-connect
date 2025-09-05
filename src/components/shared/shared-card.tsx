@@ -43,32 +43,12 @@ interface SharedCardProps extends CardConfig {
    * Only displayed when showFooter is true.
    */
   footerContent?: React.ReactNode;
+  /**
+   * Optional custom class names to be applied to the card content section.
+   */
+  contentClassName?: string;
 }
 
-/**
- * Reusable card component that provides a consistent layout structure for content.
- *
- * This component serves as a standardized wrapper for content that needs to be
- * displayed in a card format throughout the application. It provides flexible
- * header and footer sections with optional custom content, while maintaining
- * consistent styling and layout patterns. The component is built on top of the
- * base Card components and includes proper spacing, shadows, and responsive
- * design considerations.
- *
- * @param props - The component props
- * @param props.title - The main title displayed in the card header
- * @param props.description - Optional description text shown below the title
- * @param props.showHeader - Whether to display the header section
- * @param props.showFooter - Whether to display the footer section
- * @param props.className - Additional CSS classes for customization
- * @param props.children - The main content rendered in the card body
- * @param props.headerClassName - Additional CSS classes for the header section
- * @param props.headerContent - Optional custom content for the header
- * @param props.footerContent - Optional custom content for the footer
- *
- * @returns A JSX element containing the card with configured header, content, and footer
- *
- */
 export function SharedCard({
   title,
   description,
@@ -79,6 +59,7 @@ export function SharedCard({
   headerContent,
   headerClassName,
   footerContent,
+  contentClassName = "space-y-6",
 }: SharedCardProps) {
   return (
     <Card className={`border-none shadow-xl ${className}`}>
@@ -98,7 +79,7 @@ export function SharedCard({
         </CardHeader>
       )}
 
-      <CardContent className="space-y-6">{children}</CardContent>
+      <CardContent className={contentClassName}>{children}</CardContent>
 
       {showFooter && (
         <CardFooter className="flex flex-col items-center space-y-2 pt-0">

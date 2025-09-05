@@ -21,11 +21,10 @@ export function CartItem({
   onDecrease,
   isUpsertingQuantity,
 }: CartItemProps) {
-  console.log(item);
   return (
     <div className="flex items-center space-x-3 p-3 border rounded-lg">
       <Image
-        src={item.image_url || "/placeholder.svg"}
+        src={item.image_url || "/placeholders/placeholder.png"}
         alt={item.name}
         width={48}
         height={48}

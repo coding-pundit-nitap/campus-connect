@@ -12,12 +12,6 @@ class NavigationUIService {
         icon: Home,
       },
       {
-        id: "checkout",
-        title: "Checkout",
-        url: "/checkout",
-        icon: ShoppingBag,
-      },
-      {
         id: "shops",
         title: "Shops",
         url: "/owner-shops",

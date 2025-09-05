@@ -1,9 +1,9 @@
-import { Cart, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
-export type CartFindOptions = Omit<Prisma.CartFindUniqueArgs, "where">;
+export type CartFindOptions = Omit<Prisma.CartFindManyArgs, "where">;
 
 class CartRepository {
   async findOrCreate(user_id: string, shop_id: string): Promise<FullCart> {
@@ -81,22 +81,24 @@ class CartRepository {
     });
   }
 
-  async getAllUserCarts(user_id: string): Promise<Cart[]>;
-  async getAllUserCarts<T extends CartFindOptions>(
-    user_id: string,
-    args: T
-  ): Promise<Prisma.CartGetPayload<{ where: { user_id: string } } & T>[]>;
-  async getAllUserCarts<T extends CartFindOptions>(
-    user_id: string,
-    args?: T
-  ): Promise<
-    Cart[] | Prisma.CartGetPayload<{ where: { user_id: string } } & T>[]
-  > {
+  async getAllUserCartsWithItems(user_id: string): Promise<FullCart[]> {
     return prisma.cart.findMany({
       where: {
         user_id,
       },
-      ...args,
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                shop: {
+                  select: { name: true, id: true },
+                },
+              },
+            },
+          },
+        },
+      },
     });
   }
 

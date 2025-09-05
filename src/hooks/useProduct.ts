@@ -2,7 +2,7 @@
 import { useMemo } from "react";
 
 import { useShopProducts } from "@/hooks/tanstack";
-import { SerializedProduct } from "@/lib/utils-functions";
+import { SerializedProduct } from "@/types/product.types";
 
 import { useProductFilters } from "./useProductFilters";
 

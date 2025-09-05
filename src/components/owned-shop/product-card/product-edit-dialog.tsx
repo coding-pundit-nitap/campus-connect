@@ -4,8 +4,8 @@ import { UseFormReturn } from "react-hook-form";
 import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
-import { SerializedProduct } from "@/lib/utils-functions";
 import { ButtonConfig, FormFieldConfig } from "@/types";
+import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
 
 interface ProductEditDialogProps {
