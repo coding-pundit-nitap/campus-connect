@@ -2,7 +2,7 @@ import { Calendar, Package, Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { SerializedProduct } from "@/lib/utils-functions/product.utils";
+import { SerializedProduct } from "@/types/product.types";
 
 interface ProductCardDetailsProps {
   product: SerializedProduct;
