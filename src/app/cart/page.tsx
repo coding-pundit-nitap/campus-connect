@@ -1,4 +1,8 @@
 "use client";
+import { ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
+
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -6,8 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 /**
@@ -27,13 +29,14 @@ const shops = [
     id: "shop2",
     name: "Shaw",
     items: [
-      { id: "item3", name: "Tel", price: 10, quantity: 1 },
-      { id: "item4", name: "Chatai", price: 100, quantity: 1 },
+      { id: "item3", name: "Pizza", price: 10, quantity: 1 },
+      { id: "item4", name: "Burger", price: 100, quantity: 1 },
     ],
   },
 ];
 
 function ShopCart({ shop }: { shop: (typeof shops)[0] }) {
+  const router = useRouter();
   const subtotal = shop.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -73,7 +76,13 @@ function ShopCart({ shop }: { shop: (typeof shops)[0] }) {
           </div>
           <div></div>
 
-          <Button className="w-full mt-4">Checkout from {shop.name}</Button>
+          <Button
+            className="w-full mt-4"
+            onClick={() => router.push("/checkout")}
+            disabled={shop.items.length === 0}
+          >
+            Checkout from {shop.name}
+          </Button>
         </div>
       </CardContent>
     </Card>
@@ -82,7 +91,7 @@ function ShopCart({ shop }: { shop: (typeof shops)[0] }) {
 
 export default function CartPage() {
   return (
-    <Card className="p-6">
+    <Card className="p-6 w-full">
       <div className="space-y-6">
         <div>
           <ShoppingCart className="h-10 w-10 text-purple-500 animate-bounce" />
@@ -129,11 +138,13 @@ export default function CartPage() {
           </Card>
         )}
 
-        {shops.length > 0 && (
+        {/* {shops.length > 0 && (
           <div className="flex justify-end">
-            <Button size="lg">Proceed to Full Checkout</Button>
+            <Button size="lg" onClick={() => router.push("/checkout")}>
+              Proceed to Full Checkout
+            </Button>
           </div>
-        )}
+        )} */}
 
         <p className="text-muted-foreground">
           Thank you for shopping with us :)

@@ -21,6 +21,12 @@ export function useNavigation() {
         icon: Home,
       },
       {
+        id: "cart",
+        title: "Cart",
+        url: "/cart",
+        icon: ShoppingBag,
+      },
+      {
         id: "checkout",
         title: "Checkout",
         url: "/checkout",
