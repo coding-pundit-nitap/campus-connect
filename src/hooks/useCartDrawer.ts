@@ -7,7 +7,6 @@ import { CartDrawerState } from "@/types";
 
 export function useCartDrawer(): CartDrawerState {
   const { data: fullCarts, isLoading, error } = useGetUserAllCart();
-  console.log(fullCarts);
 
   const cartState = useMemo((): CartDrawerState => {
     if (isLoading) {

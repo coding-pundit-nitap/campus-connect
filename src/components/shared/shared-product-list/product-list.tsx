@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { SerializedProduct } from "@/lib/utils-functions";
+import { SerializedProduct } from "@/types/product.types";
 
 import { ProductGrid } from "./product-grid";
 import { ProductListEmpty } from "./product-list-empty";

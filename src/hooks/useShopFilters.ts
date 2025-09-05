@@ -1,4 +1,3 @@
-import { Product } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 
 import {
@@ -6,8 +5,9 @@ import {
   FilterState,
   productUIServices,
 } from "@/lib/utils-functions";
+import { SerializedProduct } from "@/types/product.types";
 
-export const useProductFilters = (products: Product[]) => {
+export const useProductFilters = (products: SerializedProduct[]) => {
   const [filters, setFilters] = useState<FilterState>(
     createDefaultFilterState()
   );

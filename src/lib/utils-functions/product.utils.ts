@@ -1,6 +1,6 @@
-import { Cart, CartItem, Product } from "@prisma/client";
+import { Product } from "@prisma/client";
 
-import { FormFieldConfig, SerializedFullCart } from "@/types";
+import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
 
@@ -72,19 +72,19 @@ export const serializeProduct = (product: Product): SerializedProduct => ({
 export const serializeProducts = (products: Product[]): SerializedProduct[] =>
   products.map(serializeProduct);
 
-export const serializeFullCart = (
-  cart: Cart & { items: (CartItem & { product: Product })[] }
-): SerializedFullCart => ({
+export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
   ...cart,
   items: cart.items.map((item) => ({
     ...item,
-    product: serializeProduct(item.product),
+    product: {
+      ...serializeProduct(item.product),
+      shop: item.product.shop,
+    },
   })),
 });
 
-export const serializeFullCarts = (
-  carts: (Cart & { items: (CartItem & { product: Product })[] })[]
-): SerializedFullCart[] => carts.map(serializeFullCart);
+export const serializeFullCarts = (carts: FullCart[]): SerializedFullCart[] =>
+  carts.map(serializeFullCart);
 
 export class ProductUIServices {
   calculateDiscountedPrice(product: SerializedProduct): number {

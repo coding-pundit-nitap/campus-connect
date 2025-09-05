@@ -3,8 +3,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { SerializedProduct } from "@/lib/utils-functions/product.utils";
 import { FormState } from "@/types";
+import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData, productSchema } from "@/validations";
 
 import { useShopProductsCreate, useShopProductsUpdate } from "./tanstack";

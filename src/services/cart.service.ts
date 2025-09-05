@@ -4,15 +4,7 @@ import { FullCart } from "@/types";
 
 class CartService {
   async getAllUserCarts(user_id: string): Promise<FullCart[]> {
-    return cartRepository.getAllUserCarts(user_id, {
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
+    return cartRepository.getAllUserCartsWithItems(user_id);
   }
 
   async getCartForShop(user_id: string, shop_id: string) {

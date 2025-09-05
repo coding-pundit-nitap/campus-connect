@@ -1,6 +1,6 @@
 import React from "react";
 
-import { SerializedProduct } from "@/lib/utils-functions";
+import { SerializedProduct } from "@/types/product.types";
 
 interface ProductGridProps {
   products: SerializedProduct[];
