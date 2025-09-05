@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { upsertCartItem } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { cartAPIService } from "@/services/api";
-import { FullCart } from "@/types";
+import { SerializedFullCart } from "@/types";
 
 export function useCartForShop(shop_id: string) {
   return useQuery({
@@ -20,7 +20,7 @@ export function useUpsertCartItem() {
 
   return useMutation({
     mutationFn: upsertCartItem,
-    onSuccess: (data: FullCart) => {
+    onSuccess: (data: SerializedFullCart) => {
       queryClient.setQueryData(queryKeys.cart.byShop(data.shop_id), data);
 
       queryClient.invalidateQueries({
@@ -49,9 +49,10 @@ export function useAddToCart() {
       if (!shop_id) return { product_id, quantity };
       return { product_id, quantity };
     },
-    onSuccess: (data: FullCart) => {
+    onSuccess: (data: SerializedFullCart) => {
       queryClient.setQueryData(queryKeys.cart.byShop(data.shop_id), data);
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
+      toast.success(`Added ${data.items.length} item(s) to cart`);
     },
     onError: (error) => {
       console.error("Failed to add to cart:", error);

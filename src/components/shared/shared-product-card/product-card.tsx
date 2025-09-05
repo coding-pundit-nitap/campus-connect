@@ -5,10 +5,8 @@ import { SharedCard } from "@/components/shared/shared-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useUpdateProductForm } from "@/hooks/useProductForm";
-import {
-  productUIServices,
-  SerializedProduct,
-} from "@/lib/utils-functions/product.utils";
+import { productUIServices } from "@/lib/utils-functions/product.utils";
+import { SerializedProduct } from "@/types/product.types";
 
 import { ProductCardDetails } from "./product-card-details";
 import { ProductCardHeader } from "./product-card-header";
@@ -50,12 +48,7 @@ export function ProductCard({
       <div className="absolute top-2 space-y-2 left-2 flex flex-col">
         {productHasDiscount && (
           <Badge variant="destructive" className="text-xs font-bold shadow-md">
-            -
-            {Math.round(
-              ((product.price - parseFloat(discountedPrice)) / product.price) *
-                100
-            )}
-            % OFF
+            -{product.discount}% OFF
           </Badge>
         )}
         {isOutOfStock && (

@@ -1,16 +1,8 @@
 import { Cart, CartItem, Product } from "@prisma/client";
 
-import { FormFieldConfig } from "@/types";
+import { FormFieldConfig, SerializedFullCart } from "@/types";
+import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
-
-export type SerializedProduct = Omit<Product, "price" | "discount"> & {
-  price: number;
-  discount: number | null;
-};
-
-export type SerializedFullCart = Cart & {
-  items: (CartItem & { product: SerializedProduct })[];
-};
 
 const SORT_OPTIONS = [
   { value: "created_at-desc", label: "Newest First" },
@@ -127,7 +119,6 @@ export class ProductUIServices {
   ): SerializedProduct[] {
     return products
       .filter((product) => {
-        // Search filter
         if (filters.search) {
           const searchLower = filters.search.toLowerCase();
           if (

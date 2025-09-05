@@ -10,7 +10,8 @@ interface CartItemContainerProps {
 }
 
 export function CartItemContainer({ item }: CartItemContainerProps) {
-  const { mutate: updateQuantity } = useUpsertCartItem();
+  const { mutate: updateQuantity, isPending: isUpsertingQuantity } =
+    useUpsertCartItem();
 
   const onRemove = () =>
     cartUIService.updateItemQuantity(item.product_id, 0, updateQuantity);
@@ -30,6 +31,7 @@ export function CartItemContainer({ item }: CartItemContainerProps) {
   return (
     <CartItem
       item={item}
+      isUpsertingQuantity={isUpsertingQuantity}
       onRemove={onRemove}
       onIncrease={onIncrease}
       onDecrease={onDecrease}

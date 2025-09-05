@@ -26,6 +26,9 @@ export default function IndividualProductList({ shop_id }: Props) {
     isFetchingNextPage,
     isInitialLoading,
     hasError,
+    onAddToCart,
+    onViewDetails,
+    isAddingToCart,
   } = useIndividualShop(shop_id);
 
   if (isInitialLoading) {
@@ -53,7 +56,14 @@ export default function IndividualProductList({ shop_id }: Props) {
             {...cardProps}
             product={product}
             mode="user"
-            userActions={<UserProductActions product={product} />}
+            userActions={
+              <UserProductActions
+                isAddingToCart={isAddingToCart}
+                onAddToCart={onAddToCart}
+                onViewDetails={onViewDetails}
+                product={product}
+              />
+            }
           />
         );
       }}

@@ -48,7 +48,7 @@ export function ProductCardDetails({
           </span>
           {productHasDiscount && (
             <span className="text-sm line-through text-muted-foreground">
-              ₹{Number(product.price).toFixed(2)}
+              ₹{product.price.toFixed(2)}
             </span>
           )}
         </div>
@@ -86,13 +86,7 @@ export function ProductCardDetails({
             variant="secondary"
             className="text-xs bg-green-100 text-green-700 border-green-200"
           >
-            Save{" "}
-            {Math.round(
-              ((Number(product.price) - parseFloat(discountedPrice)) /
-                Number(product.price)) *
-                100
-            )}
-            %
+            Save {product.discount}%
           </Badge>
         </div>
       )}

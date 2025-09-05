@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { serializeFullCart } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import cartRepository from "@/repositories/cart.repository";
 import {
@@ -31,7 +32,7 @@ export async function GET(request: Request) {
 
     const cart = await cartRepository.findOrCreate(user_id, shop_id);
     const successResponse = createSuccessResponse(
-      cart,
+      serializeFullCart(cart),
       "Cart retrieved successfully"
     );
     return NextResponse.json(successResponse);

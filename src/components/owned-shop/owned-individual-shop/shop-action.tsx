@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import React from "react";
 
 import SharedDialog from "@/components/shared/shared-dialog";
@@ -10,6 +11,13 @@ export default function ShopAction() {
   const { form, state, handlers } = useLinkShop();
   const formFields = shopUIServices.createShopLinkFormFields();
   const submitButton = shopUIServices.createShopSubmitButton(state.isLoading);
+
+  const { data: session } = useSession();
+
+  if (session?.user.shop_id) {
+    return undefined;
+  }
+
   return (
     <div className="flex flex-row justify-end">
       <SharedDialog
