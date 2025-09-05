@@ -10,15 +10,22 @@ import {
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useDatabaseStatus } from "@/hooks/useDatabaseStatus";
+import { useDatabaseStatus } from "@/hooks";
 
 interface DatabaseWrapperProps {
   children: React.ReactNode;
 }
 
 export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
-  const { isConnected, isChecking, latency, error, lastChecked, retry } =
-    useDatabaseStatus();
+  const {
+    isChecking,
+    retry,
+    error,
+    isConnected,
+    lastChecked,
+    isLoading,
+    latency,
+  } = useDatabaseStatus();
   const [showReconnecting, setShowReconnecting] = useState(false);
 
   useEffect(() => {
@@ -33,13 +40,12 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
     return <DatabaseReconnectingPage latency={latency} />;
   }
 
-  // Show database error page
-  if (!isConnected) {
+  if (!isLoading && !isConnected) {
     return (
       <DatabaseErrorPage
         error={error}
         lastChecked={lastChecked}
-        isChecking={isChecking}
+        isChecking={isChecking || isLoading}
         onRetry={() => {
           setShowReconnecting(true);
           retry();

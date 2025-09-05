@@ -32,3 +32,10 @@ export class InternalServerError extends Error {
     this.name = "InternalServerError";
   }
 }
+
+export class NetworkError extends Error {
+  constructor(message = "Network connectivity check failed") {
+    super(message);
+    this.name = "NetworkError";
+  }
+}

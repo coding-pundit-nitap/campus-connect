@@ -1,58 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import { checkConnectivity } from "@/lib/utils-functions/connectivity.utils";
+import connectivityAPIService from "@/services/api/connectivity-api.service";
 
 export function useOnlineStatus() {
+  const queryClient = useQueryClient();
   const [isOnline, setIsOnline] = useState(true);
   const [wasOffline, setWasOffline] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const isInitialLoad = useRef(true);
+
+  const checkStatus = useCallback(async () => {
+    setIsChecking(true);
+    const result = await connectivityAPIService.check();
+    setIsChecking(false);
+
+    if (result && !isOnline) {
+      setWasOffline(true);
+      await queryClient.refetchQueries();
+    }
+
+    if (isInitialLoad.current && !result) {
+      setWasOffline(true);
+    }
+    isInitialLoad.current = false;
+
+    setIsOnline(result);
+  }, [isOnline, queryClient]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     setIsOnline(navigator.onLine);
+    checkStatus();
 
-    const handleOnline = async () => {
-      const isActuallyOnline = await checkConnectivity();
-      setIsOnline(isActuallyOnline);
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      setWasOffline(true);
-    };
+    const handleOnline = () => checkStatus();
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    const initialCheck = async () => {
-      if (navigator.onLine) {
-        const isActuallyOnline = await checkConnectivity();
-        setIsOnline(isActuallyOnline);
-        if (!isActuallyOnline) {
-          setWasOffline(true);
-        }
-      }
-    };
-
-    initialCheck();
-
-    const interval = setInterval(async () => {
-      if (!isOnline) {
-        const isNowOnline = await checkConnectivity();
-        if (isNowOnline) {
-          setIsOnline(true);
-        }
-      }
-    }, 10000);
+    const interval = setInterval(checkStatus, 60000);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       clearInterval(interval);
     };
-  }, [isOnline]);
+  }, [checkStatus]);
 
-  return { isOnline, wasOffline };
+  return {
+    isOnline,
+    isChecking,
+    wasOffline,
+    acknowledgeReconnection: () => setWasOffline(false),
+    retry: checkStatus,
+  };
 }

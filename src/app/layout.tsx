@@ -32,16 +32,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <OfflineWrapper>
-            <DatabaseWrapper>
-              <QueryProvider>
+          <QueryProvider>
+            <OfflineWrapper>
+              <DatabaseWrapper>
                 <QueryErrorBoundary>
                   <Layout>{children}</Layout>
                   <Toaster position="top-right" richColors closeButton />
                 </QueryErrorBoundary>
-              </QueryProvider>
-            </DatabaseWrapper>
-          </OfflineWrapper>
+              </DatabaseWrapper>
+            </OfflineWrapper>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
