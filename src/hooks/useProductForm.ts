@@ -1,17 +1,20 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Product } from "@prisma/client";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { SerializedProduct } from "@/lib/utils-functions/product.utils";
 import { FormState } from "@/types";
 import { ProductFormData, productSchema } from "@/validations";
 
 import { useShopProductsCreate, useShopProductsUpdate } from "./tanstack";
 
 type Props = {
-  product: Product;
+  product: SerializedProduct;
 };
 
 export function useUpdateProductForm({ product }: Props) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const {
     mutate: updateProduct,
     isPending,
@@ -23,8 +26,8 @@ export function useUpdateProductForm({ product }: Props) {
     defaultValues: {
       name: product.name,
       description: product.description || "",
-      price: product.price,
-      stock_quantity: product.stock_quantity,
+      price: product.price || 0,
+      stock_quantity: product.stock_quantity || 0,
       image_url: product.image_url || "",
       discount: product.discount || 0,
     },
@@ -40,19 +43,26 @@ export function useUpdateProductForm({ product }: Props) {
     onSubmit: form.handleSubmit(async (data) => {
       const uploadedImageUrl = product.image_url || "";
       if (data.image_url instanceof File) {
-        // TODO: Upload Image
         console.log("File selected:", data.image_url.name);
       }
       const processedData = { ...data, image_url: uploadedImageUrl };
 
-      updateProduct(processedData);
+      updateProduct(processedData, {
+        onSuccess: () => {
+          setIsDialogOpen(false);
+        },
+      });
     }),
+    openDialog: () => setIsDialogOpen(true),
+    closeDialog: () => setIsDialogOpen(false),
   };
 
   return {
     form,
     state,
     handlers,
+    isDialogOpen,
+    setIsDialogOpen,
   };
 }
 

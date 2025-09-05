@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import authUtils from "@/lib/utils-functions/auth.utils";
+import { serializeFullCarts } from "@/lib/utils-functions/product.utils";
 import cartService from "@/services/cart.service";
 import {
   createErrorResponse,
@@ -22,7 +23,7 @@ export async function GET() {
 
     const carts = await cartService.getAllUserCarts(user_id);
     const successResponse = createSuccessResponse(
-      carts,
+      serializeFullCarts(carts),
       "All carts retrieved successfully"
     );
     return NextResponse.json(successResponse);

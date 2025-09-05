@@ -15,6 +15,9 @@ export const useIndividualShop = (shop_id: string) => {
     error,
     hasActiveFilters,
     clearFilters,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   } = useProducts(shop_id);
 
   const shopState = useMemo(
@@ -53,5 +56,10 @@ export const useIndividualShop = (shop_id: string) => {
     hasActiveFilters,
     ...actionHandlers,
     error,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   };
 };

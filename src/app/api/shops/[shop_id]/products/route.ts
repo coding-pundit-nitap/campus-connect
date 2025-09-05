@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { serializeProducts } from "@/lib/utils-functions/product.utils";
 import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
@@ -48,7 +49,7 @@ export async function GET(
     }
 
     const responseData = {
-      data: products,
+      data: serializeProducts(products),
       nextCursor,
     };
     const successResponse = createSuccessResponse(

@@ -1,15 +1,12 @@
-import { Product } from "@prisma/client";
 import React from "react";
 
-import { ProductFormData } from "@/validations";
+import { SerializedProduct } from "@/lib/utils-functions";
 
 interface ProductGridProps {
-  products: Product[];
-  onEditProduct?: (product: ProductFormData) => void;
-  onDeleteProduct?: (productId: string) => void;
+  products: SerializedProduct[];
   lastElementRef?: (node: HTMLDivElement | null) => void;
   renderProductCard: (
-    product: Product,
+    product: SerializedProduct,
     index: number,
     isLastProduct: boolean,
     isNearEnd: boolean

@@ -1,35 +1,32 @@
-"use client";
 import React from "react";
 
-import { ProductCard } from "@/components/shared/shared-product-card";
+import { useIndividualShop } from "@/hooks/useIndividualShop";
+import { productUIServices } from "@/lib/utils-functions/product.utils";
+
+import { ProductCard, UserProductActions } from "../shared/shared-product-card";
 import {
   ProductList,
   ProductListError,
   ProductSkeletonGrid,
-} from "@/components/shared/shared-product-list";
-import { useOwnedShop } from "@/hooks";
-import { useOwnerProducts } from "@/hooks/useOwnerProducts";
-import { productUIServices } from "@/lib/utils-functions/product.utils";
+} from "../shared/shared-product-list";
 
-interface ProductListProps {
-  onDeleteProduct: (productId: string) => void;
-  error?: Error | null;
+type Props = {
   shop_id: string;
-}
+};
 
-export function ProductListContainer({
-  onDeleteProduct,
-  shop_id,
-}: ProductListProps) {
-  const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useOwnerProducts(shop_id);
+export default function IndividualProductList({ shop_id }: Props) {
   const {
     displayProducts,
+    isLoading,
+    fetchNextPage,
     error,
     hasActiveFilters,
+    hasNextPage,
+    isError,
+    isFetchingNextPage,
     isInitialLoading,
     hasError,
-  } = useOwnedShop(shop_id);
+  } = useIndividualShop(shop_id);
 
   if (isInitialLoading) {
     return <ProductSkeletonGrid count={4} />;
@@ -55,8 +52,8 @@ export function ProductListContainer({
           <ProductCard
             {...cardProps}
             product={product}
-            mode="owner"
-            onDelete={onDeleteProduct}
+            mode="user"
+            userActions={<UserProductActions product={product} />}
           />
         );
       }}

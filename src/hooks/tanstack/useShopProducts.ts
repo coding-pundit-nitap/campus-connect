@@ -7,20 +7,17 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
-import { createProductAction, updateProductAction } from "@/actions";
+import {
+  createProductAction,
+  deleteProductAction,
+  updateProductAction,
+} from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services/api";
 import { ProductFormData } from "@/validations/product";
 
-/**
- * Fetches details for a specific shop by its ID.
- * - Returns shop metadata, seller info, and stats.
- * - Query runs only if shop_id is provided.
- *
- * @param shop_id Shop identifier
- * @returns React Query result with shop details
- */
 export function useShop(shop_id: string) {
   return useQuery({
     queryKey: queryKeys.shops.detail(shop_id),
@@ -29,14 +26,6 @@ export function useShop(shop_id: string) {
   });
 }
 
-/**
- * Fetches products for a shop with infinite scrolling (cursor-based pagination).
- * - Useful for large catalogs and product listings.
- * - Returns paginated product data and controls for loading more.
- *
- * @param shop_id Shop identifier
- * @returns Infinite Query result with paginated products
- */
 export const useShopProducts = (shop_id: string) => {
   return useInfiniteQuery({
     queryKey: queryKeys.shops.products(shop_id),
@@ -48,14 +37,6 @@ export const useShopProducts = (shop_id: string) => {
   });
 };
 
-/**
- * Provides all shop products as a flat array, plus convenience properties.
- * - Flattens paginated results from useShopProducts.
- * - Adds total count and presence flag.
- *
- * @param shop_id Shop identifier
- * @returns Query result with flat products array and helpers
- */
 export function useShopProductsFlat(shop_id: string) {
   const query = useShopProducts(shop_id);
   const products = query.data?.pages.flatMap((page) => page.data) ?? [];
@@ -68,12 +49,6 @@ export function useShopProductsFlat(shop_id: string) {
   };
 }
 
-/**
- * Fetches all shops associated with the current user.
- * - Runs only if user session is available.
- *
- * @returns React Query result with user's shops
- */
 export function useShopByUser() {
   const { data: session } = useSession();
 
@@ -93,10 +68,30 @@ export function useShopProductsUpdate(product_id: string) {
         image_url: string | null;
       }
     ) => updateProductAction(product_id, formData),
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Show success message
+      toast.success("Product updated successfully!");
+
+      // Invalidate the individual product detail
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.detail(product_id),
       });
+
+      // Invalidate the shop products list if we have the shop_id
+      if (data.data?.shop_id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.products(data.data.shop_id),
+        });
+      }
+
+      // Also invalidate all shop products to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.shops.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to update product:", error);
+      toast.error("Failed to update product. Please try again.");
     },
   });
 }
@@ -112,6 +107,27 @@ export function useShopProductsCreate() {
           queryKey: queryKeys.shops.products(data.shop_id),
         });
       }
+    },
+    onError: (error) => {
+      console.error("Failed to create product:", error);
+      toast.error("Failed to create product. Please try again.");
+    },
+  });
+}
+
+export function useShopProductsDelete() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteProductAction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.products.all,
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to delete product:", error);
+      toast.error("Failed to delete product. Please try again.");
     },
   });
 }

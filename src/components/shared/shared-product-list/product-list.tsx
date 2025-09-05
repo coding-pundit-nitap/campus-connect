@@ -1,8 +1,7 @@
-import { Product } from "@prisma/client";
 import React, { useRef } from "react";
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
-import { ProductFormData } from "@/validations";
+import { SerializedProduct } from "@/lib/utils-functions";
 
 import { ProductGrid } from "./product-grid";
 import { ProductListEmpty } from "./product-list-empty";
@@ -11,8 +10,7 @@ import { ProductListFooter } from "./product-list-footer";
 import { ProductSkeletonGrid } from "./product-skeleton-grid";
 
 interface ProductListProps {
-  // Data
-  displayProducts: Product[];
+  displayProducts: SerializedProduct[];
   isLoading: boolean;
   isError: boolean;
   hasNextPage: boolean;
@@ -20,18 +18,17 @@ interface ProductListProps {
   error: Error | null;
   hasActiveFilters: boolean;
 
-  // Handlers
-  onEditProduct?: (product: ProductFormData) => void;
-  onDeleteProduct?: (productId: string) => void;
   fetchNextPage: () => void;
 
-  // Product card renderer
   renderProductCard: (
-    product: Product,
+    product: SerializedProduct,
     index: number,
     isLastProduct: boolean,
     isNearEnd: boolean
   ) => React.ReactNode;
+
+  skeletonCount?: number;
+  rootMargin?: string;
 }
 
 export function ProductList({
@@ -43,9 +40,9 @@ export function ProductList({
   fetchNextPage,
   error,
   hasActiveFilters,
-  onEditProduct,
-  onDeleteProduct,
   renderProductCard,
+  skeletonCount = 8,
+  rootMargin = "100px",
 }: ProductListProps) {
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
@@ -53,11 +50,11 @@ export function ProductList({
     hasNextPage: hasActiveFilters ? false : hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    rootMargin: "100px",
+    rootMargin,
   });
 
   if (isLoading && displayProducts.length === 0) {
-    return <ProductSkeletonGrid count={8} />;
+    return <ProductSkeletonGrid count={skeletonCount} />;
   }
 
   if (isError && error) {
@@ -72,8 +69,6 @@ export function ProductList({
     <div className="space-y-6">
       <ProductGrid
         products={displayProducts}
-        onEditProduct={onEditProduct}
-        onDeleteProduct={onDeleteProduct}
         lastElementRef={lastElementRef}
         renderProductCard={renderProductCard}
       />

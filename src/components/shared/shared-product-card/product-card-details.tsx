@@ -1,11 +1,11 @@
-import { Product } from "@prisma/client";
 import { Calendar, Package, Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { SerializedProduct } from "@/lib/utils-functions/product.utils";
 
 interface ProductCardDetailsProps {
-  product: Product;
+  product: SerializedProduct;
   discountedPrice: string;
   productHasDiscount: boolean;
   productHasRating: boolean;
@@ -34,12 +34,10 @@ export function ProductCardDetails({
   };
 
   return (
-    <div className="p-4">
-      <h3 className="font-bold text-lg leading-tight line-clamp-2 min-h-[3.5rem] group-hover:text-primary transition-colors">
-        {product.name}
-      </h3>
+    <div className="space-y-2">
+      <h3 className="font-bold text-lg leading-tight">{product.name}</h3>
       {product.description && (
-        <p className="text-sm text-muted-foreground line-clamp-2 min-h-[2.5rem] leading-relaxed">
+        <p className="text-sm text-muted-foreground min-h-[2.5rem] leading-relaxed">
           {product.description}
         </p>
       )}
@@ -50,7 +48,7 @@ export function ProductCardDetails({
           </span>
           {productHasDiscount && (
             <span className="text-sm line-through text-muted-foreground">
-              ₹{product.price.toFixed(2)}
+              ₹{Number(product.price).toFixed(2)}
             </span>
           )}
         </div>
@@ -59,13 +57,12 @@ export function ProductCardDetails({
           <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full border border-yellow-200">
             <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium text-yellow-700">
-              {product.rating!.toFixed(1)}
+              {product.rating.toFixed(1)}
             </span>
           </div>
         )}
       </div>
 
-      {/* Stock and Date Section */}
       <div className="flex items-center justify-between text-sm">
         <div className="flex items-center gap-1">
           <Package className="w-4 h-4 text-muted-foreground" />
@@ -83,7 +80,6 @@ export function ProductCardDetails({
         </div>
       </div>
 
-      {/* Discount Percentage Badge */}
       {productHasDiscount && (
         <div className="flex justify-start">
           <Badge
@@ -92,7 +88,8 @@ export function ProductCardDetails({
           >
             Save{" "}
             {Math.round(
-              ((product.price - parseFloat(discountedPrice)) / product.price) *
+              ((Number(product.price) - parseFloat(discountedPrice)) /
+                Number(product.price)) *
                 100
             )}
             %

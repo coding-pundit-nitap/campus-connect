@@ -2,10 +2,11 @@
 import React from "react";
 
 import { ShopProductListHeader } from "@/components/owned-shop/shop-header/shop-product-list-header";
+import { NoMatchFilter } from "@/components/shared/shared-product-filters";
+import { ProductFiltersContainer } from "@/components/shared/shared-product-filters/";
 import { useIndividualShop } from "@/hooks/useIndividualShop";
 
-import { ProductFiltersContainer } from "./product-filters";
-import { NoMatchFilter } from "./product-filters/no-match-filter";
+import IndividualProductList from "./shop-product-list";
 
 interface ProductListProps {
   error?: Error | null;
@@ -14,41 +15,26 @@ interface ProductListProps {
 
 export function ProductListContainer({ shop_id }: ProductListProps) {
   const {
-    isInitialLoading,
-    hasError,
-    showFilters,
     showNoMatchMessage,
     allProducts,
     displayProducts,
     hasActiveFilters,
     onResetFilters,
-    error,
   } = useIndividualShop(shop_id);
-  if (isInitialLoading) {
-    return <div>Loading products...</div>;
-  }
-
-  if (hasError) {
-    return <div>Error loading products: {error?.message}</div>;
-  }
 
   const countMessage = hasActiveFilters
     ? `Showing ${displayProducts.length} of ${allProducts.length} products`
     : `${allProducts.length} products`;
 
   return (
-    <div>
-      {showFilters && <ProductFiltersContainer shop_id={shop_id} />}
-
-      {showFilters && (
-        <ShopProductListHeader
-          countMessage={countMessage}
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={onResetFilters}
-        />
-      )}
-      <ProductListContainer shop_id={shop_id} />
-
+    <div className="space-y-2">
+      <ProductFiltersContainer shop_id={shop_id} />
+      <ShopProductListHeader
+        countMessage={countMessage}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={onResetFilters}
+      />
+      <IndividualProductList shop_id={shop_id} />
       {showNoMatchMessage && <NoMatchFilter onClearFilters={onResetFilters} />}
     </div>
   );

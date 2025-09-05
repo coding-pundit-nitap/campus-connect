@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export type CreateProductDto = Prisma.ProductCreateInput;
 
-export type UpdateProductDto = Prisma.ProductUpdateInput;
+export type UpdateProductDto = Omit<Prisma.ProductUpdateArgs, "where">;
 
 type ProductFindOptions = Omit<Prisma.ProductFindUniqueArgs, "where">;
 
@@ -30,7 +30,7 @@ class ProductRepository {
   }
 
   async update(product_id: string, data: UpdateProductDto): Promise<Product> {
-    return prisma.product.update({ where: { id: product_id }, data });
+    return prisma.product.update({ where: { id: product_id }, ...data });
   }
 
   async delete(

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ProductFilters } from "@/components/owned-shop/product-filters/product-filters";
+import { ProductFilters } from "@/components/shared/shared-product-filters";
 import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions";
 

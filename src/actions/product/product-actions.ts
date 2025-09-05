@@ -2,13 +2,11 @@
 
 import { Product } from "@prisma/client";
 
+import { InternalServerError } from "@/lib/custom-error";
+import { serializeProduct } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import productRepository from "@/repositories/product.repository";
-import {
-  ActionResponse,
-  createErrorResponse,
-  createSuccessResponse,
-} from "@/types/response.types";
+import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import { ProductFormData, productSchema } from "@/validations/product";
 
 export async function createProductAction(
@@ -18,8 +16,6 @@ export async function createProductAction(
     const shop_id = await authUtils.getShopId();
 
     const parsedData = productSchema.parse(formData);
-
-    // Image upload
     const newProduct = await productRepository.create({
       ...parsedData,
       image_url: "",
@@ -47,32 +43,39 @@ export async function updateProductAction(
   formData: UpdateProductActionFormData
 ) {
   try {
-    const parsedData = productSchema.safeParse(formData);
-    if (!parsedData.success) {
-      return createErrorResponse(parsedData.error.message);
-    }
+    const parsedData = productSchema.parse(formData);
 
     const updateData = {
-      ...parsedData.data,
+      ...parsedData,
       image_url:
-        typeof parsedData.data.image_url === "string"
-          ? parsedData.data.image_url
+        typeof parsedData.image_url === "string"
+          ? parsedData.image_url
           : undefined,
     };
 
-    const updatedProduct = await productRepository.update(
-      product_id,
-      updateData
-    );
+    const updatedProduct = await productRepository.update(product_id, {
+      data: updateData,
+    });
+    const serializedProduct = serializeProduct(updatedProduct);
 
     // TODO: revalidate
 
     return createSuccessResponse(
-      updatedProduct,
+      serializedProduct,
       "Product updated successfully"
     );
   } catch (error) {
-    console.error("UPDATE PRODUCT ERROR:", error);
-    return createErrorResponse("An error occurred while updating the product");
+    console.log("UPDATE PRODUCT ERROR:", error);
+    throw new InternalServerError("Failed to update product");
+  }
+}
+
+export async function deleteProductAction(product_id: string) {
+  try {
+    await productRepository.delete(product_id);
+    return createSuccessResponse(null, "Product deleted successfully");
+  } catch (error) {
+    console.log("DELETE PRODUCT ERROR:", error);
+    throw new InternalServerError("Failed to delete product");
   }
 }

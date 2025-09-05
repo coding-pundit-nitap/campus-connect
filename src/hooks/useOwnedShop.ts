@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
 
+import { useShopProductsDelete } from "./tanstack";
 import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useOwnedShop = (shop_id: string) => {
@@ -15,6 +16,7 @@ export const useOwnedShop = (shop_id: string) => {
     hasActiveFilters,
     clearFilters,
   } = useOwnerProducts(shop_id);
+  const { mutate: deleteProduct } = useShopProductsDelete();
 
   const shopState = useMemo(
     () => ({
@@ -30,11 +32,10 @@ export const useOwnedShop = (shop_id: string) => {
 
   const actionHandlers = useMemo(
     () => ({
-      onEditProduct: productUIServices.createProductEditHandler(),
-      onDeleteProduct: productUIServices.createProductDeleteHandler(),
+      onDeleteProduct: deleteProduct,
       onResetFilters: clearFilters,
     }),
-    [clearFilters]
+    [clearFilters, deleteProduct]
   );
 
   const loadingStates = useMemo(

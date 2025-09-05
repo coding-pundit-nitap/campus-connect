@@ -1,11 +1,10 @@
-import { Product } from "@prisma/client";
-
 import axiosInstance from "@/lib/axios";
+import { SerializedProduct } from "@/lib/utils-functions";
 import { ActionResponse } from "@/types/response.types";
 
 interface PaginatedProductsResponse {
   /** Array of product objects for the current page */
-  data: Product[];
+  data: SerializedProduct[];
   /** Cursor for fetching the next page of results, null if no more pages */
   nextCursor: string | null;
 }

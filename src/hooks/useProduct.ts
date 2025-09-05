@@ -1,8 +1,8 @@
 "use client";
-import { Product } from "@prisma/client";
 import { useMemo } from "react";
 
 import { useShopProducts } from "@/hooks/tanstack";
+import { SerializedProduct } from "@/lib/utils-functions";
 
 import { useProductFilters } from "./useProductFilters";
 
@@ -17,7 +17,7 @@ export const useProducts = (shop_id: string) => {
     fetchNextPage,
   } = useShopProducts(shop_id);
 
-  const allProducts: Product[] = useMemo(() => {
+  const allProducts: SerializedProduct[] = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
