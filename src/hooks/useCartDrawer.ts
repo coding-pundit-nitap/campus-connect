@@ -1,12 +1,13 @@
 "use client";
 import { useMemo } from "react";
 
-import { useGetUserAllCart } from "@/hooks/useCart";
-import cartUIService from "@/lib/cart.utils";
-import { CartDrawerState } from "@/types/cart.type";
+import { useGetUserAllCart } from "@/hooks";
+import { cartUIService } from "@/lib/utils-functions";
+import { CartDrawerState } from "@/types";
 
 export function useCartDrawer(): CartDrawerState {
   const { data: fullCarts, isLoading, error } = useGetUserAllCart();
+  console.log(fullCarts);
 
   const cartState = useMemo((): CartDrawerState => {
     if (isLoading) {

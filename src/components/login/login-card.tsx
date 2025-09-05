@@ -2,14 +2,14 @@
 
 import React from "react";
 
+import { SharedAuthProviderButton } from "@/components/shared/shared-authprovider-button";
 import { SharedCard } from "@/components/shared/shared-card";
-import loginUIService from "@/lib/login.utils";
+import { Separator } from "@/components/ui/separator";
+import { useLogin } from "@/hooks/useLoginForm";
+import { loginUIService } from "@/lib/utils-functions";
 import { LoginCardConfig } from "@/types/login.types";
 import { AuthProviderConfig } from "@/types/ui.types";
 
-import { useLogin } from "../../hooks/useLogin";
-import { SharedAuthProviderButton } from "../shared/shared-authprovider-button";
-import { Separator } from "../ui/separator";
 import { LoginFooter } from "./login-footer";
 import { LoginForm } from "./login-form";
 

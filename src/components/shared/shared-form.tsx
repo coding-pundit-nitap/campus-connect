@@ -2,6 +2,7 @@ import { Loader2 } from "lucide-react";
 import React from "react";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
+import { SharedFileInput } from "@/components/shared/shared-file-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { ButtonConfig } from "@/types/ui.types";
+import { Textarea } from "@/components/ui/textarea";
+import type { ButtonConfig } from "@/types";
 
 /**
  * Configuration interface for individual form fields in the SharedForm component.
@@ -62,6 +64,8 @@ interface FormFieldConfig<T extends FieldValues> {
   placeholder?: string;
   disabled?: boolean;
   required?: boolean;
+  accept?: string;
+  maxSize?: number;
 }
 
 /**
@@ -148,13 +152,37 @@ export function SharedForm<T extends FieldValues>({
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
                 <FormControl>
-                  <Input
-                    {...formField}
-                    type={field.type}
-                    placeholder={field.placeholder}
-                    disabled={field.disabled || isLoading}
-                    required={field.required}
-                  />
+                  {field.type === "file" ? (
+                    <SharedFileInput
+                      value={formField.value}
+                      onChange={formField.onChange}
+                      accept={field.accept || "image/*"}
+                      maxSize={field.maxSize || 5}
+                      placeholder={field.placeholder}
+                      disabled={field.disabled || isLoading}
+                    />
+                  ) : field.type === "textarea" ? (
+                    <Textarea
+                      {...formField}
+                      placeholder={field.placeholder}
+                      disabled={field.disabled || isLoading}
+                    />
+                  ) : (
+                    <Input
+                      {...formField}
+                      type={field.type}
+                      placeholder={field.placeholder}
+                      disabled={field.disabled || isLoading}
+                      onChange={(e) => {
+                        if (field.type === "number") {
+                          const value = e.target.value;
+                          formField.onChange(value === "" ? 0 : Number(value));
+                        } else {
+                          formField.onChange(e);
+                        }
+                      }}
+                    />
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>

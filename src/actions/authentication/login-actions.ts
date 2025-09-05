@@ -4,8 +4,8 @@ import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
 import { handleActionError } from "@/lib/auth";
-import { LoginFormData, loginSchema } from "@/lib/validations/auth";
-import { AuthResponse, createAuthResponse } from "@/types/response.type";
+import { AuthResponse, createAuthResponse } from "@/types/response.types";
+import { LoginFormData, loginSchema } from "@/validations/auth";
 
 /**
  * Authenticates a user with email and password credentials using NextAuth.

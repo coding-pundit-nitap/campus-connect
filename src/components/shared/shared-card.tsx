@@ -8,7 +8,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { CardConfig } from "@/types/ui.types";
+import { cn } from "@/lib/utils";
+import type { CardConfig } from "@/types";
 
 /**
  * Configuration properties for the SharedCard component.
@@ -31,6 +32,11 @@ interface SharedCardProps extends CardConfig {
    * Appears below the title and description when showHeader is true.
    */
   headerContent?: React.ReactNode;
+
+  /**
+   * Optional custom class names to be applied to the card header section.
+   */
+  headerClassName?: string;
 
   /**
    * Optional custom content to be rendered in the card footer section.
@@ -56,6 +62,7 @@ interface SharedCardProps extends CardConfig {
  * @param props.showFooter - Whether to display the footer section
  * @param props.className - Additional CSS classes for customization
  * @param props.children - The main content rendered in the card body
+ * @param props.headerClassName - Additional CSS classes for the header section
  * @param props.headerContent - Optional custom content for the header
  * @param props.footerContent - Optional custom content for the footer
  *
@@ -70,15 +77,18 @@ export function SharedCard({
   className = "",
   children,
   headerContent,
+  headerClassName,
   footerContent,
 }: SharedCardProps) {
   return (
     <Card className={`border-none shadow-xl ${className}`}>
       {showHeader && (
-        <CardHeader className="pb-4">
-          <CardTitle className="text-center text-2xl font-semibold">
-            {title}
-          </CardTitle>
+        <CardHeader className={cn("py-4", headerClassName)}>
+          {title && (
+            <CardTitle className="text-center text-2xl font-semibold">
+              {title}
+            </CardTitle>
+          )}
           {description && (
             <CardDescription className="text-center text-sm text-gray-500">
               {description}

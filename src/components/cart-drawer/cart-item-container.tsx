@@ -1,7 +1,7 @@
 "use client";
 import { useUpsertCartItem } from "@/hooks";
-import cartUIService from "@/lib/cart.utils";
-import { CartItemData } from "@/types/cart.type";
+import { cartUIService } from "@/lib/utils-functions";
+import { CartItemData } from "@/types/cart.types";
 
 import { CartItem } from "./cart-item";
 
@@ -10,7 +10,8 @@ interface CartItemContainerProps {
 }
 
 export function CartItemContainer({ item }: CartItemContainerProps) {
-  const { mutate: updateQuantity } = useUpsertCartItem();
+  const { mutate: updateQuantity, isPending: isUpsertingQuantity } =
+    useUpsertCartItem();
 
   const onRemove = () =>
     cartUIService.updateItemQuantity(item.product_id, 0, updateQuantity);
@@ -30,6 +31,7 @@ export function CartItemContainer({ item }: CartItemContainerProps) {
   return (
     <CartItem
       item={item}
+      isUpsertingQuantity={isUpsertingQuantity}
       onRemove={onRemove}
       onIncrease={onIncrease}
       onDecrease={onDecrease}

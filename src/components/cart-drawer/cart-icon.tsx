@@ -1,7 +1,7 @@
 import { ShoppingCart } from "lucide-react";
 import React from "react";
 
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 type Props = {
   totalItems: number;

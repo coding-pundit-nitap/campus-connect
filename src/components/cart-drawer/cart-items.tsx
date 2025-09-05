@@ -1,6 +1,6 @@
 import { ShoppingCart } from "lucide-react";
 
-import { CartItemData } from "@/types/cart.type";
+import { CartItemData } from "@/types";
 
 import { CartItemContainer } from "./cart-item-container";
 

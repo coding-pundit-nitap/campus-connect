@@ -1,38 +1,17 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-import productServices from "@/services/product.services";
+import { serializeProducts } from "@/lib/utils-functions/product.utils";
+import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
 };
-/**
- * Retrieves products from a specific shop with cursor-based pagination.
- *
- * This API endpoint fetches products belonging to a specific shop identified by the shop_id
- * parameter. It implements cursor-based pagination for efficient loading of large product
- * datasets. Products are returned in reverse chronological order (newest first) based on
- * their creation date. The endpoint supports configurable page sizes and provides cursor
- * information for seamless pagination.
- *
- * @param request - The Next.js request object containing query parameters for pagination
- * @param params - Route parameters containing the shop_id
- * @param params.shop_id - The unique identifier of the shop whose products to retrieve
- *
- * @returns A promise that resolves to a NextResponse containing:
- *   - 200: Success response with paginated products and next cursor
- *   - 400: Bad request when shop_id is missing or invalid
- *   - 500: Internal server error for unexpected failures
- *
- * @throws {Error} When product retrieval fails due to service errors or database issues
- *
- * @see {@link productServices.getProductsByShopId} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
- */
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ shop_id: string }> }
@@ -58,7 +37,7 @@ export async function GET(
       },
     };
 
-    const products = await productServices.getProductsByShopId(
+    const products = await productRepository.findManyByShopId(
       shop_id,
       queryOptions
     );
@@ -70,7 +49,7 @@ export async function GET(
     }
 
     const responseData = {
-      data: products,
+      data: serializeProducts(products),
       nextCursor,
     };
     const successResponse = createSuccessResponse(

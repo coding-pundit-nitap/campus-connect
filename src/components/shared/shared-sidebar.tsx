@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import type { UrlObject } from "url";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -17,8 +18,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-import { Button } from "../ui/button";
 
 /**
  * Configuration interface for navigation items in the sidebar.
@@ -259,7 +258,7 @@ export default function SharedSidebar({
   return (
     <Sidebar className={className}>
       {Header()}
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between p-4">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>

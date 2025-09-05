@@ -1,21 +1,4 @@
-import { RegisterFormData } from "@/lib/validations/auth";
-
-export interface RegisterCardConfig {
-  className?: string;
-  title?: string;
-  description?: string;
-}
-
-export interface RegisterFormConfig {
-  onError?: (error: Error) => void;
-  className?: string;
-}
-
-export interface RegisterState {
-  isLoading: boolean;
-  error: string | null;
-  isSubmitting: boolean;
-}
+import { RegisterFormData } from "@/validations/auth";
 
 export interface RegisterHandlers {
   onGoogleLogin: () => void;

@@ -1,6 +1,7 @@
 import React from "react";
 
-import SharedDrawer from "../shared/shared-drawer";
+import SharedDrawer from "@/components/shared/shared-drawer";
+
 import { CartFooter } from "./cart-footer";
 import { CartIcon } from "./cart-icon";
 

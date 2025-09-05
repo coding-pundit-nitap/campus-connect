@@ -1,44 +1,28 @@
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
-import orderServices from "@/services/order.services";
+import authUtils from "@/lib/utils-functions/auth.utils";
+import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.type";
+} from "@/types/response.types";
 
 export const config = {
   runtime: "edge",
 };
-/**
- * Retrieves all orders for the authenticated user.
- *
- * This API endpoint fetches the complete order history for the currently authenticated user.
- * It requires user authentication and returns all orders associated with the user's account,
- * including order details, status, items, and transaction information. The orders are typically
- * returned in reverse chronological order (newest first).
- *
- * @param request - The Next.js request object (no query parameters required)
- *
- * @returns A promise that resolves to a NextResponse containing:
- *   - 200: Success response with array of user's orders
- *   - 401: Unauthorized when user is not authenticated
- *   - 500: Internal server error for unexpected failures
- *
- * @throws {Error} When order retrieval fails due to service errors
- *
- * @see {@link orderServices.getOrdersByUserId} for the underlying service method
- * @see {@link createSuccessResponse} and {@link createErrorResponse} for response formatting
- */
+
 export async function GET() {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      const errorResponse = createErrorResponse("Unauthorized");
-      return NextResponse.json(errorResponse, { status: 401 });
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
+      return NextResponse.json(createErrorResponse("User not authenticated"), {
+        status: 401,
+      });
     }
 
-    const orders = await orderServices.getOrdersByUserId(session.user.id);
+    const orders = await orderRepository.getOrdersByUserId(user_id, {
+      include: { items: true, shop: true },
+    });
     const successResponse = createSuccessResponse(
       orders,
       "Orders retrieved successfully"

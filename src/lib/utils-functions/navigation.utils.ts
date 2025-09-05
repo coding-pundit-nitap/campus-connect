@@ -1,0 +1,56 @@
+import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
+
+import { NavigationItem } from "@/components/shared/shared-sidebar";
+
+class NavigationUIService {
+  getNavigationItems(): NavigationItem[] {
+    return [
+      {
+        id: "home",
+        title: "Home",
+        url: "/",
+        icon: Home,
+      },
+      {
+        id: "cart",
+        title: "Cart",
+        url: "/cart",
+        icon: ShoppingBag,
+      },
+      {
+        id: "checkout",
+        title: "Checkout",
+        url: "/checkout",
+        icon: ShoppingBag,
+      },
+      {
+        id: "shops",
+        title: "Shops",
+        url: "/owner-shops",
+        icon: Store,
+      },
+      {
+        id: "orders",
+        title: "My Orders",
+        url: "/orders",
+        icon: ShoppingBag,
+      },
+      {
+        id: "settings",
+        title: "Settings",
+        url: "/settings",
+        icon: Settings,
+      },
+      {
+        id: "help",
+        title: "Help",
+        url: "/help",
+        icon: HelpCircle,
+      },
+    ];
+  }
+}
+
+export const navigationUIService = new NavigationUIService();
+
+export default navigationUIService;
