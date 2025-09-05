@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import { shopAPIService } from "@/services/shop.service";
+import { shopAPIService } from "@/services/api/shop-api.service";
 
 export const useAllShops = () => {
   return useInfiniteQuery({

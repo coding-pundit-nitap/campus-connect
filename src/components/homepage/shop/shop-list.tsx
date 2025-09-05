@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ProductSkeletonGrid } from "@/components/owned-shop/product-list/product-skeleton-grid";
+import { ProductSkeletonGrid } from "@/components/shared/shared-product-list";
 import { useInfiniteScroll } from "@/hooks";
 import { ShopWithOwner } from "@/types";
 

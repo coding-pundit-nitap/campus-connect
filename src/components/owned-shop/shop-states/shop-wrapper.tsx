@@ -1,9 +1,8 @@
 import React from "react";
 
+import { ShopAction } from "@/components/owned-shop/shop-header/shop-action";
 import { SharedCard } from "@/components/shared/shared-card";
 import { Separator } from "@/components/ui/separator";
-
-import { ShopAction } from "../shop-header/shop-action";
 
 interface ShopWrapperProps {
   children: React.ReactNode;

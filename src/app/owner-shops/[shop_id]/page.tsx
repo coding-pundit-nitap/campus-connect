@@ -1,6 +1,6 @@
 import React from "react";
 
-import OwnedShopPage from "@/page-components/shop/owned-shop-page";
+import OwnedIndividualShopPage from "@/page-components/owner-shop/owned-individual-shop-page";
 
 type Props = {
   params: Promise<{ shop_id: string }>;
@@ -9,5 +9,5 @@ type Props = {
 export default async function Page({ params }: Props) {
   const { shop_id } = await params;
 
-  return <OwnedShopPage shop_id={shop_id} />;
+  return <OwnedIndividualShopPage shop_id={shop_id} />;
 }

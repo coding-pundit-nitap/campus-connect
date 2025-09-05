@@ -1,41 +1,47 @@
 "use client";
 import React from "react";
 
+import { ProductCard } from "@/components/shared/shared-product-card";
+import {
+  ProductList,
+  ProductListError,
+  ProductSkeletonGrid,
+} from "@/components/shared/shared-product-list";
+import { useOwnedShop } from "@/hooks";
 import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
-import { ProductFormData } from "@/validations";
-
-import { ProductCard } from "./product-card/product-card";
-import { ProductList } from "./product-list/product-list";
 
 interface ProductListProps {
-  onEditProduct: (product: ProductFormData) => void;
   onDeleteProduct: (productId: string) => void;
   error?: Error | null;
   shop_id: string;
 }
 
 export function ProductListContainer({
-  onEditProduct,
   onDeleteProduct,
   shop_id,
 }: ProductListProps) {
+  const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
+    useOwnerProducts(shop_id);
   const {
     displayProducts,
-    isLoading,
-    isError,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
     error,
     hasActiveFilters,
-  } = useOwnerProducts(shop_id);
+    isInitialLoading,
+    hasError,
+  } = useOwnedShop(shop_id);
+
+  if (isInitialLoading) {
+    return <ProductSkeletonGrid count={4} />;
+  }
+
+  if (hasError && error) {
+    return <ProductListError error={error} onRetry={fetchNextPage} />;
+  }
 
   return (
     <ProductList
       displayProducts={displayProducts}
-      onEditProduct={onEditProduct}
-      onDeleteProduct={onDeleteProduct}
       isLoading={isLoading}
       fetchNextPage={fetchNextPage}
       error={error}
@@ -49,7 +55,7 @@ export function ProductListContainer({
           <ProductCard
             {...cardProps}
             product={product}
-            onEdit={onEditProduct}
+            mode="owner"
             onDelete={onDeleteProduct}
           />
         );

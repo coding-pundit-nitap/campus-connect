@@ -1,7 +1,7 @@
 import React from "react";
 
-import ShopPage from "@/page-components/shop/shop-page";
+import OwnedShopsPage from "@/page-components/owner-shop/owned-shops-page";
 
 export default function page() {
-  return <ShopPage />;
+  return <OwnedShopsPage />;
 }

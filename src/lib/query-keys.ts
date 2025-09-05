@@ -81,6 +81,11 @@ export const queryKeys = {
     /** Seller dashboard analytics query key factory */
     dashboard: () => ["seller", "dashboard"] as const,
   },
+
+  health: {
+    all: ["health"] as const,
+    database: () => ["health", "database"] as const,
+  },
 } as const;
 
 export type QueryKeys = typeof queryKeys;

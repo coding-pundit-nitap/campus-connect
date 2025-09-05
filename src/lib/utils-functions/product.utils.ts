@@ -1,6 +1,7 @@
-import { Product } from "@prisma/client";
+import { Cart, CartItem, Product } from "@prisma/client";
 
-import { FormFieldConfig } from "@/types";
+import { FormFieldConfig, SerializedFullCart } from "@/types";
+import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
 
 const SORT_OPTIONS = [
@@ -62,12 +63,35 @@ export const createDefaultFilterState = (): FilterState => ({
   sortOrder: "desc",
 });
 
+export const serializeProduct = (product: Product): SerializedProduct => ({
+  ...product,
+  price: Number(product.price),
+  discount: product.discount ? Number(product.discount) : null,
+});
+
+export const serializeProducts = (products: Product[]): SerializedProduct[] =>
+  products.map(serializeProduct);
+
+export const serializeFullCart = (
+  cart: Cart & { items: (CartItem & { product: Product })[] }
+): SerializedFullCart => ({
+  ...cart,
+  items: cart.items.map((item) => ({
+    ...item,
+    product: serializeProduct(item.product),
+  })),
+});
+
+export const serializeFullCarts = (
+  carts: (Cart & { items: (CartItem & { product: Product })[] })[]
+): SerializedFullCart[] => carts.map(serializeFullCart);
+
 export class ProductUIServices {
-  // Core utility methods
-  calculateDiscountedPrice(product: Product): number {
-    return product.discount
-      ? Number(product.price) - Number(product.discount)
-      : Number(product.price);
+  calculateDiscountedPrice(product: SerializedProduct): number {
+    if (!product.discount || product.discount <= 0) {
+      return product.price;
+    }
+    return product.price - product.discount;
   }
 
   formatProductDate(date: Date | string): string {
@@ -81,7 +105,6 @@ export class ProductUIServices {
     return `Showing ${displayCount} of ${totalCount} products`;
   }
 
-  // Configuration getters
   createProductFormFields(): FormFieldConfig<ProductFormData>[] {
     return PRODUCT_FORM_FIELDS;
   }
@@ -90,11 +113,12 @@ export class ProductUIServices {
     return SORT_OPTIONS;
   }
 
-  // Filter and sort logic - streamlined
-  applyAllFilters(products: Product[], filters: FilterState): Product[] {
+  applyAllFilters(
+    products: SerializedProduct[],
+    filters: FilterState
+  ): SerializedProduct[] {
     return products
       .filter((product) => {
-        // Search filter
         if (filters.search) {
           const searchLower = filters.search.toLowerCase();
           if (
@@ -105,13 +129,11 @@ export class ProductUIServices {
           }
         }
 
-        // Price range filter
-        const price = Number(product.price);
+        const price = product.price;
         if (price < filters.priceRange.min || price > filters.priceRange.max) {
           return false;
         }
 
-        // Stock filter
         if (filters.inStock !== null) {
           const hasStock = product.stock_quantity > 0;
           if (filters.inStock !== hasStock) {
@@ -128,7 +150,7 @@ export class ProductUIServices {
             comparison = a.name.localeCompare(b.name);
             break;
           case "price":
-            comparison = Number(a.price) - Number(b.price);
+            comparison = a.price - b.price;
             break;
           case "created_at":
             comparison =
@@ -152,7 +174,6 @@ export class ProductUIServices {
     );
   }
 
-  // Helper methods for UI interactions
   parseSortValueToOptions(value: string): {
     sortBy: FilterState["sortBy"];
     sortOrder: FilterState["sortOrder"];
@@ -174,12 +195,11 @@ export class ProductUIServices {
     };
   }
 
-  getProductCardProps(product: Product, index: number) {
+  getProductCardProps(product: SerializedProduct, index: number) {
     return {
       discountedPrice: this.calculateDiscountedPrice(product).toFixed(2),
       formattedDate: this.formatProductDate(product.created_at),
-      productHasDiscount:
-        product.discount !== null && Number(product.discount) > 0,
+      productHasDiscount: product.discount !== null && product.discount > 0,
       productHasRating: product.rating !== null && product.rating > 0,
       priority: index < 4,
     };
@@ -238,20 +258,6 @@ export class ProductUIServices {
       clearStockFilter: () => updateFilter({ inStock: null }),
     };
   }
-
-  // Placeholder handlers - to be implemented
-  createProductEditHandler() {
-    return (product: ProductFormData) => {
-      console.log("Edit product:", product);
-    };
-  }
-
-  createProductDeleteHandler() {
-    return (productId: string) => {
-      console.log("Delete product:", productId);
-    };
-  }
 }
 
-// Single instance export
 export const productUIServices = new ProductUIServices();

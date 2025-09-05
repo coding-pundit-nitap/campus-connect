@@ -11,6 +11,7 @@ interface CartItemProps {
   onRemove: () => void;
   onIncrease: () => void;
   onDecrease: () => void;
+  isUpsertingQuantity: boolean;
 }
 
 export function CartItem({
@@ -18,7 +19,9 @@ export function CartItem({
   onRemove,
   onIncrease,
   onDecrease,
+  isUpsertingQuantity,
 }: CartItemProps) {
+  console.log(item);
   return (
     <div className="flex items-center space-x-3 p-3 border rounded-lg">
       <Image
@@ -41,6 +44,7 @@ export function CartItem({
           size="icon"
           className="h-6 w-6"
           onClick={onRemove}
+          disabled={isUpsertingQuantity || isUpsertingQuantity}
         >
           <Trash2 className="h-3 w-3" />
         </Button>
@@ -48,6 +52,7 @@ export function CartItem({
           quantity={item.quantity}
           onIncrease={onIncrease}
           onDecrease={onDecrease}
+          isLoading={isUpsertingQuantity}
         />
       </div>
     </div>

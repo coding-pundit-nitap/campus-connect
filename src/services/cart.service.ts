@@ -1,51 +1,42 @@
-import axiosInstance from "@/lib/axios";
-import { ActionResponse, FullCart } from "@/types";
-class CartAPIService {
-  /**
-   * Fetches the cart data for a specific shop.
-   *
-   * Retrieves the complete cart information including all items, quantities,
-   * and pricing details for a given shop. Used to display current cart state
-   * and calculate totals for checkout processes.
-   *
-   * @param shop_id - The unique identifier of the shop to fetch cart for
-   * @returns A promise that resolves to the complete cart data
-   *
-   * @throws {Error} When API request fails or returns invalid data
-   *
-   */
+import { NotFoundError } from "@/lib/custom-error";
+import { cartRepository, productRepository } from "@/repositories";
+import { FullCart } from "@/types";
 
-  async fetchCartForShop(shop_id: string): Promise<FullCart> {
-    const url = `/cart?shop_id=${shop_id}`;
-    const response = await axiosInstance.get<ActionResponse<FullCart>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch cart");
-    }
-    return response.data.data;
+class CartService {
+  async getAllUserCarts(user_id: string): Promise<FullCart[]> {
+    return cartRepository.getAllUserCarts(user_id, {
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
   }
 
-  /**
-   * Fetches all carts for the authenticated user across all shops.
-   *
-   * Retrieves complete cart information for all shops where the user has items,
-   * including all cart items, quantities, and product details. Used for displaying
-   * comprehensive cart state and managing cross-shop cart operations.
-   *
-   * @returns A promise that resolves to an array of complete cart data
-   *
-   * @throws {Error} When API request fails or returns invalid data
-   *
-   */
-  async fetchAllUserCarts(): Promise<FullCart[]> {
-    const url = `/cart/all`;
-    const response = await axiosInstance.get<ActionResponse<FullCart[]>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch carts");
+  async getCartForShop(user_id: string, shop_id: string) {
+    return cartRepository.findOrCreate(user_id, shop_id);
+  }
+
+  async upsertCartItem(user_id: string, product_id: string, quantity: number) {
+    const product = await productRepository.findById(product_id);
+    if (!product) {
+      throw new NotFoundError("Product not found.");
     }
-    return response.data.data;
+
+    const cart = await cartRepository.findOrCreate(user_id, product.shop_id);
+
+    if (quantity > 0) {
+      await cartRepository.upsertItem(cart.id, product_id, quantity);
+    } else {
+      await cartRepository.removeItem(cart.id, product_id);
+    }
+
+    return this.getCartForShop(user_id, product.shop_id);
   }
 }
 
-export const cartAPIService = new CartAPIService();
+export const cartService = new CartService();
 
-export default cartAPIService;
+export default cartService;

@@ -1,4 +1,6 @@
-import { Cart, CartItem, Product } from "@prisma/client";
+import { Cart, CartItem } from "@prisma/client";
+
+import { SerializedProduct } from "./product.types";
 
 export interface CartItemData {
   id: string;
@@ -31,16 +33,7 @@ export interface CartDrawerState {
   summary: CartSummary | null;
 }
 
-export type FullCart = Cart & {
-  items: (CartItem & {
-    product: Pick<
-      Product,
-      "name" | "price" | "description" | "image_url" | "shop_id" | "discount"
-    > & {
-      shop: {
-        name: string;
-      };
-    };
-  })[];
+export type SerializedFullCart = Cart & {
+  items: (CartItem & { product: SerializedProduct })[];
 };
-export type FullCartItem = FullCart["items"][number];
+export type FullCartItem = SerializedFullCart["items"][number];
