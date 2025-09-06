@@ -25,6 +25,7 @@ class CartDrawerServices {
       shop_name: item.product.shop?.name ?? "Unknown Shop",
       product_id: item.product_id,
       shop_id: item.product.shop?.id || "unknown",
+      discount: item.product.discount || 0,
     };
   };
 

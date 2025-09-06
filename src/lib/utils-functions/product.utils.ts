@@ -91,7 +91,7 @@ export class ProductUIServices {
     if (!product.discount || product.discount <= 0) {
       return product.price;
     }
-    return product.price - product.discount;
+    return product.price - (product.discount * product.price) / 100;
   }
 
   formatProductDate(date: Date | string): string {
