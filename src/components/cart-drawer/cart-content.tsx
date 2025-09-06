@@ -19,11 +19,7 @@ export default function CartContent({ summary }: CartContentProps) {
   }));
 
   return (
-    <CartDrawerWrapper
-      totalItems={totalItems}
-      totalPrice={totalPrice}
-      onProceed={() => {}}
-    >
+    <CartDrawerWrapper totalItems={totalItems}>
       <SharedTabs defaultValue="0" tabs={tabItems} />
     </CartDrawerWrapper>
   );
