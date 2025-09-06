@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE "public"."Order" ALTER COLUMN "total_price" SET DATA TYPE DECIMAL(65,30);
+
+-- AlterTable
+ALTER TABLE "public"."OrderItem" ALTER COLUMN "quantity" SET DATA TYPE DECIMAL(65,30),
+ALTER COLUMN "price" SET DATA TYPE DECIMAL(65,30);
+
+-- AlterTable
+ALTER TABLE "public"."Payout" ALTER COLUMN "amount" SET DATA TYPE DECIMAL(65,30);
+
+-- AlterTable
+ALTER TABLE "public"."Product" ALTER COLUMN "price" SET DATA TYPE DECIMAL(65,30),
+ALTER COLUMN "discount" SET DATA TYPE DECIMAL(65,30);

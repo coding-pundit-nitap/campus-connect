@@ -17,6 +17,8 @@ export const queryKeys = {
     orders: (user_id: string) => ["users", user_id, "orders"] as const,
     /** User profile query key factory */
     profile: (user_id: string) => ["users", user_id, "profile"] as const,
+    /** User addresses query key factory */
+    addresses: () => ["users", "addresses"] as const,
   },
 
   /**
@@ -80,6 +82,11 @@ export const queryKeys = {
     orders: () => ["seller", "orders"] as const,
     /** Seller dashboard analytics query key factory */
     dashboard: () => ["seller", "dashboard"] as const,
+  },
+
+  health: {
+    all: ["health"] as const,
+    database: () => ["health", "database"] as const,
   },
 } as const;
 

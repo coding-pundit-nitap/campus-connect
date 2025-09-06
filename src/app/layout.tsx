@@ -7,7 +7,9 @@ import { Toaster } from "sonner";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { DatabaseWrapper } from "@/components/wrapper/database-wrapper";
 import Layout from "@/components/wrapper/layout-container";
+import { OfflineWrapper } from "@/components/wrapper/offline-wrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,10 +33,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <QueryErrorBoundary>
-              <Layout>{children}</Layout>
-              <Toaster position="top-right" richColors closeButton />
-            </QueryErrorBoundary>
+            <OfflineWrapper>
+              <DatabaseWrapper>
+                <QueryErrorBoundary>
+                  <Layout>{children}</Layout>
+                  <Toaster position="top-right" richColors closeButton />
+                </QueryErrorBoundary>
+              </DatabaseWrapper>
+            </OfflineWrapper>
           </QueryProvider>
         </ThemeProvider>
       </body>

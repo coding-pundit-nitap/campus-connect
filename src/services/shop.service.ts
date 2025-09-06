@@ -1,80 +1,20 @@
-import { Shop } from "@prisma/client";
+import { ConflictError } from "@/lib/custom-error";
+import { shopRepository } from "@/repositories";
+import { ShopFormData } from "@/validations";
 
-import axiosInstance from "@/lib/axios";
-import { ShopWithOwner } from "@/types";
-import { ActionResponse } from "@/types/response.types";
-
-interface PaginatedShopResponse {
-  /** Array of shop objects for the current page */
-  data: ShopWithOwner[];
-  /** Cursor for fetching the next page of results, null if no more pages */
-  nextCursor: string | null;
-}
-
-/**
- * Service class for shop-related API operations.
- *
- * Provides methods to interact with the shop API endpoints, including fetching
- * individual shop details. Implements proper error handling and type safety for all
- * shop operations.
- *
- */
-class ShopAPIService {
-  /**
-   * Fetches detailed information for a specific shop.
-   *
-   * Retrieves comprehensive shop details including shop metadata,
-   * seller information, and shop configuration. Used for displaying
-   * shop profiles and managing shop-specific operations.
-   *
-   * @param params - The parameters for fetching shop details
-   * @param params.shop_id - The unique identifier of the shop to fetch
-   * @returns A promise that resolves to the complete shop data
-   *
-   * @throws {Error} When API request fails, shop is not found, or returns invalid data
-   *
-   */
-  async fetchShop({ shop_id }: { shop_id: string }): Promise<Shop> {
-    const url = `/shops/${shop_id}`;
-    const response = await axiosInstance.get<ActionResponse<Shop>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch shop");
+class ShopService {
+  async createShop(user_id: string, data: ShopFormData) {
+    const existingShop = await shopRepository.findByOwnerId(user_id);
+    if (existingShop) {
+      throw new ConflictError("This user already owns a shop.");
     }
-    return response.data.data;
-  }
 
-  async fetchShopsByUser(): Promise<ShopWithOwner> {
-    const url = `/shops`;
-    const response =
-      await axiosInstance.get<ActionResponse<ShopWithOwner>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch shops");
-    }
-    return response.data.data;
-  }
-
-  async fetchShops({
-    cursor,
-  }: {
-    cursor: string | null;
-  }): Promise<PaginatedShopResponse> {
-    const url = `/shops/all?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
-    const response =
-      await axiosInstance.get<ActionResponse<PaginatedShopResponse>>(url);
-    if (!response.data.success || !response.data.data) {
-      throw new Error(response.data.details || "Failed to fetch products");
-    }
-    return response.data.data;
+    return shopRepository.create({
+      ...data,
+      owner: { connect: { id: user_id } },
+    });
   }
 }
 
-/**
- * Singleton instance of the ShopAPIService.
- *
- * Pre-configured service instance ready for use throughout the application.
- * Provides a consistent interface for all shop-related API operations.
- *
- */
-export const shopAPIService = new ShopAPIService();
-
-export default shopAPIService;
+export const shopService = new ShopService();
+export default shopService;

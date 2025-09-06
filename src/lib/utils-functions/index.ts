@@ -5,3 +5,4 @@ export * from "./navigation.utils";
 export * from "./product.utils";
 export * from "./register.utils";
 export * from "./shop.utils";
+export * from "./user-address.utils";

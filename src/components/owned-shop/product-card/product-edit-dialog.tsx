@@ -1,4 +1,3 @@
-import { Product } from "@prisma/client";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -6,11 +5,11 @@ import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
 import { ButtonConfig, FormFieldConfig } from "@/types";
+import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
 
 interface ProductEditDialogProps {
-  product: Product;
-  onEdit: (data: ProductFormData) => void;
+  product: SerializedProduct;
   form: UseFormReturn<ProductFormData>;
   state: {
     isLoading: boolean;
@@ -19,9 +18,13 @@ interface ProductEditDialogProps {
   };
   handlers: {
     onSubmit: (e?: React.BaseSyntheticEvent) => void | Promise<void>;
+    openDialog: () => void;
+    closeDialog: () => void;
   };
   fields: FormFieldConfig<ProductFormData>[];
   className?: string;
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
 }
 
 export function ProductEditDialog({
@@ -30,6 +33,8 @@ export function ProductEditDialog({
   handlers,
   fields,
   className,
+  isDialogOpen,
+  setIsDialogOpen,
 }: ProductEditDialogProps) {
   const submitButton: ButtonConfig = {
     text: "Save Changes",
@@ -48,6 +53,8 @@ export function ProductEditDialog({
       }
       title="Edit Product"
       showCloseButton={false}
+      open={isDialogOpen}
+      onOpenChange={setIsDialogOpen}
     >
       <SharedForm
         fields={fields}

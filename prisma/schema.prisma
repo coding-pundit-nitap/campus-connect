@@ -162,8 +162,8 @@ model Product {
   id             String   @id @default(cuid())
   name           String
   description    String?
-  price          Int
-  discount       Int?
+  price          Decimal
+  discount       Decimal?
   stock_quantity Int      @default(0)
   rating         Float    @default(0)
   image_url      String
@@ -256,7 +256,7 @@ model Review {
 model Order {
   id                        String        @id @default(cuid())
   display_id                String        @unique
-  total_price               Int
+  total_price               Decimal
   payment_method            PaymentMethod
   payment_status            PaymentStatus @default(PENDING)
   order_status              OrderStatus   @default(NEW)
@@ -288,9 +288,9 @@ model Order {
 }
 
 model OrderItem {
-  id       String  @id @default(cuid())
-  quantity Int
-  price    Int
+  id       String @id @default(cuid())
+  quantity Decimal
+  price    Decimal
 
   // Relations
   order_id   String
@@ -303,7 +303,7 @@ model OrderItem {
 
 model Payout {
   id           String       @id @default(cuid())
-  amount       Int
+  amount       Decimal
   status       PayoutStatus @default(PENDING)
   pg_payout_id String       @unique
   arrival_date DateTime

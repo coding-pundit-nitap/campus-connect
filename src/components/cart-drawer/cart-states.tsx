@@ -2,21 +2,16 @@ import React from "react";
 
 import SharedDrawer from "@/components/shared/shared-drawer";
 
-import { CartFooter } from "./cart-footer";
 import { CartIcon } from "./cart-icon";
 
 interface CartDrawerWrapperProps {
   children: React.ReactNode;
   totalItems?: number;
-  totalPrice?: number;
-  onProceed?: () => void;
 }
 
 export function CartDrawerWrapper({
   children,
   totalItems = 0,
-  totalPrice = 0,
-  onProceed = () => {},
 }: CartDrawerWrapperProps) {
   return (
     <SharedDrawer
@@ -24,7 +19,6 @@ export function CartDrawerWrapper({
       icon={<CartIcon totalItems={totalItems} />}
       title="Your Cart"
       description={totalItems > 0 ? `${totalItems} items` : "0 items"}
-      footer={<CartFooter total_price={totalPrice} onProceed={onProceed} />}
     >
       {children}
     </SharedDrawer>

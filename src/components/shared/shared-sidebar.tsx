@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import type { UrlObject } from "url";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -17,8 +18,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-
-import { Button } from "../ui/button";
 
 /**
  * Configuration interface for navigation items in the sidebar.

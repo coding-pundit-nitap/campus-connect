@@ -9,13 +9,13 @@ import {
 
 export async function GET(_request: NextRequest) {
   try {
-    const isAuth = await authUtils.isAuthenticated();
-    if (!isAuth) {
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
       return NextResponse.json(createErrorResponse("User not authenticated"), {
         status: 401,
       });
     }
-    const shop = await shopRepository.getShopOwned({
+    const shop = await shopRepository.findByOwnerId(user_id, {
       include: { owner: { select: { name: true, email: true } } },
     });
     if (!shop) {
