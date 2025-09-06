@@ -4,6 +4,7 @@ import React from "react";
 
 import SharedQuantityControl from "@/components/shared/shared-quantity-control";
 import { Button } from "@/components/ui/button";
+import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { CartItemData } from "@/types";
 
 interface CartItemProps {
@@ -35,7 +36,9 @@ export function CartItem({
         {item.shop_name && (
           <p className="text-xs text-muted-foreground">{item.shop_name}</p>
         )}
-        <p className="text-sm font-semibold">₹{item.price.toFixed(2)}</p>
+        <p className="text-sm font-semibold">
+          ₹{(item.price - (item.discount * item.price) / 100).toFixed(2)}
+        </p>
       </div>
       <div className="flex flex-col items-end space-y-2">
         <Button

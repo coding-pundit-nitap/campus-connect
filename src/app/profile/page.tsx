@@ -1,7 +1,7 @@
 import React from "react";
 
-import profile from "@/page-components/profile/profile";
+import Profile from "@/page-components/profile/profile";
 
 export default function page() {
-  return <div>Profile Page</div>;
+  return <Profile />;
 }
