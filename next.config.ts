@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
         hostname: "avatars.githubusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "encrypted-tbn0.gstatic.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
     dangerouslyAllowSVG: false,
     contentDispositionType: "inline",
