@@ -6,9 +6,6 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const config = {
-  runtime: "edge",
-};
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ shop_id: string }> }

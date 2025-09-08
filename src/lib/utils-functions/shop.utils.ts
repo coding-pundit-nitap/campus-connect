@@ -50,6 +50,54 @@ class ShopUIServices {
     ];
   };
 
+  createShopUpdateFormFields = (): FormFieldConfig<ShopFormData>[] => {
+    return [
+      {
+        name: "name",
+        label: "Shop Name",
+        type: "text",
+        placeholder: "Enter shop name",
+        required: true,
+      },
+      {
+        name: "description",
+        label: "Description",
+        type: "textarea",
+        placeholder: "Enter shop description",
+        required: true,
+      },
+      {
+        name: "location",
+        label: "Location",
+        type: "text",
+        placeholder: "Enter shop location",
+        required: true,
+      },
+      {
+        name: "opening",
+        label: "Opening Hours",
+        type: "text",
+        placeholder: "Enter opening hours (e.g., 09:00)",
+        required: true,
+      },
+      {
+        name: "closing",
+        label: "Closing Hours",
+        type: "text",
+        placeholder: "Enter closing hours (e.g., 17:00)",
+        required: true,
+      },
+      {
+        name: "imageKey",
+        label: "Shop Image",
+        type: "file",
+        accept: "image/*",
+        maxSize: 1,
+        required: false,
+      },
+    ];
+  };
+
   createShopSubmitButton = (isLoading: boolean): ButtonConfig => {
     return {
       text: "Link Shop",

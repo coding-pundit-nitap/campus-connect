@@ -27,7 +27,7 @@ class FileUploadService {
 
   // Client specifically for generating presigned URLs for the BROWSER
   private publicS3Client = new S3Client({
-    endpoint: process.env.NEXT_PUBLIC_MINIO_ENDPOINT!, // Use the public endpoint here
+    endpoint: process.env.NEXT_PUBLIC_MINIO_ENDPOINT!,
     region: process.env.AWS_REGION!,
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
@@ -72,17 +72,9 @@ class FileUploadService {
     });
 
     try {
-      // --- THIS IS THE FIX ---
-      // Use the publicS3Client to generate the URL.
-      // This ensures the URL and its signature are created for the correct public hostname.
-      const uploadUrl = await getSignedUrl(
-        this.publicS3Client, // Use the client configured with the public endpoint
-        command,
-        {
-          expiresIn: 300, // 5 minutes
-        }
-      );
-      // --- END OF FIX ---
+      const uploadUrl = await getSignedUrl(this.publicS3Client, command, {
+        expiresIn: 300,
+      });
 
       console.log(
         "Generated correctly signed URL for browser:",
@@ -103,7 +95,6 @@ class FileUploadService {
         Key: objectKey,
       });
 
-      // For server-side actions, use the internal client
       await this.internalS3Client.send(command);
       console.log(`File deleted from MinIO: ${objectKey}`);
     } catch (error) {

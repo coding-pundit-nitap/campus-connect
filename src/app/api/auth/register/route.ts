@@ -8,10 +8,6 @@ import {
 } from "@/types/response.types";
 import { registerSchema } from "@/validations/auth";
 
-export const config = {
-  runtime: "edge",
-};
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { ImageUtils } from "@/lib/utils-functions";
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
 import { ProductFormData, productSchema } from "@/validations";
@@ -31,6 +32,7 @@ export function useUpdateProductForm({ product }: Props) {
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useImageUpload();
   const { mutate: deleteImage } = useImageDelete();
+  const { processImageKeyForSubmission, getImageUrl } = ImageUtils;
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -39,7 +41,7 @@ export function useUpdateProductForm({ product }: Props) {
       description: product.description || "",
       price: product.price,
       stock_quantity: product.stock_quantity,
-      imageKey: product.imageKey,
+      imageKey: getImageUrl(product.imageKey),
       discount: product.discount || 0,
     },
   });
@@ -59,8 +61,10 @@ export function useUpdateProductForm({ product }: Props) {
         if (data.imageKey instanceof File) {
           finalImageKey = await uploadImage(data.imageKey);
         } else {
-          // If it's not a new file, it must be the existing string key.
-          finalImageKey = data.imageKey;
+          finalImageKey = processImageKeyForSubmission(
+            data.imageKey,
+            product.imageKey
+          );
         }
 
         const processedData = { ...data, imageKey: finalImageKey };
@@ -72,7 +76,10 @@ export function useUpdateProductForm({ product }: Props) {
                 deleteImage(oldImageKey);
               }
               setIsDialogOpen(false);
-              form.reset(processedData);
+              form.reset({
+                ...processedData,
+                imageKey: getImageUrl(finalImageKey),
+              });
             }
           },
         });
@@ -127,7 +134,7 @@ export function useCreateProductForm() {
           form.setError("imageKey", {
             message: "An image is required to create a product.",
           });
-          return; // Stop the submission
+          return;
         }
         const finalImageKey = await uploadImage(data.imageKey);
         const processedData = { ...data, imageKey: finalImageKey };

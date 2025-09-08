@@ -64,7 +64,7 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
-      create-buckets: # Add this dependency
+      create-buckets:
         condition: service_completed_successfully
     volumes:
       - .:/app
@@ -84,25 +84,25 @@ services:
     command: sh -c "pnpm install && pnpm prisma generate && pnpm prisma migrate dev --name init && pnpm dev"
     restart: unless-stopped
 
-  app-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
-    entrypoint: /app/entrypoint.sh
-    container_name: college_connect_app_prod
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
-    ports:
-      - "8080:3000"
-    env_file:
-      - .env.production
-    environment:
-      - TZ=UTC
+  # app-prod:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #     target: runner
+  #   entrypoint: /app/entrypoint.sh
+  #   container_name: college_connect_app_prod
+  #   restart: always
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     minio:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8080:3000"
+  #   env_file:
+  #     - .env.production
+  #   environment:
+  #     - TZ=UTC
 
 volumes:
   postgres_data:

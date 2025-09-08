@@ -7,10 +7,6 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const config = {
-  runtime: "edge",
-};
-
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);

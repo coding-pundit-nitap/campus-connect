@@ -7,9 +7,6 @@ interface PresignedUrlResponse {
 }
 
 class FileUploadAPIService {
-  /**
-   * Gets a presigned URL from our backend API.
-   */
   private async getPresignedUrl(file: File): Promise<PresignedUrlResponse> {
     const response = await fetch("/api/upload", {
       method: "POST",
@@ -37,17 +34,10 @@ class FileUploadAPIService {
     return result.data;
   }
 
-  /**
-   * Uploads a single image by first getting a presigned URL, then PUT-ing the file to it.
-   * @param file - The file to upload.
-   * @returns A promise that resolves to the objectKey of the uploaded file.
-   */
   async uploadImage(file: File): Promise<string> {
     try {
-      // Step 1: Get the presigned URL from our own backend.
       const { uploadUrl, objectKey } = await this.getPresignedUrl(file);
 
-      // Step 2: Use the presigned URL to upload the file directly to MinIO.
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         body: file,
@@ -57,7 +47,6 @@ class FileUploadAPIService {
       });
 
       if (!uploadResponse.ok) {
-        // This will catch the 403 Forbidden error if it's still happening
         throw new Error(
           `Direct upload to storage failed with status: ${uploadResponse.status}`
         );

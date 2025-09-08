@@ -3,6 +3,7 @@ export * from "@/hooks/use-mobile";
 export * from "@/hooks/use-mobile";
 export * from "@/hooks/useCartDrawer";
 export * from "@/hooks/useDatabaseStatus";
+export * from "@/hooks/useImageKeyExtractor";
 export * from "@/hooks/useInfiniteScroll";
 export * from "@/hooks/useLoginForm";
 export * from "@/hooks/useOnlineStatus";

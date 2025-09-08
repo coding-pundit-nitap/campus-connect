@@ -48,6 +48,7 @@ export async function updateProductAction(
   try {
     const parsedData = productActionSchema.parse(formData);
 
+    console.log("Updating product with data:", parsedData);
     const updatedProduct = await productRepository.update(product_id, {
       data: parsedData,
     });

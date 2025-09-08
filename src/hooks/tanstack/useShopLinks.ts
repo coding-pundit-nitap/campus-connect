@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createShopAction } from "@/actions";
+import { createShopAction, updateShopAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 
 export function useShopLink() {
@@ -16,6 +16,25 @@ export function useShopLink() {
     },
     onError: () => {
       toast.error("Failed to link shop.");
+    },
+  });
+}
+
+export function useShopUpdate() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateShopAction,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.shops.byUser(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.shops.all,
+      });
+      toast.success("Shop updated successfully!");
+    },
+    onError: () => {
+      toast.error("Failed to update shop.");
     },
   });
 }

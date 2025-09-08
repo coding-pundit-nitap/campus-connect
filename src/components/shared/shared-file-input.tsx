@@ -86,10 +86,6 @@ export function SharedFileInput({
     }
   };
 
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleRemove = () => {
     onChange(null);
     if (fileInputRef.current) {
@@ -114,7 +110,6 @@ export function SharedFileInput({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={handleClick}
       >
         <Input
           ref={fileInputRef}
