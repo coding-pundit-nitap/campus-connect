@@ -10,7 +10,7 @@ interface CartContentProps {
 }
 
 export default function CartContent({ summary }: CartContentProps) {
-  const { totalItems, totalPrice, shopCarts } = summary;
+  const { totalItems, shopCarts } = summary;
 
   const tabItems: TabItem[] = shopCarts.map((cart, index) => ({
     value: index.toString(),

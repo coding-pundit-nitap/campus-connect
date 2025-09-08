@@ -32,12 +32,12 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductFormData>[] = [
   },
   { name: "discount", label: "Discount", type: "number", required: false },
   {
-    name: "image_url",
+    name: "imageKey",
     label: "Product Image",
     type: "file",
     accept: "image/*",
-    maxSize: 5,
-    required: false,
+    maxSize: 1,
+    required: true,
   },
 ];
 

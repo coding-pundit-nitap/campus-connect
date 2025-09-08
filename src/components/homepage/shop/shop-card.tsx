@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { environment } from "@/config/env.config";
 import { useShops } from "@/hooks/useShops";
 import { ShopWithOwner } from "@/types";
 
@@ -33,7 +34,10 @@ export default function ShopCard({
           <Image
             width={300}
             height={200}
-            src={"/placeholders/placeholder.png"}
+            src={
+              `${environment.minioBaseUrl}/${shop.imageKey}` ||
+              "/placeholders/placeholder.png"
+            }
             alt={`${shop.name}`}
             priority={priority < 5}
             className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"

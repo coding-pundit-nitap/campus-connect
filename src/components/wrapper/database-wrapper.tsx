@@ -11,12 +11,15 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useDatabaseStatus } from "@/hooks";
+import healthCheckAPIService from "@/services/api/healthcheck-api.service";
 
 interface DatabaseWrapperProps {
   children: React.ReactNode;
 }
 
 export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
+  const isDevelopment = process.env.NODE_ENV === "development";
+
   const {
     isChecking,
     retry,
@@ -25,7 +28,10 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
     lastChecked,
     isLoading,
     latency,
-  } = useDatabaseStatus();
+  } = useDatabaseStatus({
+    refetchInterval: isDevelopment ? undefined : 300000,
+  });
+
   const [showReconnecting, setShowReconnecting] = useState(false);
 
   useEffect(() => {
@@ -35,6 +41,10 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
       }, 2000);
     }
   }, [isConnected, showReconnecting]);
+
+  if (isDevelopment) {
+    return <>{children}</>;
+  }
 
   if (isConnected && showReconnecting) {
     return <DatabaseReconnectingPage latency={latency} />;
@@ -163,7 +173,11 @@ function DatabaseErrorPage({
 
         {/* Retry Button */}
         <Button
-          onClick={onRetry}
+          onClick={() => {
+            // Reset circuit breaker when user manually retries
+            healthCheckAPIService.resetCircuitBreaker();
+            onRetry();
+          }}
           disabled={isChecking}
           variant="outline"
           className="w-full"

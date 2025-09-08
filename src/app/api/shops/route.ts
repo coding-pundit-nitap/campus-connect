@@ -18,10 +18,6 @@ export async function GET(_request: NextRequest) {
     const shop = await shopRepository.findByOwnerId(user_id, {
       include: { owner: { select: { name: true, email: true } } },
     });
-    if (!shop) {
-      const errorResponse = createErrorResponse("Shop not found");
-      return NextResponse.json(errorResponse, { status: 404 });
-    }
 
     const successResponse = createSuccessResponse(
       shop,

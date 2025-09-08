@@ -62,6 +62,7 @@ export function SharedFileInput({
     if (file) {
       handleFileSelect(file);
     }
+    e.target.value = "";
   };
 
   const handleDrag = (e: React.DragEvent) => {
@@ -83,10 +84,6 @@ export function SharedFileInput({
     if (file) {
       handleFileSelect(file);
     }
-  };
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
   };
 
   const handleRemove = () => {
@@ -113,7 +110,6 @@ export function SharedFileInput({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={handleClick}
       >
         <Input
           ref={fileInputRef}

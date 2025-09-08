@@ -8,10 +8,6 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const config = {
-  runtime: "edge",
-};
-
 export async function GET() {
   try {
     const user_id = await authUtils.getUserId();
