@@ -6,15 +6,19 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
-import { ShopFormData, shopSchema } from "@/validations/shop";
+import {
+  ShopActionFormData,
+  shopActionSchema,
+  ShopFormData,
+} from "@/validations/shop";
 
-export async function createShopAction(formData: ShopFormData) {
+export async function createShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
       throw new Error("User not authenticated");
     }
-    const parsedData = shopSchema.safeParse(formData);
+    const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
       return createErrorResponse(parsedData.error.message);
     }
@@ -23,8 +27,6 @@ export async function createShopAction(formData: ShopFormData) {
       ...parsedData.data,
       owner: { connect: { id: user_id } },
     });
-
-    // TODO: revalidate
 
     return createSuccessResponse(
       newShop,
@@ -44,8 +46,7 @@ export async function updateShopAction(formData: ShopFormData) {
       return createErrorResponse("Unauthorized: You are not a seller.");
     }
 
-    const parsedData = shopSchema.safeParse(formData);
-
+    const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
       return createErrorResponse(parsedData.error.message);
     }

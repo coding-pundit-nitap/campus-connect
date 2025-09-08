@@ -7,6 +7,7 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../node_modules/.prisma/client"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -72,7 +73,7 @@ model User {
   name          String?
   phone         String?
   hash_password String?
-  image         String?
+  image      String?
   role          Role      @default(USER)
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
@@ -128,6 +129,7 @@ model Shop {
   location            String
   opening             String
   closing             String
+  imageKey            String?
   is_active           Boolean                  @default(false)
   pg_seller_id        String?                  @unique
   verification_status SellerVerificationStatus @default(NOT_STARTED)
@@ -166,7 +168,7 @@ model Product {
   discount       Decimal?
   stock_quantity Int      @default(0)
   rating         Float    @default(0)
-  image_url      String
+  imageKey       String
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 

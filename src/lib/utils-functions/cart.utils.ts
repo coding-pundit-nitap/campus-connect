@@ -1,3 +1,4 @@
+import { environment } from "@/config/env.config";
 import {
   CartItemData,
   CartSummary,
@@ -18,7 +19,9 @@ class CartDrawerServices {
   transformCartItem = (item: SerializedCartItem): CartItemData => {
     return {
       id: item.id,
-      image_url: item.product.image_url,
+      image_url:
+        `${environment.minioBaseUrl}/${item.product.imageKey}` ||
+        "/placeholders/placeholder.png",
       price: Number(item.product.price),
       quantity: item.quantity,
       name: item.product.name,

@@ -62,6 +62,7 @@ export function SharedFileInput({
     if (file) {
       handleFileSelect(file);
     }
+    e.target.value = "";
   };
 
   const handleDrag = (e: React.DragEvent) => {

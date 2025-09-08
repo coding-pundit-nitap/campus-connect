@@ -7,18 +7,21 @@ import { serializeProduct } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import productRepository from "@/repositories/product.repository";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
-import { ProductFormData, productSchema } from "@/validations/product";
+import {
+  ProductActionFormData,
+  productActionSchema,
+  ProductFormData,
+} from "@/validations/product";
 
 export async function createProductAction(
-  formData: ProductFormData
+  formData: ProductActionFormData
 ): Promise<ActionResponse<Product>> {
   try {
     const shop_id = await authUtils.getShopId();
 
-    const parsedData = productSchema.parse(formData);
+    const parsedData = productActionSchema.parse(formData);
     const newProduct = await productRepository.create({
       ...parsedData,
-      image_url: "",
       shop: {
         connect: { id: shop_id },
       },
@@ -29,13 +32,13 @@ export async function createProductAction(
     return createSuccessResponse(newProduct, "Product created successfully");
   } catch (error) {
     console.error("CREATE PRODUCT ERROR:", error);
-    throw error;
+    throw new InternalServerError("Failed to create product.");
   }
 }
 
 interface UpdateProductActionFormData
-  extends Omit<ProductFormData, "image_url"> {
-  image_url: string | null;
+  extends Omit<ProductFormData, "imageKey"> {
+  imageKey: string | null;
 }
 
 export async function updateProductAction(
@@ -43,18 +46,10 @@ export async function updateProductAction(
   formData: UpdateProductActionFormData
 ) {
   try {
-    const parsedData = productSchema.parse(formData);
-
-    const updateData = {
-      ...parsedData,
-      image_url:
-        typeof parsedData.image_url === "string"
-          ? parsedData.image_url
-          : undefined,
-    };
+    const parsedData = productActionSchema.parse(formData);
 
     const updatedProduct = await productRepository.update(product_id, {
-      data: updateData,
+      data: parsedData,
     });
     const serializedProduct = serializeProduct(updatedProduct);
 

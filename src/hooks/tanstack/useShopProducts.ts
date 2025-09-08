@@ -64,8 +64,8 @@ export function useShopProductsUpdate(product_id: string) {
 
   return useMutation({
     mutationFn: (
-      formData: Omit<ProductFormData, "image_url"> & {
-        image_url: string | null;
+      formData: Omit<ProductFormData, "imageKey"> & {
+        imageKey: string | null;
       }
     ) => updateProductAction(product_id, formData),
     onSuccess: (data) => {
@@ -101,8 +101,9 @@ export function useShopProductsCreate() {
 
   return useMutation({
     mutationFn: createProductAction,
-    onSuccess: ({ data }) => {
-      if (data) {
+    onSuccess: ({ data, success, details }) => {
+      if (success) {
+        toast.success(details || "Product created successfully!");
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.products(data.shop_id),
         });
@@ -120,10 +121,13 @@ export function useShopProductsDelete() {
 
   return useMutation({
     mutationFn: deleteProductAction,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.products.all,
-      });
+    onSuccess: ({ success, details }) => {
+      if (success) {
+        toast.success(details || "Product deleted successfully!");
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.all,
+        });
+      }
     },
     onError: (error) => {
       console.error("Failed to delete product:", error);

@@ -7,15 +7,23 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
+        protocol: "http",
+        hostname: process.env.NEXT_PUBLIC_MINIO_ENDPOINT
+          ? new URL(process.env.NEXT_PUBLIC_MINIO_ENDPOINT).hostname
+          : "127.0.0.1",
+        port: process.env.NEXT_PUBLIC_MINIO_ENDPOINT
+          ? new URL(process.env.NEXT_PUBLIC_MINIO_ENDPOINT).port || "9000"
+          : "9000",
+        pathname: `/${process.env.NEXT_PUBLIC_MINIO_BUCKET || "college-connect"}/**`,
+      },
+      {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
-        port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
-        port: "",
         pathname: "/**",
       },
     ],

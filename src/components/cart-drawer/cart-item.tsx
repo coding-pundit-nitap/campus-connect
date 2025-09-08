@@ -4,7 +4,6 @@ import React from "react";
 
 import SharedQuantityControl from "@/components/shared/shared-quantity-control";
 import { Button } from "@/components/ui/button";
-import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { CartItemData } from "@/types";
 
 interface CartItemProps {

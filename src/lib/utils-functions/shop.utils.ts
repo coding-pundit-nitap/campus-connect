@@ -39,6 +39,14 @@ class ShopUIServices {
         placeholder: "Enter closing hours",
         required: true,
       },
+      {
+        name: "imageKey",
+        label: "Product Image",
+        type: "file",
+        accept: "image/*",
+        maxSize: 1,
+        required: false,
+      },
     ];
   };
 

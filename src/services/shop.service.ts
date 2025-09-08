@@ -1,9 +1,9 @@
 import { ConflictError } from "@/lib/custom-error";
 import { shopRepository } from "@/repositories";
-import { ShopFormData } from "@/validations";
+import { ShopActionFormData } from "@/validations";
 
 class ShopService {
-  async createShop(user_id: string, data: ShopFormData) {
+  async createShop(user_id: string, data: ShopActionFormData) {
     const existingShop = await shopRepository.findByOwnerId(user_id);
     if (existingShop) {
       throw new ConflictError("This user already owns a shop.");
