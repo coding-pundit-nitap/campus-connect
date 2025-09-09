@@ -28,8 +28,8 @@ services:
       MINIO_REGION: us-east-1
       TZ: UTC
     ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
     command: server --console-address ":9001" /data
@@ -71,17 +71,17 @@ services:
       - node_modules_volume:/app/node_modules
       - next_cache_volume:/app/.next
       - pnpm_store_volume:/app/.pnpm-store
-      - ./prisma/migrations:/app/prisma/migrations
     ports:
       - "3000:3000"
       - "5555:5555"
     env_file:
       - .env.local
     environment:
+      - CHOKIDAR_USEPOLLING=true
       - NEXT_TELEMETRY_DISABLED=1
       - NODE_ENV=development
       - TZ=UTC
-    command: sh -c "pnpm install && pnpm prisma generate && pnpm prisma migrate dev --name init && pnpm dev"
+    command: pnpm dev
     restart: unless-stopped
 
   # app-prod:
