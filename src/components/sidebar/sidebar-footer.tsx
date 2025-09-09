@@ -11,9 +11,16 @@ import UserAvatar from "./user-avatar";
 import UserDetail from "./user-detail";
 
 export function SidebarFooter() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  if (status === "loading") {
+    return (
+      <div className="mt-auto space-y-4 p-4">
+        <Separator />
+      </div>
+    );
+  }
 
-  if (!session?.user) {
+  if (status === "unauthenticated" || !session?.user) {
     return <SignOutButton />;
   }
 
@@ -22,7 +29,6 @@ export function SidebarFooter() {
   return (
     <div className="mt-auto space-y-4 p-4">
       <Separator />
-
       <div className="space-y-3">
         <div className="flex items-center space-x-3">
           <UserAvatar user={user} />

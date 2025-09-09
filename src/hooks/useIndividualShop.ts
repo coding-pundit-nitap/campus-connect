@@ -1,5 +1,4 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
@@ -8,7 +7,6 @@ import { useAddToCart } from "./tanstack";
 import { useProducts } from "./useProduct";
 
 export const useIndividualShop = (shop_id: string) => {
-  const router = useRouter();
   const {
     allProducts,
     displayProducts,
@@ -36,17 +34,12 @@ export const useIndividualShop = (shop_id: string) => {
       onAddToCart: (product_id: string, quantity: number) => {
         onAddToCartAction({ product_id, quantity });
       },
-      onViewDetails: (product_id: string) => {
-        router.push(`/shops/${shop_id}/products/${product_id}`);
-      },
     }),
     [
       allProducts.length,
       displayProducts.length,
       hasActiveFilters,
       onAddToCartAction,
-      router,
-      shop_id,
     ]
   );
 
