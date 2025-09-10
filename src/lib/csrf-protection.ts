@@ -24,17 +24,20 @@ export function validateCSRFToken(
   // Check for CSRF token in various locations
   const headerToken = request.headers.get("x-csrf-token");
   const formToken = request.headers.get("x-requested-with");
-  
+
+
   // For API routes, we primarily use the header
   if (headerToken && headerToken === expectedToken) {
     return true;
   }
-  
+
+
   // Additional validation for XMLHttpRequest
   if (formToken === "XMLHttpRequest") {
     return true; // SameSite cookies provide CSRF protection for AJAX
   }
-  
+
+
   return false;
 }
 
@@ -45,26 +48,31 @@ export function isSameOrigin(request: NextRequest): boolean {
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
   const host = request.headers.get("host");
-  
+
   if (!host) {
     return false;
   }
-  
+
   const expectedOrigin = `https://${host}`;
   const expectedOriginHttp = `http://${host}`;
-  
+
   // Check origin header
   if (origin) {
-    return origin === expectedOrigin || 
-           (process.env.NODE_ENV !== "production" && origin === expectedOriginHttp);
+    return (
+      origin === expectedOrigin ||
+      (process.env.NODE_ENV !== "production" && origin === expectedOriginHttp)
+    );
   }
-  
+
   // Check referer header as fallback
   if (referer) {
-    return referer.startsWith(expectedOrigin) || 
-           (process.env.NODE_ENV !== "production" && referer.startsWith(expectedOriginHttp));
+    return (
+      referer.startsWith(expectedOrigin) ||
+      (process.env.NODE_ENV !== "production" &&
+        referer.startsWith(expectedOriginHttp))
+    );
   }
-  
+
   return false;
 }
 
@@ -82,20 +90,23 @@ export function requiresCSRFProtection(method: string): boolean {
 export function withCSRFProtection<T extends any[], R>(
   handler: (request: NextRequest, ...args: any[]) => R
 ) {
-  return function(request: NextRequest, ...args: any[]): R {
+
+  return function (request: NextRequest, ...args: any[]): R {
     // Skip CSRF for safe methods
     if (!requiresCSRFProtection(request.method)) {
       return handler(request, ...args);
     }
-    
+
+
     // Check same-origin
     if (!isSameOrigin(request)) {
       throw new Error("CSRF: Invalid origin");
     }
-    
+
+
     // For production, you might want to implement token-based CSRF
     // For now, we rely on SameSite cookies and origin validation
-    
+
     return handler(request, ...args);
   };
 }
@@ -106,11 +117,12 @@ export function withCSRFProtection<T extends any[], R>(
  */
 export class DoubleSubmitCSRF {
   private static readonly COOKIE_NAME = "__csrf-token";
-  
+
+
   static generateToken(): string {
     return generateCSRFToken();
   }
-  
+
   static setCookieHeader(token: string): string {
     const options = [
       `${this.COOKIE_NAME}=${token}`,
@@ -120,7 +132,8 @@ export class DoubleSubmitCSRF {
       "Path=/",
       `Max-Age=${30 * 60}`, // 30 minutes
     ];
-    
+
+
     // Remove Secure flag in development
     if (process.env.NODE_ENV !== "production") {
       const secureIndex = options.indexOf("Secure");
@@ -128,27 +141,28 @@ export class DoubleSubmitCSRF {
         options.splice(secureIndex, 1);
       }
     }
-    
+
     return options.join("; ");
   }
-  
+
   static validateToken(request: NextRequest): boolean {
     const cookieToken = this.extractCookieToken(request);
     const headerToken = request.headers.get("x-csrf-token");
-    
+
     if (!cookieToken || !headerToken) {
       return false;
     }
-    
+
     return cookieToken === headerToken;
   }
-  
+
   private static extractCookieToken(request: NextRequest): string | null {
     const cookies = request.headers.get("cookie");
     if (!cookies) {
       return null;
     }
-    
+
+
     const match = cookies.match(new RegExp(`${this.COOKIE_NAME}=([^;]+)`));
     return match ? match[1] : null;
   }

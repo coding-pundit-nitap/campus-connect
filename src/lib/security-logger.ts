@@ -21,11 +21,11 @@ export enum SecurityEventType {
   LOGOUT = "LOGOUT",
   REGISTRATION = "REGISTRATION",
   PASSWORD_CHANGE = "PASSWORD_CHANGE",
-  
+
   // Authorization events
   ACCESS_DENIED = "ACCESS_DENIED",
   PRIVILEGE_ESCALATION_ATTEMPT = "PRIVILEGE_ESCALATION_ATTEMPT",
-  
+
   // Security violations
   RATE_LIMIT_EXCEEDED = "RATE_LIMIT_EXCEEDED",
   SUSPICIOUS_REQUEST = "SUSPICIOUS_REQUEST",
@@ -33,7 +33,8 @@ export enum SecurityEventType {
   XSS_ATTEMPT = "XSS_ATTEMPT",
   SQL_INJECTION_ATTEMPT = "SQL_INJECTION_ATTEMPT",
   PATH_TRAVERSAL_ATTEMPT = "PATH_TRAVERSAL_ATTEMPT",
-  
+
+
   // System events
   CONFIGURATION_CHANGE = "CONFIGURATION_CHANGE",
   ERROR = "ERROR",
@@ -59,9 +60,13 @@ class SecurityLogger {
     // In production, this should be sent to a security monitoring system
     // For development, we'll log to console with appropriate formatting
     this.writeLog(fullEvent);
-    
+
+
     // Send alerts for high-severity events
-    if (fullEvent.severity === SecuritySeverity.HIGH || fullEvent.severity === SecuritySeverity.CRITICAL) {
+    if (
+      fullEvent.severity === SecuritySeverity.HIGH ||
+      fullEvent.severity === SecuritySeverity.CRITICAL
+    ) {
       this.sendAlert(fullEvent);
     }
   }
@@ -78,7 +83,11 @@ class SecurityLogger {
   ): void {
     this.log({
       type,
-      severity: type === SecurityEventType.LOGIN_FAILURE ? SecuritySeverity.MEDIUM : SecuritySeverity.LOW,
+
+      severity:
+        type === SecurityEventType.LOGIN_FAILURE
+          ? SecuritySeverity.MEDIUM
+          : SecuritySeverity.LOW,
       message: this.getEventMessage(type),
       userId,
       ip,
@@ -141,8 +150,11 @@ class SecurityLogger {
 
     // Color code by severity for development
     const colorCode = this.getSeverityColor(event.severity);
-    if (typeof console !== 'undefined') {
-      console.log(`${colorCode}[SECURITY] ${JSON.stringify(logEntry, null, 2)}\x1b[0m`);
+
+    if (typeof console !== "undefined") {
+      console.log(
+        `${colorCode}[SECURITY] ${JSON.stringify(logEntry, null, 2)}\x1b[0m`
+      );
     }
   }
 
@@ -152,7 +164,8 @@ class SecurityLogger {
     // - Slack/Teams webhooks
     // - PagerDuty
     // - Security Information and Event Management (SIEM) systems
-    
+
+
     console.error(`🚨 SECURITY ALERT: ${event.type} - ${event.message}`);
   }
 
@@ -164,14 +177,20 @@ class SecurityLogger {
       [SecurityEventType.REGISTRATION]: "New user registered",
       [SecurityEventType.PASSWORD_CHANGE]: "Password changed",
       [SecurityEventType.ACCESS_DENIED]: "Access denied to protected resource",
-      [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]: "Attempted privilege escalation",
+
+      [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]:
+        "Attempted privilege escalation",
       [SecurityEventType.RATE_LIMIT_EXCEEDED]: "Rate limit exceeded",
       [SecurityEventType.SUSPICIOUS_REQUEST]: "Suspicious request detected",
-      [SecurityEventType.FILE_UPLOAD_VIOLATION]: "File upload security violation",
+      [SecurityEventType.FILE_UPLOAD_VIOLATION]:
+        "File upload security violation",
       [SecurityEventType.XSS_ATTEMPT]: "XSS attack attempt detected",
-      [SecurityEventType.SQL_INJECTION_ATTEMPT]: "SQL injection attempt detected",
-      [SecurityEventType.PATH_TRAVERSAL_ATTEMPT]: "Path traversal attempt detected",
-      [SecurityEventType.CONFIGURATION_CHANGE]: "Security configuration changed",
+      [SecurityEventType.SQL_INJECTION_ATTEMPT]:
+        "SQL injection attempt detected",
+      [SecurityEventType.PATH_TRAVERSAL_ATTEMPT]:
+        "Path traversal attempt detected",
+      [SecurityEventType.CONFIGURATION_CHANGE]:
+        "Security configuration changed",
       [SecurityEventType.ERROR]: "Security-related error occurred",
     };
 
@@ -186,7 +205,9 @@ class SecurityLogger {
       [SecurityEventType.XSS_ATTEMPT]: SecuritySeverity.HIGH,
       [SecurityEventType.SQL_INJECTION_ATTEMPT]: SecuritySeverity.CRITICAL,
       [SecurityEventType.PATH_TRAVERSAL_ATTEMPT]: SecuritySeverity.HIGH,
-      [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]: SecuritySeverity.CRITICAL,
+
+      [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]:
+        SecuritySeverity.CRITICAL,
       [SecurityEventType.ACCESS_DENIED]: SecuritySeverity.MEDIUM,
     };
 
@@ -206,4 +227,5 @@ class SecurityLogger {
 }
 
 // Export singleton instance
+
 export const securityLogger = new SecurityLogger();

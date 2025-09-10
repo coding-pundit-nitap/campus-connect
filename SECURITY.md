@@ -58,12 +58,14 @@ The application implements comprehensive security headers via middleware:
 ### 6. Security Monitoring
 
 #### Event Logging
+
 - **Authentication Events**: Login/logout tracking
 - **Security Violations**: Rate limiting, file upload violations
 - **Access Control**: Unauthorized access attempts
 - **System Events**: Configuration changes and errors
 
 #### Alerting
+
 - **High-Severity Alerts**: Automatic alerts for critical security events
 - **Monitoring**: Comprehensive logging for security analysis
 
@@ -92,17 +94,20 @@ AWS_SECRET_ACCESS_KEY="your-secret-key"   # Change from default!
 ⚠️ **CRITICAL**: Change all default credentials before deployment!
 
 The application will check for insecure defaults and:
+
 - Show warnings in development
 - Exit with error in production if insecure defaults are detected
 
 ## 🛡️ Deployment Security
 
 ### Docker Security
+
 - **Non-root User**: Application runs as non-root user (nextjs:1001)
 - **Multi-stage Build**: Minimizes attack surface
 - **Security Updates**: Keep base images updated
 
 ### HTTPS Configuration
+
 - **Force HTTPS**: HSTS headers force secure connections
 - **Certificate Management**: Use proper SSL/TLS certificates
 - **Secure Cookies**: Session cookies are secure and httpOnly
@@ -110,6 +115,7 @@ The application will check for insecure defaults and:
 ## 📊 Security Monitoring Dashboard
 
 ### Key Metrics to Monitor
+
 1. **Failed Login Attempts**: Multiple failures from same IP
 2. **Rate Limit Violations**: Unusual request patterns
 3. **File Upload Violations**: Malicious upload attempts
@@ -118,6 +124,7 @@ The application will check for insecure defaults and:
 
 ### Log Analysis
 Security events are logged in structured JSON format:
+
 ```json
 {
   "timestamp": "2023-12-07T10:30:00.000Z",
@@ -160,6 +167,7 @@ Security events are logged in structured JSON format:
 - [ ] Validate file upload restrictions
 
 ### Post-Deployment
+
 - [ ] Monitor security logs
 - [ ] Set up alerting
 - [ ] Verify security headers
@@ -170,6 +178,7 @@ Security events are logged in structured JSON format:
 ## 🚨 Incident Response
 
 ### Security Incident Procedure
+
 1. **Detection**: Automated alerts or manual discovery
 2. **Assessment**: Determine scope and impact
 3. **Containment**: Limit exposure and prevent spread
