@@ -98,7 +98,7 @@ export const authConfig: NextAuthConfig = {
 
         // Log security event for failed login
         const { securityLogger, SecurityEventType } = await import(
-          "@/lib/security-logger"
+          "@/lib/security"
         );
         securityLogger.logAuth(
           SecurityEventType.LOGIN_FAILURE,
