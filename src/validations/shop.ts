@@ -15,10 +15,10 @@ const locationSchema = z
   .min(1, "Location is required")
   .min(3, "Location must be at least 3 characters");
 
-const imageKeySchema = z
-  .union([z.string(), z.instanceof(File, { message: "Invalid file" })])
-  .optional()
-  .nullable();
+const imageKeySchema = z.union([
+  z.string().min(1, "An image is required."),
+  z.instanceof(File, { message: "Invalid file" }),
+]);
 
 const openingSchema = z
   .string()
