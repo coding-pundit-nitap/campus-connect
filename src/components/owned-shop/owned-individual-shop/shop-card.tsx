@@ -19,16 +19,16 @@ export default function ShopCard({ shop }: ShopCardProps) {
   const getStatusColor = (verification_status: SellerVerificationStatus) => {
     switch (verification_status) {
       case "VERIFIED":
-        return "bg-green-500 hover:bg-green-600";
+        return "bg-green-500";
       case "REJECTED":
-        return "bg-red-500 hover:bg-red-600";
+        return "bg-red-500";
       case "REQUIRES_ACTION":
-        return "bg-orange-500 hover:bg-orange-600";
+        return "bg-orange-500";
       case "PENDING":
-        return "bg-blue-500 hover:bg-blue-600";
+        return "bg-blue-500";
       case "NOT_STARTED":
       default:
-        return "bg-yellow-500 hover:bg-yellow-600";
+        return "bg-yellow-500";
     }
   };
 
@@ -49,9 +49,7 @@ export default function ShopCard({ shop }: ShopCardProps) {
 
   return (
     <SharedCard showHeader={false} className="overflow-hidden">
-      {/* Header Section with Shop Image and Basic Info */}
       <div className="flex flex-col sm:flex-row gap-4 p-6">
-        {/* Shop Avatar/Image */}
         <div className="flex-shrink-0">
           <Avatar className="w-20 h-20 sm:w-24 sm:h-24">
             <AvatarImage src={shopImageUrl || undefined} alt={shop.name} />
@@ -61,7 +59,6 @@ export default function ShopCard({ shop }: ShopCardProps) {
           </Avatar>
         </div>
 
-        {/* Shop Info */}
         <div className="flex-1 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
             <div>
@@ -77,7 +74,6 @@ export default function ShopCard({ shop }: ShopCardProps) {
             </Badge>
           </div>
 
-          {/* Shop Details Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4 text-muted-foreground" />
@@ -93,7 +89,6 @@ export default function ShopCard({ shop }: ShopCardProps) {
             </div>
           </div>
 
-          {/* Additional Info */}
           {shop.pg_seller_id && (
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">PG Seller ID:</span>
@@ -107,7 +102,6 @@ export default function ShopCard({ shop }: ShopCardProps) {
 
       <Separator />
 
-      {/* Action Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-muted/30">
         <Link
           href={`/owner-shops/${shop.id}`}

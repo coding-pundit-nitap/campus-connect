@@ -76,11 +76,6 @@ class FileUploadService {
         expiresIn: 300,
       });
 
-      console.log(
-        "Generated correctly signed URL for browser:",
-        uploadUrl.split("?")[0] + "?[SIGNED]"
-      );
-
       return { uploadUrl, objectKey };
     } catch (error) {
       console.error("Error generating presigned URL:", error);

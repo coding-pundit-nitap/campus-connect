@@ -32,7 +32,6 @@ export function useUpdateProductForm({ product }: Props) {
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useImageUpload();
   const { mutate: deleteImage } = useImageDelete();
-  const { processImageKeyForSubmission, getImageUrl } = ImageUtils;
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -41,7 +40,7 @@ export function useUpdateProductForm({ product }: Props) {
       description: product.description || "",
       price: product.price,
       stock_quantity: product.stock_quantity,
-      imageKey: getImageUrl(product.imageKey),
+      imageKey: ImageUtils.getImageUrl(product.imageKey),
       discount: product.discount || 0,
     },
   });
@@ -61,7 +60,7 @@ export function useUpdateProductForm({ product }: Props) {
         if (data.imageKey instanceof File) {
           finalImageKey = await uploadImage(data.imageKey);
         } else {
-          finalImageKey = processImageKeyForSubmission(
+          finalImageKey = ImageUtils.processImageKeyForSubmission(
             data.imageKey,
             product.imageKey
           );
@@ -78,7 +77,7 @@ export function useUpdateProductForm({ product }: Props) {
               setIsDialogOpen(false);
               form.reset({
                 ...processedData,
-                imageKey: getImageUrl(finalImageKey),
+                imageKey: ImageUtils.getImageUrl(finalImageKey),
               });
             }
           },

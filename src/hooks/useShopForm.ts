@@ -80,7 +80,6 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useImageUpload();
   const { mutate: deleteImage } = useImageDelete();
-  const { processImageKeyForSubmission, getImageUrl } = ImageUtils;
 
   const form = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
@@ -90,7 +89,9 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
       location: shop.location,
       opening: shop.opening,
       closing: shop.closing,
-      imageKey: shop.imageKey ? getImageUrl(shop.imageKey) : undefined,
+      imageKey: shop.imageKey
+        ? ImageUtils.getImageUrl(shop.imageKey)
+        : undefined,
     },
   });
 
@@ -109,7 +110,7 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
         if (data.imageKey instanceof File) {
           finalImageKey = await uploadImage(data.imageKey);
         } else {
-          finalImageKey = processImageKeyForSubmission(
+          finalImageKey = ImageUtils.processImageKeyForSubmission(
             data.imageKey || "",
             shop.imageKey || ""
           );
@@ -127,7 +128,7 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
               form.reset({
                 ...processedData,
                 imageKey: finalImageKey
-                  ? getImageUrl(finalImageKey)
+                  ? ImageUtils.getImageUrl(finalImageKey)
                   : undefined,
               });
             }
