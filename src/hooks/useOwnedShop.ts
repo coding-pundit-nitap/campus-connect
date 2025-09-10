@@ -2,7 +2,7 @@ import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
 
-import { useShopProductsDelete } from "./tanstack";
+import { useImageDelete, useShopProductsDelete } from "./tanstack";
 import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useOwnedShop = (shop_id: string) => {
@@ -17,6 +17,7 @@ export const useOwnedShop = (shop_id: string) => {
     clearFilters,
   } = useOwnerProducts(shop_id);
   const { mutate: deleteProduct } = useShopProductsDelete();
+  const { mutateAsync: deleteImage } = useImageDelete();
 
   const shopState = useMemo(
     () => ({
@@ -32,10 +33,13 @@ export const useOwnedShop = (shop_id: string) => {
 
   const actionHandlers = useMemo(
     () => ({
-      onDeleteProduct: deleteProduct,
+      onDeleteProduct: async (product_id: string, imageKey: string) => {
+        await deleteImage(imageKey);
+        deleteProduct(product_id);
+      },
       onResetFilters: clearFilters,
     }),
-    [clearFilters, deleteProduct]
+    [clearFilters, deleteProduct, deleteImage]
   );
 
   const loadingStates = useMemo(

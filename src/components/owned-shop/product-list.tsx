@@ -12,7 +12,7 @@ import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 
 interface ProductListProps {
-  onDeleteProduct: (productId: string) => void;
+  onDeleteProduct: (productId: string, imageKey: string) => Promise<void>;
   error?: Error | null;
   shop_id: string;
 }

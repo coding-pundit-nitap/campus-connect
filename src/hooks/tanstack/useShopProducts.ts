@@ -69,22 +69,18 @@ export function useShopProductsUpdate(product_id: string) {
       }
     ) => updateProductAction(product_id, formData),
     onSuccess: (data) => {
-      // Show success message
       toast.success("Product updated successfully!");
 
-      // Invalidate the individual product detail
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.detail(product_id),
       });
 
-      // Invalidate the shop products list if we have the shop_id
       if (data.data?.shop_id) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.products(data.data.shop_id),
         });
       }
 
-      // Also invalidate all shop products to ensure consistency
       queryClient.invalidateQueries({
         queryKey: queryKeys.shops.all,
       });
@@ -126,6 +122,9 @@ export function useShopProductsDelete() {
         toast.success(details || "Product deleted successfully!");
         queryClient.invalidateQueries({
           queryKey: queryKeys.products.all,
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.all,
         });
       }
     },

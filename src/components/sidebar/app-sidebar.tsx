@@ -1,4 +1,5 @@
 import { GraduationCap } from "lucide-react";
+import { Suspense } from "react";
 
 import SharedSidebar, {
   NavigationItem,
@@ -32,7 +33,9 @@ export default function AppSidebar({
       isLoading={isLoading}
       errorMessage={error || undefined}
     >
-      <SidebarFooter />
+      <Suspense fallback={<div className="mt-auto p-4">Loading...</div>}>
+        <SidebarFooter />
+      </Suspense>
     </SharedSidebar>
   );
 }
