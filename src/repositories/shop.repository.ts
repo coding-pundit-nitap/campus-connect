@@ -61,6 +61,39 @@ class ShopRepository {
     const query = { ...(options ?? {}) };
     return prisma.shop.findMany(query);
   }
+
+  async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
+    console.log(searchTerm, limit);
+    return prisma.shop.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            location: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        is_active: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    });
+  }
 }
 
 export const shopRepository = new ShopRepository();
