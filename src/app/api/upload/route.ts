@@ -14,6 +14,12 @@ const deleteSchema = z.object({
   objectKey: z.string().min(1, "Object key is required."),
 });
 
+const uploadSchema = z.object({
+  fileName: z.string().min(1, "File name is required").max(255, "File name too long"),
+  fileType: z.string().min(1, "File type is required"),
+  fileSize: z.number().positive("File size must be positive").max(10 * 1024 * 1024, "File too large"),
+});
+
 export async function DELETE(request: NextRequest) {
   try {
     const isAuthenticated = await authUtils.isAuthenticated();
@@ -27,9 +33,10 @@ export async function DELETE(request: NextRequest) {
     const validation = deleteSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(createErrorResponse("Invalid input"), {
-        status: 400,
-      });
+      return NextResponse.json(
+        createErrorResponse("Invalid input: " + validation.error.issues[0].message), 
+        { status: 400 }
+      );
     }
 
     await fileUploadService.deleteFile(validation.data.objectKey);
@@ -40,7 +47,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error("Delete File API Error:", error);
     return NextResponse.json(
-      createErrorResponse("An unexpected error occurred."),
+      createErrorResponse("File deletion failed."),
       { status: 500 }
     );
   }
@@ -55,16 +62,20 @@ export async function POST(request: Request) {
       });
     }
 
-    const { fileType, fileSize } = await request.json();
+    const body = await request.json();
+    const validation = uploadSchema.safeParse(body);
 
-    if (!fileType || !fileSize) {
+    if (!validation.success) {
       return NextResponse.json(
-        createErrorResponse("fileType and fileSize are required."),
+        createErrorResponse("Invalid input: " + validation.error.issues[0].message),
         { status: 400 }
       );
     }
 
+    const { fileName, fileType, fileSize } = validation.data;
+
     const data = await fileUploadService.createPresignedUploadUrl(
+      fileName,
       fileType,
       fileSize
     );
@@ -74,8 +85,10 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("Upload API Error:", error);
+    
+    // Return generic error message to prevent information leakage
     return NextResponse.json(
-      createErrorResponse("An unexpected error occurred."),
+      createErrorResponse("Upload preparation failed."),
       { status: 500 }
     );
   }
