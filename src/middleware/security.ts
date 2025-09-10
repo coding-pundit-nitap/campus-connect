@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { securityLogger, SecurityEventType } from "@/lib/security-logger";
+import { SecurityEventType,securityLogger } from "@/lib/security-logger";
 
 /**
  * Security middleware that adds essential security headers to all responses
@@ -70,9 +70,9 @@ export function rateLimit(
 ): boolean {
   const ip = getClientIP(request);
   const now = Date.now();
-  
+
   const record = rateLimitMap.get(ip);
-  
+
   if (!record || now > record.resetTime) {
     rateLimitMap.set(ip, {
       count: 1,
@@ -80,7 +80,7 @@ export function rateLimit(
     });
     return true;
   }
-  
+
   if (record.count >= options.max) {
     // Log rate limit violation
     securityLogger.logViolation(
@@ -97,7 +97,7 @@ export function rateLimit(
     );
     return false;
   }
-  
+
   record.count++;
   return true;
 }
@@ -110,19 +110,19 @@ function getClientIP(request: NextRequest): string {
   const xForwardedFor = request.headers.get("x-forwarded-for");
   const xRealIp = request.headers.get("x-real-ip");
   const xClientIp = request.headers.get("x-client-ip");
-  
+
   if (xForwardedFor) {
     return xForwardedFor.split(",")[0].trim();
   }
-  
+
   if (xRealIp) {
     return xRealIp;
   }
-  
+
   if (xClientIp) {
     return xClientIp;
   }
-  
+
   // Fallback to connection remote address
   return (request as any).ip || "unknown";
 }

@@ -7,12 +7,14 @@ This document outlines the security measures implemented in the College Connect 
 ### 1. Authentication & Authorization
 
 #### Password Security
+
 - **Strong Password Requirements**: Minimum 8 characters with uppercase, lowercase, numbers, and special characters
 - **PBKDF2 Hashing**: Passwords are hashed using PBKDF2 with SHA-256 and 100,000 iterations
 - **Timing-Safe Comparison**: Password verification uses constant-time comparison to prevent timing attacks
 - **Salt Generation**: Cryptographically secure random salts for each password
 
 #### Session Management
+
 - **NextAuth v5**: Industry-standard authentication library with JWT strategy
 - **Session Expiry**: 30-day session timeout with automatic renewal
 - **Role-Based Access Control (RBAC)**: Granular permissions based on user roles
@@ -38,12 +40,14 @@ The application implements comprehensive security headers via middleware:
 ### 4. File Upload Security
 
 #### Validation
+
 - **File Type Validation**: Strict MIME type checking
 - **Extension Validation**: Cross-reference file extensions with MIME types
 - **Size Limits**: Configurable maximum file sizes (default 5MB)
 - **Dangerous Extension Blocking**: Executable and script files are prohibited
 
 #### Security Measures
+
 - **Path Traversal Prevention**: Filename sanitization and validation
 - **Double Extension Detection**: Prevents bypass attempts
 - **Null Byte Detection**: Prevents directory traversal attacks
@@ -58,12 +62,14 @@ The application implements comprehensive security headers via middleware:
 ### 6. Security Monitoring
 
 #### Event Logging
+
 - **Authentication Events**: Login/logout tracking
 - **Security Violations**: Rate limiting, file upload violations
 - **Access Control**: Unauthorized access attempts
 - **System Events**: Configuration changes and errors
 
 #### Alerting
+
 - **High-Severity Alerts**: Automatic alerts for critical security events
 - **Monitoring**: Comprehensive logging for security analysis
 
@@ -92,17 +98,20 @@ AWS_SECRET_ACCESS_KEY="your-secret-key"   # Change from default!
 ⚠️ **CRITICAL**: Change all default credentials before deployment!
 
 The application will check for insecure defaults and:
+
 - Show warnings in development
 - Exit with error in production if insecure defaults are detected
 
 ## 🛡️ Deployment Security
 
 ### Docker Security
+
 - **Non-root User**: Application runs as non-root user (nextjs:1001)
 - **Multi-stage Build**: Minimizes attack surface
 - **Security Updates**: Keep base images updated
 
 ### HTTPS Configuration
+
 - **Force HTTPS**: HSTS headers force secure connections
 - **Certificate Management**: Use proper SSL/TLS certificates
 - **Secure Cookies**: Session cookies are secure and httpOnly
@@ -110,6 +119,7 @@ The application will check for insecure defaults and:
 ## 📊 Security Monitoring Dashboard
 
 ### Key Metrics to Monitor
+
 1. **Failed Login Attempts**: Multiple failures from same IP
 2. **Rate Limit Violations**: Unusual request patterns
 3. **File Upload Violations**: Malicious upload attempts
@@ -117,7 +127,9 @@ The application will check for insecure defaults and:
 5. **XSS/Injection Attempts**: Script injection attempts
 
 ### Log Analysis
+
 Security events are logged in structured JSON format:
+
 ```json
 {
   "timestamp": "2023-12-07T10:30:00.000Z",
@@ -136,6 +148,7 @@ Security events are logged in structured JSON format:
 ## 🔧 Security Maintenance
 
 ### Regular Tasks
+
 1. **Update Dependencies**: Run `pnpm audit` weekly
 2. **Review Logs**: Check security logs daily
 3. **Certificate Renewal**: Monitor SSL certificate expiry
@@ -143,6 +156,7 @@ Security events are logged in structured JSON format:
 5. **Access Review**: Regular user access audits
 
 ### Security Testing
+
 1. **Penetration Testing**: Annual security assessments
 2. **Vulnerability Scanning**: Automated dependency scanning
 3. **Code Review**: Security-focused code reviews
@@ -151,6 +165,7 @@ Security events are logged in structured JSON format:
 ## 📋 Security Checklist
 
 ### Pre-Deployment
+
 - [ ] Change all default credentials
 - [ ] Enable HTTPS with valid certificates
 - [ ] Configure proper environment variables
@@ -160,6 +175,7 @@ Security events are logged in structured JSON format:
 - [ ] Validate file upload restrictions
 
 ### Post-Deployment
+
 - [ ] Monitor security logs
 - [ ] Set up alerting
 - [ ] Verify security headers
@@ -170,6 +186,7 @@ Security events are logged in structured JSON format:
 ## 🚨 Incident Response
 
 ### Security Incident Procedure
+
 1. **Detection**: Automated alerts or manual discovery
 2. **Assessment**: Determine scope and impact
 3. **Containment**: Limit exposure and prevent spread
@@ -178,6 +195,7 @@ Security events are logged in structured JSON format:
 6. **Lessons Learned**: Update security measures
 
 ### Emergency Contacts
+
 - **Security Team**: security@yourdomain.com
 - **Development Team**: dev@yourdomain.com
 - **System Administrator**: admin@yourdomain.com

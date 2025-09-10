@@ -6,7 +6,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
-import { securityLogger, SecurityEventType } from "@/lib/security-logger";
+import { SecurityEventType,securityLogger } from "@/lib/security-logger";
 
 interface UploadOptions {
   maxSizeInMB?: number;
@@ -31,9 +31,33 @@ const SECURE_FILE_TYPES: Record<string, string[]> = {
  * Dangerous file extensions that should never be allowed
  */
 const DANGEROUS_EXTENSIONS = [
-  ".exe", ".bat", ".cmd", ".com", ".pif", ".scr", ".vbs", ".js", ".jar",
-  ".app", ".deb", ".pkg", ".dmg", ".rpm", ".msi", ".dll", ".so", ".dylib",
-  ".php", ".asp", ".aspx", ".jsp", ".py", ".rb", ".pl", ".sh", ".ps1",
+  ".exe",
+  ".bat",
+  ".cmd",
+  ".com",
+  ".pif",
+  ".scr",
+  ".vbs",
+  ".js",
+  ".jar",
+  ".app",
+  ".deb",
+  ".pkg",
+  ".dmg",
+  ".rpm",
+  ".msi",
+  ".dll",
+  ".so",
+  ".dylib",
+  ".php",
+  ".asp",
+  ".aspx",
+  ".jsp",
+  ".py",
+  ".rb",
+  ".pl",
+  ".sh",
+  ".ps1",
 ];
 
 class FileUploadService {
@@ -70,7 +94,10 @@ class FileUploadService {
     fileSize: number,
     options: UploadOptions
   ): void {
-    const { maxSizeInMB = 5, allowedTypes = ["image/jpeg", "image/png", "image/webp"] } = options;
+    const {
+      maxSizeInMB = 5,
+      allowedTypes = ["image/jpeg", "image/png", "image/webp"],
+    } = options;
 
     // File size validation
     const maxSize = maxSizeInMB * 1024 * 1024;
@@ -81,6 +108,9 @@ class FileUploadService {
         undefined,
         undefined,
         { fileName, fileType, fileSize, maxSize }
+      );
+      throw new BadRequestError(
+        `File size exceeds the ${maxSizeInMB}MB limit.`
       );
       throw new BadRequestError(`File size exceeds the ${maxSizeInMB}MB limit.`);
     }
@@ -100,8 +130,10 @@ class FileUploadService {
     }
 
     // File extension validation
-    const extension = fileName.toLowerCase().substring(fileName.lastIndexOf("."));
-    
+    const extension = fileName
+      .toLowerCase()
+      .substring(fileName.lastIndexOf("."));
+
     // Check for dangerous extensions
     if (DANGEROUS_EXTENSIONS.includes(extension)) {
       securityLogger.logViolation(
@@ -158,7 +190,11 @@ class FileUploadService {
     }
 
     // Check for path traversal attempts
-    if (fileName.includes("../") || fileName.includes("..\\") || fileName.includes("/")) {
+    if (
+      fileName.includes("../") ||
+      fileName.includes("..\\") ||
+      fileName.includes("/")
+    ) {
       securityLogger.logViolation(
         SecurityEventType.PATH_TRAVERSAL_ATTEMPT,
         `Path traversal attempt in filename: ${fileName}`,
@@ -166,15 +202,22 @@ class FileUploadService {
         undefined,
         { fileName, fileType }
       );
-      throw new BadRequestError("Invalid file name contains path traversal sequences");
+      throw new BadRequestError(
+        "Invalid file name contains path traversal sequences"
+      );
     }
   }
 
   /**
    * Generates a secure, random filename while preserving the extension
    */
-  private generateSecureFileName(originalFileName: string, prefix: string): string {
-    const extension = originalFileName.toLowerCase().substring(originalFileName.lastIndexOf("."));
+  private generateSecureFileName(
+    originalFileName: string,
+    prefix: string
+  ): string {
+    const extension = originalFileName
+      .toLowerCase()
+      .substring(originalFileName.lastIndexOf("."));
     const randomName = crypto.randomUUID();
     return `${prefix}/${randomName}${extension}`;
   }
