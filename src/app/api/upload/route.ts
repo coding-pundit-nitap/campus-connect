@@ -95,7 +95,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Upload API Error:", error);
 
-    // Return generic error message to prevent information leakage
     return NextResponse.json(
       createErrorResponse("Upload preparation failed."),
       { status: 500 }

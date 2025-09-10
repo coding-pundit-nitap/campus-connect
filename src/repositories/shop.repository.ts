@@ -50,6 +50,50 @@ class ShopRepository {
     const query = { where: { id: shop_id }, ...(options ?? {}) };
     return prisma.shop.findUnique(query);
   }
+
+  async getShops(): Promise<Shop[]>;
+  async getShops<T extends ShopFindManyOptions>(
+    options: T
+  ): Promise<Prisma.ShopGetPayload<T>[]>;
+  async getShops<T extends ShopFindManyOptions>(
+    options?: T
+  ): Promise<Prisma.ShopGetPayload<T>[] | Shop[]> {
+    const query = { ...(options ?? {}) };
+    return prisma.shop.findMany(query);
+  }
+
+  async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
+    console.log(searchTerm, limit);
+    return prisma.shop.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            location: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        is_active: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    });
+  }
 }
 
 export const shopRepository = new ShopRepository();

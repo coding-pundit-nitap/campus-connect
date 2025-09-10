@@ -15,6 +15,7 @@ interface SearchBarProps {
   onSelectItem: (value: string) => void;
   suggestions: { id: string; title: string; subtitle: string }[];
   isSearching: boolean;
+  isLoading?: boolean;
 }
 
 export function SearchBar({
@@ -28,6 +29,7 @@ export function SearchBar({
   onSelectItem,
   suggestions,
   isSearching,
+  isLoading = false,
 }: SearchBarProps) {
   return (
     <div className="relative">
@@ -48,6 +50,8 @@ export function SearchBar({
             onSelectItem={onSelectItem}
             query={value}
             showInput={false}
+            isLoading={isLoading}
+            emptyMessage={isLoading ? "Searching..." : "No results found"}
           />
         </div>
       )}

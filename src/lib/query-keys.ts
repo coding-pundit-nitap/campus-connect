@@ -70,6 +70,13 @@ export const queryKeys = {
     dashboard: () => ["seller", "dashboard"] as const,
   },
 
+  search: {
+    /** Base key for all search-related queries */
+    all: ["search"] as const,
+    /** Search query key factory for specific search terms */
+    query: (searchTerm: string) => ["search", "query", searchTerm] as const,
+  },
+
   health: {
     all: ["health"] as const,
     database: () => ["health", "database"] as const,

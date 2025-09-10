@@ -20,7 +20,7 @@ interface ProductCardProps {
   priority?: boolean;
   mode?: "user" | "owner";
 
-  onDelete?: (productId: string, imageKey: string) => Promise<void>;
+  onDelete?: (product_id: string, imageKey: string) => Promise<void>;
 
   userActions?: React.ReactNode;
 }

@@ -6,7 +6,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
-import { SecurityEventType,securityLogger } from "@/lib/security-logger";
+import { SecurityEventType, securityLogger } from "@/lib/security-logger";
 
 interface UploadOptions {
   maxSizeInMB?: number;
