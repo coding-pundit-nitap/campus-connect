@@ -14,6 +14,7 @@ class FileUploadAPIService {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
       }),

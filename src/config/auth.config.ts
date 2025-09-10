@@ -95,6 +95,19 @@ export const authConfig: NextAuthConfig = {
 
         // 5. If anything fails, return null
         console.error("Invalid credentials provided");
+
+        // Log security event for failed login
+        const { securityLogger, SecurityEventType } = await import(
+          "@/lib/security-logger"
+        );
+        securityLogger.logAuth(
+          SecurityEventType.LOGIN_FAILURE,
+          undefined,
+          undefined,
+          undefined,
+          { email, reason: "invalid_credentials" }
+        );
+
         return null;
       },
     }),

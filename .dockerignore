@@ -1,37 +1,94 @@
-# Ignore system / editor / local config
-**/.classpath
-**/.dockerignore
-**/.env*
+# Security: Ignore sensitive files
+**/.env
+**/.env.local
+**/.env.development
+**/.env.production
+**/.env.staging
+**/secrets
+**/keys
+**/*.pem
+**/*.key
+**/*.crt
+**/*.p12
+**/*.pfx
+
+# Version control
 **/.git
 **/.gitignore
-**/.project
-**/.settings
-**/.vs
-**/.vscode
-**/.cache
+**/.gitattributes
 
-# Ignore Next.js build artifacts
+# Development files
+**/.vscode
+**/.vs
+**/.idea
+**/.cache
+**/.tmp
+**/tmp
+**/*.log
+**/*.pid
+
+# Dependencies (handled in container)
+**/node_modules
+**/npm-debug.log
+**/yarn-debug.log
+**/yarn-error.log
+**/pnpm-debug.log
+
+# Build artifacts
 **/.next
 **/build
 **/dist
+**/out
 
-# Ignore dependencies (handled in container)
-**/node_modules
-**/npm-debug.log
-
-# Ignore test files / local artifacts
+# Testing
 **/tests
-**/*.md
-**/*.log
-**/*.dbmdl
+**/test
+**/*.test.*
+**/*.spec.*
+**/coverage
+**/.nyc_output
 
-# Charts / deployment configs not needed in container
-**/charts
+# Documentation (reduce image size)
+**/*.md
+**/docs
+**/documentation
+
+# Configuration files not needed in container
 **/docker-compose*
 **/compose.y*ml
 **/Dockerfile*
-**/secrets*.yaml
-**/values*.yaml
+**/.dockerignore
+**/kubernetes
+**/k8s
+**/charts
 
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+**/*.bak
+**/*.backup
+**/*.old
+**/*.orig
+
+# Temporary files
+**/*~
+**/*.swp
+**/*.swo
+
+# Database files (should be external)
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# License and readme (reduce size)
 LICENSE
 README.md
+CHANGELOG.md
+CONTRIBUTING.md
