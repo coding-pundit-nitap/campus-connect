@@ -68,7 +68,7 @@ RUN sed -i 's/\r$//' ./entrypoint.sh && \
 RUN chmod -R 755 /app && \
     chmod -R 444 /app/node_modules && \
     chmod -R 444 /app/public && \
-    chmod -R 444 /app/.next && \
+    chmod -R 755 /app/.next && \
     chmod 555 /app/entrypoint.sh
 
 # Switch to non-root user
