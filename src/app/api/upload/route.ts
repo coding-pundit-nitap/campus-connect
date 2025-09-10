@@ -15,7 +15,6 @@ const deleteSchema = z.object({
 });
 
 const uploadSchema = z.object({
-
   fileName: z
     .string()
     .min(1, "File name is required")
@@ -41,7 +40,6 @@ export async function DELETE(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-
         createErrorResponse(
           "Invalid input: " + validation.error.issues[0].message
         ),
@@ -77,7 +75,6 @@ export async function POST(request: Request) {
 
     if (!validation.success) {
       return NextResponse.json(
-
         createErrorResponse(
           "Invalid input: " + validation.error.issues[0].message
         ),
@@ -99,8 +96,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Upload API Error:", error);
 
-
-    // Return generic error message to prevent information leakage
     return NextResponse.json(
       createErrorResponse("Upload preparation failed."),
       { status: 500 }

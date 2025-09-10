@@ -105,9 +105,8 @@ export const authConfig: NextAuthConfig = {
           undefined,
           undefined,
           undefined,
-          { email, reason: "invalid_credentials" }
+          { reason: "invalid_credentials" }
         );
-
 
         return null;
       },

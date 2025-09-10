@@ -1,6 +1,7 @@
 export * from "./useCarts";
 export * from "./useImageUpload";
 export * from "./useOrders";
+export * from "./useSearchQuery";
 export * from "./useShop";
 export * from "./useShopLinks";
 export * from "./useShopProducts";
