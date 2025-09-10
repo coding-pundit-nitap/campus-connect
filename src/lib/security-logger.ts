@@ -34,6 +34,7 @@ export enum SecurityEventType {
   SQL_INJECTION_ATTEMPT = "SQL_INJECTION_ATTEMPT",
   PATH_TRAVERSAL_ATTEMPT = "PATH_TRAVERSAL_ATTEMPT",
 
+
   // System events
   CONFIGURATION_CHANGE = "CONFIGURATION_CHANGE",
   ERROR = "ERROR",
@@ -60,6 +61,7 @@ class SecurityLogger {
     // For development, we'll log to console with appropriate formatting
     this.writeLog(fullEvent);
 
+
     // Send alerts for high-severity events
     if (
       fullEvent.severity === SecuritySeverity.HIGH ||
@@ -81,6 +83,7 @@ class SecurityLogger {
   ): void {
     this.log({
       type,
+
       severity:
         type === SecurityEventType.LOGIN_FAILURE
           ? SecuritySeverity.MEDIUM
@@ -147,6 +150,7 @@ class SecurityLogger {
 
     // Color code by severity for development
     const colorCode = this.getSeverityColor(event.severity);
+
     if (typeof console !== "undefined") {
       console.log(
         `${colorCode}[SECURITY] ${JSON.stringify(logEntry, null, 2)}\x1b[0m`
@@ -161,6 +165,7 @@ class SecurityLogger {
     // - PagerDuty
     // - Security Information and Event Management (SIEM) systems
 
+
     console.error(`🚨 SECURITY ALERT: ${event.type} - ${event.message}`);
   }
 
@@ -172,6 +177,7 @@ class SecurityLogger {
       [SecurityEventType.REGISTRATION]: "New user registered",
       [SecurityEventType.PASSWORD_CHANGE]: "Password changed",
       [SecurityEventType.ACCESS_DENIED]: "Access denied to protected resource",
+
       [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]:
         "Attempted privilege escalation",
       [SecurityEventType.RATE_LIMIT_EXCEEDED]: "Rate limit exceeded",
@@ -199,6 +205,7 @@ class SecurityLogger {
       [SecurityEventType.XSS_ATTEMPT]: SecuritySeverity.HIGH,
       [SecurityEventType.SQL_INJECTION_ATTEMPT]: SecuritySeverity.CRITICAL,
       [SecurityEventType.PATH_TRAVERSAL_ATTEMPT]: SecuritySeverity.HIGH,
+
       [SecurityEventType.PRIVILEGE_ESCALATION_ATTEMPT]:
         SecuritySeverity.CRITICAL,
       [SecurityEventType.ACCESS_DENIED]: SecuritySeverity.MEDIUM,
@@ -220,4 +227,5 @@ class SecurityLogger {
 }
 
 // Export singleton instance
+
 export const securityLogger = new SecurityLogger();

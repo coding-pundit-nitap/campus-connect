@@ -6,6 +6,7 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
+
 import { SecurityEventType,securityLogger } from "@/lib/security-logger";
 
 interface UploadOptions {
@@ -108,6 +109,7 @@ class FileUploadService {
         undefined,
         undefined,
         { fileName, fileType, fileSize, maxSize }
+
       );
       throw new BadRequestError(
         `File size exceeds the ${maxSizeInMB}MB limit.`
@@ -129,6 +131,7 @@ class FileUploadService {
     }
 
     // File extension validation
+
     const extension = fileName
       .toLowerCase()
       .substring(fileName.lastIndexOf("."));
@@ -201,6 +204,7 @@ class FileUploadService {
         undefined,
         { fileName, fileType }
       );
+
       throw new BadRequestError(
         "Invalid file name contains path traversal sequences"
       );

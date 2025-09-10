@@ -7,14 +7,12 @@ This document outlines the security measures implemented in the College Connect 
 ### 1. Authentication & Authorization
 
 #### Password Security
-
 - **Strong Password Requirements**: Minimum 8 characters with uppercase, lowercase, numbers, and special characters
 - **PBKDF2 Hashing**: Passwords are hashed using PBKDF2 with SHA-256 and 100,000 iterations
 - **Timing-Safe Comparison**: Password verification uses constant-time comparison to prevent timing attacks
 - **Salt Generation**: Cryptographically secure random salts for each password
 
 #### Session Management
-
 - **NextAuth v5**: Industry-standard authentication library with JWT strategy
 - **Session Expiry**: 30-day session timeout with automatic renewal
 - **Role-Based Access Control (RBAC)**: Granular permissions based on user roles
@@ -40,14 +38,12 @@ The application implements comprehensive security headers via middleware:
 ### 4. File Upload Security
 
 #### Validation
-
 - **File Type Validation**: Strict MIME type checking
 - **Extension Validation**: Cross-reference file extensions with MIME types
 - **Size Limits**: Configurable maximum file sizes (default 5MB)
 - **Dangerous Extension Blocking**: Executable and script files are prohibited
 
 #### Security Measures
-
 - **Path Traversal Prevention**: Filename sanitization and validation
 - **Double Extension Detection**: Prevents bypass attempts
 - **Null Byte Detection**: Prevents directory traversal attacks
@@ -127,7 +123,6 @@ The application will check for insecure defaults and:
 5. **XSS/Injection Attempts**: Script injection attempts
 
 ### Log Analysis
-
 Security events are logged in structured JSON format:
 
 ```json
@@ -148,7 +143,6 @@ Security events are logged in structured JSON format:
 ## 🔧 Security Maintenance
 
 ### Regular Tasks
-
 1. **Update Dependencies**: Run `pnpm audit` weekly
 2. **Review Logs**: Check security logs daily
 3. **Certificate Renewal**: Monitor SSL certificate expiry
@@ -156,7 +150,6 @@ Security events are logged in structured JSON format:
 5. **Access Review**: Regular user access audits
 
 ### Security Testing
-
 1. **Penetration Testing**: Annual security assessments
 2. **Vulnerability Scanning**: Automated dependency scanning
 3. **Code Review**: Security-focused code reviews
@@ -165,7 +158,6 @@ Security events are logged in structured JSON format:
 ## 📋 Security Checklist
 
 ### Pre-Deployment
-
 - [ ] Change all default credentials
 - [ ] Enable HTTPS with valid certificates
 - [ ] Configure proper environment variables
@@ -195,7 +187,6 @@ Security events are logged in structured JSON format:
 6. **Lessons Learned**: Update security measures
 
 ### Emergency Contacts
-
 - **Security Team**: security@yourdomain.com
 - **Development Team**: dev@yourdomain.com
 - **System Administrator**: admin@yourdomain.com

@@ -108,6 +108,7 @@ export const authConfig: NextAuthConfig = {
           { email, reason: "invalid_credentials" }
         );
 
+
         return null;
       },
     }),

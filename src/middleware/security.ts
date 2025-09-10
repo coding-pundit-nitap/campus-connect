@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+
 import { SecurityEventType,securityLogger } from "@/lib/security-logger";
 
 /**
@@ -71,6 +72,7 @@ export function rateLimit(
   const ip = getClientIP(request);
   const now = Date.now();
 
+
   const record = rateLimitMap.get(ip);
 
   if (!record || now > record.resetTime) {
@@ -80,6 +82,7 @@ export function rateLimit(
     });
     return true;
   }
+
 
   if (record.count >= options.max) {
     // Log rate limit violation
@@ -97,6 +100,7 @@ export function rateLimit(
     );
     return false;
   }
+
 
   record.count++;
   return true;
@@ -134,4 +138,5 @@ export function generateNonce(): string {
   const buffer = new Uint8Array(16);
   crypto.getRandomValues(buffer);
   return Buffer.from(buffer).toString("base64");
+
 }

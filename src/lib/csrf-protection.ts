@@ -25,15 +25,18 @@ export function validateCSRFToken(
   const headerToken = request.headers.get("x-csrf-token");
   const formToken = request.headers.get("x-requested-with");
 
+
   // For API routes, we primarily use the header
   if (headerToken && headerToken === expectedToken) {
     return true;
   }
 
+
   // Additional validation for XMLHttpRequest
   if (formToken === "XMLHttpRequest") {
     return true; // SameSite cookies provide CSRF protection for AJAX
   }
+
 
   return false;
 }
@@ -87,16 +90,19 @@ export function requiresCSRFProtection(method: string): boolean {
 export function withCSRFProtection<T extends any[], R>(
   handler: (request: NextRequest, ...args: any[]) => R
 ) {
+
   return function (request: NextRequest, ...args: any[]): R {
     // Skip CSRF for safe methods
     if (!requiresCSRFProtection(request.method)) {
       return handler(request, ...args);
     }
 
+
     // Check same-origin
     if (!isSameOrigin(request)) {
       throw new Error("CSRF: Invalid origin");
     }
+
 
     // For production, you might want to implement token-based CSRF
     // For now, we rely on SameSite cookies and origin validation
@@ -112,6 +118,7 @@ export function withCSRFProtection<T extends any[], R>(
 export class DoubleSubmitCSRF {
   private static readonly COOKIE_NAME = "__csrf-token";
 
+
   static generateToken(): string {
     return generateCSRFToken();
   }
@@ -125,6 +132,7 @@ export class DoubleSubmitCSRF {
       "Path=/",
       `Max-Age=${30 * 60}`, // 30 minutes
     ];
+
 
     // Remove Secure flag in development
     if (process.env.NODE_ENV !== "production") {
@@ -153,6 +161,7 @@ export class DoubleSubmitCSRF {
     if (!cookies) {
       return null;
     }
+
 
     const match = cookies.match(new RegExp(`${this.COOKIE_NAME}=([^;]+)`));
     return match ? match[1] : null;

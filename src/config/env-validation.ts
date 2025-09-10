@@ -6,6 +6,7 @@ import { z } from "zod";
  */
 const envSchema = z.object({
   // Next.js
+
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
@@ -83,10 +84,12 @@ export function validateEnvironment(): void {
 export function checkSecurityWarnings(): void {
   const warnings: string[] = [];
 
+
   // Check for weak secrets
   if (process.env.AUTH_SECRET === "your-super-secret-for-auth") {
     warnings.push("AUTH_SECRET is using the default example value");
   }
+
 
   if (process.env.MINIO_ROOT_PASSWORD === "minioadmin") {
     warnings.push("MINIO_ROOT_PASSWORD is using the default insecure value");
@@ -102,6 +105,7 @@ export function checkSecurityWarnings(): void {
       warnings.push("AUTH_URL should use HTTPS in production");
     }
 
+
     if (process.env.NEXT_PUBLIC_MINIO_ENDPOINT?.startsWith("http://")) {
       warnings.push(
         "NEXT_PUBLIC_MINIO_ENDPOINT should use HTTPS in production"
@@ -115,11 +119,13 @@ export function checkSecurityWarnings(): void {
       console.warn(`  - ${warning}`);
     });
 
+
     if (process.env.NODE_ENV === "production") {
       console.error("❌ Security warnings found in production environment");
       process.exit(1);
     }
   }
 }
+
 
 export type Environment = z.infer<typeof envSchema>;
