@@ -58,13 +58,7 @@ export function SearchBarContainer({
           router.push(`/shops/${selectedItem.id}`);
         } else if (selectedItem.type === "product") {
           if (selectedItem.shop_id) {
-            router.push(
-              `/shops/${selectedItem.shop_id}/products/${selectedItem.id}`
-            );
-          } else {
-            router.push(
-              `/shops?search=${encodeURIComponent(selectedItem.title)}`
-            );
+            router.push(`/shops/${selectedItem.shop_id}`);
           }
         }
       }

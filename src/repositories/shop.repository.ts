@@ -63,7 +63,6 @@ class ShopRepository {
   }
 
   async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
-    console.log(searchTerm, limit);
     return prisma.shop.findMany({
       where: {
         OR: [
