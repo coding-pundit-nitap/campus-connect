@@ -6,7 +6,6 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
-import { SecurityEventType, securityLogger } from "@/lib/security-logger";
 
 interface UploadOptions {
   maxSizeInMB?: number;
@@ -102,13 +101,6 @@ class FileUploadService {
     // File size validation
     const maxSize = maxSizeInMB * 1024 * 1024;
     if (fileSize > maxSize) {
-      securityLogger.logViolation(
-        SecurityEventType.FILE_UPLOAD_VIOLATION,
-        `File size exceeds limit: ${fileSize} bytes > ${maxSize} bytes`,
-        undefined,
-        undefined,
-        { fileName, fileType, fileSize, maxSize }
-      );
       throw new BadRequestError(
         `File size exceeds the ${maxSizeInMB}MB limit.`
       );
@@ -116,13 +108,6 @@ class FileUploadService {
 
     // MIME type validation
     if (!allowedTypes.includes(fileType)) {
-      securityLogger.logViolation(
-        SecurityEventType.FILE_UPLOAD_VIOLATION,
-        `Invalid file type: ${fileType}`,
-        undefined,
-        undefined,
-        { fileName, fileType, allowedTypes }
-      );
       throw new BadRequestError(
         "Invalid file type. Allowed types are: " + allowedTypes.join(", ")
       );
@@ -136,26 +121,12 @@ class FileUploadService {
 
     // Check for dangerous extensions
     if (DANGEROUS_EXTENSIONS.includes(extension)) {
-      securityLogger.logViolation(
-        SecurityEventType.FILE_UPLOAD_VIOLATION,
-        `Dangerous file extension detected: ${extension}`,
-        undefined,
-        undefined,
-        { fileName, fileType, extension }
-      );
       throw new BadRequestError("File type not allowed for security reasons");
     }
 
     // Validate extension matches MIME type
     const allowedExtensions = SECURE_FILE_TYPES[fileType];
     if (allowedExtensions && !allowedExtensions.includes(extension)) {
-      securityLogger.logViolation(
-        SecurityEventType.FILE_UPLOAD_VIOLATION,
-        `File extension mismatch: ${extension} does not match ${fileType}`,
-        undefined,
-        undefined,
-        { fileName, fileType, extension, allowedExtensions }
-      );
       throw new BadRequestError(
         `File extension ${extension} does not match declared type ${fileType}`
       );
@@ -166,26 +137,12 @@ class FileUploadService {
     if (parts.length > 2) {
       const secondLastExtension = "." + parts[parts.length - 2].toLowerCase();
       if (DANGEROUS_EXTENSIONS.includes(secondLastExtension)) {
-        securityLogger.logViolation(
-          SecurityEventType.FILE_UPLOAD_VIOLATION,
-          `Dangerous double extension detected: ${secondLastExtension}`,
-          undefined,
-          undefined,
-          { fileName, fileType, secondLastExtension }
-        );
         throw new BadRequestError("File contains dangerous double extension");
       }
     }
 
     // Check for null bytes (directory traversal attempt)
     if (fileName.includes("\0") || fileName.includes("%00")) {
-      securityLogger.logViolation(
-        SecurityEventType.PATH_TRAVERSAL_ATTEMPT,
-        `Null bytes detected in filename: ${fileName}`,
-        undefined,
-        undefined,
-        { fileName, fileType }
-      );
       throw new BadRequestError("Invalid file name contains null bytes");
     }
 
@@ -195,14 +152,6 @@ class FileUploadService {
       fileName.includes("..\\") ||
       fileName.includes("/")
     ) {
-      securityLogger.logViolation(
-        SecurityEventType.PATH_TRAVERSAL_ATTEMPT,
-        `Path traversal attempt in filename: ${fileName}`,
-        undefined,
-        undefined,
-        { fileName, fileType }
-      );
-
       throw new BadRequestError(
         "Invalid file name contains path traversal sequences"
       );
@@ -231,22 +180,18 @@ class FileUploadService {
   ) {
     const { prefix = "general" } = options;
 
-    // Validate file security
     this.validateFileSecurity(fileName, fileType, fileSize, options);
 
-    // Generate secure object key
     const objectKey = this.generateSecureFileName(fileName, prefix);
 
     const command = new PutObjectCommand({
       Bucket: this.BUCKET_NAME,
       Key: objectKey,
       ContentType: fileType,
-      // Additional security headers
       Metadata: {
         "original-filename": Buffer.from(fileName).toString("base64"),
         "upload-timestamp": new Date().toISOString(),
       },
-      // Prevent caching of upload URLs
       CacheControl: "no-cache, no-store, must-revalidate",
     });
 
@@ -266,14 +211,9 @@ class FileUploadService {
     try {
       // Validate object key to prevent path traversal
       if (objectKey.includes("../") || objectKey.includes("..\\")) {
-        securityLogger.logViolation(
-          SecurityEventType.PATH_TRAVERSAL_ATTEMPT,
-          `Path traversal attempt in object key: ${objectKey}`,
-          undefined,
-          undefined,
-          { objectKey }
+        throw new BadRequestError(
+          "Invalid object key contains path traversal sequences"
         );
-        throw new Error("Invalid object key contains path traversal sequences");
       }
 
       const command = new DeleteObjectCommand({
@@ -282,7 +222,6 @@ class FileUploadService {
       });
 
       await this.internalS3Client.send(command);
-      console.log(`File deleted from MinIO: ${objectKey}`);
     } catch (error) {
       console.error("Error deleting file from MinIO:", error);
       throw new Error(`Failed to delete file from MinIO: ${objectKey}`);

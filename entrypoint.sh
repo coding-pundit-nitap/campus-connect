@@ -54,22 +54,56 @@ health_check() {
     log "✅ Health checks passed"
 }
 
+# Function to print environment variables
+print_environment() {
+    log "📋 Environment Variables:"
+    
+    if [ "$NODE_ENV" = "production" ]; then
+        log "⚠️  Running in production mode - sensitive values will be masked"
+        # In production, mask sensitive variables
+        env | grep -E '^[A-Z_]' | sort | while IFS='=' read -r name value; do
+            case "$name" in
+                *SECRET*|*PASSWORD*|*KEY*|*TOKEN*)
+                    log "  $name=***MASKED***"
+                    ;;
+                *)
+                    log "  $name=$value"
+                    ;;
+            esac
+        done
+    else
+        log "🔍 Development mode - showing all values"
+        # In development, show all variables
+        env | grep -E '^[A-Z_]' | sort | while IFS='=' read -r name value; do
+            log "  $name=$value"
+        done
+    fi
+    
+    log "📋 Environment variables listed"
+}
+
 # Run security validation
 validate_environment
 
 # Run health checks
 health_check
 
+# Print environment variables
+print_environment
+
 # Run database migrations
 log "🚀 Running database migrations..."
-pnpm prisma migrate deploy
+npx prisma migrate deploy
+
 
 # Execute the main container command
 log "✅ Migrations complete. Starting application..."
 
+
+
 # Change to the CMD specified in Dockerfile
 if [ "$#" -eq 0 ]; then
-    exec node server.js
+    exec npm start
 else
     exec "$@"
 fi

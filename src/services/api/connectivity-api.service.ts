@@ -27,7 +27,7 @@ class ConnectivityAPIService {
     }
 
     try {
-      await this.axiosInstance.head("/api/health");
+      await this.axiosInstance.head("/api/health/status");
       return true;
     } catch {
       return false;
