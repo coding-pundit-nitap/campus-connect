@@ -10,6 +10,7 @@ import { SerializedProduct } from "@/types/product.types";
 
 import { ProductCardDetails } from "./product-card-details";
 import { ProductCardHeader } from "./product-card-header";
+import { useCategorySearch } from "@/hooks";
 
 interface ProductCardProps {
   product: SerializedProduct;
@@ -38,8 +39,21 @@ export function ProductCard({
 }: ProductCardProps) {
   const isOutOfStock = product.stock_quantity === 0;
   const hasLowStock = product.stock_quantity > 0 && product.stock_quantity <= 5;
+  const { suggestions, isLoadingSuggestions, onSearchQuery } = useCategorySearch();
   const productFormHook = useUpdateProductForm({ product });
-  const fields = productUIServices.createProductFormFields();
+  const baseFields = productUIServices.createProductFormFields();
+  const fields = baseFields.map(field => {
+    if (field.name === 'category') {
+      return {
+        ...field,
+        suggestions,
+        isLoadingSuggestions,
+        onSearchQuery,
+      };
+    }
+    return field;
+  });
+
 
   const renderUserOverlays = () => (
     <div className="relative">

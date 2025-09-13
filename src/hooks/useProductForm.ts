@@ -7,7 +7,12 @@ import { useForm } from "react-hook-form";
 import { ImageUtils } from "@/lib/utils-functions";
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
-import { ProductFormData, productSchema } from "@/validations";
+import {
+  ProductFormData,
+  productSchema,
+  ProductUpdateFormData,
+  productUpdateSchema,
+} from "@/validations";
 
 import {
   useImageDelete,
@@ -42,6 +47,7 @@ export function useUpdateProductForm({ product }: Props) {
       stock_quantity: product.stock_quantity,
       imageKey: ImageUtils.getImageUrl(product.imageKey),
       discount: product.discount || 0,
+      category: product.category?.name || "",
     },
   });
 
@@ -117,6 +123,7 @@ export function useCreateProductForm() {
       stock_quantity: 0,
       imageKey: undefined,
       discount: 0,
+      category: "",
     },
   });
 

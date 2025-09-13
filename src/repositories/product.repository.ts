@@ -15,13 +15,32 @@ class ProductRepository {
     product_id: string,
     data?: ProductFindOptions
   ): Promise<Product | null> {
-    return prisma.product.findUnique({ where: { id: product_id }, ...data });
+    if (data?.select) {
+      return prisma.product.findUnique({
+        where: { id: product_id },
+        ...data,
+      });
+    }
+
+    return prisma.product.findUnique({
+      where: { id: product_id },
+      include: {
+        category: true,
+        shop: true,
+      },
+      ...data,
+    });
   }
 
-  async findManyByShopId(
+  async findManyByShopId(shop_id: string): Promise<Product[]>;
+  async findManyByShopId<T extends ProductFindManyOptions>(
     shop_id: string,
-    data?: ProductFindManyOptions
-  ): Promise<Product[]> {
+    data: T
+  ): Promise<Prisma.ProductGetPayload<T>[]>;
+  async findManyByShopId<T extends ProductFindManyOptions>(
+    shop_id: string,
+    data?: T
+  ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
     return prisma.product.findMany({ where: { shop_id }, ...data });
   }
 

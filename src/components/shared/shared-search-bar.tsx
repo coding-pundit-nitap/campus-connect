@@ -4,7 +4,7 @@ import React from "react";
 import { SharedCommand } from "@/components/shared/shared-command";
 import { SharedSearchInput } from "@/components/shared/shared-search-input";
 
-interface SearchBarProps {
+export interface SharedSearchBarProps {
   className?: string;
   placeholder?: string;
   value: string;
@@ -13,12 +13,13 @@ interface SearchBarProps {
   onBlur?: () => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSelectItem: (value: string) => void;
-  suggestions: { id: string; title: string; subtitle: string }[];
-  isSearching: boolean;
+  suggestions: { id: string; title: string; subtitle: string; }[];
+  showSuggestionsDropdown: boolean;
   isLoading?: boolean;
+  onInputChange?: (value: string) => void;
 }
 
-export function SearchBar({
+export function SharedSearchBar({
   className = "relative flex-1 max-w-xs sm:max-w-md",
   placeholder = "Search products, shops",
   value,
@@ -28,9 +29,10 @@ export function SearchBar({
   onClick,
   onSelectItem,
   suggestions,
-  isSearching,
+  showSuggestionsDropdown,
   isLoading = false,
-}: SearchBarProps) {
+  onInputChange
+}: SharedSearchBarProps) {
   return (
     <div className="relative">
       <SharedSearchInput
@@ -43,11 +45,12 @@ export function SearchBar({
         onClick={onClick}
         showIcon
       />
-      {isSearching && (
+      {showSuggestionsDropdown && (
         <div className="absolute top-full left-0 right-0 mt-1 mx-2 sm:mx-0 sm:left-0 sm:right-auto sm:w-full sm:min-w-[300px] sm:max-w-[400px] md:w-[400px] z-50 rounded-md border bg-popover p-0 text-popover-foreground shadow-md max-h-[300px] overflow-y-auto">
           <SharedCommand
             commandSuggestions={suggestions}
             onSelectItem={onSelectItem}
+            onInputChange={onInputChange}
             query={value}
             showInput={false}
             isLoading={isLoading}

@@ -21,6 +21,16 @@ const discountSchema = z
   .min(0, "Discount cannot be negative")
   .optional();
 
+const categorySchema = z
+  .string()
+  .min(1, "Category is required")
+  .min(2, "Category name is too short");
+
+const categoryOptionalSchema = z
+  .string()
+  .min(2, "Category name is too short")
+  .optional();
+
 export const productSchema = z.object({
   name: nameSchema,
   description: descriptionSchema,
@@ -28,11 +38,31 @@ export const productSchema = z.object({
   stock_quantity: stockQuantitySchema,
   imageKey: imageKeySchema,
   discount: discountSchema,
+  category: categorySchema,
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
+
+export const productUpdateSchema = z.object({
+  name: nameSchema,
+  description: descriptionSchema,
+  price: priceSchema,
+  stock_quantity: stockQuantitySchema,
+  imageKey: imageKeySchema,
+  discount: discountSchema,
+  category: categoryOptionalSchema,
+});
+
+export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>;
 
 export const productActionSchema = productSchema.extend({
   imageKey: z.string().min(1, "An image key is required."),
 });
 export type ProductActionFormData = z.infer<typeof productActionSchema>;
+
+export const productUpdateActionSchema = productUpdateSchema.extend({
+  imageKey: z.string().min(1, "An image key is required."),
+});
+export type ProductUpdateActionFormData = z.infer<
+  typeof productUpdateActionSchema
+>;
