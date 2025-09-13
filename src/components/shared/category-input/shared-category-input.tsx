@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { SharedSearchBar } from "../shared-search-bar";
+import React from "react";
+
 import { useSearchInput } from "@/hooks/useSearch";
+
+import { SharedSearchBar } from "../shared-search-bar";
 
 export interface CategoryInputProps {
   /** Current selected category value */
@@ -18,7 +20,7 @@ export interface CategoryInputProps {
   /** Error state */
   error?: boolean;
   /** Custom suggestions data - makes component reusable */
-  suggestions?: Array<{ id: string; title: string; subtitle: string; }>;
+  suggestions?: Array<{ id: string; title: string; subtitle: string }>;
   /** Loading state for suggestions */
   isLoadingSuggestions?: boolean;
   /** Custom search function for external data fetching */
@@ -30,7 +32,6 @@ export function SharedCategoryInput({
   onChange,
   placeholder = "Select or create category...",
   className,
-  error = false,
   suggestions = [],
   isLoadingSuggestions = false,
   onSearchQuery,
@@ -43,7 +44,6 @@ export function SharedCategoryInput({
     handleSelectItem,
     handleInputFocus,
     handleInputChange,
-    isLoadingSuggestions: hookIsLoading,
   } = useSearchInput({
     value,
     onChange,
@@ -63,7 +63,10 @@ export function SharedCategoryInput({
       onClick={handleInputClick}
       onSelectItem={handleSelectItem}
       suggestions={suggestions}
-      showSuggestionsDropdown={showSuggestionsDropdown && (isLoadingSuggestions || suggestions.length > 0)}
+      showSuggestionsDropdown={
+        showSuggestionsDropdown &&
+        (isLoadingSuggestions || suggestions.length > 0)
+      }
       isLoading={isLoadingSuggestions}
     />
   );

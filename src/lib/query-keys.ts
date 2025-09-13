@@ -91,6 +91,9 @@ export const queryKeys = {
     all: ["search"] as const,
     /** Search query key factory for specific search terms */
     query: (searchTerm: string) => ["search", "query", searchTerm] as const,
+    /** Search query key factory for product search  */
+    products: (searchTerm: string) =>
+      ["search", "products", searchTerm] as const,
   },
 
   health: {
