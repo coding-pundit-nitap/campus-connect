@@ -4,7 +4,7 @@ FROM node:24-alpine AS deps
 WORKDIR /app
 
 # Add security updates and remove unnecessary packages
-RUN apk add --no-cache libc6-compat openssl && \
+RUN apk add --no-cache libc6-compat openssl curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat && \
+RUN apk add --no-cache libc6-compat curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 
@@ -50,7 +50,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install security updates and remove unnecessary packages
-RUN apk add --no-cache dumb-init && \
+RUN apk add --no-cache dumb-init curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* && \
