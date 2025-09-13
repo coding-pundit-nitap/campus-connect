@@ -4,7 +4,7 @@ FROM node:24-alpine AS deps
 WORKDIR /app
 
 # Add security updates and remove unnecessary packages
-RUN apk add --no-cache libc6-compat openssl && \
+RUN apk add --no-cache libc6-compat openssl curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 
@@ -17,7 +17,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 FROM node:24-alpine AS builder
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat && \
+RUN apk add --no-cache libc6-compat curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 
@@ -50,7 +50,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install security updates and remove unnecessary packages
-RUN apk add --no-cache dumb-init && \
+RUN apk add --no-cache dumb-init curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* && \
@@ -76,22 +76,22 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --chown=nextjs:nodejs entrypoint.sh ./
+COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 
 # Fix line endings and make executable
-RUN sed -i 's/\r$//' ./entrypoint.sh && \
-    chmod +x ./entrypoint.sh
+RUN sed -i 's/\r$//' ./scripts/entrypoint.sh && \
+    chmod +x ./scripts/entrypoint.sh
 
 RUN find /app -type d -exec chmod 755 {} \; && \
     find /app -type f -exec chmod 644 {} \;
 
 # Add execute permissions ONLY where necessary
-RUN chmod 555 /app/entrypoint.sh && \
+RUN chmod 555 /app/scripts/entrypoint.sh && \
     chmod +x /app/node_modules/.bin/* && \
     find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
 
 
-# Switch to non-root user - ENABLE THIS FOR PRODUCTION
+# Switch to non-root user
 USER nextjs
 
 # Expose port
@@ -100,5 +100,5 @@ EXPOSE 3000
 # Use dumb-init to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Use the entrypoint script
-CMD ["./entrypoint.sh"]
+# Use the entrypoint scripts
+CMD ["./scripts/entrypoint.sh"]
