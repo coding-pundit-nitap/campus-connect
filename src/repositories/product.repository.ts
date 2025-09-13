@@ -39,6 +39,52 @@ class ProductRepository {
   ): Promise<Product> {
     return prisma.product.delete({ where: { id: product_id }, ...data });
   }
+
+  async searchProducts(
+    searchTerm: string,
+    limit: number = 10
+  ): Promise<
+    (Product & {
+      shop: {
+        id: string;
+        name: string;
+      };
+    })[]
+  > {
+    return prisma.product.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        shop: {
+          is_active: true,
+        },
+      },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    });
+  }
 }
 
 export const productRepository = new ProductRepository();

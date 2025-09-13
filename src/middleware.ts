@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { NextAuthRequest } from "next-auth";
 
 import { auth as middleware } from "@/auth";
+import { securityMiddleware, withSecurity } from "@/lib/security";
 import {
   apiAuthPrefix,
   authRoutes,
@@ -19,30 +20,37 @@ const roleBasedPrefixes: {
   { prefixes: consumerPrefix, isStaff: false },
 ];
 
-export default middleware((req: NextAuthRequest) => {
+export default middleware(async (req: NextAuthRequest) => {
   const { nextUrl } = req;
   const path = nextUrl.pathname;
   const isLoggedIn = Boolean(req.auth);
+
+  const securityResponse = await securityMiddleware(req);
+  if (securityResponse) {
+    return securityResponse;
+  }
 
   // Allow unauthenticated access to API auth and public routes
   if (
     apiAuthPrefix.some((p) => path.startsWith(p)) ||
     publicRoutes.some((p) => path.startsWith(p))
   ) {
-    return NextResponse.next();
+    return withSecurity(NextResponse.next());
   }
 
   // In development, allow any route once authenticated
   if (process.env.NODE_ENV !== "production" && isLoggedIn) {
-    return NextResponse.next();
+    return withSecurity(NextResponse.next());
   }
 
   // Prevent logged-in users from accessing auth pages
   if (authRoutes.some((p) => path.startsWith(p))) {
     if (isLoggedIn) {
-      return NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl));
+      return withSecurity(
+        NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl))
+      );
     }
-    return NextResponse.next();
+    return withSecurity(NextResponse.next());
   }
 
   // Handle role-based protected prefixes
@@ -50,23 +58,25 @@ export default middleware((req: NextAuthRequest) => {
     if (prefixes.some((p) => path.startsWith(p))) {
       // Redirect unauthenticated
       if (!isLoggedIn) {
-        return redirectToLogin(req);
+        return withSecurity(redirectToLogin(req));
       }
       // Insufficient role
       if (!!req.auth?.user.shop_id !== isStaff) {
-        return NextResponse.redirect(new URL("/unauthorized", nextUrl));
+        return withSecurity(
+          NextResponse.redirect(new URL("/unauthorized", nextUrl))
+        );
       }
-      return NextResponse.next();
+      return withSecurity(NextResponse.next());
     }
   }
 
   // Catch-all: protect remaining routes
   if (!isLoggedIn) {
-    return redirectToLogin(req);
+    return withSecurity(redirectToLogin(req));
   }
 
-  // Default allow
-  return NextResponse.next();
+  // Default allow with security headers
+  return withSecurity(NextResponse.next());
 });
 
 // Utility to redirect to login with callback

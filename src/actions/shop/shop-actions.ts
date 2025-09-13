@@ -1,11 +1,13 @@
 "use server";
 
+import {
+  BadRequestError,
+  InternalServerError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
-import {
-  createErrorResponse,
-  createSuccessResponse,
-} from "@/types/response.types";
+import { createSuccessResponse } from "@/types/response.types";
 import {
   ShopActionFormData,
   shopActionSchema,
@@ -16,11 +18,11 @@ export async function createShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      throw new Error("User not authenticated");
+      throw new UnauthorizedError("User not authenticated");
     }
     const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
-      return createErrorResponse(parsedData.error.message);
+      throw new BadRequestError(parsedData.error.message);
     }
 
     const newShop = await shopRepository.create({
@@ -34,21 +36,25 @@ export async function createShopAction(formData: ShopActionFormData) {
     );
   } catch (error) {
     console.error("CREATE SHOP ERROR:", error);
-    return createErrorResponse("Failed to create shop.");
+    throw new InternalServerError("Failed to create shop.");
   }
 }
 
 export async function updateShopAction(formData: ShopFormData) {
   try {
-    const shop_id = await authUtils.getShopId();
-
-    if (!shop_id) {
-      return createErrorResponse("Unauthorized: You are not a seller.");
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to create a product");
     }
+
+    const shop_id = context.id;
 
     const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
-      return createErrorResponse(parsedData.error.message);
+      throw new BadRequestError(parsedData.error.message);
     }
 
     await shopRepository.update(shop_id, parsedData.data);
@@ -56,6 +62,6 @@ export async function updateShopAction(formData: ShopFormData) {
     return createSuccessResponse("Shop updated successfully!");
   } catch (error) {
     console.error("UPDATE SHOP ERROR:", error);
-    return createErrorResponse("Failed to update shop.");
+    throw new InternalServerError("Failed to update shop.");
   }
 }

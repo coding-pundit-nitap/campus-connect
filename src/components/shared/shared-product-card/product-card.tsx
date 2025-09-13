@@ -20,7 +20,7 @@ interface ProductCardProps {
   priority?: boolean;
   mode?: "user" | "owner";
 
-  onDelete?: (productId: string) => void;
+  onDelete?: (product_id: string, imageKey: string) => Promise<void>;
 
   userActions?: React.ReactNode;
 }
@@ -108,7 +108,7 @@ export function ProductCard({
           setIsDialogOpen={productFormHook.setIsDialogOpen}
         />
         <Button
-          onClick={() => onDelete(product.id)}
+          onClick={async () => await onDelete(product.id, product.imageKey)}
           variant="destructive"
           className="w-full hover:scale-105 transition-all duration-200 hover:shadow-md"
         >

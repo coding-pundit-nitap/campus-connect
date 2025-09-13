@@ -73,27 +73,27 @@ class CartDrawerServices {
   };
 
   updateItemQuantity = (
-    productId: string,
+    product_id: string,
     newQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    mutationFn({ product_id: productId, quantity: newQuantity });
+    mutationFn({ product_id, quantity: newQuantity });
   };
 
   increaseItemQuantity = (
-    productId: string,
+    product_id: string,
     currentQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    this.updateItemQuantity(productId, currentQuantity + 1, mutationFn);
+    this.updateItemQuantity(product_id, currentQuantity + 1, mutationFn);
   };
 
   decreaseItemQuantity = (
-    productId: string,
+    product_id: string,
     currentQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    this.updateItemQuantity(productId, currentQuantity - 1, mutationFn);
+    this.updateItemQuantity(product_id, currentQuantity - 1, mutationFn);
   };
 }
 

@@ -1,5 +1,6 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { upsertCartItem } from "@/actions";
@@ -62,8 +63,11 @@ export function useAddToCart() {
 }
 
 export function useGetUserAllCart() {
+  const { data: session } = useSession();
+
   return useQuery({
     queryKey: queryKeys.cart.all,
     queryFn: cartAPIService.fetchAllUserCarts,
+    enabled: !!session?.user?.id,
   });
 }
