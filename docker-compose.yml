@@ -104,7 +104,10 @@ services:
       /bin/sh -c "
       /usr/bin/mc alias set myminio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD};
       /usr/bin/mc mb myminio/${NEXT_PUBLIC_MINIO_BUCKET} --ignore-existing;
+      /usr/bin/mc cors set /tmp/cors.json myminio/${NEXT_PUBLIC_MINIO_BUCKET};
       "
+    volumes:
+      - ./scripts/minio-cors.json:/tmp/cors.json:ro
     env_file:
       - .env
 
