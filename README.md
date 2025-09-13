@@ -213,6 +213,8 @@ The project uses PostgreSQL with Prisma ORM. The database schema includes:
 
 The project includes Docker configuration for both development and production with **Nginx reverse proxy** support:
 
+> **🚨 CRITICAL FIX**: This setup includes a **MinIO presigned URL compatibility fix** for Nginx reverse proxy environments. If you've experienced file upload failures when using Nginx with MinIO, this configuration solves that issue using a dual S3 client approach. See [DOC.md](./DOC.md#-critical-minio-upload-issue--solution) for details.
+
 ### Development with Docker (Recommended)
 
 ```bash
