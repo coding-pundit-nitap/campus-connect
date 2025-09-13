@@ -90,6 +90,7 @@ export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
     product: {
       ...serializeProduct(item.product),
       shop: item.product.shop,
+      category: item.product.category,
     },
   })),
 });

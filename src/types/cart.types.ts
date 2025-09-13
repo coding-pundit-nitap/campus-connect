@@ -37,7 +37,10 @@ export interface CartDrawerState {
 
 export type SerializedFullCart = Cart & {
   items: (CartItem & {
-    product: SerializedProduct & { shop?: { name: string; id: string } };
+    product: SerializedProduct & {
+      shop?: { name: string; id: string };
+      category: Category | null;
+    };
   })[];
 };
 export type SerializedCartItem = SerializedFullCart["items"][number];
@@ -46,7 +49,7 @@ export type FullCart = Cart & {
   items: (CartItem & {
     product: Product & {
       shop?: { name: string; id: string };
-      category: Category;
+      category: Category | null;
     };
   })[];
 };

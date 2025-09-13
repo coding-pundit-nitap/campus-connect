@@ -94,6 +94,7 @@ class CartRepository {
                 shop: {
                   select: { name: true, id: true },
                 },
+                category: true,
               },
             },
           },
