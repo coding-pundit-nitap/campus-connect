@@ -37,7 +37,17 @@ export async function createProductAction(
       shop_id
     );
 
-    const { category: _, ...productData } = parsedData;
+    const { imageKey, name, price, stock_quantity, description, discount } =
+      parsedData;
+
+    const productData = {
+      imageKey,
+      name,
+      price,
+      stock_quantity,
+      description,
+      discount,
+    };
 
     const newProduct = await productRepository.create({
       ...productData,
@@ -97,10 +107,26 @@ export async function updateProductAction(
       );
     }
 
-    const { category: _, ...productData } = parsedData;
+    const { imageKey, name, price, stock_quantity, description, discount } =
+      parsedData;
 
-    const updateData: any = {
-      data: productData,
+    const productData = {
+      imageKey,
+      name,
+      price,
+      stock_quantity,
+      description,
+      discount,
+    };
+
+    const updateData: {
+      data: typeof productData & {
+        category?: { connect: { id: string } } | { disconnect: true };
+      };
+    } = {
+      data: {
+        ...productData,
+      },
     };
 
     if (category) {

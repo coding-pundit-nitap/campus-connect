@@ -1,6 +1,4 @@
 import { Category, Product } from "@prisma/client";
-import React from "react";
-import type { FieldValues, Path } from "react-hook-form";
 
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { SerializedProduct } from "@/types/product.types";

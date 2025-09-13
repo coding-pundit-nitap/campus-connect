@@ -1,5 +1,3 @@
-import { Category } from "@prisma/client";
-
 import axiosInstance from "@/lib/axios";
 import { ActionResponse, SearchResult } from "@/types";
 

@@ -3,15 +3,15 @@ import React from "react";
 import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
-import { useCreateProductForm } from "@/hooks/useProductForm";
 import { useCategorySearch } from "@/hooks";
+import { useCreateProductForm } from "@/hooks/useProductForm";
 import { productUIServices } from "@/lib/utils-functions";
 import { ButtonConfig } from "@/types";
 
-
 export function ShopAction() {
   const { form, state, handlers } = useCreateProductForm();
-  const { suggestions, isLoadingSuggestions, onSearchQuery } = useCategorySearch();
+  const { suggestions, isLoadingSuggestions, onSearchQuery } =
+    useCategorySearch();
 
   const submitButton: ButtonConfig = {
     text: "Save Changes",
@@ -22,8 +22,8 @@ export function ShopAction() {
   };
 
   const baseFields = productUIServices.createProductFormFields();
-  const fields = baseFields.map(field => {
-    if (field.name === 'category') {
+  const fields = baseFields.map((field) => {
+    if (field.name === "category") {
       return {
         ...field,
         suggestions,

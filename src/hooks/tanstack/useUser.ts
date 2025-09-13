@@ -1,6 +1,4 @@
 "use client";
-
-import { User } from "@prisma/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -69,37 +67,5 @@ export function useLoginUser() {
   return {
     ...mutation,
     loginUser,
-  };
-}
-
-/**
- * Hook to provide optimistic user data updates with local cache management and server synchronization.
- *
- * This hook enables immediate UI updates for user data changes while maintaining
- * data consistency through cache management and server synchronization. It's designed
- * for profile editing, user preferences, and any scenario requiring responsive user
- * data updates without waiting for server round-trips.
- *
- * @returns Object containing functions for local user updates and cache invalidation
- *
- */
-export function useOptimisticUserUpdate() {
-  const queryClient = useQueryClient();
-
-  return {
-    updateUserLocally: (userId: string, updates: Partial<User>) => {
-      queryClient.setQueryData(
-        queryKeys.users.profile(userId),
-        (oldData: User | undefined) => {
-          if (!oldData) return oldData;
-          return { ...oldData, ...updates };
-        }
-      );
-    },
-    invalidateUser: (userId: string) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.users.profile(userId),
-      });
-    },
   };
 }

@@ -16,7 +16,7 @@ import {
 } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services/api";
-import { ProductFormData, ProductUpdateFormData } from "@/validations/product";
+import { ProductUpdateFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {
   return useQuery({

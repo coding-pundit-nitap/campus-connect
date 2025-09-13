@@ -7,12 +7,7 @@ import { useForm } from "react-hook-form";
 import { ImageUtils } from "@/lib/utils-functions";
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
-import {
-  ProductFormData,
-  productSchema,
-  ProductUpdateFormData,
-  productUpdateSchema,
-} from "@/validations";
+import { ProductFormData, productSchema } from "@/validations";
 
 import {
   useImageDelete,

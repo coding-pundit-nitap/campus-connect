@@ -1,11 +1,11 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
 
 import { useAddToCart } from "./tanstack";
 import { useProducts } from "./useProduct";
-import { useRouter } from "next/navigation";
 
 export const useIndividualShop = (shop_id: string) => {
   const {
@@ -50,9 +50,9 @@ export const useIndividualShop = (shop_id: string) => {
       onResetFilters: clearFilters,
       onViewDetails: (product_id: string) => {
         router.push(`/shops/${shop_id}/products/${product_id}`);
-      }
+      },
     }),
-    [clearFilters]
+    [clearFilters, router, shop_id]
   );
 
   const loadingStates = useMemo(

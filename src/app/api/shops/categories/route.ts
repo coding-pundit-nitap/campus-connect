@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { authUtils } from "@/lib/utils-functions";
 import { categoryRepository } from "@/repositories";
+import { SearchResult } from "@/types";
 import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
-import { authUtils } from "@/lib/utils-functions";
-import { SearchResult } from "@/types";
 
 export async function GET(request: Request) {
   try {

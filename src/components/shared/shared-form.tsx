@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import React from "react";
-import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 import { SharedFileInput } from "@/components/shared/shared-file-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -16,8 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { ButtonConfig, FormFieldConfig } from "@/types";
+
 import { SharedCategoryInput } from "./category-input/shared-category-input";
-import { SharedSearchInput } from "./shared-search-input";
 
 interface SharedFormProps<T extends FieldValues = FieldValues> {
   form: UseFormReturn<T>;

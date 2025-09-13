@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { useProductCategoriesSearch, useSearchQuery } from "./tanstack";
+import { useProductCategoriesSearch } from "./tanstack";
 
 export function useCategorySearch() {
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const { data: categories = [], isLoading } =
-      useProductCategoriesSearch(debouncedQuery);
+    useProductCategoriesSearch(debouncedQuery);
 
   const handleSearchQuery = useCallback((query: string) => {
     setDebouncedQuery(query);

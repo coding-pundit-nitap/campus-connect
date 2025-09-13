@@ -1,6 +1,8 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
 import { debounce } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+
+import { SearchResult } from "@/types";
 
 type SearchHookProps = {
   /** Callback function when a search item is selected */
@@ -28,15 +30,14 @@ type SearchInputProps = {
 
 type NavigationSearchProps = {
   /** Function to handle navigation routing */
-  onNavigate: (result: any) => void;
+  onNavigate: (result: SearchResult) => void;
   /** Search results from API */
-  searchResults: any[];
+  searchResults: SearchResult[];
   /** Loading state from API query */
   isLoading: boolean;
   /** Debounce delay in milliseconds */
   debounceDelay?: number;
 };
-
 
 export const useSearch = ({
   onSearch,
@@ -105,7 +106,6 @@ export const useSearch = ({
   };
 };
 
-
 export const useSearchInput = ({
   value,
   onChange,
@@ -169,7 +169,6 @@ export const useSearchInput = ({
   };
 };
 
-
 export const useNavigationSearch = ({
   onNavigate,
   debounceDelay = 300,
@@ -196,7 +195,7 @@ export const useNavigationSearch = ({
   );
 
   const onSelectItem = useMemo(
-    () => (value: string, searchResults: any[]) => {
+    () => (value: string, searchResults: SearchResult[]) => {
       const selectedItem = searchResults.find(
         (result) => result.title === value
       );

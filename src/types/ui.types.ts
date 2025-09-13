@@ -27,7 +27,6 @@ export interface FormFieldConfig<T extends FieldValues> {
   accept?: string;
   maxSize?: number;
   customProps?: Record<string, unknown>;
-  // Category/suggestion-related properties
   suggestions?: Array<{ id: string; title: string; subtitle: string }>;
   isLoadingSuggestions?: boolean;
   onSearchQuery?: (query: string) => void;
