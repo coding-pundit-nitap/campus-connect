@@ -1,4 +1,6 @@
-import { Product } from "@prisma/client";
+import { Category, Product } from "@prisma/client";
+import React from "react";
+import type { FieldValues, Path } from "react-hook-form";
 
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
@@ -32,6 +34,13 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductFormData>[] = [
   },
   { name: "discount", label: "Discount", type: "number", required: false },
   {
+    name: "category",
+    label: "Category",
+    type: "category",
+    required: true,
+    placeholder: "Select or create category...",
+  },
+  {
     name: "imageKey",
     label: "Product Image",
     type: "file",
@@ -63,14 +72,18 @@ export const createDefaultFilterState = (): FilterState => ({
   sortOrder: "desc",
 });
 
-export const serializeProduct = (product: Product): SerializedProduct => ({
+export const serializeProduct = (
+  product: Product & { category?: Category | null }
+): SerializedProduct => ({
   ...product,
   price: Number(product.price),
   discount: product.discount ? Number(product.discount) : null,
+  category: product.category || null,
 });
 
-export const serializeProducts = (products: Product[]): SerializedProduct[] =>
-  products.map(serializeProduct);
+export const serializeProducts = (
+  products: (Product & { category: Category | null })[]
+): SerializedProduct[] => products.map(serializeProduct);
 
 export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
   ...cart,

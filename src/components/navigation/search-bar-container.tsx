@@ -1,11 +1,10 @@
 "use client";
-import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 
-import { useSearch, useSearchQuery } from "@/hooks";
+import { useSearchQuery, useNavigationSearch, useSearch } from "@/hooks";
 
-import { SearchBar } from "./search-bar";
+import { SharedSearchBar } from "../shared/shared-search-bar";
 
 interface SearchBarContainerProps {
   className?: string;
@@ -17,10 +16,22 @@ export function SearchBarContainer({
   placeholder,
 }: SearchBarContainerProps) {
   const router = useRouter();
-  const [debouncedQuery, setDebouncedQuery] = useState("");
 
-  const { data: searchResults = [], isLoading } =
-    useSearchQuery(debouncedQuery);
+  const handleNavigation = (selectedItem: any) => {
+    if (selectedItem.type === "shop") {
+      router.push(`/shops/${selectedItem.id}`);
+    } else if (selectedItem.type === "product") {
+      if (selectedItem.shop_id) {
+        router.push(`/shops/${selectedItem.shop_id}`);
+      }
+    }
+  };
+
+  const { debouncedQuery, onSearch, onSelectItem } = useNavigationSearch({
+    onNavigate: handleNavigation,
+  });
+
+  const { data: searchResults = [], isLoading } = useSearchQuery(debouncedQuery);
 
   const suggestions = searchResults.map((result) => ({
     id: result.id,
@@ -28,72 +39,28 @@ export function SearchBarContainer({
     subtitle: result.subtitle,
   }));
 
-  const debouncedSetQuery = useMemo(
-    () =>
-      debounce((query: string) => {
-        setDebouncedQuery(query);
-      }, 300),
-    []
-  );
+  const handleSelectItem = (value: string) => {
+    onSelectItem(value, searchResults);
+  };
 
-  const onSearch = useMemo(
-    () => (query: string) => {
-      if (query.trim().length > 0) {
-        debouncedSetQuery(query);
-      } else {
-        debouncedSetQuery("");
-      }
-    },
-    [debouncedSetQuery]
-  );
-
-  const onSelectItem = useMemo(
-    () => (value: string) => {
-      const selectedItem = searchResults.find(
-        (result) => result.title === value || result.id === value
-      );
-
-      if (selectedItem) {
-        if (selectedItem.type === "shop") {
-          router.push(`/shops/${selectedItem.id}`);
-        } else if (selectedItem.type === "product") {
-          if (selectedItem.shop_id) {
-            router.push(`/shops/${selectedItem.shop_id}`);
-          }
-        }
-      }
-    },
-    [searchResults, router]
-  );
-
-  const {
-    isSearching,
-    searchTerm,
-    handleInputBlur,
-    handleInputClick,
-    handleSelectItem,
-    handleInputFocus,
-    handleInputChange,
-  } = useSearch({ onSearch, onSelectItem, suggestions });
-
-  useEffect(() => {
-    return () => {
-      debouncedSetQuery.cancel();
-    };
-  }, [debouncedSetQuery]);
+  const baseSearch = useSearch({
+    onSearch,
+    onSelectItem: handleSelectItem,
+    suggestions,
+  });
 
   return (
-    <SearchBar
+    <SharedSearchBar
       className={className}
       placeholder={placeholder}
-      value={searchTerm}
-      onChange={handleInputChange}
-      onFocus={handleInputFocus}
-      onBlur={handleInputBlur}
-      onClick={handleInputClick}
-      onSelectItem={handleSelectItem}
+      value={baseSearch.inputValue}
+      onChange={baseSearch.handleInputChange}
+      onFocus={baseSearch.handleInputFocus}
+      onBlur={baseSearch.handleInputBlur}
+      onClick={baseSearch.handleInputClick}
+      onSelectItem={baseSearch.handleSelectItem}
       suggestions={suggestions}
-      isSearching={isSearching && (isLoading || suggestions.length > 0)}
+      showSuggestionsDropdown={baseSearch.showSuggestionsDropdown && (isLoading || suggestions.length > 0)}
       isLoading={isLoading}
     />
   );

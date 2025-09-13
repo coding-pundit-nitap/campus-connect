@@ -12,7 +12,7 @@ class CartRepository {
       include: {
         items: {
           include: {
-            product: true,
+            product: { include: { category: true } },
           },
           orderBy: { id: "asc" },
         },
@@ -28,7 +28,7 @@ class CartRepository {
       include: {
         items: {
           include: {
-            product: true,
+            product: { include: { category: true } },
           },
           orderBy: { id: "asc" },
         },

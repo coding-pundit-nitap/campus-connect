@@ -5,6 +5,7 @@ import { productUIServices } from "@/lib/utils-functions";
 
 import { useAddToCart } from "./tanstack";
 import { useProducts } from "./useProduct";
+import { useRouter } from "next/navigation";
 
 export const useIndividualShop = (shop_id: string) => {
   const {
@@ -22,6 +23,7 @@ export const useIndividualShop = (shop_id: string) => {
   } = useProducts(shop_id);
   const { mutate: onAddToCartAction, isPending: isAddingToCart } =
     useAddToCart();
+  const router = useRouter();
 
   const shopState = useMemo(
     () => ({
@@ -46,6 +48,9 @@ export const useIndividualShop = (shop_id: string) => {
   const actionHandlers = useMemo(
     () => ({
       onResetFilters: clearFilters,
+      onViewDetails: (product_id: string) => {
+        router.push(`/shops/${shop_id}/products/${product_id}`);
+      }
     }),
     [clearFilters]
   );

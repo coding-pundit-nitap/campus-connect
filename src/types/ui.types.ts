@@ -1,4 +1,4 @@
-import { HTMLInputTypeAttribute } from "react";
+import React, { HTMLInputTypeAttribute } from "react";
 import { FieldValues, Path } from "react-hook-form";
 
 export interface TabItem {
@@ -20,12 +20,17 @@ export interface CardConfig {
 export interface FormFieldConfig<T extends FieldValues> {
   name: Path<T>;
   label: string;
-  type: HTMLInputTypeAttribute | "file" | "textarea";
+  type?: HTMLInputTypeAttribute | "file" | "textarea" | "search" | "category";
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   accept?: string;
   maxSize?: number;
+  customProps?: Record<string, unknown>;
+  // Category/suggestion-related properties
+  suggestions?: Array<{ id: string; title: string; subtitle: string }>;
+  isLoadingSuggestions?: boolean;
+  onSearchQuery?: (query: string) => void;
 }
 
 export interface ButtonConfig {

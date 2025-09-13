@@ -68,7 +68,7 @@ export function SharedCommand({
   };
 
   const handleSelect = (item: SuggestionItem) => {
-    onSelectItem(item.id);
+    onSelectItem(item.title);
   };
 
   if (isLoading) {
@@ -107,6 +107,7 @@ export function SharedCommand({
               <CommandItem
                 key={item.id}
                 onSelect={() => handleSelect(item)}
+                onMouseDown={(e) => e.preventDefault()}
                 className="p-3 sm:p-2 cursor-pointer"
                 value={item.id}
               >

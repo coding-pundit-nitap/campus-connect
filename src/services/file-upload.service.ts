@@ -196,6 +196,7 @@ class FileUploadService {
     });
 
     try {
+
       const uploadUrl = await getSignedUrl(this.publicS3Client, command, {
         expiresIn: 300, // 5 minutes
       });
@@ -209,7 +210,6 @@ class FileUploadService {
 
   async deleteFile(objectKey: string): Promise<void> {
     try {
-      // Validate object key to prevent path traversal
       if (objectKey.includes("../") || objectKey.includes("..\\")) {
         throw new BadRequestError(
           "Invalid object key contains path traversal sequences"

@@ -1,4 +1,5 @@
 export * from "./useCarts";
+export * from "./useCategories";
 export * from "./useImageUpload";
 export * from "./useOrders";
 export * from "./useSearchQuery";

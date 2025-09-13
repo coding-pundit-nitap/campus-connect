@@ -2,6 +2,7 @@ export * from "@/hooks/tanstack";
 export * from "@/hooks/use-mobile";
 export * from "@/hooks/use-mobile";
 export * from "@/hooks/useCartDrawer";
+export * from "@/hooks/useCategories";
 export * from "@/hooks/useDatabaseStatus";
 export * from "@/hooks/useImageKeyExtractor";
 export * from "@/hooks/useInfiniteScroll";

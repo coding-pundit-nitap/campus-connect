@@ -16,7 +16,7 @@ import {
 } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services/api";
-import { ProductFormData } from "@/validations/product";
+import { ProductFormData, ProductUpdateFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {
   return useQuery({
@@ -37,18 +37,6 @@ export const useShopProducts = (shop_id: string) => {
   });
 };
 
-export function useShopProductsFlat(shop_id: string) {
-  const query = useShopProducts(shop_id);
-  const products = query.data?.pages.flatMap((page) => page.data) ?? [];
-
-  return {
-    ...query,
-    products,
-    hasProducts: products.length > 0,
-    totalProducts: products.length,
-  };
-}
-
 export function useShopByUser() {
   const { data: session } = useSession();
 
@@ -64,7 +52,7 @@ export function useShopProductsUpdate(product_id: string) {
 
   return useMutation({
     mutationFn: (
-      formData: Omit<ProductFormData, "imageKey"> & {
+      formData: Omit<ProductUpdateFormData, "imageKey"> & {
         imageKey: string | null;
       }
     ) => updateProductAction(product_id, formData),

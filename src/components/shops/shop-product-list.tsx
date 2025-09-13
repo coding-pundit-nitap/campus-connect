@@ -27,6 +27,7 @@ export default function IndividualProductList({ shop_id }: Props) {
     isInitialLoading,
     hasError,
     onAddToCart,
+    onViewDetails,
     isAddingToCart,
   } = useIndividualShop(shop_id);
 
@@ -59,6 +60,7 @@ export default function IndividualProductList({ shop_id }: Props) {
               <UserProductActions
                 isAddingToCart={isAddingToCart}
                 onAddToCart={onAddToCart}
+                onViewDetails={onViewDetails}
                 product={product}
               />
             }

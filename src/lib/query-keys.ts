@@ -36,9 +36,11 @@ export const queryKeys = {
     all: ["shops"] as const,
     /** Individual shop details query key factory */
     detail: (shop_id: string) => ["shops", shop_id] as const,
-    /** Shop products with pagination support query key factory */
+    /** Shop-specific product listings with pagination */
     products: (shop_id: string, cursor?: string | null) =>
       ["shops", shop_id, "products", { cursor }] as const,
+    /** Shop-specific categories query key factory */
+    categories: (query: string) => ["shops", "categories", { query }] as const,
     byUser: () => ["shops", "user", "current"] as const,
   },
 
