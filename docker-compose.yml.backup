@@ -1,9 +1,7 @@
 services:
   # Nginx reverse proxy
   nginx-dev:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:1.25-alpine
     container_name: college_connect_nginx_dev
     restart: unless-stopped
     ports:
@@ -28,9 +26,7 @@ services:
       retries: 3
 
   nginx-prod:
-    build:
-      context: ./nginx
-      dockerfile: Dockerfile
+    image: nginx:1.25-alpine
     container_name: college_connect_nginx_prod
     restart: always
     ports:
@@ -82,9 +78,9 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MINIO_REGION: us-east-1
       TZ: UTC
-    expose:
-      - "9000"
-      - "9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - minio_data:/data
     command: server --console-address ":9001" /data
@@ -126,9 +122,9 @@ services:
       - node_modules_volume:/app/node_modules
       - next_cache_volume:/app/.next
       - pnpm_store_volume:/app/.pnpm-store
-    expose:
-      - "3000"
-      - "5555"
+    ports:
+      - "3000:3000"
+      - "5555:5555"
     env_file:
       - .env.local
     environment:
@@ -138,14 +134,6 @@ services:
       - TZ=UTC
     command: pnpm dev
     restart: unless-stopped
-    profiles:
-      - dev
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
   app-prod:
     build:
@@ -154,7 +142,7 @@ services:
       target: runner
       args:
         - NEXT_PUBLIC_API_URL=/api
-        - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
+        - NEXT_PUBLIC_MINIO_ENDPOINT=http://127.0.0.1:9000
         - NEXT_PUBLIC_MINIO_BUCKET=college-connect
     entrypoint: /app/entrypoint.sh
     container_name: college_connect_app_prod
@@ -166,20 +154,12 @@ services:
         condition: service_healthy
       create-buckets:
         condition: service_completed_successfully
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     env_file:
       - .env.production
     environment:
       - TZ=UTC
-    profiles:
-      - prod
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
 volumes:
   postgres_data:
