@@ -168,13 +168,22 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 ### Docker Scripts
 
-| Script                  | Description                        |
-| ----------------------- | ---------------------------------- |
-| `pnpm docker:dev:build` | Build development container        |
-| `pnpm docker:dev:up`    | Start development environment      |
-| `pnpm docker:dev:down`  | Stop development environment       |
-| `pnpm docker:prod:up`   | Start production environment       |
-| `pnpm docker:db:psql`   | Connect to PostgreSQL in container |
+| Script                       | Description                               |
+| ---------------------------- | ----------------------------------------- |
+| `pnpm docker:dev:build`      | Build development containers (app + nginx) |
+| `pnpm docker:dev:up`         | Start development environment with Nginx |
+| `pnpm docker:dev:down`       | Stop development environment             |
+| `pnpm docker:dev:logs`       | View all development logs                |
+| `pnpm docker:dev:logs-app`   | View app development logs only           |
+| `pnpm docker:dev:logs-nginx` | View nginx development logs only         |
+| `pnpm docker:prod:build`     | Build production containers (app + nginx) |
+| `pnpm docker:prod:up`        | Start production environment with Nginx |
+| `pnpm docker:prod:down`      | Stop production environment              |
+| `pnpm docker:prod:logs`      | View all production logs                 |
+| `pnpm docker:prod:logs-app`  | View app production logs only            |
+| `pnpm docker:prod:logs-nginx`| View nginx production logs only          |
+| `pnpm docker:db:logs`        | View database logs                       |
+| `pnpm docker:db:psql`        | Connect to PostgreSQL in container      |
 
 ## 🗄️ Database
 
@@ -202,12 +211,15 @@ The project uses PostgreSQL with Prisma ORM. The database schema includes:
 
 ## 🐳 Docker Setup
 
-The project includes Docker configuration for both development and production:
+The project includes Docker configuration for both development and production with **Nginx reverse proxy** support:
 
-### Development with Docker
+### Development with Docker (Recommended)
 
 ```bash
-# Start development environment
+# Copy development environment configuration
+cp .env.development .env.local
+
+# Start development environment with Nginx
 pnpm docker:dev:up
 
 # View logs
@@ -217,9 +229,18 @@ pnpm docker:dev:logs
 pnpm docker:dev:down
 ```
 
+**Access Points:**
+- **Main Application**: http://localhost
+- **MinIO Console**: http://localhost:9001
+- **Health Check**: http://localhost:8080/nginx-health
+
 ### Production with Docker
 
 ```bash
+# Copy and configure production environment
+cp .env.production .env.production
+# ⚠️ Edit .env.production and change all default passwords!
+
 # Build and start production
 pnpm docker:prod:build
 pnpm docker:prod:up
@@ -227,6 +248,20 @@ pnpm docker:prod:up
 # View logs
 pnpm docker:prod:logs
 ```
+
+### Without Nginx (Legacy)
+
+For direct access without reverse proxy, you can still run individual services:
+
+```bash
+# Start just the database and MinIO
+docker-compose up db minio create-buckets -d
+
+# Run the app locally
+pnpm dev
+```
+
+📖 **For detailed Nginx setup instructions, see [DOC.md](./DOC.md)**
 
 ## 📁 Project Structure
 
