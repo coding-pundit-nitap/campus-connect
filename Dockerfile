@@ -25,6 +25,16 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Accept build arguments for Next.js public environment variables
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_MINIO_ENDPOINT
+ARG NEXT_PUBLIC_MINIO_BUCKET
+
+# Set environment variables for the build process
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
+ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
+
 # Build the application
 RUN pnpm prisma generate
 RUN pnpm build
@@ -46,32 +56,42 @@ RUN apk add --no-cache dumb-init && \
     rm -rf /usr/share/man/* && \
     rm -rf /tmp/*
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Create system user with restricted permissions
+# Create system user with restricted permissions FIRST
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 --ingroup nodejs --no-create-home --disabled-password nextjs
+    adduser --system --uid 1001 --ingroup nodejs --home /home/nextjs --shell /bin/false nextjs
+
+# Create corepack cache directory with proper permissions
+RUN mkdir -p /home/nextjs/.cache/node/corepack && \
+    chown -R nextjs:nodejs /home/nextjs/.cache
+
+# Enable corepack as root before switching users
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy only production assets with proper ownership
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# For standalone builds, copy the entire .next directory
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --chown=nextjs:nodejs entrypoint.sh ./
 
 # Fix line endings and make executable
 RUN sed -i 's/\r$//' ./entrypoint.sh && \
     chmod +x ./entrypoint.sh
 
-# Remove write permissions from application files
-RUN chmod -R 755 /app && \
-    chmod -R 444 /app/node_modules && \
-    chmod -R 444 /app/public && \
-    chmod -R 755 /app/.next && \
-    chmod 555 /app/entrypoint.sh
+RUN find /app -type d -exec chmod 755 {} \; && \
+    find /app -type f -exec chmod 644 {} \;
 
-# Switch to non-root user
+# Add execute permissions ONLY where necessary
+RUN chmod 555 /app/entrypoint.sh && \
+    chmod +x /app/node_modules/.bin/* && \
+    find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
+
+
+# Switch to non-root user - ENABLE THIS FOR PRODUCTION
 USER nextjs
 
 # Expose port
@@ -82,4 +102,3 @@ ENTRYPOINT ["dumb-init", "--"]
 
 # Use the entrypoint script
 CMD ["./entrypoint.sh"]
-

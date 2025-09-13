@@ -42,6 +42,7 @@ export function useUpdateProductForm({ product }: Props) {
       stock_quantity: product.stock_quantity,
       imageKey: ImageUtils.getImageUrl(product.imageKey),
       discount: product.discount || 0,
+      category: product.category?.name || "",
     },
   });
 
@@ -117,6 +118,7 @@ export function useCreateProductForm() {
       stock_quantity: 0,
       imageKey: undefined,
       discount: 0,
+      category: "",
     },
   });
 

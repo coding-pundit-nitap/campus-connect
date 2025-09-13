@@ -1,4 +1,4 @@
-import { Cart, CartItem, Product } from "@prisma/client";
+import { Cart, CartItem, Category, Product } from "@prisma/client";
 
 import { SerializedProduct } from "./product.types";
 
@@ -44,6 +44,9 @@ export type SerializedCartItem = SerializedFullCart["items"][number];
 
 export type FullCart = Cart & {
   items: (CartItem & {
-    product: Product & { shop?: { name: string; id: string } };
+    product: Product & {
+      shop?: { name: string; id: string };
+      category: Category;
+    };
   })[];
 };

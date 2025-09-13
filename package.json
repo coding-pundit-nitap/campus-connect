@@ -22,7 +22,7 @@
     "docker:dev:down": "docker-compose down",
     "docker:dev:logs": "docker-compose logs -f app-dev",
     "docker:prod:build": "docker-compose build app-prod",
-    "docker:prod:up": "docker-compose up -d app-prod",
+    "docker:prod:up": "docker-compose up app-prod",
     "docker:prod:down": "docker-compose down",
     "docker:prod:logs": "docker-compose logs -f app-prod",
     "docker:db:logs": "docker-compose logs -f db",

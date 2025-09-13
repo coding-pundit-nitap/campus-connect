@@ -84,25 +84,31 @@ services:
     command: pnpm dev
     restart: unless-stopped
 
-  # app-prod:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile
-  #     target: runner
-  #   entrypoint: /app/entrypoint.sh
-  #   container_name: college_connect_app_prod
-  #   restart: always
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
-  #     minio:
-  #       condition: service_healthy
-  #   ports:
-  #     - "8080:3000"
-  #   env_file:
-  #     - .env.production
-  #   environment:
-  #     - TZ=UTC
+  app-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        - NEXT_PUBLIC_API_URL=/api
+        - NEXT_PUBLIC_MINIO_ENDPOINT=http://127.0.0.1:9000
+        - NEXT_PUBLIC_MINIO_BUCKET=college-connect
+    entrypoint: /app/entrypoint.sh
+    container_name: college_connect_app_prod
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      create-buckets:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    environment:
+      - TZ=UTC
 
 volumes:
   postgres_data:

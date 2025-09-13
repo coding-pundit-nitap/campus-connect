@@ -1,27 +1,28 @@
-"use client";
 import { useRouter } from "next/navigation";
 import React from "react";
 
-import { useNavigationSearch, useSearch, useSearchQuery } from "@/hooks";
+import { useNavigationSearch, useProductSearchQuery, useSearch } from "@/hooks";
 import { SearchResult } from "@/types";
 
-import { SharedSearchBar } from "../shared/shared-search-bar";
+import { SharedSearchBar } from "./shared-search-bar";
 
-interface SearchBarContainerProps {
+interface SharedFilterProductSearchProps {
   className?: string;
   placeholder?: string;
+  value?: string;
+  onSearchChange?: (value: string) => void;
 }
 
-export function SearchBarContainer({
+export function SharedFilterProductSearch({
   className,
   placeholder,
-}: SearchBarContainerProps) {
+  value,
+  onSearchChange,
+}: SharedFilterProductSearchProps) {
   const router = useRouter();
 
   const handleNavigation = (selectedItem: SearchResult) => {
-    if (selectedItem.type === "shop") {
-      router.push(`/shops/${selectedItem.id}`);
-    } else if (selectedItem.type === "product") {
+    if (selectedItem.type === "product") {
       if (selectedItem.shop_id) {
         router.push(
           `/shops/${selectedItem.shop_id}/products/${selectedItem.id}`
@@ -35,7 +36,7 @@ export function SearchBarContainer({
   });
 
   const { data: searchResults = [], isLoading } =
-    useSearchQuery(debouncedQuery);
+    useProductSearchQuery(debouncedQuery);
 
   const suggestions = searchResults.map((result) => ({
     id: result.id,
@@ -47,10 +48,16 @@ export function SearchBarContainer({
     onSelectItem(value, searchResults);
   };
 
+  const handleSearch = (query: string) => {
+    onSearch(query);
+    onSearchChange?.(query);
+  };
+
   const baseSearch = useSearch({
-    onSearch,
+    onSearch: handleSearch,
     onSelectItem: handleSelectItem,
     suggestions,
+    initialValue: value || "",
   });
 
   return (
@@ -72,5 +79,3 @@ export function SearchBarContainer({
     />
   );
 }
-
-export default SearchBarContainer;

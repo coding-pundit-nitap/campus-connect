@@ -1,6 +1,6 @@
 import { Loader2 } from "lucide-react";
 import React from "react";
-import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 import { SharedFileInput } from "@/components/shared/shared-file-input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -15,18 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { ButtonConfig } from "@/types";
+import type { ButtonConfig, FormFieldConfig } from "@/types";
 
-interface FormFieldConfig<T extends FieldValues> {
-  name: Path<T>;
-  label: string;
-  type?: string;
-  placeholder?: string;
-  disabled?: boolean;
-  required?: boolean;
-  accept?: string;
-  maxSize?: number;
-}
+import { SharedCategoryInput } from "./category-input/shared-category-input";
 
 interface SharedFormProps<T extends FieldValues = FieldValues> {
   form: UseFormReturn<T>;
@@ -67,7 +58,17 @@ export function SharedForm<T extends FieldValues>({
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
                 <FormControl>
-                  {field.type === "file" ? (
+                  {field.type === "category" ? (
+                    <SharedCategoryInput
+                      value={formField.value || ""}
+                      onChange={formField.onChange}
+                      placeholder={field.placeholder}
+                      disabled={field.disabled || isLoading}
+                      suggestions={field.suggestions}
+                      isLoadingSuggestions={field.isLoadingSuggestions}
+                      onSearchQuery={field.onSearchQuery}
+                    />
+                  ) : field.type === "file" ? (
                     <SharedFileInput
                       value={formField.value}
                       onChange={formField.onChange}

@@ -4,6 +4,7 @@ import { ProductEditDialog } from "@/components/owned-shop/product-card/product-
 import { SharedCard } from "@/components/shared/shared-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useCategorySearch } from "@/hooks";
 import { useUpdateProductForm } from "@/hooks/useProductForm";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { SerializedProduct } from "@/types/product.types";
@@ -38,8 +39,21 @@ export function ProductCard({
 }: ProductCardProps) {
   const isOutOfStock = product.stock_quantity === 0;
   const hasLowStock = product.stock_quantity > 0 && product.stock_quantity <= 5;
+  const { suggestions, isLoadingSuggestions, onSearchQuery } =
+    useCategorySearch();
   const productFormHook = useUpdateProductForm({ product });
-  const fields = productUIServices.createProductFormFields();
+  const baseFields = productUIServices.createProductFormFields();
+  const fields = baseFields.map((field) => {
+    if (field.name === "category") {
+      return {
+        ...field,
+        suggestions,
+        isLoadingSuggestions,
+        onSearchQuery,
+      };
+    }
+    return field;
+  });
 
   const renderUserOverlays = () => (
     <div className="relative">
