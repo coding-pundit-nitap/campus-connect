@@ -10,14 +10,6 @@ import {
 
 export async function GET(request: Request) {
   try {
-    const shop_id = await authUtils.isSeller();
-
-    if (!shop_id) {
-      return NextResponse.json(createErrorResponse("Shop ID is required"), {
-        status: 400,
-      });
-    }
-
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q");
 
