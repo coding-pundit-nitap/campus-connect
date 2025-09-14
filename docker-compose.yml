@@ -11,7 +11,7 @@ services:
       - "9000:9000"
       - "9001:9001"
       - "5555:5555" # Prisma Studio
-      - "8080:8080"  # Health check port
+      - "8080:8080" # Health check port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d/dev.conf:/etc/nginx/conf.d/default.conf:ro
@@ -40,7 +40,7 @@ services:
       - "80:80"
       - "9000:9000"
       - "9001:9001"
-      - "8080:8080"  # Health check port
+      - "8080:8080" # Health check port
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/default.conf:ro

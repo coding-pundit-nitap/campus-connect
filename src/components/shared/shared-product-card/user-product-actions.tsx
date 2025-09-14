@@ -36,14 +36,15 @@ export function UserProductActions({
         )}
         {isOutOfStock ? "Out of Stock" : "Add to Cart"}
       </Button>
-      {onViewDetails && (<Button
-        variant="outline"
-        className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
-        onClick={() => onViewDetails(product.id)}
-      >
-        View Details
-      </Button>)
-      }
+      {onViewDetails && (
+        <Button
+          variant="outline"
+          className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
+          onClick={() => onViewDetails(product.id)}
+        >
+          View Details
+        </Button>
+      )}
     </div>
   );
 }

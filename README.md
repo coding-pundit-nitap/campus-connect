@@ -168,22 +168,22 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 ### Docker Scripts
 
-| Script                       | Description                               |
-| ---------------------------- | ----------------------------------------- |
-| `pnpm docker:dev:build`      | Build development containers (app + nginx) |
-| `pnpm docker:dev:up`         | Start development environment with Nginx |
-| `pnpm docker:dev:down`       | Stop development environment             |
-| `pnpm docker:dev:logs`       | View all development logs                |
-| `pnpm docker:dev:logs-app`   | View app development logs only           |
-| `pnpm docker:dev:logs-nginx` | View nginx development logs only         |
-| `pnpm docker:prod:build`     | Build production containers (app + nginx) |
-| `pnpm docker:prod:up`        | Start production environment with Nginx |
-| `pnpm docker:prod:down`      | Stop production environment              |
-| `pnpm docker:prod:logs`      | View all production logs                 |
-| `pnpm docker:prod:logs-app`  | View app production logs only            |
-| `pnpm docker:prod:logs-nginx`| View nginx production logs only          |
-| `pnpm docker:db:logs`        | View database logs                       |
-| `pnpm docker:db:psql`        | Connect to PostgreSQL in container      |
+| Script                        | Description                                |
+| ----------------------------- | ------------------------------------------ |
+| `pnpm docker:dev:build`       | Build development containers (app + nginx) |
+| `pnpm docker:dev:up`          | Start development environment with Nginx   |
+| `pnpm docker:dev:down`        | Stop development environment               |
+| `pnpm docker:dev:logs`        | View all development logs                  |
+| `pnpm docker:dev:logs-app`    | View app development logs only             |
+| `pnpm docker:dev:logs-nginx`  | View nginx development logs only           |
+| `pnpm docker:prod:build`      | Build production containers (app + nginx)  |
+| `pnpm docker:prod:up`         | Start production environment with Nginx    |
+| `pnpm docker:prod:down`       | Stop production environment                |
+| `pnpm docker:prod:logs`       | View all production logs                   |
+| `pnpm docker:prod:logs-app`   | View app production logs only              |
+| `pnpm docker:prod:logs-nginx` | View nginx production logs only            |
+| `pnpm docker:db:logs`         | View database logs                         |
+| `pnpm docker:db:psql`         | Connect to PostgreSQL in container         |
 
 ## 🗄️ Database
 
@@ -232,6 +232,7 @@ pnpm docker:dev:down
 ```
 
 **Access Points:**
+
 - **Main Application**: http://localhost
 - **MinIO Console**: http://localhost:9001
 - **Health Check**: http://localhost:8080/nginx-health

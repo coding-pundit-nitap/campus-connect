@@ -24,7 +24,6 @@ export async function GET(request: NextRequest) {
       productRepository.searchProducts(trimmedQuery, 5),
     ]);
 
-
     const searchResults: SearchResult[] = [
       ...shops.map((shop) => ({
         id: shop.id,

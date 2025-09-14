@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { authUtils } from "@/lib/utils-functions";
 import { categoryRepository } from "@/repositories";
 import { SearchResult } from "@/types";
 import {

@@ -46,7 +46,7 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     await fileUploadService.deleteFile(validation.data.objectKey);
 
     return NextResponse.json(
