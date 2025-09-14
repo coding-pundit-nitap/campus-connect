@@ -33,7 +33,7 @@ export function Layout({
         error={navigationError}
       />
       <SidebarInset>
-        <div className="flex flex-col items-center justify-center w-full">
+        <div className="flex flex-col items-center justify-center w-full h-screen">
           <header className="flex w-full h-16 shrink-0 items-center gap-2 border-b px-4">
             <SidebarTrigger className="-ml-1 text-foreground" />
             <Separator orientation="vertical" className="mr-2 h-4" />
@@ -43,7 +43,9 @@ export function Layout({
               <ThemeToggleContainer />
             </div>
           </header>
-          <main className="flex flex-1 p-4 flex-col w-full">{children}</main>
+          <main className="flex flex-1 p-4 flex-col w-full overflow-y-auto">
+            {children}
+          </main>
         </div>
       </SidebarInset>
     </SidebarProvider>

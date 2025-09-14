@@ -26,6 +26,7 @@ export interface CartSummary {
   totalPrice: number;
   totalItems: number;
   shopCarts: ShopCart[];
+  shop_id: string;
 }
 
 export interface CartDrawerState {

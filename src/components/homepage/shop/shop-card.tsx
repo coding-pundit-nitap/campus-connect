@@ -59,7 +59,7 @@ export default function ShopCard({
             )}
             {shop.is_active && (
               <Badge
-                variant={open ? "default" : "outline"}
+                variant={open ? "default" : "destructive"}
                 className={open ? "bg-blue-500 hover:bg-blue-600" : ""}
               >
                 {open ? "Open" : "Closed"}
