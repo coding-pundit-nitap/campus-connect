@@ -11,9 +11,13 @@ import { SerializedProduct } from "@/types/product.types";
 
 type Props = {
   shop_id: string;
+  shopData?: ReturnType<typeof useIndividualShop>;
 };
 
-export default function IndividualProductList({ shop_id }: Props) {
+export default function IndividualProductList({ shop_id, shopData }: Props) {
+  const ownShopData = useIndividualShop(shop_id);
+  const data = shopData || ownShopData;
+
   const {
     displayProducts,
     isLoading,
@@ -28,7 +32,7 @@ export default function IndividualProductList({ shop_id }: Props) {
     onAddToCart,
     onViewDetails,
     isAddingToCart,
-  } = useIndividualShop(shop_id);
+  } = data;
 
   const renderProductCard = (product: SerializedProduct, index: number) => {
     const cardProps = productUIServices.getProductCardProps(product, index);

@@ -4,7 +4,6 @@ import React from "react";
 import { ProductCard } from "@/components/shared/shared-product-card";
 import { ProductListWithViewModes } from "@/components/shared/shared-product-list/product-list-with-view-modes";
 import { useOwnedShop } from "@/hooks";
-import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
@@ -12,21 +11,29 @@ interface ProductListProps {
   onDeleteProduct: (product_id: string, imageKey: string) => Promise<void>;
   error?: Error | null;
   shop_id: string;
+  shopData?: ReturnType<typeof useOwnedShop>;
 }
 
 export function ProductListContainer({
   onDeleteProduct,
   shop_id,
+  shopData,
 }: ProductListProps) {
-  const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useOwnerProducts(shop_id);
+  const ownShopData = useOwnedShop(shop_id);
+  const data = shopData || ownShopData;
+
   const {
     displayProducts,
     error,
     hasActiveFilters,
     isInitialLoading,
     hasError,
-  } = useOwnedShop(shop_id);
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = data;
 
   const renderProductCard = (product: SerializedProduct, index: number) => {
     const cardProps = productUIServices.getProductCardProps(product, index);

@@ -15,8 +15,22 @@ interface OwnedShopProps {
 }
 
 export function OwnedShop({ shop_id }: OwnedShopProps) {
-  const { isEmptyState, showNoMatchMessage, onDeleteProduct, onResetFilters } =
-    useOwnedShop(shop_id);
+  const shopData = useOwnedShop(shop_id);
+  const {
+    isEmptyState,
+    showNoMatchMessage,
+    onDeleteProduct,
+    onResetFilters,
+    filters,
+    hasActiveFilters,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = shopData;
 
   if (isEmptyState) {
     return <ShopEmptyState />;
@@ -26,12 +40,24 @@ export function OwnedShop({ shop_id }: OwnedShopProps) {
     <ShopWrapper>
       <div className="flex flex-col h-full">
         <div className="flex-shrink-0 space-y-4 pb-4">
-          <ProductFiltersContainer shop_id={shop_id} />
+          <ProductFiltersContainer
+            filters={filters}
+            hasActiveFilters={hasActiveFilters}
+            updateSearch={updateSearch}
+            updatePriceRange={updatePriceRange}
+            updateStockFilter={updateStockFilter}
+            updateSort={updateSort}
+            clearFilters={onResetFilters}
+            clearSearchFilter={clearSearchFilter}
+            clearPriceFilter={clearPriceFilter}
+            clearStockFilter={clearStockFilter}
+          />
         </div>
         <div className="flex-1 hide-scrollbar overflow-y-auto">
           <ProductListContainer
             onDeleteProduct={onDeleteProduct}
             shop_id={shop_id}
+            shopData={shopData}
           />
 
           {showNoMatchMessage && (
