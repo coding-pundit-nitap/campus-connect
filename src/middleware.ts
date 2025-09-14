@@ -6,10 +6,8 @@ import { addSecurityHeaders } from "@/lib/security";
 import {
   apiAuthPrefix,
   authRoutes,
-  consumerPrefix,
   DEFAULT_LOGIN_REDIRECT,
   publicRoutes,
-  staffPrefix,
 } from "@/rbac";
 
 export default middleware(async (req: NextAuthRequest) => {
@@ -24,31 +22,22 @@ export default middleware(async (req: NextAuthRequest) => {
     let response: NextResponse;
 
     if (isApiAuthRoute || isPublicRoute) {
+      // Always allow access to API auth routes and public routes
       response = NextResponse.next();
-    } else if (isAuthRoute) {
-      if (isLoggedIn) {
-        response = NextResponse.redirect(
-          new URL(DEFAULT_LOGIN_REDIRECT, nextUrl)
-        );
-      } else {
-        response = NextResponse.next();
-      }
-    } else if (!isLoggedIn) {
-      const loginUrl = new URL("/login", nextUrl);
-      loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
-      response = NextResponse.redirect(loginUrl);
+    } else if (isAuthRoute && isLoggedIn) {
+      // Redirect logged-in users away from auth routes to the default redirect path
+      const redirectUrl = nextUrl.clone();
+      redirectUrl.pathname = DEFAULT_LOGIN_REDIRECT;
+      response = NextResponse.redirect(redirectUrl);
+    } else if (!isAuthRoute && !isLoggedIn) {
+      // Redirect unauthenticated users trying to access protected routes to login
+      const redirectUrl = nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+      response = NextResponse.redirect(redirectUrl);
     } else {
-      const isStaff = !!req.auth?.user?.shop_id;
-      const isStaffRoute = staffPrefix.some((p) => path.startsWith(p));
-      const isConsumerRoute = consumerPrefix.some((p) => path.startsWith(p));
-
-      if (isStaffRoute && !isStaff) {
-        response = NextResponse.redirect(new URL("/unauthorized", nextUrl));
-      } else if (isConsumerRoute && isStaff) {
-        response = NextResponse.redirect(new URL("/unauthorized", nextUrl));
-      } else {
-        response = NextResponse.next();
-      }
+      // Allow access in all other cases (e.g., logged-in users accessing non-auth routes)
+      response = NextResponse.next();
     }
 
     return addSecurityHeaders(response);
