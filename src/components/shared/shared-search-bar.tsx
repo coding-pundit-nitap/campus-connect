@@ -34,7 +34,7 @@ export function SharedSearchBar({
   onInputChange,
 }: SharedSearchBarProps) {
   return (
-    <div className="relative">
+    <div className="relative m-0 flex items-center justify-center">
       <SharedSearchInput
         className={className}
         placeholder={placeholder}

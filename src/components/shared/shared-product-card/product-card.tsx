@@ -61,7 +61,10 @@ export function ProductCard({
 
       <div className="absolute top-2 space-y-2 left-2 flex flex-col">
         {productHasDiscount && (
-          <Badge variant="destructive" className="text-xs font-bold shadow-md">
+          <Badge
+            variant="default"
+            className="text-xs font-bold shadow-md bg-green-500 hover:bg-green-600"
+          >
             -{product.discount}% OFF
           </Badge>
         )}

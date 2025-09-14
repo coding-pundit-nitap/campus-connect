@@ -1,7 +1,6 @@
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
-import { Separator } from "@/components/ui/separator";
 
 interface OrderWrapperProps {
   children: React.ReactNode;
@@ -13,8 +12,9 @@ export function OrderWrapper({ children }: OrderWrapperProps) {
       title="Order Management"
       headerClassName="flex flex-col items-start"
       description="View and manage your orders"
+      className="gap-0 h-full flex flex-col"
+      contentClassName="flex-1 flex flex-col overflow-hidden"
     >
-      <Separator />
       {children}
     </SharedCard>
   );

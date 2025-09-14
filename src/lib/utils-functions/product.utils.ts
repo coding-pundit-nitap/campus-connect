@@ -270,6 +270,34 @@ export class ProductUIServices {
       clearStockFilter: () => updateFilter({ inStock: null }),
     };
   }
+
+  groupProductsByCategory(products: SerializedProduct[]): {
+    categoryName: string;
+    products: SerializedProduct[];
+  }[] {
+    const grouped = products.reduce(
+      (acc, product) => {
+        const categoryName = product.category?.name || "Uncategorized";
+
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+
+        acc[categoryName].push(product);
+        return acc;
+      },
+      {} as Record<string, SerializedProduct[]>
+    );
+
+    // Convert to array and sort categories alphabetically, with "Uncategorized" last
+    return Object.entries(grouped)
+      .map(([categoryName, products]) => ({ categoryName, products }))
+      .sort((a, b) => {
+        if (a.categoryName === "Uncategorized") return 1;
+        if (b.categoryName === "Uncategorized") return -1;
+        return a.categoryName.localeCompare(b.categoryName);
+      });
+  }
 }
 
 export const productUIServices = new ProductUIServices();

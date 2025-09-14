@@ -26,10 +26,12 @@ export default function OrderCardList() {
   }
 
   return (
-    <div className="space-y-4">
-      {orders.data.map((order) => (
-        <OrderCard key={order.id} order={order} />
-      ))}
+    <div className="flex-1 hide-scrollbar overflow-y-auto">
+      <div className="space-y-4">
+        {orders.data.map((order) => (
+          <OrderCard key={order.id} order={order} />
+        ))}
+      </div>
     </div>
   );
 }

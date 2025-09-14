@@ -57,10 +57,14 @@ class CartDrawerServices {
       0
     );
 
+    const shop_id =
+      shopCarts.length > 0 ? shopCarts[0].items[0].shop_id : "unknown";
+
     return {
       totalPrice,
       totalItems,
       shopCarts,
+      shop_id,
     };
   };
 

@@ -40,15 +40,13 @@ export function ProductFilters({
   onClearFilters,
 }: ProductFiltersProps) {
   return (
-    <Card className="mb-6">
+    <Card className="gap-0 p-0">
       <CardContent className="p-4">
         <FilterControls
+          className="flex flex-col md:flex-row gap-4 md:items-center"
           searchValue={filters.search}
           searchPlaceholder="Search products..."
           onSearchChange={onSearchChange}
-          showPriceRange
-          minPrice={filters.priceRange.min}
-          maxPrice={filters.priceRange.max}
           onPriceRangeChange={onPriceRangeChange}
           toggleButtons={[
             {

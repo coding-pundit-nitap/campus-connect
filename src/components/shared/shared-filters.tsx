@@ -67,14 +67,12 @@ export function FilterControls({
   return (
     <div className={cn("space-y-4", className)}>
       {onSearchChange && (
-        <div>
-          <SharedFilterProductSearch
-            value={searchValue}
-            placeholder={searchPlaceholder}
-            className="max-w-sm"
-            onSearchChange={onSearchChange}
-          />
-        </div>
+        <SharedFilterProductSearch
+          value={searchValue}
+          placeholder={searchPlaceholder}
+          className="max-w-sm"
+          onSearchChange={onSearchChange}
+        />
       )}
 
       <div className="flex flex-wrap items-center gap-4">

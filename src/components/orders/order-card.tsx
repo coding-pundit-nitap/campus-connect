@@ -1,22 +1,22 @@
 import React from "react";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { OrderWithDetails } from "@/types";
+import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCardDetails from "./order-card-details";
 import OrderCardFooter from "./order-card-footer";
 import OrderCardHeader from "./order-card-header";
 
 type Props = {
-  order: OrderWithDetails;
+  order: SerializedOrderWithDetails;
 };
 
 export default function OrderCard({ order }: Props) {
   return (
-    <Card>
+    <Card className="py-4">
       <OrderCardHeader
         orderDate={order.created_at}
-        orderId={order.id}
+        orderId={order.display_id}
         orderItemsCount={order.items.length}
         orderStatus={order.order_status}
         orderTotal={Number(order.total_price)}
