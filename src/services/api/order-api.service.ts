@@ -1,13 +1,15 @@
 import { Order } from "@prisma/client";
 
 import axiosInstance from "@/lib/axios";
-import { ActionResponse, OrderWithDetails } from "@/types";
+import { ActionResponse, SerializedOrderWithDetails } from "@/types";
 
 class OrderAPIService {
-  async fetchUserOrders(): Promise<OrderWithDetails[]> {
+  async fetchUserOrders(): Promise<SerializedOrderWithDetails[]> {
     const url = `/orders`;
     const response =
-      await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
+      await axiosInstance.get<ActionResponse<SerializedOrderWithDetails[]>>(
+        url
+      );
     return response.data.data;
   }
 

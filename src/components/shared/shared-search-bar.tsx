@@ -13,7 +13,7 @@ export interface SharedSearchBarProps {
   onBlur?: () => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSelectItem: (value: string) => void;
-  suggestions: { id: string; title: string; subtitle: string; }[];
+  suggestions: { id: string; title: string; subtitle: string }[];
   showSuggestionsDropdown: boolean;
   isLoading?: boolean;
   onInputChange?: (value: string) => void;
@@ -31,10 +31,10 @@ export function SharedSearchBar({
   suggestions,
   showSuggestionsDropdown,
   isLoading = false,
-  onInputChange
+  onInputChange,
 }: SharedSearchBarProps) {
   return (
-    <div className="relative">
+    <div className="relative m-0 flex items-center justify-center">
       <SharedSearchInput
         className={className}
         placeholder={placeholder}

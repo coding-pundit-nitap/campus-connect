@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 
-import { ShopProductListHeader } from "@/components/owned-shop/shop-header/shop-product-list-header";
 import { NoMatchFilter } from "@/components/shared/shared-product-filters";
 import { ProductFiltersContainer } from "@/components/shared/shared-product-filters/";
 import { useIndividualShop } from "@/hooks/useIndividualShop";
@@ -14,28 +13,43 @@ interface ProductListProps {
 }
 
 export function ProductListContainer({ shop_id }: ProductListProps) {
+  const shopData = useIndividualShop(shop_id);
   const {
     showNoMatchMessage,
-    allProducts,
-    displayProducts,
-    hasActiveFilters,
     onResetFilters,
-  } = useIndividualShop(shop_id);
-
-  const countMessage = hasActiveFilters
-    ? `Showing ${displayProducts.length} of ${allProducts.length} products`
-    : `${allProducts.length} products`;
+    filters,
+    hasActiveFilters,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = shopData;
 
   return (
-    <div className="space-y-2">
-      <ProductFiltersContainer shop_id={shop_id} />
-      <ShopProductListHeader
-        countMessage={countMessage}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={onResetFilters}
-      />
-      <IndividualProductList shop_id={shop_id} />
-      {showNoMatchMessage && <NoMatchFilter onClearFilters={onResetFilters} />}
+    <div className="flex flex-col h-full">
+      <div className="flex-shrink-0 space-y-4 pb-4">
+        <ProductFiltersContainer
+          filters={filters}
+          hasActiveFilters={hasActiveFilters}
+          updateSearch={updateSearch}
+          updatePriceRange={updatePriceRange}
+          updateStockFilter={updateStockFilter}
+          updateSort={updateSort}
+          clearFilters={onResetFilters}
+          clearSearchFilter={clearSearchFilter}
+          clearPriceFilter={clearPriceFilter}
+          clearStockFilter={clearStockFilter}
+        />
+      </div>
+      <div className="flex-1 hide-scrollbar overflow-y-auto">
+        <IndividualProductList shop_id={shop_id} shopData={shopData} />
+        {showNoMatchMessage && (
+          <NoMatchFilter onClearFilters={onResetFilters} />
+        )}
+      </div>
     </div>
   );
 }

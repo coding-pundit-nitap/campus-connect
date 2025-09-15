@@ -1,20 +1,23 @@
 import React from "react";
 
+import {
+  ProductCard,
+  UserProductActions,
+} from "@/components/shared/shared-product-card";
+import { ProductListWithViewModes } from "@/components/shared/shared-product-list";
 import { useIndividualShop } from "@/hooks/useIndividualShop";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
-
-import { ProductCard, UserProductActions } from "../shared/shared-product-card";
-import {
-  ProductList,
-  ProductListError,
-  ProductSkeletonGrid,
-} from "../shared/shared-product-list";
+import { SerializedProduct } from "@/types/product.types";
 
 type Props = {
   shop_id: string;
+  shopData?: ReturnType<typeof useIndividualShop>;
 };
 
-export default function IndividualProductList({ shop_id }: Props) {
+export default function IndividualProductList({ shop_id, shopData }: Props) {
+  const ownShopData = useIndividualShop(shop_id);
+  const data = shopData || ownShopData;
+
   const {
     displayProducts,
     isLoading,
@@ -29,44 +32,42 @@ export default function IndividualProductList({ shop_id }: Props) {
     onAddToCart,
     onViewDetails,
     isAddingToCart,
-  } = useIndividualShop(shop_id);
+  } = data;
 
-  if (isInitialLoading) {
-    return <ProductSkeletonGrid count={4} />;
-  }
-
-  if (hasError && error) {
-    return <ProductListError error={error} onRetry={fetchNextPage} />;
-  }
+  const renderProductCard = (product: SerializedProduct, index: number) => {
+    const cardProps = productUIServices.getProductCardProps(product, index);
+    return (
+      <ProductCard
+        {...cardProps}
+        product={product}
+        mode="user"
+        userActions={
+          <UserProductActions
+            isAddingToCart={isAddingToCart}
+            onAddToCart={onAddToCart}
+            onViewDetails={onViewDetails}
+            product={product}
+          />
+        }
+      />
+    );
+  };
 
   return (
-    <ProductList
+    <ProductListWithViewModes
       displayProducts={displayProducts}
-      isLoading={isLoading}
-      fetchNextPage={fetchNextPage}
+      isInitialLoading={isInitialLoading}
+      hasError={hasError}
       error={error}
-      hasActiveFilters={hasActiveFilters}
-      hasNextPage={hasNextPage}
+      isLoading={isLoading}
       isError={isError}
+      hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      renderProductCard={(product, index) => {
-        const cardProps = productUIServices.getProductCardProps(product, index);
-        return (
-          <ProductCard
-            {...cardProps}
-            product={product}
-            mode="user"
-            userActions={
-              <UserProductActions
-                isAddingToCart={isAddingToCart}
-                onAddToCart={onAddToCart}
-                onViewDetails={onViewDetails}
-                product={product}
-              />
-            }
-          />
-        );
-      }}
+      hasActiveFilters={hasActiveFilters}
+      fetchNextPage={fetchNextPage}
+      renderProductCard={renderProductCard}
+      showViewModeToggle={true}
+      skeletonCount={4}
     />
   );
 }
