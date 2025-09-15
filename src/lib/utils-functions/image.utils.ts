@@ -9,7 +9,10 @@ class ImageUtils {
   }
 
   static getImageUrl(objectKey: string): string {
-    return `${environment.minioBaseUrl}/${objectKey}`;
+    return (
+      `${environment.minioBaseUrl}/${objectKey}` ||
+      "/placeholders/placeholder.png"
+    );
   }
 
   static processImageKeyForSubmission(

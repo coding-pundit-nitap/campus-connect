@@ -17,7 +17,8 @@ export default function OrderSummary({
   isProcessing,
 }: OrderSummaryProps) {
   const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) =>
+      sum + ((item.price * (100 - item.discount)) / 100) * item.quantity,
     0
   );
   const total = subtotal;
