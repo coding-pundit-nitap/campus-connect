@@ -36,9 +36,7 @@ export async function Shops() {
         nextCursor={nextCursor}
       />
     );
-  } catch (error) {
-    console.error("Error fetching shops:", error);
-
+  } catch {
     return (
       <ShopsContainer
         initialShops={[]}

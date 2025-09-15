@@ -1,7 +1,6 @@
 import Image from "next/image";
 import React from "react";
 
-import { environment } from "@/config/env.config";
 import { ImageUtils } from "@/lib/utils-functions";
 import { SerializedProduct } from "@/types/product.types";
 

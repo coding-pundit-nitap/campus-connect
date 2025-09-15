@@ -1,11 +1,6 @@
-"use client";
-import { useRouter } from "next/navigation";
-import React from "react";
+import React, { Suspense } from "react";
 
-import { useNavigationSearch, useSearch, useSearchQuery } from "@/hooks";
-import { SearchResult } from "@/types";
-
-import { SharedSearchBar } from "../shared/shared-search-bar";
+import { SearchBarServer } from "./search-bar-server";
 
 interface SearchBarContainerProps {
   className?: string;
@@ -16,60 +11,14 @@ export function SearchBarContainer({
   className,
   placeholder,
 }: SearchBarContainerProps) {
-  const router = useRouter();
-
-  const handleNavigation = (selectedItem: SearchResult) => {
-    if (selectedItem.type === "shop") {
-      router.push(`/shops/${selectedItem.id}`);
-    } else if (selectedItem.type === "product") {
-      if (selectedItem.shop_id) {
-        router.push(
-          `/shops/${selectedItem.shop_id}/products/${selectedItem.id}`
-        );
-      }
-    }
-  };
-
-  const { debouncedQuery, onSearch, onSelectItem } = useNavigationSearch({
-    onNavigate: handleNavigation,
-  });
-
-  const { data: searchResults = [], isLoading } =
-    useSearchQuery(debouncedQuery);
-
-  const suggestions = searchResults.map((result) => ({
-    id: result.id,
-    title: result.title,
-    subtitle: result.subtitle,
-  }));
-
-  const handleSelectItem = (value: string) => {
-    onSelectItem(value, searchResults);
-  };
-
-  const baseSearch = useSearch({
-    onSearch,
-    onSelectItem: handleSelectItem,
-    suggestions,
-  });
-
   return (
-    <SharedSearchBar
-      className={className}
-      placeholder={placeholder}
-      value={baseSearch.inputValue}
-      onChange={baseSearch.handleInputChange}
-      onFocus={baseSearch.handleInputFocus}
-      onBlur={baseSearch.handleInputBlur}
-      onClick={baseSearch.handleInputClick}
-      onSelectItem={baseSearch.handleSelectItem}
-      suggestions={suggestions}
-      showSuggestionsDropdown={
-        baseSearch.showSuggestionsDropdown &&
-        (isLoading || suggestions.length > 0)
+    <Suspense
+      fallback={
+        <div className="h-10 w-full animate-pulse bg-muted rounded-md" />
       }
-      isLoading={isLoading}
-    />
+    >
+      <SearchBarServer className={className} placeholder={placeholder} />
+    </Suspense>
   );
 }
 

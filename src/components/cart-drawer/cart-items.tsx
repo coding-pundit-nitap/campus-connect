@@ -1,3 +1,4 @@
+"use client";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -18,7 +19,6 @@ export function CartItems({ items, cart_id }: CartItemsProps) {
       acc + ((item.price * (100 - item.discount)) / 100) * item.quantity,
     0
   );
-  console.log(total_price);
   const handlePlaceOrder = () => {
     router.push(`/checkout/${cart_id}`);
   };
