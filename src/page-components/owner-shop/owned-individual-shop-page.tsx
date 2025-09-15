@@ -1,7 +1,6 @@
-"use client";
 import React from "react";
 
-import OwnedShop from "@/components/owned-shop/owned-shop";
+import { OwnedShop } from "@/components/owned-shop/owned-shop";
 
 type Props = {
   shop_id: string;

@@ -1,33 +1,51 @@
-"use client";
+import { Prisma } from "@prisma/client";
 
-import ShopCard from "@/components/homepage/shop/shop-card";
-import { useShops } from "@/hooks/useShops";
+import { enhanceShopData } from "@/lib/shop-utils";
+import shopRepository from "@/repositories/shop.repository";
 
-import ShopList from "./shop-list";
+import { ShopsContainer } from "./shops-container";
 
-export function Shops() {
-  const {
-    allShops,
-    isLoading,
-    isError,
-    error,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useShops();
+export async function Shops() {
+  try {
+    const queryOptions = {
+      include: { owner: { select: { name: true, email: true } } },
+      take: 11,
+      orderBy: {
+        created_at: Prisma.SortOrder.desc,
+      },
+    };
 
-  return (
-    <ShopList
-      displayShops={allShops}
-      isLoading={isLoading}
-      fetchNextPage={fetchNextPage}
-      error={error}
-      hasNextPage={hasNextPage}
-      isError={isError}
-      isFetchingNextPage={isFetchingNextPage}
-      renderShopCard={(shop, index) => {
-        return <ShopCard priority={index} shop={shop} />;
-      }}
-    />
-  );
+    const shops = await shopRepository.getShops(queryOptions);
+    let hasNextPage = false;
+    let nextCursor: string | null = null;
+    let initialShops = shops;
+
+    if (shops.length > 10) {
+      hasNextPage = true;
+      const lastItem = shops.pop();
+      nextCursor = lastItem!.id;
+      initialShops = shops;
+    }
+
+    const enhancedShops = initialShops.map(enhanceShopData);
+
+    return (
+      <ShopsContainer
+        initialShops={enhancedShops}
+        hasNextPage={hasNextPage}
+        nextCursor={nextCursor}
+      />
+    );
+  } catch (error) {
+    console.error("Error fetching shops:", error);
+
+    return (
+      <ShopsContainer
+        initialShops={[]}
+        hasNextPage={false}
+        nextCursor={null}
+        initialError="Failed to load shops. Please try again."
+      />
+    );
+  }
 }
