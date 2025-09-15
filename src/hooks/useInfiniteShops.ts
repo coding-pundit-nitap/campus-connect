@@ -2,7 +2,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
-import { enhanceShopData,ShopWithOwnerDetails } from "@/lib/shop-utils";
+import { enhanceShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
 import { shopAPIService } from "@/services/api/shop-api.service";
 
 type Props = {

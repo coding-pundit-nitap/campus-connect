@@ -2,6 +2,7 @@ import { Order, OrderItem, Shop } from "@prisma/client";
 
 import {
   OrderWithDetails,
+  SearchResult,
   SerializedOrder,
   SerializedOrderItem,
   SerializedOrderWithDetails,
@@ -69,3 +70,29 @@ export const serializeOrderWithDetails = (
     })),
   };
 };
+
+interface SearchNavigationHandlerProps {
+  onNavigateToShop: (shopId: string) => void;
+  onNavigateToProduct: (productId: string, shopId?: string) => void;
+}
+
+export function createSearchNavigationHandler({
+  onNavigateToShop,
+  onNavigateToProduct,
+}: SearchNavigationHandlerProps) {
+  return (selectedItem: SearchResult) => {
+    if (selectedItem.type === "shop") {
+      onNavigateToShop(selectedItem.id);
+    } else if (selectedItem.type === "product") {
+      onNavigateToProduct(selectedItem.id, selectedItem.shop_id);
+    }
+  };
+}
+
+export function mapSearchResultsToSuggestions(searchResults: SearchResult[]) {
+  return searchResults.map((result) => ({
+    id: result.id,
+    title: result.title,
+    subtitle: result.subtitle,
+  }));
+}
