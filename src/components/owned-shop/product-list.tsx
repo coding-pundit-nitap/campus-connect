@@ -3,25 +3,29 @@ import React from "react";
 
 import { ProductCard } from "@/components/shared/shared-product-card";
 import { ProductListWithViewModes } from "@/components/shared/shared-product-list/product-list-with-view-modes";
-import { useOwnedShop } from "@/hooks";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductListProps {
   onDeleteProduct: (product_id: string, imageKey: string) => Promise<void>;
-  error?: Error | null;
-  shop_id: string;
-  shopData?: ReturnType<typeof useOwnedShop>;
+  shopData: {
+    displayProducts: SerializedProduct[];
+    isInitialLoading: boolean;
+    hasError: boolean;
+    isLoading: boolean;
+    isError: boolean;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+    hasActiveFilters: boolean;
+    error: Error | null;
+  };
 }
 
 export function ProductListContainer({
   onDeleteProduct,
-  shop_id,
   shopData,
 }: ProductListProps) {
-  const ownShopData = useOwnedShop(shop_id);
-  const data = shopData || ownShopData;
-
   const {
     displayProducts,
     error,
@@ -33,7 +37,7 @@ export function ProductListContainer({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = data;
+  } = shopData;
 
   const renderProductCard = (product: SerializedProduct, index: number) => {
     const cardProps = productUIServices.getProductCardProps(product, index);

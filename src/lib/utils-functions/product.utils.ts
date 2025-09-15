@@ -1,8 +1,48 @@
 import { Category, Product } from "@prisma/client";
 
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
-import { SerializedProduct } from "@/types/product.types";
+import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
+
+export function getProductCountMessage(
+  displayCount: number,
+  totalCount: number
+): string {
+  if (displayCount === 0) {
+    return "No products found";
+  }
+
+  if (displayCount === totalCount) {
+    return `Showing all ${totalCount} product${totalCount === 1 ? "" : "s"}`;
+  }
+
+  return `Showing ${displayCount} of ${totalCount} product${totalCount === 1 ? "" : "s"}`;
+}
+
+/**
+ * Determine various product states for UI
+ */
+export function getProductStates(
+  products: SerializedProduct[],
+  displayProducts: SerializedProduct[],
+  hasActiveFilters: boolean,
+  isLoading: boolean
+): ProductDataDetails {
+  const isEmpty = products.length === 0;
+
+  return {
+    allProducts: products,
+    displayProducts,
+    showFilters: products.length > 0,
+    showNoMatchMessage: hasActiveFilters && displayProducts.length === 0,
+    productCountMessage: getProductCountMessage(
+      displayProducts.length,
+      products.length
+    ),
+    isEmptyState: !isLoading && isEmpty,
+    isEmpty,
+  };
+}
 
 const SORT_OPTIONS = [
   { value: "created_at-desc", label: "Newest First" },

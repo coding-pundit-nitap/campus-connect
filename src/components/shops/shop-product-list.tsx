@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 import {
@@ -5,35 +7,40 @@ import {
   UserProductActions,
 } from "@/components/shared/shared-product-card";
 import { ProductListWithViewModes } from "@/components/shared/shared-product-list";
-import { useIndividualShop } from "@/hooks/useIndividualShop";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 type Props = {
-  shop_id: string;
-  shopData?: ReturnType<typeof useIndividualShop>;
+  displayProducts: SerializedProduct[];
+  isLoading: boolean;
+  fetchNextPage: () => void;
+  error: Error | null;
+  hasActiveFilters: boolean;
+  hasNextPage: boolean;
+  isError: boolean;
+  isFetchingNextPage: boolean;
+  isInitialLoading: boolean;
+  hasError: boolean;
+  onAddToCart?: (product_id: string, quantity: number) => void;
+  onViewDetails?: (product_id: string) => void;
+  isAddingToCart?: boolean;
 };
 
-export default function IndividualProductList({ shop_id, shopData }: Props) {
-  const ownShopData = useIndividualShop(shop_id);
-  const data = shopData || ownShopData;
-
-  const {
-    displayProducts,
-    isLoading,
-    fetchNextPage,
-    error,
-    hasActiveFilters,
-    hasNextPage,
-    isError,
-    isFetchingNextPage,
-    isInitialLoading,
-    hasError,
-    onAddToCart,
-    onViewDetails,
-    isAddingToCart,
-  } = data;
-
+export function ShopProductList({
+  displayProducts,
+  isLoading,
+  fetchNextPage,
+  error,
+  hasActiveFilters,
+  hasNextPage,
+  isError,
+  isFetchingNextPage,
+  isInitialLoading,
+  hasError,
+  onAddToCart,
+  onViewDetails,
+  isAddingToCart,
+}: Props) {
   const renderProductCard = (product: SerializedProduct, index: number) => {
     const cardProps = productUIServices.getProductCardProps(product, index);
     return (
@@ -43,9 +50,9 @@ export default function IndividualProductList({ shop_id, shopData }: Props) {
         mode="user"
         userActions={
           <UserProductActions
-            isAddingToCart={isAddingToCart}
-            onAddToCart={onAddToCart}
-            onViewDetails={onViewDetails}
+            isAddingToCart={isAddingToCart || false}
+            onAddToCart={onAddToCart || (() => {})}
+            onViewDetails={onViewDetails || (() => {})}
             product_id={product.id}
             stock={product.stock_quantity}
           />

@@ -1,12 +1,12 @@
 import React from "react";
 
-import { ShopWithOwner } from "@/types";
+import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 type Props = {
-  shops: ShopWithOwner[];
+  shops: ShopWithOwnerDetails[];
   lastElementRef?: (node: HTMLDivElement | null) => void;
   renderShopCard: (
-    product: ShopWithOwner,
+    product: ShopWithOwnerDetails,
     index: number,
     isLastProduct: boolean,
     isNearEnd: boolean
