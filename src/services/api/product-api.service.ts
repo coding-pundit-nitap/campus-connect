@@ -1,5 +1,8 @@
 import axiosInstance from "@/lib/axios";
-import { SerializedProduct } from "@/types/product.types";
+import {
+  SerializedProduct,
+  SerializedProductDetail,
+} from "@/types/product.types";
 import { ActionResponse } from "@/types/response.types";
 
 interface PaginatedProductsResponse {

@@ -46,7 +46,8 @@ export default function IndividualProductList({ shop_id, shopData }: Props) {
             isAddingToCart={isAddingToCart}
             onAddToCart={onAddToCart}
             onViewDetails={onViewDetails}
-            product={product}
+            product_id={product.id}
+            stock={product.stock_quantity}
           />
         }
       />

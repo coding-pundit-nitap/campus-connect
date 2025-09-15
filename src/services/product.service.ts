@@ -22,8 +22,21 @@ class ProductService {
     return productRepository.delete(product_id);
   }
 
-  async getProductById(product_id: string): Promise<Product | null> {
-    return productRepository.findById(product_id);
+  async getProductById(product_id: string) {
+    return productRepository.findById(product_id, {
+      include: {
+        shop: {
+          select: {
+            name: true,
+          },
+        },
+        _count: {
+          select: {
+            reviews: true,
+          },
+        },
+      },
+    });
   }
 
   async getProductsByShopId(shop_id: string): Promise<Product[]> {
