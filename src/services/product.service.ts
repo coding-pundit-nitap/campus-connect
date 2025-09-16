@@ -44,6 +44,7 @@ class ProductService {
             reviews: true,
           },
         },
+        category: true,
       },
     });
   }

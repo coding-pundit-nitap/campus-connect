@@ -1,4 +1,4 @@
-import IndividualProductServer from "@/components/shops/individual-product-server";
+import IndividualProductServer from "@/components/shops/individual-product";
 
 type Props = {
   product_id: string;

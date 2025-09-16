@@ -6,13 +6,13 @@ import ProductImage from "@/components/shops/product-image";
 import { serializeProduct } from "@/lib/utils-functions";
 import productService from "@/services/product.service";
 
-type IndividualProductServerProps = {
+type IndividualProductProps = {
   product_id: string;
 };
 
-export default async function IndividualProductServer({
+export default async function IndividualProduct({
   product_id,
-}: IndividualProductServerProps) {
+}: IndividualProductProps) {
   const product = await productService.getProductById(product_id);
 
   if (!product) {
