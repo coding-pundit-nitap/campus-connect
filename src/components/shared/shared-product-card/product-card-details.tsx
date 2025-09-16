@@ -81,13 +81,19 @@ export function ProductCardDetails({
       </div>
 
       {productHasDiscount && (
-        <div className="flex justify-start">
+        <div className="flex justify-between">
           <Badge
             variant="secondary"
             className="text-xs bg-green-100 text-green-700 border-green-200"
           >
             Save {product.discount}%
           </Badge>
+          {product.category && (
+            <Badge variant="secondary" className="">
+              <span>Category:- </span>
+              {product.category.name}
+            </Badge>
+          )}
         </div>
       )}
     </div>
