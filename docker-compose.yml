@@ -29,6 +29,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - college_connect_net
 
   nginx-prod:
     build:
@@ -56,6 +58,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+      - college_connect_net
 
   db:
     image: postgres:17-alpine
@@ -63,6 +67,8 @@ services:
     container_name: college_connect_db
     env_file:
       - .env
+    expose:
+      - "5432"
     ports:
       - "5432:5432"
     volumes:
@@ -72,6 +78,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - college_connect_net
 
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
@@ -90,6 +98,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - college_connect_net
 
   create-buckets:
     image: minio/mc
@@ -104,19 +114,58 @@ services:
       "
     env_file:
       - .env
+    networks:
+      - college_connect_net
+
+  redis:
+    image: redis:8.2.1-alpine
+    container_name: college_connect_redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    profiles:
+      - dev
+      - prod
+    networks:
+      - college_connect_net
+
+  installer-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: college_connect_installer_dev
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    command: pnpm install --frozen-lockfile --ignore-scripts
+    profiles:
+      - dev
 
   app-dev:
     build:
       context: .
       dockerfile: Dockerfile
-      target: deps
+      target: dev
     container_name: college_connect_app_dev
     depends_on:
       db:
         condition: service_healthy
       minio:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       create-buckets:
+        condition: service_completed_successfully
+      installer-dev:
         condition: service_completed_successfully
     volumes:
       - .:/app
@@ -142,16 +191,20 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    networks:
+      - college_connect_net
 
   prisma-studio:
     build:
       context: .
       dockerfile: Dockerfile
-      target: deps
+      target: dev
     container_name: college_connect_prisma_studio
     depends_on:
       db:
         condition: service_healthy
+      installer-dev:
+        condition: service_completed_successfully
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -172,6 +225,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    networks:
+      - college_connect_net
 
   app-prod:
     build:
@@ -206,6 +261,12 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    networks:
+      - college_connect_net
+
+networks:
+  college_connect_net:
+    driver: bridge
 
 volumes:
   postgres_data:
@@ -213,3 +274,4 @@ volumes:
   node_modules_volume:
   next_cache_volume:
   pnpm_store_volume:
+  redis_data:

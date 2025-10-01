@@ -1,9 +1,5 @@
-# Security: Ignore sensitive files
-**/.env
-**/.env.local
-**/.env.development
-**/.env.production
-**/.env.staging
+
+**/.env*
 **/secrets
 **/keys
 **/*.pem
@@ -12,12 +8,12 @@
 **/*.p12
 **/*.pfx
 
-# Version control
 **/.git
 **/.gitignore
 **/.gitattributes
+**/.gitmodules
+**/.gitkeep
 
-# Development files
 **/.vscode
 **/.vs
 **/.idea
@@ -26,34 +22,38 @@
 **/tmp
 **/*.log
 **/*.pid
+**/*.lock
+**/coverage
+**/.nyc_output
 
-# Dependencies (handled in container)
 **/node_modules
-**/npm-debug.log
-**/yarn-debug.log
-**/yarn-error.log
-**/pnpm-debug.log
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
 
-# Build artifacts
 **/.next
 **/build
 **/dist
 **/out
+**/.swc
+**/.turbo
+**/tsconfig.tsbuildinfo
 
-# Testing
 **/tests
 **/test
+**/__tests__
 **/*.test.*
 **/*.spec.*
-**/coverage
-**/.nyc_output
+**/.jest
+**/jest.config.*
 
-# Documentation (reduce image size)
 **/*.md
 **/docs
 **/documentation
+**/LICENSE*
+**/CHANGELOG*
 
-# Configuration files not needed in container
 **/docker-compose*
 **/compose.y*ml
 **/Dockerfile*
@@ -61,8 +61,8 @@
 **/kubernetes
 **/k8s
 **/charts
+**/helm
 
-# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -70,25 +70,37 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+**/desktop.ini
 
-# Backup files
 **/*.bak
 **/*.backup
 **/*.old
 **/*.orig
-
-# Temporary files
 **/*~
 **/*.swp
 **/*.swo
+**/*.tmp
 
-# Database files (should be external)
 **/*.db
 **/*.sqlite
 **/*.sqlite3
 
-# License and readme (reduce size)
-LICENSE
-README.md
-CHANGELOG.md
-CONTRIBUTING.md
+**/data
+**/uploads
+**/static-data
+**/sample-data
+
+**/.eslintcache
+**/.stylelintcache
+**/storybook-static
+**/.storybook
+
+**/yarn.lock
+**/package-lock.json
+**/.pnpm-store
+
+**/.github
+**/.gitlab-ci.yml
+**/azure-pipelines.yml
+**/Jenkinsfile
+**/.circleci
