@@ -38,7 +38,7 @@ The application now uses Nginx as a reverse proxy to handle all incoming traffic
 AUTH_SECRET="your-super-secret-for-auth"
 AUTH_URL="http://localhost"
 
-# Database Configuration  
+# Database Configuration
 DATABASE_URL="postgresql://myuser:mypassword@db:5432/college_connect"
 DIRECT_URL="postgresql://myuser:mypassword@db:5432/college_connect"
 
@@ -90,11 +90,13 @@ NEXT_PUBLIC_API_URL="/api"
 ### Development with Nginx
 
 1. **Copy environment file:**
+
    ```bash
    cp .env.development .env.local
    ```
 
 2. **Start development environment:**
+
    ```bash
    pnpm docker:dev:up
    ```
@@ -107,12 +109,14 @@ NEXT_PUBLIC_API_URL="/api"
 ### Production with Nginx
 
 1. **Copy and configure environment file:**
+
    ```bash
    cp .env.production .env.production
    # Edit .env.production and change all default passwords!
    ```
 
 2. **Build and start production environment:**
+
    ```bash
    pnpm docker:prod:build
    pnpm docker:prod:up
@@ -133,20 +137,23 @@ NEXT_PUBLIC_API_URL="/api"
 ### Environment Setup
 
 1. **Create Development Environment File:**
+
    ```bash
    cp .env.development .env.local
    ```
 
 2. **Create Production Environment File:**
+
    ```bash
    cp .env.production .env.production
    ```
 
 3. **Configure Production Secrets:**
+
    ```bash
    # Generate a secure AUTH_SECRET
    openssl rand -base64 32
-   
+
    # Update .env.production with:
    # - Strong AUTH_SECRET (64+ characters)
    # - Secure MINIO_ROOT_PASSWORD
@@ -156,18 +163,20 @@ NEXT_PUBLIC_API_URL="/api"
 ### Development Workflow
 
 1. **Start all services:**
+
    ```bash
    pnpm docker:dev:up
    ```
 
 2. **View logs:**
+
    ```bash
    # All services
    pnpm docker:dev:logs
-   
+
    # App only
    pnpm docker:dev:logs-app
-   
+
    # Nginx only
    pnpm docker:dev:logs-nginx
    ```
@@ -180,11 +189,13 @@ NEXT_PUBLIC_API_URL="/api"
 ### Production Deployment
 
 1. **Build images:**
+
    ```bash
    pnpm docker:prod:build
    ```
 
 2. **Start services:**
+
    ```bash
    pnpm docker:prod:up
    ```
@@ -206,6 +217,7 @@ NEXT_PUBLIC_API_URL="/api"
 ### Service Dependencies
 
 The services start in this order:
+
 1. PostgreSQL
 2. MinIO
 3. MinIO bucket creation
@@ -245,6 +257,7 @@ The application uses a dual-client approach for MinIO:
 ### Testing File Upload Functionality
 
 1. **Access the application:**
+
    ```
    http://localhost
    ```
@@ -260,14 +273,17 @@ The application uses a dual-client approach for MinIO:
 ### Verifying MinIO Integration
 
 1. **Check MinIO Console:**
+
    ```
    http://localhost:9001
    ```
+
    - Login with credentials from your `.env` file
    - Verify the `college-connect` bucket exists
    - Check uploaded files appear correctly
 
 2. **Test presigned URL generation:**
+
    ```bash
    # Test the upload endpoint
    curl -X POST http://localhost/api/upload \
@@ -294,13 +310,13 @@ The application uses a dual-client approach for MinIO:
 
 ### Development vs Production Differences
 
-| Feature | Development | Production |
-|---------|-------------|------------|
-| WebSocket Support | Yes (HMR) | No |
-| Caching | Minimal | Aggressive |
-| Security Headers | Basic | Enhanced |
-| Rate Limiting | Relaxed | Strict |
-| SSL/TLS | HTTP only | Ready for HTTPS |
+| Feature           | Development | Production      |
+| ----------------- | ----------- | --------------- |
+| WebSocket Support | Yes (HMR)   | No              |
+| Caching           | Minimal     | Aggressive      |
+| Security Headers  | Basic       | Enhanced        |
+| Rate Limiting     | Relaxed     | Strict          |
+| SSL/TLS           | HTTP only   | Ready for HTTPS |
 
 ### Nginx Upstream Configuration
 
@@ -319,29 +335,32 @@ upstream minio_api {
 ### Common Issues
 
 1. **Service Won't Start:**
+
    ```bash
    # Check service dependencies
    docker-compose ps
-   
+
    # Check health status
    docker-compose exec app-dev curl -f http://localhost:3000/api/health/status
    ```
 
 2. **File Upload Fails:**
+
    ```bash
    # Check MinIO accessibility
    curl -f http://localhost:9000/minio/health/live
-   
+
    # Check presigned URL generation
    # Look for consistent endpoint URLs in app logs
    docker-compose logs app-dev | grep -i minio
    ```
 
 3. **Nginx Configuration Errors:**
+
    ```bash
    # Test nginx configuration
    docker-compose exec nginx-dev nginx -t
-   
+
    # Reload nginx configuration
    docker-compose exec nginx-dev nginx -s reload
    ```
@@ -358,12 +377,13 @@ upstream minio_api {
 If you have conflicts with default ports:
 
 1. **Change external ports in docker-compose.yml:**
+
    ```yaml
    nginx-dev:
      ports:
-       - "8080:80"      # Use port 8080 instead of 80
-       - "9002:9000"    # Use port 9002 for MinIO API
-       - "9003:9001"    # Use port 9003 for MinIO Console
+       - "8080:80" # Use port 8080 instead of 80
+       - "9002:9000" # Use port 9002 for MinIO API
+       - "9003:9001" # Use port 9003 for MinIO Console
    ```
 
 2. **Update environment variables:**
@@ -489,7 +509,7 @@ private publicS3Client = new S3Client({
 # Internal Docker service-to-service communication
 MINIO_ENDPOINT="http://minio:9000"
 
-# Browser access through Nginx proxy  
+# Browser access through Nginx proxy
 NEXT_PUBLIC_MINIO_ENDPOINT="http://localhost:9000"
 ```
 
@@ -503,6 +523,7 @@ pnpm test:minio
 ```
 
 This script will:
+
 - ✅ Verify containers are running
 - ✅ Test Nginx health checks
 - ✅ Test MinIO API accessibility through proxy
@@ -513,18 +534,21 @@ This script will:
 ### Manual Verification Steps
 
 1. **Check Environment Configuration:**
+
    ```bash
    # Verify .env.local contains correct endpoints
    grep -E "MINIO_ENDPOINT|NEXT_PUBLIC_MINIO_ENDPOINT" .env.local
    ```
 
 2. **Test MinIO API Through Proxy:**
+
    ```bash
    # Should return MinIO response
    curl -v http://localhost:9000/minio/health/live
    ```
 
 3. **Test Presigned URL Generation:**
+
    ```bash
    # Should return a URL with localhost:9000
    curl -X POST http://localhost/api/upload \
@@ -540,18 +564,21 @@ This script will:
 ### Common Issues & Fixes
 
 **Issue**: "Network Error" or "CORS Error" during file upload
+
 ```bash
 # Fix: Verify NEXT_PUBLIC_MINIO_ENDPOINT points to proxy
 echo 'NEXT_PUBLIC_MINIO_ENDPOINT="http://localhost:9000"' >> .env.local
 ```
 
 **Issue**: Presigned URLs point to `minio:9000` instead of `localhost:9000`
+
 ```bash
 # Fix: Check public client configuration in file-upload.service.ts
 # Ensure it uses NEXT_PUBLIC_MINIO_ENDPOINT
 ```
 
 **Issue**: "Connection Refused" to MinIO
+
 ```bash
 # Fix: Verify Nginx is proxying correctly
 docker logs college_connect_nginx_dev
@@ -559,6 +586,7 @@ curl -v http://localhost:9000/
 ```
 
 **Issue**: File upload works but file not visible in MinIO console
+
 ```bash
 # Fix: Check bucket configuration and credentials
 docker exec -it college_connect_minio mc ls myminio/
@@ -587,6 +615,7 @@ If you need to disable Nginx temporarily:
 ## Support
 
 For issues related to:
+
 - **Nginx Configuration**: Check logs with `pnpm docker:dev:logs-nginx`
 - **Application Issues**: Check logs with `pnpm docker:dev:logs-app`
 - **MinIO Issues**: Access console at `http://localhost:9001`

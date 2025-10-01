@@ -32,7 +32,6 @@ class HealthCheckAPIService {
           details: `Health check temporarily disabled due to ${this.consecutiveFailures} consecutive failures. Will retry after cooldown.`,
         };
       } else {
-        // Reset after backoff period
         this.consecutiveFailures = 0;
         this.lastFailureTime = undefined;
       }
@@ -97,7 +96,6 @@ class HealthCheckAPIService {
     this.lastFailureTime = Date.now();
   }
 
-  // Allow manual reset of circuit breaker
   resetCircuitBreaker() {
     this.consecutiveFailures = 0;
     this.lastFailureTime = undefined;

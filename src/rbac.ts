@@ -12,11 +12,5 @@ export const authRoutes = ["/login", "/register", "/error"];
 // API routes that handle authentication processes. These are always accessible.
 export const apiAuthPrefix = ["/api/auth"];
 
-// Routes accessible only to users with a shop (sellers).
-export const staffPrefix = ["/staff"]; // Example: /staff/dashboard, /staff/products
-
-// Routes accessible only to users without a shop (consumers).
-export const consumerPrefix = ["/consumer"]; // Example: /consumer/orders
-
 // Default page to redirect to after successful login.
 export const DEFAULT_LOGIN_REDIRECT = "/";

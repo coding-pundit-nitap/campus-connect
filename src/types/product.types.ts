@@ -5,3 +5,18 @@ export type SerializedProduct = Omit<Product, "price" | "discount"> & {
   discount: number | null;
   category?: Category | null;
 };
+
+export type SerializedProductDetail = SerializedProduct & {
+  shop: { name: string };
+  review_count: number;
+};
+
+export type ProductDataDetails = {
+  allProducts: SerializedProduct[];
+  displayProducts: SerializedProduct[];
+  showFilters: boolean;
+  showNoMatchMessage: boolean;
+  productCountMessage: string;
+  isEmptyState: boolean;
+  isEmpty: boolean;
+};

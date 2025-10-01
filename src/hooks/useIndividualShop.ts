@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { productUIServices } from "@/lib/utils-functions";
 
 import { useAddToCart } from "./tanstack";
-import { useProducts } from "./useProduct";
+import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useIndividualShop = (shop_id: string) => {
   const {
@@ -20,7 +20,16 @@ export const useIndividualShop = (shop_id: string) => {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useProducts(shop_id);
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = useOwnerProducts(shop_id);
   const { mutate: onAddToCartAction, isPending: isAddingToCart } =
     useAddToCart();
   const router = useRouter();
@@ -78,5 +87,14 @@ export const useIndividualShop = (shop_id: string) => {
     isFetchingNextPage,
     fetchNextPage,
     isAddingToCart,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };

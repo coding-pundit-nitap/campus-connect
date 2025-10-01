@@ -2,24 +2,25 @@ import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
-import { SerializedProduct } from "@/types/product.types";
 
 import LoadingSpinner from "../shared-loading-spinner";
 
 interface UserProductActionsProps {
-  product: SerializedProduct;
+  product_id: string;
   onAddToCart: (product_id: string, quantity: number) => void;
   onViewDetails?: (product_id: string) => void;
   isAddingToCart: boolean;
+  stock: number;
 }
 
 export function UserProductActions({
-  product,
+  product_id,
   onAddToCart,
   onViewDetails,
   isAddingToCart,
+  stock,
 }: UserProductActionsProps) {
-  const isOutOfStock = product.stock_quantity === 0;
+  const isOutOfStock = stock === 0;
 
   return (
     <div className="p-4 pt-0 space-y-2">
@@ -27,7 +28,7 @@ export function UserProductActions({
         variant={isOutOfStock ? "outline" : "default"}
         className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
         disabled={isOutOfStock || isAddingToCart}
-        onClick={() => onAddToCart(product.id, 1)}
+        onClick={() => onAddToCart(product_id, 1)}
       >
         {isAddingToCart ? (
           <LoadingSpinner />
@@ -36,14 +37,15 @@ export function UserProductActions({
         )}
         {isOutOfStock ? "Out of Stock" : "Add to Cart"}
       </Button>
-      {onViewDetails && (<Button
-        variant="outline"
-        className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
-        onClick={() => onViewDetails(product.id)}
-      >
-        View Details
-      </Button>)
-      }
+      {onViewDetails && (
+        <Button
+          variant="outline"
+          className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
+          onClick={() => onViewDetails(product_id)}
+        >
+          View Details
+        </Button>
+      )}
     </div>
   );
 }

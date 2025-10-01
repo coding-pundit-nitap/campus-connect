@@ -1,8 +1,48 @@
 import { Category, Product } from "@prisma/client";
 
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
-import { SerializedProduct } from "@/types/product.types";
+import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 import { ProductFormData } from "@/validations";
+
+export function getProductCountMessage(
+  displayCount: number,
+  totalCount: number
+): string {
+  if (displayCount === 0) {
+    return "No products found";
+  }
+
+  if (displayCount === totalCount) {
+    return `Showing all ${totalCount} product${totalCount === 1 ? "" : "s"}`;
+  }
+
+  return `Showing ${displayCount} of ${totalCount} product${totalCount === 1 ? "" : "s"}`;
+}
+
+/**
+ * Determine various product states for UI
+ */
+export function getProductStates(
+  products: SerializedProduct[],
+  displayProducts: SerializedProduct[],
+  hasActiveFilters: boolean,
+  isLoading: boolean
+): ProductDataDetails {
+  const isEmpty = products.length === 0;
+
+  return {
+    allProducts: products,
+    displayProducts,
+    showFilters: products.length > 0,
+    showNoMatchMessage: hasActiveFilters && displayProducts.length === 0,
+    productCountMessage: getProductCountMessage(
+      displayProducts.length,
+      products.length
+    ),
+    isEmptyState: !isLoading && isEmpty,
+    isEmpty,
+  };
+}
 
 const SORT_OPTIONS = [
   { value: "created_at-desc", label: "Newest First" },
@@ -269,6 +309,34 @@ export class ProductUIServices {
         }),
       clearStockFilter: () => updateFilter({ inStock: null }),
     };
+  }
+
+  groupProductsByCategory(products: SerializedProduct[]): {
+    categoryName: string;
+    products: SerializedProduct[];
+  }[] {
+    const grouped = products.reduce(
+      (acc, product) => {
+        const categoryName = product.category?.name || "Uncategorized";
+
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+
+        acc[categoryName].push(product);
+        return acc;
+      },
+      {} as Record<string, SerializedProduct[]>
+    );
+
+    // Convert to array and sort categories alphabetically, with "Uncategorized" last
+    return Object.entries(grouped)
+      .map(([categoryName, products]) => ({ categoryName, products }))
+      .sort((a, b) => {
+        if (a.categoryName === "Uncategorized") return 1;
+        if (b.categoryName === "Uncategorized") return -1;
+        return a.categoryName.localeCompare(b.categoryName);
+      });
   }
 }
 

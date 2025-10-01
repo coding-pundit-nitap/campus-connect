@@ -1,59 +1,30 @@
-import React from "react";
+import { getProductStates } from "@/lib/utils-functions";
+import productService from "@/services/product.service";
 
-import {
-  NoMatchFilter,
-  ProductFiltersContainer,
-} from "@/components/shared/shared-product-filters";
-import { useOwnedShop } from "@/hooks/useOwnedShop";
+import { OwnedShopContainer } from "./owned-shop-container";
 
-import { ProductListContainer } from "./product-list";
-import { ShopProductListHeader } from "./shop-header/shop-product-list-header";
-import { ShopEmptyState } from "./shop-states/shop-empty-state";
-import { ShopWrapper } from "./shop-states/shop-wrapper";
-
-interface OwnedShopProps {
+type Props = {
   shop_id: string;
-}
+};
+export async function OwnedShop({ shop_id }: Props) {
+  const { initialProducts, hasNextPage, nextCursor, error } =
+    await productService.fetchShopProductsServer(shop_id);
 
-export function OwnedShop({ shop_id }: OwnedShopProps) {
-  const {
-    isEmptyState,
-    showNoMatchMessage,
-    onDeleteProduct,
-    allProducts,
-    displayProducts,
-    hasActiveFilters,
-    onResetFilters,
-  } = useOwnedShop(shop_id);
-
-  if (isEmptyState) {
-    return <ShopEmptyState />;
-  }
-
-  const countMessage = hasActiveFilters
-    ? `Showing ${displayProducts.length} of ${allProducts.length} products`
-    : `${allProducts.length} products`;
+  const productStates = getProductStates(
+    initialProducts,
+    initialProducts,
+    false,
+    false
+  );
 
   return (
-    <ShopWrapper>
-      <div className="space-y-6">
-        <ProductFiltersContainer shop_id={shop_id} />
-        <ShopProductListHeader
-          countMessage={countMessage}
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={onResetFilters}
-        />
-        <ProductListContainer
-          onDeleteProduct={onDeleteProduct}
-          shop_id={shop_id}
-        />
-
-        {showNoMatchMessage && (
-          <NoMatchFilter onClearFilters={onResetFilters} />
-        )}
-      </div>
-    </ShopWrapper>
+    <OwnedShopContainer
+      shop_id={shop_id}
+      initialProducts={initialProducts}
+      initialProductStates={productStates}
+      hasNextPage={hasNextPage}
+      nextCursor={nextCursor}
+      initialError={error}
+    />
   );
 }
-
-export default OwnedShop;

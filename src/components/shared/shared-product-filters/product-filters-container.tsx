@@ -1,27 +1,37 @@
 import React from "react";
 
 import { ProductFilters } from "@/components/shared/shared-product-filters";
-import { useOwnerProducts } from "@/hooks/useOwnerProducts";
 import { productUIServices } from "@/lib/utils-functions";
+import { FilterState } from "@/lib/utils-functions/product.utils";
 
 interface ProductFiltersProps {
-  shop_id: string;
+  filters: FilterState;
+  hasActiveFilters: boolean;
+  updateSearch: (search: string) => void;
+  updatePriceRange: (min: number, max: number) => void;
+  updateStockFilter: (inStock: boolean | null) => void;
+  updateSort: (
+    sortBy: FilterState["sortBy"],
+    sortOrder: FilterState["sortOrder"]
+  ) => void;
+  clearFilters: () => void;
+  clearSearchFilter: () => void;
+  clearPriceFilter: () => void;
+  clearStockFilter: () => void;
 }
 
-export function ProductFiltersContainer({ shop_id }: ProductFiltersProps) {
-  const {
-    filters,
-    hasActiveFilters,
-    clearFilters,
-    updateSearch,
-    updatePriceRange,
-    updateStockFilter,
-    updateSort,
-    clearSearchFilter,
-    clearPriceFilter,
-    clearStockFilter,
-  } = useOwnerProducts(shop_id);
-
+export function ProductFiltersContainer({
+  filters,
+  hasActiveFilters,
+  updateSearch,
+  updatePriceRange,
+  updateStockFilter,
+  updateSort,
+  clearFilters,
+  clearSearchFilter,
+  clearPriceFilter,
+  clearStockFilter,
+}: ProductFiltersProps) {
   const sortOptions = productUIServices.getSortOptions();
 
   const handleSortChange = (value: string) => {

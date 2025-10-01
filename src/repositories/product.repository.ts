@@ -11,25 +11,19 @@ type ProductFindOptions = Omit<Prisma.ProductFindUniqueArgs, "where">;
 type ProductFindManyOptions = Omit<Prisma.ProductFindManyArgs, "where">;
 
 class ProductRepository {
-  async findById(
+  async findById(product_id: string): Promise<Product | null>;
+  async findById<T extends ProductFindOptions>(
+    shop_id: string,
+    data: T
+  ): Promise<Prisma.ProductGetPayload<{ where: { id: string } } & T> | null>;
+  async findById<T extends ProductFindOptions>(
     product_id: string,
-    data?: ProductFindOptions
-  ): Promise<Product | null> {
-    if (data?.select) {
-      return prisma.product.findUnique({
-        where: { id: product_id },
-        ...data,
-      });
-    }
-
-    return prisma.product.findUnique({
-      where: { id: product_id },
-      include: {
-        category: true,
-        shop: true,
-      },
-      ...data,
-    });
+    data?: T
+  ): Promise<
+    Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product | null
+  > {
+    const query = { where: { id: product_id }, ...(data ?? {}) };
+    return prisma.product.findUnique(query);
   }
 
   async findManyByShopId(shop_id: string): Promise<Product[]>;

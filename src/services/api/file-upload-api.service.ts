@@ -39,7 +39,6 @@ class FileUploadAPIService {
     try {
       const { uploadUrl, objectKey } = await this.getPresignedUrl(file);
 
-
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",
         body: file,

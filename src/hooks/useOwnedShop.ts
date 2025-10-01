@@ -15,6 +15,18 @@ export const useOwnedShop = (shop_id: string) => {
     error,
     hasActiveFilters,
     clearFilters,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   } = useOwnerProducts(shop_id);
   const { mutate: deleteProduct } = useShopProductsDelete();
   const { mutateAsync: deleteImage } = useImageDelete();
@@ -59,5 +71,19 @@ export const useOwnedShop = (shop_id: string) => {
     hasActiveFilters,
     ...actionHandlers,
     error,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };
