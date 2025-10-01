@@ -38,8 +38,6 @@
     "docker:prune": "docker system prune -af --volumes",
     "docker:images": "docker images",
     "docker:ps": "docker ps -a",
-    "verify:nginx": "./scripts/verify-nginx-setup.sh",
-    "test:minio": "./scripts/test-minio-upload.sh",
     "prepare": "husky"
   },
   "dependencies": {
