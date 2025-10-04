@@ -12,11 +12,7 @@ import {
   getOrdersAction,
 } from "@/actions/order/order-actions";
 import { queryKeys } from "@/lib/query-keys";
-import {
-  CreateOrderPayload,
-  createSuccessResponse,
-  SerializedOrderWithDetails,
-} from "@/types";
+import { createSuccessResponse, SerializedOrderWithDetails } from "@/types";
 
 type Props = {
   initialData: SerializedOrderWithDetails[];
@@ -85,13 +81,7 @@ export const useCreateOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: CreateOrderPayload) => {
-      const response = await createOrderAction(payload);
-      if (!response.success) {
-        throw new Error(response.details);
-      }
-      return response.data;
-    },
+    mutationFn: createOrderAction,
     onSuccess: () => {
       toast.success("Order created successfully!");
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
