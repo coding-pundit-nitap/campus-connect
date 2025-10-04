@@ -29,7 +29,7 @@ export function OrderNotificationBell() {
   const { data: unreadCountResponse } = useUnreadNotificationCount();
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
 
-  const unreadCount = unreadCountResponse?.unreadCount || 0;
+  const unreadCount = unreadCountResponse?.count || 0;
 
   const allNotifications = useMemo(() => {
     if (!unreadData) return [];

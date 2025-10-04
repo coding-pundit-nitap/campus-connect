@@ -1,8 +1,6 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 const s3Client = new S3Client({
   endpoint: process.env.MINIO_ENDPOINT!,
   region: process.env.AWS_REGION!,

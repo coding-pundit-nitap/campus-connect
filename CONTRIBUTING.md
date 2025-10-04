@@ -14,15 +14,15 @@ As a project of the NIT Arunachal Pradesh community, we expect all contributors 
 
 ## 🚀 Getting Started
 
-1. **Become a Club Member:** While our code is public for everyone to learn from, active development and contributions are currently managed by the members of the NIT Arunachal Pradesh **Coding Pundit** club. If you're not a member yet, we'd love for you to join!  
+1. **Become a Club Member:** While our code is public for everyone to learn from, active development and contributions are currently managed by the members of the NIT Arunachal Pradesh **Coding Pundit** club. If you're not a member yet, we'd love for you to join!
 
-2. **Fork the Repository:** Start by forking the main repository to your own GitHub account.  
+2. **Fork the Repository:** Start by forking the main repository to your own GitHub account.
 
-3. **Clone Your Fork:** Clone your forked repository to your local machine.  
+3. **Clone Your Fork:** Clone your forked repository to your local machine.
 
 ```bash
 git clone https://github.com/coding-pundit-nitap/campus-connect.git
-````
+```
 
 4. **Set Upstream Remote:** Add the original repository as an "upstream" remote. This is crucial for keeping your fork in sync with the main project.
 
@@ -43,9 +43,8 @@ git pull upstream main
 ```
 
 2. **Create a New Branch:** Always create a new branch for your feature or bug fix. Please use the following naming convention:
-
-   * Features: `feature/your-initials-short-description` (e.g., `feature/kk-add-product-search`)
-   * Bug Fixes: `fix/your-initials-short-description` (e.g., `fix/kk-cart-total-bug`)
+   - Features: `feature/your-initials-short-description` (e.g., `feature/kk-add-product-search`)
+   - Bug Fixes: `fix/your-initials-short-description` (e.g., `fix/kk-cart-total-bug`)
 
 ```bash
 git checkout -b feature/your-initials-description
@@ -53,7 +52,7 @@ git checkout -b feature/your-initials-description
 
 3. **Write Your Code:** Make your changes. Ensure your code is clean, commented where necessary, and follows the project's existing style.
 
-* Run `pnpm validate` before committing to automatically fix linting and formatting issues.
+- Run `pnpm validate` before committing to automatically fix linting and formatting issues.
 
 4. **Commit Your Changes:** Write clear, concise commit messages that explain the "what" and "why" of your change. We follow the **Conventional Commits** standard.
 
@@ -72,9 +71,9 @@ git push origin feature/your-initials-description
 
 6. **Open a Pull Request (PR):**
 
-* Go to your fork on GitHub. A "Compare & pull request" button should be visible.
-* Ensure the "base" repository is `coding-pundit-nitap/main` and the "head" repository is your fork and feature branch.
-* Fill out the pull request template with a clear description of your changes. If your PR fixes a known issue, reference it (e.g., "Fixes #42").
+- Go to your fork on GitHub. A "Compare & pull request" button should be visible.
+- Ensure the "base" repository is `coding-pundit-nitap/main` and the "head" repository is your fork and feature branch.
+- Fill out the pull request template with a clear description of your changes. If your PR fixes a known issue, reference it (e.g., "Fixes #42").
 
 7. **Code Review:** One of the core team members will review your pull request. This is a collaborative process. We may ask for changes to maintain code quality and consistency. Please be responsive to feedback.
 

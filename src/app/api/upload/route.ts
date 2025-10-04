@@ -8,8 +8,6 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const runtime = "edge";
-
 const deleteSchema = z.object({
   objectKey: z.string().min(1, "Object key is required."),
 });

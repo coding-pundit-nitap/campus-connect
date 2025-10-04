@@ -1,5 +1,3 @@
-import "server-only";
-
 import { Notification, Prisma } from "@prisma/client";
 
 import { redisPublisher } from "@/lib/redis";

@@ -2,7 +2,7 @@ import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types";
 import { ReviewWithUser } from "@/types/review.type";
 
-interface PaginatedReviewResponse {
+export interface PaginatedReviewResponse {
   data: ReviewWithUser[];
   nextCursor: string | null;
 }

@@ -12,10 +12,7 @@ If you believe you have discovered a security vulnerability in the College Conne
 
 Instead, please send an email to our private security alias:
 
-
-
 [codingclub@nitap.ac.in](mailto:codingclub@nitap.ac.in)
-
 
 Please include the following details in your report:
 
@@ -30,9 +27,9 @@ Please include the following details in your report:
 
 When you submit a vulnerability report, we are committed to the following process:
 
-1. **Acknowledgement:** We will acknowledge receipt of your report within 48 hours.  
-2. **Investigation:** We will investigate the issue to confirm the vulnerability and determine its severity. We will keep you updated on our progress.  
-3. **Remediation:** We will work to develop and deploy a fix for the vulnerability as quickly as possible.  
+1. **Acknowledgement:** We will acknowledge receipt of your report within 48 hours.
+2. **Investigation:** We will investigate the issue to confirm the vulnerability and determine its severity. We will keep you updated on our progress.
+3. **Remediation:** We will work to develop and deploy a fix for the vulnerability as quickly as possible.
 4. **Disclosure & Recognition:** Once the vulnerability is patched, we will coordinate with you on the public disclosure. We are happy to publicly credit you for your discovery in our "Hall of Fame" section below.
 
 ---
@@ -41,23 +38,22 @@ When you submit a vulnerability report, we are committed to the following proces
 
 We are interested in reports for vulnerabilities in the following areas:
 
-- The main **Campus Connect** web application.  
-- Our official API routes.  
-- The security of our Docker configurations.  
+- The main **Campus Connect** web application.
+- Our official API routes.
+- The security of our Docker configurations.
 
 **Out of scope:**
 
-- The underlying infrastructure of the college network.  
-- Vulnerabilities in third-party services we use (e.g., Next.js, Prisma, NextAuth.js). Please report these directly to the respective project maintainers.  
-- Vulnerabilities in the core software of our self-hosted services (PostgreSQL, MinIO, Redis). Please report these to their upstream projects.  
-- Social engineering or physical access attacks.  
+- The underlying infrastructure of the college network.
+- Vulnerabilities in third-party services we use (e.g., Next.js, Prisma, NextAuth.js). Please report these directly to the respective project maintainers.
+- Vulnerabilities in the core software of our self-hosted services (PostgreSQL, MinIO, Redis). Please report these to their upstream projects.
+- Social engineering or physical access attacks.
 
 ---
 
 ## 🏆 Hall of Fame
 
 We would like to thank the following individuals and groups for their responsible disclosure and for helping us keep Campus Connect secure:
-
 
 ---
 
