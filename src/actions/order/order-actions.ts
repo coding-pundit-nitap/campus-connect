@@ -11,7 +11,55 @@ import orderRepository from "@/repositories/order.repository";
 import notificationService from "@/services/notification.service";
 import orderService from "@/services/order.service";
 import { SerializedOrderWithDetails } from "@/types";
-import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+import {
+  ActionResponse,
+  createSuccessResponse,
+  PaginatedResponse,
+} from "@/types/response.types";
+
+export async function getOrdersAction(options: {
+  page?: number;
+  limit?: number;
+}): Promise<ActionResponse<PaginatedResponse<SerializedOrderWithDetails>>> {
+  try {
+    const userId = await authUtils.getUserId();
+    if (!userId) {
+      throw new UnauthorizedError("Unauthorized: Please log in.");
+    }
+    const queryOptions = {
+      page: options.page || 1,
+      limit: options.limit || 10,
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { category: true },
+            },
+          },
+        },
+        shop: true,
+        delivery_address: true,
+      },
+    };
+
+    const { orders, totalPages, currentPage } = await orderService.getOrders({
+      ...queryOptions,
+      userId,
+    });
+
+    return createSuccessResponse(
+      {
+        data: orders.map(serializeOrderWithDetails),
+        totalPages,
+        currentPage,
+      },
+      "Orders retrieved successfully"
+    );
+  } catch (error) {
+    console.error("GET ORDERS ERROR:", error);
+    throw new InternalServerError("Failed to retrieve orders.");
+  }
+}
 
 export async function createOrderAction({
   shop_id,
@@ -117,7 +165,7 @@ export async function getOrderByIdAction(
 
     if (order.user_id !== user_id) {
       throw new UnauthorizedError(
-        "Unauthorized: This order doesn't belong to you."
+        "Unauthorized: This order doesn\'t belong to you."
       );
     }
 

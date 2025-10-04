@@ -1,7 +1,8 @@
 "use client";
 import React from "react";
 
-import { useUserOrders } from "@/hooks";
+import { useOrders } from "@/hooks/tanstack/useOrders";
+import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCard from "./order-card";
 import {
@@ -11,24 +12,29 @@ import {
 } from "./order-state";
 
 export default function OrderCardList() {
-  const orders = useUserOrders();
+  const { allOrders, isLoading, error } = useOrders({
+    initialData: [],
+    initialError: undefined,
+    initialHasNextPage: false,
+    initialNextCursor: null,
+  });
 
-  if (orders.isLoading) {
+  if (isLoading) {
     return <OrderLoadingState />;
   }
 
-  if (orders.error) {
+  if (error) {
     return <OrderErrorState />;
   }
 
-  if (!orders.data || orders.data.length === 0) {
+  if (!allOrders || allOrders.length === 0) {
     return <OrderEmptyState />;
   }
 
   return (
     <div className="flex-1 hide-scrollbar overflow-y-auto">
       <div className="space-y-4">
-        {orders.data.map((order) => (
+        {allOrders.map((order: SerializedOrderWithDetails) => (
           <OrderCard key={order.id} order={order} />
         ))}
       </div>

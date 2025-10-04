@@ -1,4 +1,4 @@
-import { Order, OrderItem, Product, Shop } from "@prisma/client";
+import { Order, OrderItem, PaymentMethod, Product, Shop } from "@prisma/client";
 
 import { SerializedProduct } from "./product.types";
 export type OrderWithDetails = Order & {
@@ -6,6 +6,13 @@ export type OrderWithDetails = Order & {
   items: (OrderItem & {
     product: Product;
   })[];
+};
+
+export type CreateOrderPayload = {
+  shop_id: string;
+  payment_method: PaymentMethod;
+  delivery_address_id: string;
+  requested_delivery_time?: Date;
 };
 
 export type SerializedShop = Omit<Shop, "created_at" | "updated_at"> & {
