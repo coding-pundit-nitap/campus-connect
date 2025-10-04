@@ -1,5 +1,5 @@
 /**
- * Centralized query key factory for React Query cache management in the college connect application.
+ * Centralized query key factory for React Query cache management in the campus connect application.
  *
  * This module provides a structured approach to query key generation for consistent cache
  * management across the application. It follows the hierarchical query key pattern recommended

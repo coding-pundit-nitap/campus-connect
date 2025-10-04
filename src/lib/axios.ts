@@ -1,10 +1,10 @@
 import axios from "axios";
 
 /**
- * Pre-configured axios instance for college connect API communication.
+ * Pre-configured axios instance for campus connect API communication.
  *
  * A centralized HTTP client instance configured with default settings for
- * communicating with the college connect backend API. This instance provides
+ * communicating with the campus connect backend API. This instance provides
  * consistent configuration across the application and serves as the foundation
  * for all API service classes.
  *
