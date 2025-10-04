@@ -1,5 +1,7 @@
 import React from "react";
 
+import OrderDetailsPage from "@/page-components/orders/order-details-page";
+
 export default async function Page({
   params,
 }: {
@@ -7,5 +9,5 @@ export default async function Page({
 }) {
   const { order_id } = await params;
 
-  return <div>Page: {order_id}</div>;
+  return <OrderDetailsPage order_id={order_id} />;
 }

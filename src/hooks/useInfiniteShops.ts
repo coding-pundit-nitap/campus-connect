@@ -1,3 +1,4 @@
+"use client";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
@@ -56,14 +57,11 @@ export const useInfiniteShops = ({
       page.data.map(enhanceShopData)
     );
 
-    return [...(serverData as ShopWithOwnerDetails[]), ...clientShops];
+    return [...serverData.map(enhanceShopData), ...clientShops];
   }, [data, initialData]);
-
-  const isEmpty = allShops.length === 0;
 
   return {
     allShops,
-    isEmpty,
     isLoading: isLoading && initialData.length === 0,
     isError: isError || !!initialError,
     error: error || (initialError ? new Error(initialError) : null),

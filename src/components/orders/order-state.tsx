@@ -12,7 +12,7 @@ export function OrderWrapper({ children }: OrderWrapperProps) {
       title="Order Management"
       headerClassName="flex flex-col items-start"
       description="View and manage your orders"
-      className="gap-0 h-full flex flex-col"
+      className="gap-0 flex flex-col"
       contentClassName="flex-1 flex flex-col overflow-hidden"
     >
       {children}

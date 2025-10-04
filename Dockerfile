@@ -29,7 +29,7 @@ FROM node:24-alpine AS dev
 WORKDIR /app
 
 # Add essential packages for development.
-RUN apk add --no-cache libc6-compat openssl && \
+RUN apk add --no-cache libc6-compat openssl curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 

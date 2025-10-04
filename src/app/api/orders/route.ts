@@ -27,6 +27,7 @@ export async function GET() {
           },
         },
         shop: true,
+        delivery_address: true,
       },
     });
     const successResponse = createSuccessResponse(

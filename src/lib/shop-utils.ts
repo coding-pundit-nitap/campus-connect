@@ -44,7 +44,6 @@ export function formatTime(time: string): string {
 }
 
 export function enhanceShopData(shop: DatabaseShop): ShopWithOwner & {
-  isOpen: boolean;
   openingFormatted: string;
   closingFormatted: string;
 } {
@@ -56,7 +55,6 @@ export function enhanceShopData(shop: DatabaseShop): ShopWithOwner & {
       name: ownerName,
       email: shop.owner.email,
     },
-    isOpen: isShopOpen(shop),
     openingFormatted: formatTime(shop.opening),
     closingFormatted: formatTime(shop.closing),
   };

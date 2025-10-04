@@ -6,6 +6,9 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { shopRepository } from "@/repositories/shop.repository";
+
+import { notificationService } from "./notification.service";
 
 class OrderService {
   async createOrderFromCart(
@@ -74,6 +77,15 @@ class OrderService {
         )
       );
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
+      const shop = await shopRepository.findById(shop_id);
+      if (shop) {
+        await notificationService.publishNotification(shop.owner_id, {
+          title: "New Order Received",
+          message: `You have received a new order with ID: ${order.display_id}`,
+          action_url: `/owner-shops/orders`,
+          type: "INFO",
+        });
+      }
 
       return order;
     });
