@@ -22,7 +22,6 @@ export async function GET(
       {
         ...serializeProduct(product),
         shop: { name: product.shop.name },
-        review_count: product._count.reviews,
       },
       "Product retrieved successfully"
     );

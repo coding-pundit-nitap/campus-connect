@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
 import { environment } from "@/config/env.config";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
@@ -51,14 +52,7 @@ export function ShopCard({ shop, priority }: Props) {
                 Inactive
               </Badge>
             )}
-            {shop.is_active && (
-              <Badge
-                variant={shop.isOpen ? "default" : "destructive"}
-                className={shop.isOpen ? "bg-blue-500 hover:bg-blue-600" : ""}
-              >
-                {shop.isOpen ? "Open" : "Closed"}
-              </Badge>
-            )}
+            {shop.is_active && <ShopStatusBadge shop={shop} />}
           </div>
         </div>
 

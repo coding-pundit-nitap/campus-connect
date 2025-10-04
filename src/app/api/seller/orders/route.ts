@@ -9,7 +9,7 @@ import {
 
 export async function GET() {
   try {
-    const shop_id = await authUtils.getShopId();
+    const shop_id = await authUtils.getOwnedShopId();
     const orders = await orderRepository.getOrdersByShopId(shop_id);
     const successResponse = createSuccessResponse(
       orders,

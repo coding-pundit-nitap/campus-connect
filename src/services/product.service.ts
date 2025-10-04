@@ -39,18 +39,9 @@ class ProductService {
             name: true,
           },
         },
-        _count: {
-          select: {
-            reviews: true,
-          },
-        },
         category: true,
       },
     });
-  }
-
-  async getProductsByShopId(shop_id: string): Promise<Product[]> {
-    return productRepository.findManyByShopId(shop_id);
   }
 
   async fetchShopProductsServer(shop_id: string): Promise<ServerProductData> {

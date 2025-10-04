@@ -1,3 +1,4 @@
+"use client";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -108,7 +109,7 @@ export const useSharedInfiniteProducts = ({
       return {
         onDeleteProduct: async (product_id: string, imageKey: string) => {
           await deleteImage(imageKey);
-          deleteProduct(product_id);
+          deleteProduct({ product_id, shop_id });
         },
         onResetFilters: clearFilters,
       };

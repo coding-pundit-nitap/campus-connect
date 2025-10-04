@@ -117,6 +117,8 @@ export const serializeProduct = (
   price: Number(product.price),
   discount: product.discount ? Number(product.discount) : null,
   category: product.category || null,
+  rating:
+    product.review_count === 0 ? 0 : product.rating_sum / product.review_count,
 });
 
 export const serializeProducts = (

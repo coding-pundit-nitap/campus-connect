@@ -8,6 +8,7 @@ import {
 import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
 import categoryServices from "@/services/category.service";
+import notificationService from "@/services/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 import {
   ShopActionFormData,
@@ -60,7 +61,14 @@ export async function updateShopAction(formData: ShopFormData) {
 
     await categoryServices.cleanupEmptyCategories(shop_id);
 
-    await shopRepository.update(shop_id, parsedData.data);
+    const updatedShop = await shopRepository.update(shop_id, parsedData.data);
+
+    await notificationService.publishNotification(user_id, {
+      title: "Shop Updated Successfully",
+      message: `Your shop ${updatedShop.name} has been updated.`,
+      action_url: `/owner-shops`,
+      type: "INFO",
+    });
 
     return createSuccessResponse("Shop updated successfully!");
 

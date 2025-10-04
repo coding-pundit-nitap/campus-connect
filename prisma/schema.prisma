@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../node_modules/.prisma/client"
+  provider      = "prisma-client-js"
+  output        = "../node_modules/.prisma/client"
   binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
@@ -73,18 +73,20 @@ model User {
   name          String?
   phone         String?
   hash_password String?
-  image      String?
+  image         String?
   role          Role      @default(USER)
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
 
   // Relations
-  accounts   Account[]
-  owned_shop Shop?         @relation("owned_shop")
-  reviews    Review[]
-  carts      Cart[]
-  orders     Order[]
-  addresses  UserAddress[]
+  accounts                Account[]
+  owned_shop              Shop?                 @relation("owned_shop")
+  reviews                 Review[]
+  carts                   Cart[]
+  orders                  Order[]
+  addresses               UserAddress[]
+  notification            Notification[]
+  broadcast_read_statuses BroadcastReadStatus[]
 
   @@index([role])
 }
@@ -167,7 +169,8 @@ model Product {
   price          Decimal
   discount       Decimal?
   stock_quantity Int      @default(0)
-  rating         Float    @default(0)
+  rating_sum     Int      @default(0)
+  review_count   Int      @default(0)
   imageKey       String
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
@@ -290,7 +293,7 @@ model Order {
 }
 
 model OrderItem {
-  id       String @id @default(cuid())
+  id       String  @id @default(cuid())
   quantity Decimal
   price    Decimal
 
@@ -317,4 +320,66 @@ model Payout {
 
   @@index([shop_id])
   @@index([status])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+enum NotificationCategory {
+  GENERAL
+  ORDER
+  SYSTEM
+  ANNOUNCEMENT
+}
+
+model Notification {
+  id         String               @id @default(cuid())
+  user_id    String
+  title      String
+  message    String
+  type       NotificationType     @default(INFO)
+  action_url String?
+  category   NotificationCategory @default(GENERAL)
+  read       Boolean              @default(false)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("notification")
+}
+
+model BroadcastNotification {
+  id         String               @id @default(cuid())
+  title      String
+  message    String
+  type       NotificationType     @default(INFO)
+  action_url String?
+  category   NotificationCategory @default(GENERAL)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  read_statuses BroadcastReadStatus[]
+
+  @@map("broadcast_notification")
+}
+
+model BroadcastReadStatus {
+  id                        String   @id @default(cuid())
+  user_id                   String
+  broadcast_notification_id String
+  read_at                   DateTime @default(now())
+
+  user                  User                  @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  broadcastNotification BroadcastNotification @relation(fields: [broadcast_notification_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, broadcast_notification_id])
+  @@index([user_id])
 }

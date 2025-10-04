@@ -45,9 +45,7 @@ export function ShopsContainer({
       isError={isError}
       isFetchingNextPage={isFetchingNextPage}
       renderShopCard={(shop, index) => {
-        return (
-          <ShopCard priority={index} shop={shop as ShopWithOwnerDetails} />
-        );
+        return <ShopCard priority={index} shop={shop} />;
       }}
     />
   );

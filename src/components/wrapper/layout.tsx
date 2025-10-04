@@ -12,6 +12,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
+import { OrderNotificationBell } from "../notification/notification-bell";
+
 interface LayoutProps {
   children: React.ReactNode;
   navigation: NavigationItem[];
@@ -39,6 +41,7 @@ export function Layout({
             <Separator orientation="vertical" className="mr-2 h-4" />
             <SearchBarContainer />
             <div className="ml-auto flex items-center gap-2">
+              <OrderNotificationBell />
               <CartDrawer />
               <ThemeToggleContainer />
             </div>

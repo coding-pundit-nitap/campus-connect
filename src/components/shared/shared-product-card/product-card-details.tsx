@@ -33,6 +33,15 @@ export function ProductCardDetails({
     return "In Stock";
   };
 
+  const getRatingColors = () => {
+    const rating = product.rating || 0;
+    if (rating >= 4.5) return "bg-green-50 border-green-200 text-green-700";
+    if (rating >= 4.0) return "bg-blue-50 border-blue-200 text-blue-700";
+    if (rating >= 3.5) return "bg-yellow-50 border-yellow-200 text-yellow-700";
+    if (rating >= 3.0) return "bg-orange-50 border-orange-200 text-orange-700";
+    return "bg-red-50 border-red-200 text-red-700";
+  };
+
   return (
     <div className="space-y-2">
       <h3 className="font-bold text-lg leading-tight">{product.name}</h3>
@@ -54,9 +63,11 @@ export function ProductCardDetails({
         </div>
 
         {productHasRating && (
-          <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-full border border-yellow-200">
-            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium text-yellow-700">
+          <div
+            className={`flex items-center gap-1 px-2 py-1 rounded-full border ${getRatingColors()}`}
+          >
+            <Star className="w-3 h-3 fill-current" />
+            <span className="text-sm font-medium">
               {product.rating.toFixed(1)}
             </span>
           </div>
