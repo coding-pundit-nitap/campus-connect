@@ -1,3 +1,4 @@
+"use client";
 import { UserAddress } from "@prisma/client";
 import { useState } from "react";
 import { toast } from "sonner";

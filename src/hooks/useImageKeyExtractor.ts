@@ -1,9 +1,5 @@
 import { environment } from "@/config/env.config";
 
-/**
- * Custom hook for extracting image keys from MinIO URLs
- * Handles conversion between full URLs and object keys
- */
 export function useImageKeyExtractor() {
   const extractImageKey = (imageValue: string): string => {
     const urlPrefix = environment.minioBaseUrl + "/";

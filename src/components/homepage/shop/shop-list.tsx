@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 
 import { ProductSkeletonGrid } from "@/components/shared/shared-product-list";

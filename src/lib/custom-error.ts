@@ -11,6 +11,12 @@ export class UnauthorizedError extends Error {
     this.name = "UnauthorizedError";
   }
 }
+export class UnauthenticatedError extends Error {
+  constructor(message = "Unauthenticated") {
+    super(message);
+    this.name = "UnauthenticatedError";
+  }
+}
 
 export class ValidationError extends Error {
   constructor(message = "Validation failed") {

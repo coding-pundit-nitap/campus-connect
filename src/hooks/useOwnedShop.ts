@@ -1,3 +1,4 @@
+"use client";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
@@ -47,11 +48,11 @@ export const useOwnedShop = (shop_id: string) => {
     () => ({
       onDeleteProduct: async (product_id: string, imageKey: string) => {
         await deleteImage(imageKey);
-        deleteProduct(product_id);
+        deleteProduct({ product_id, shop_id });
       },
       onResetFilters: clearFilters,
     }),
-    [clearFilters, deleteProduct, deleteImage]
+    [clearFilters, deleteProduct, deleteImage, shop_id]
   );
 
   const loadingStates = useMemo(

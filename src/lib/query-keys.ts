@@ -41,8 +41,7 @@ export const queryKeys = {
     /** Individual shop details query key factory */
     detail: (shop_id: string) => ["shops", shop_id] as const,
     /** Shop-specific product listings with pagination */
-    products: (shop_id: string, cursor?: string | null) =>
-      ["shops", shop_id, "products", { cursor }] as const,
+    products: (shop_id: string) => ["shops", shop_id, "products"] as const,
     /** Shop-specific categories query key factory */
     categories: (query: string) => ["shops", "categories", { query }] as const,
     byUser: () => ["shops", "user", "current"] as const,
@@ -58,6 +57,8 @@ export const queryKeys = {
     byShop: (shop_id: string) => ["products", "shop", shop_id] as const,
     /** Individual product details query key factory */
     detail: (product_id: string) => ["products", product_id] as const,
+    reviews: (product_id: string) =>
+      ["products", product_id, "reviews"] as const,
   },
 
   /**
@@ -94,6 +95,16 @@ export const queryKeys = {
     /** Search query key factory for product search  */
     products: (searchTerm: string) =>
       ["search", "products", searchTerm] as const,
+  },
+
+  /**
+   * Notification system query keys for real-time updates and messaging.
+   */
+  notifications: {
+    all: ["notifications"] as const,
+    unread: ["notifications", "unread"] as const,
+    unreadCount: ["notifications", "unread", "count"] as const,
+    history: () => ["notifications", "history"] as const,
   },
 
   health: {
