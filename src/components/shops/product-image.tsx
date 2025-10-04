@@ -16,7 +16,7 @@ export default function ProductImage({
 }: ProductImageProps) {
   return (
     <div className={`flex flex-col p-0 gap-5 ${className}`}>
-      <Card className="sticky py-2 top-6">
+      <Card className="sticky py-2 items-center justify-center h-full top-6">
         <CardContent className="items-center p-0 justify-center flex gap-4">
           <Image
             src={ImageUtils.getImageUrl(imageKey)}

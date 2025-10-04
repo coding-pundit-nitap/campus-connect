@@ -174,7 +174,7 @@ services:
       args:
         - NEXT_PUBLIC_API_URL=/api
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
-        - NEXT_PUBLIC_MINIO_BUCKET=college-connect
+        - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
     container_name: college_connect_app_prod
     restart: always
     entrypoint: /app/scripts/entrypoint.sh

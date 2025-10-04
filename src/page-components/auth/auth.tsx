@@ -7,7 +7,7 @@ export default function AuthPage({ children }: { children: React.ReactNode }) {
             <div className="absolute inset-0 flex items-center justify-center p-8">
               <div className="text-center text-white">
                 <h1 className="text-4xl font-bold mb-4">
-                  Welcome to College Connect
+                  Welcome to Campus Connect
                 </h1>
               </div>
             </div>

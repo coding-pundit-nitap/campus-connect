@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 
-import { useOrders } from "@/hooks/tanstack/useOrders";
+import { useOrders } from "@/hooks";
 import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCard from "./order-card";

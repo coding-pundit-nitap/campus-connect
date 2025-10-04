@@ -1,12 +1,12 @@
 # Security Policy for Campus Connect
 
-The **Coding Pundit** team and the **CSE Department of NIT Arunachal Pradesh** take the security of the College Connect platform very seriously. We appreciate the invaluable work of security researchers and the community in helping us maintain a secure environment for our students, faculty, and vendors.
+The **Coding Pundit** team and the **CSE Department of NIT Arunachal Pradesh** take the security of the Campus Connect platform very seriously. We appreciate the invaluable work of security researchers and the community in helping us maintain a secure environment for our students, faculty, and vendors.
 
 ---
 
 ## 📋 Reporting a Security Vulnerability
 
-If you believe you have discovered a security vulnerability in the College Connect platform, we ask that you help us by responsibly disclosing it **privately**.
+If you believe you have discovered a security vulnerability in the Campus Connect platform, we ask that you help us by responsibly disclosing it **privately**.
 
 **Please DO NOT** report security vulnerabilities through public GitHub issues.
 
@@ -44,7 +44,7 @@ We are interested in reports for vulnerabilities in the following areas:
 
 **Out of scope:**
 
-- The underlying infrastructure of the college network.
+- The underlying infrastructure of the campus network.
 - Vulnerabilities in third-party services we use (e.g., Next.js, Prisma, NextAuth.js). Please report these directly to the respective project maintainers.
 - Vulnerabilities in the core software of our self-hosted services (PostgreSQL, MinIO, Redis). Please report these to their upstream projects.
 - Social engineering or physical access attacks.
