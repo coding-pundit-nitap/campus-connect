@@ -20,7 +20,7 @@ export default function AppSidebar({
   error,
 }: AppSidebarProps) {
   const headerConfig: SidebarHeaderConfig = {
-    title: "College Connect",
+    title: "Campus Connect",
     subtitle: "NIT Arunachal Pradesh",
     icon: GraduationCap,
     href: "/",

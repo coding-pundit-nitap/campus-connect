@@ -1,4 +1,4 @@
-import IndividualProduct from "@/page-components/shops/individual-product";
+import IndividualProductPage from "@/page-components/shops/individual-product";
 
 export default async function ProductPage({
   params,
@@ -6,5 +6,5 @@ export default async function ProductPage({
   params: Promise<{ shop_id: string; product_id: string }>;
 }) {
   const { product_id } = await params;
-  return <IndividualProduct product_id={product_id} />;
+  return <IndividualProductPage product_id={product_id} />;
 }

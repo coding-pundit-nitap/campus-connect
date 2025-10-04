@@ -79,7 +79,7 @@ export function ProductReviewsList({
 
   if (isLoading) {
     return (
-      <Card className="w-full py-4 max-w-4xl mx-auto">
+      <Card className="w-full py-4 mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Customer Reviews</CardTitle>
         </CardHeader>
@@ -95,7 +95,7 @@ export function ProductReviewsList({
 
   if (isError && error) {
     return (
-      <Card className="w-full py-4 max-w-4xl mx-auto">
+      <Card className="w-full py-4 mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Customer Reviews</CardTitle>
         </CardHeader>
@@ -123,7 +123,7 @@ export function ProductReviewsList({
   }
 
   return (
-    <Card className="w-full py-4 max-w-4xl mx-auto">
+    <Card className="w-full py-4 mx-auto">
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-2xl font-bold">Customer Reviews</CardTitle>

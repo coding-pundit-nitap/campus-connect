@@ -15,7 +15,7 @@ import { OfflineWrapper } from "@/components/wrapper/offline-wrapper";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "College Connect",
+  title: "Campus Connect",
   description: "Connecting students and staff for better education",
 };
 

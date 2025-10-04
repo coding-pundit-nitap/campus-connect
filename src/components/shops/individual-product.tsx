@@ -82,7 +82,11 @@ export default async function IndividualProduct({
   return (
     <div className="space-y-4 px-4 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <ProductImage imageKey={productData.imageKey} name={productData.name} />
+        <ProductImage
+          className="lg:col-span-5"
+          imageKey={productData.imageKey}
+          name={productData.name}
+        />
         <div className="lg:col-span-7 flex flex-col gap-6">
           <ProductDetails product={productData} />
           <ProductActions productId={product.id} />

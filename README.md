@@ -1,6 +1,6 @@
-# 🎓 College Connect
+# 🎓 Campus Connect
 
-A comprehensive, containerized marketplace platform designed specifically for college communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, and MinIO.
+A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, and MinIO.
 
 ## 📋 Table of Contents
 
@@ -18,9 +18,9 @@ A comprehensive, containerized marketplace platform designed specifically for co
 
 ## 🎯 About
 
-College Connect is a modern web application built with Next.js that serves as a marketplace platform for college communities. It allows users to:
+Campus Connect is a modern web application built with Next.js that serves as a marketplace platform for campus communities. It allows users to:
 
-- **Browse Products**: Explore various products available within the college community.
+- **Browse Products**: Explore various products available within the campus community.
 - **Manage Shops**: Create and manage their own shops to sell products.
 - **Shopping Cart**: Add products to a cart and manage orders.
 - **User Authentication**: Secure login/registration system with NextAuth.
@@ -86,8 +86,8 @@ This project is designed to be run with Docker. The following steps will get you
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/connects-college/college-connect.git](https://github.com/connects-college/college-connect.git)
-    cd college-connect
+    git clone [https://github.com/connects-campus/campus-connect.git](https://github.com/connects-campus/campus-connect.git)
+    cd campus-connect
     ```
 
 2.  **Set up environment variables:**
@@ -212,7 +212,7 @@ All scripts are defined in `package.json` and can be run with `pnpm <script-name
 
 ```
 
-college-connect/
+campus-connect/
 ├── nginx/                \# Nginx configuration files
 ├── prisma/               \# Database schema and migrations
 ├── public/               \# Static assets
