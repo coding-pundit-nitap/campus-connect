@@ -17,7 +17,7 @@ class ProductAPIService {
     shop_id: string;
     cursor: string | null;
   }): Promise<PaginatedProductsResponse> {
-    const url = `/shops/${shop_id}/products?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
+    const url = `shops/${shop_id}/products?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
     const response =
       await axiosInstance.get<ActionResponse<PaginatedProductsResponse>>(url);
     return response.data.data;

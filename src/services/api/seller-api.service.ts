@@ -5,7 +5,7 @@ import { ActionResponse } from "@/types/response.types";
 
 class SellerAPIService {
   async fetchSellerOrders(): Promise<Order[]> {
-    const url = `/seller/orders`;
+    const url = `seller/orders`;
     const response = await axiosInstance.get<ActionResponse<Order[]>>(url);
     return response.data.data;
   }

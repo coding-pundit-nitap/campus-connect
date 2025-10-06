@@ -9,12 +9,53 @@ import axios from "axios";
  * for all API service classes.
  *
  */
+const getBaseURL = () => {
+  // Client-side: use relative URLs or configured URL
+  if (typeof window !== "undefined") {
+    return process.env.NEXT_PUBLIC_API_URL || "/api/";
+  }
+
+  // Server-side: use absolute URL if configured
+  return process.env.NEXT_PUBLIC_API_URL || "/api/";
+};
+
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 10000,
 });
+
+// Add request interceptor for better error handling
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log(`Making API request to: ${config.baseURL}${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error("API request failed:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for better error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API response error:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+      },
+    });
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;
