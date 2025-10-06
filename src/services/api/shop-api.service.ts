@@ -13,13 +13,13 @@ interface PaginatedShopResponse {
 
 class ShopAPIService {
   async fetchShop({ shop_id }: { shop_id: string }): Promise<Shop> {
-    const url = `/shops/${shop_id}`;
+    const url = `shops/${shop_id}`;
     const response = await axiosInstance.get<ActionResponse<Shop>>(url);
     return response.data.data;
   }
 
   async fetchShopsByUser(): Promise<ShopWithOwner> {
-    const url = `/shops`;
+    const url = `shops`;
     const response =
       await axiosInstance.get<ActionResponse<ShopWithOwner>>(url);
     return response.data.data;
@@ -30,7 +30,7 @@ class ShopAPIService {
   }: {
     cursor: string | null;
   }): Promise<PaginatedShopResponse> {
-    const url = `/shops/all?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
+    const url = `shops/all?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
     const response =
       await axiosInstance.get<ActionResponse<PaginatedShopResponse>>(url);
     return response.data.data;

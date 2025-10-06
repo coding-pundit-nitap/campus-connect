@@ -43,6 +43,9 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 FROM node:24-alpine AS builder
 WORKDIR /app
 
+# Set production environment to enable standalone build.
+ENV NODE_ENV=production
+
 # Add essential packages for building.
 RUN apk add --no-cache libc6-compat curl && \
     apk upgrade && \
@@ -84,7 +87,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install only 'dumb-init' for signal handling and perform security cleanup.
-RUN apk add --no-cache dumb-init && \
+RUN apk add --no-cache dumb-init curl && \
     apk upgrade && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* && \
@@ -110,8 +113,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 
 # Set secure file permissions.
-RUN find /app -type d -exec chmod 755 {} \; && \
-    find /app -type f -exec chmod 644 {} \;
+RUN chmod -R u=rwX,go=rX /app
 
 # Add execute permissions ONLY where necessary.
 RUN chmod 555 /app/scripts/entrypoint.sh && \
@@ -124,8 +126,8 @@ USER nextjs
 # Expose the application port.
 EXPOSE 3000
 
-# Use dumb-init to properly handle process signals.
-ENTRYPOINT ["dumb-init", "--"]
+# Use dumb-init to properly handle process signals and run the entrypoint script.
+ENTRYPOINT ["dumb-init", "--", "./scripts/entrypoint.sh"]
 
 # Set the default command to run the application.
-CMD ["./scripts/entrypoint.sh"]
+CMD ["npx", "next", "start"]

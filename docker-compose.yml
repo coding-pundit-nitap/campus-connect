@@ -172,16 +172,17 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=/api
+        - NEXT_PUBLIC_API_URL=/api/
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
-        - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+        - NEXT_PUBLIC_MINIO_BUCKET=college-connect
     container_name: college_connect_app_prod
     restart: always
-    entrypoint: /app/scripts/entrypoint.sh
     depends_on:
       db:
         condition: service_healthy
       minio:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       create-buckets:
         condition: service_completed_successfully

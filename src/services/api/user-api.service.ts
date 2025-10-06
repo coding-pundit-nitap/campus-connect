@@ -7,7 +7,7 @@ import { RegisterFormData } from "@/validations/auth";
 
 class UserAPIService {
   async fetchUserOrders(): Promise<OrderWithDetails[]> {
-    const url = `/users/orders`;
+    const url = `users/orders`;
     const response =
       await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
     return response.data.data;
@@ -16,7 +16,7 @@ class UserAPIService {
   async registerUser(
     data: RegisterFormData
   ): Promise<Pick<User, "id" | "email" | "name" | "role">> {
-    const url = `/auth/register`;
+    const url = `auth/register`;
     const response = await axiosInstance.post<
       ActionResponse<Pick<User, "id" | "email" | "name" | "role">>
     >(url, data);

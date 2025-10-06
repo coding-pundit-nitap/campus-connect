@@ -22,7 +22,7 @@ class NotificationAPIService {
     limit?: number;
     cursor: string | null;
   }): Promise<PaginatedNotificationsResponse> {
-    const url = `/notifications/history?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`;
+    const url = `notifications/history?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`;
     const response =
       await axiosInstance.get<ActionResponse<PaginatedNotificationsResponse>>(
         url
@@ -31,7 +31,7 @@ class NotificationAPIService {
   }
 
   async fetchUnreadCount(): Promise<UnreadCountResponse> {
-    const url = `/notifications/unread-count`;
+    const url = `notifications/unread-count`;
     const response =
       await axiosInstance.get<ActionResponse<UnreadCountResponse>>(url);
     return response.data.data;
@@ -42,7 +42,7 @@ class NotificationAPIService {
     broadcast_notification_ids?: string[];
   }) {
     const { data } = await axiosInstance.patch<ActionResponse<null>>(
-      "/notifications",
+      "notifications",
       ids
     );
     return data.data;
@@ -53,7 +53,7 @@ class NotificationAPIService {
         unreadNotifications: Notification[];
         unreadBroadcasts: BroadcastNotification[];
       }>
-    >("/notifications/unread");
+    >("notifications/unread");
     return data.data;
   }
 }

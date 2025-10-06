@@ -40,7 +40,7 @@ class HealthCheckAPIService {
     try {
       const response = await axiosInstance.get<
         ActionResponse<HealthCheckPayload>
-      >("/health/database", {
+      >("health/database", {
         timeout: 5000,
       });
 

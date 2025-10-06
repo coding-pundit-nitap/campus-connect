@@ -2,6 +2,7 @@
 
 import { Notification } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
@@ -11,8 +12,12 @@ interface NotificationEvent {
 }
 
 export function useLiveNotifications() {
+  const session = useSession();
   const queryClient = useQueryClient();
+
   useEffect(() => {
+    if (session.status !== "authenticated") return;
+
     const eventSource = new EventSource("/api/notifications/stream");
 
     eventSource.onopen = () => {
@@ -59,5 +64,5 @@ export function useLiveNotifications() {
       eventSource.close();
       console.log("Connection to notification stream closed.");
     };
-  }, [queryClient]);
+  }, [queryClient, session.status]);
 }
