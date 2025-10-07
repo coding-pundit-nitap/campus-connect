@@ -16,6 +16,5 @@ export * from "@/hooks/useRegisterForm";
 export * from "@/hooks/useSearch";
 export * from "@/hooks/useSharedInfiniteProducts";
 export * from "@/hooks/useShopForm";
-export * from "@/hooks/useShops";
 export * from "@/hooks/useToggleTheme";
 export * from "@/hooks/useUserAddresses";
