@@ -14,7 +14,7 @@ class ReviewApiService {
     cursor?: string | null;
     product_id: string;
   }) {
-    const url = `/reviews/${product_id}?limit=5${cursor ? `&cursor=${cursor}` : ""}`;
+    const url = `reviews/${product_id}?limit=5${cursor ? `&cursor=${cursor}` : ""}`;
     const response =
       await axiosInstance.get<ActionResponse<PaginatedReviewResponse>>(url);
     return response.data.data;
