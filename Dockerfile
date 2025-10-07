@@ -1,58 +1,42 @@
 # ==============================================================================
-# ---- Dependencies Stage ----
+# ---- Base Stage ----
 # ==============================================================================
-# This stage installs all dependencies (prod and dev) using pnpm.
-# The resulting node_modules will be copied to the builder stage.
-FROM node:24-alpine AS deps
+# This common stage prepares a Node.js environment with pnpm.
+FROM node:24-alpine AS base
 WORKDIR /app
 
-# Add security updates and essential packages, then clean up apk cache.
-RUN apk add --no-cache libc6-compat openssl curl && \
+# Add security updates and essential packages, then clean up.
+RUN apk add --no-cache libc6-compat openssl curl dumb-init && \
     apk upgrade && \
     rm -rf /var/cache/apk/*
 
 # Enable and activate pnpm.
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy only package manifests to leverage Docker cache.
+
+# ==============================================================================
+# ---- Dependencies Stage ----
+# ==============================================================================
+# This stage installs all dependencies (prod and dev).
+FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
-# Install all dependencies.
 RUN pnpm install --frozen-lockfile --ignore-scripts
+
 
 # ==============================================================================
 # ---- Development Stage ----
 # ==============================================================================
-# This is a minimal image for the development environment.
-# It only contains the Node.js runtime and necessary tools.
-# Application code and node_modules are mounted via volumes in docker-compose.
-FROM node:24-alpine AS dev
-WORKDIR /app
+# This is a minimal image for development. Code is mounted via volumes.
+FROM base AS dev
+# No extra commands needed, inherits from base.
 
-# Add essential packages for development.
-RUN apk add --no-cache libc6-compat openssl curl && \
-    apk upgrade && \
-    rm -rf /var/cache/apk/*
-
-# Enable and activate pnpm.
-RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # ==============================================================================
 # ---- Builder Stage ----
 # ==============================================================================
 # This stage builds the Next.js application for production.
-FROM node:24-alpine AS builder
-WORKDIR /app
-
-# Set production environment to enable standalone build.
+FROM base AS builder
 ENV NODE_ENV=production
-
-# Add essential packages for building.
-RUN apk add --no-cache libc6-compat curl && \
-    apk upgrade && \
-    rm -rf /var/cache/apk/*
-
-# Enable and activate pnpm.
-RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy dependencies from the 'deps' stage.
 COPY --from=deps /app/node_modules ./node_modules
@@ -63,8 +47,6 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_MINIO_ENDPOINT
 ARG NEXT_PUBLIC_MINIO_BUCKET
-
-# Set environment variables for the build process.
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
 ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
@@ -75,23 +57,15 @@ RUN pnpm build
 # Remove development dependencies to reduce image size.
 RUN pnpm prune --prod --ignore-scripts
 
+
 # ==============================================================================
 # ---- Runner Stage ----
 # ==============================================================================
 # This is the final, optimized production image with security hardening.
-FROM node:24-alpine AS runner
+FROM base AS runner
 WORKDIR /app
-
-# Set production environment variables.
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-
-# Install only 'dumb-init' for signal handling and perform security cleanup.
-RUN apk add --no-cache dumb-init curl && \
-    apk upgrade && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /usr/share/man/* && \
-    rm -rf /tmp/*
 
 # Create a non-root system user and group for security.
 RUN addgroup --system --gid 1001 nodejs && \
@@ -101,33 +75,26 @@ RUN addgroup --system --gid 1001 nodejs && \
 RUN mkdir -p /home/nextjs/.cache/node/corepack && \
     chown -R nextjs:nodejs /home/nextjs/.cache
 
-# Enable pnpm as root before switching user.
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 # Copy built assets from the 'builder' stage with correct ownership.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 
-# Set secure file permissions.
+# 1. Set a secure baseline for all files.
 RUN chmod -R u=rwX,go=rX /app
 
-# Add execute permissions ONLY where necessary.
+# 2. Add execute permissions ONLY where necessary.
 RUN chmod 555 /app/scripts/entrypoint.sh && \
     chmod +x /app/node_modules/.bin/* && \
     find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
 
 # Switch to the non-root user.
 USER nextjs
-
-# Expose the application port.
 EXPOSE 3000
 
-# Use dumb-init to properly handle process signals and run the entrypoint script.
+# Use dumb-init to properly handle process signals and run the app.
 ENTRYPOINT ["dumb-init", "--", "./scripts/entrypoint.sh"]
-
-# Set the default command to run the application.
-CMD ["npx", "next", "start"]
+CMD ["node_modules/.bin/next", "start"]
