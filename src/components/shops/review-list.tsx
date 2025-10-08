@@ -139,7 +139,7 @@ export function ProductReviewsList({
         <p className="text-muted-foreground">{totalReviews} customer ratings</p>
       </CardHeader>
       <CardContent>
-        <ReviewCount product_id={product_id} reviewGroup={reviewGroup} />
+        <ReviewCount reviewGroup={reviewGroup} />
         {displayReviews.length > 0 && (
           <div className="space-y-6 py-6">
             {displayReviews.map((review, index) => {

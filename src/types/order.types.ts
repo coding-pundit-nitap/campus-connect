@@ -42,9 +42,11 @@ export type SerializedOrder = Omit<
   actual_delivery_time?: string;
 };
 
+export type SerializedOrderItemWithProduct = SerializedOrderItem & {
+  product: SerializedProduct;
+};
+
 export type SerializedOrderWithDetails = SerializedOrder & {
   shop: SerializedShop;
-  items: (SerializedOrderItem & {
-    product: SerializedProduct;
-  })[];
+  items: SerializedOrderItemWithProduct[];
 };

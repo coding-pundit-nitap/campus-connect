@@ -7,10 +7,12 @@ import { createSuccessResponse } from "@/types";
 
 export const createReviewAction = async ({
   product_id,
+  order_item_id,
   rating,
   comment,
 }: {
   product_id: string;
+  order_item_id: string;
   rating: number;
   comment: string;
 }) => {
@@ -23,6 +25,7 @@ export const createReviewAction = async ({
     const review = await reviewService.createReview(
       { rating, comment },
       product_id,
+      order_item_id,
       user_id
     );
 

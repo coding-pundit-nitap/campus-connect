@@ -68,7 +68,8 @@ services:
       target: dev
     container_name: college_connect_app_dev
     restart: unless-stopped
-    command: pnpm dev
+    entrypoint: ["/app/scripts/dev-entrypoint.sh"]
+    command: ["pnpm", "dev"]
     depends_on:
       db:
         condition: service_healthy
