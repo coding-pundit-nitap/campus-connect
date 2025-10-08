@@ -1,3 +1,4 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -17,8 +18,8 @@ import {
 import { Textarea } from "../ui/textarea";
 
 type Props = {
-  onClose: () => void;
   product_id: string;
+  order_item_id: string;
 };
 
 const reviewFormSchema = z.object({
@@ -31,12 +32,11 @@ const reviewFormSchema = z.object({
 
 export type ReviewFormData = z.infer<typeof reviewFormSchema>;
 
-export default function ReviewForm({ onClose, product_id }: Props) {
+export default function ReviewForm({ product_id, order_item_id }: Props) {
   const { mutate: createReview } = useCreateReview();
 
   const handleFormSubmit = (data: { rating: number; comment: string }) => {
-    createReview({ ...data, product_id });
-    onClose();
+    createReview({ ...data, product_id, order_item_id });
   };
   const form = useForm({
     resolver: zodResolver(reviewFormSchema),
@@ -85,9 +85,6 @@ export default function ReviewForm({ onClose, product_id }: Props) {
           )}
         />
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onClose} type="button">
-            Cancel
-          </Button>
           <Button
             type="submit"
             disabled={!form.formState.isDirty || !form.formState.isValid}

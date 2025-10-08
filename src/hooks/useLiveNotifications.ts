@@ -1,6 +1,6 @@
 "use client";
 
-import { Notification } from "@prisma/client";
+import { BroadcastNotification, Notification } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
@@ -33,22 +33,58 @@ export function useLiveNotifications() {
 
     const handleNewNotification = (event: NotificationEvent): void => {
       try {
-        const newNotification: Notification = JSON.parse(event.data);
+        const newNotification: Notification | BroadcastNotification =
+          JSON.parse(event.data);
+
+        const isBroadcast = !("user_id" in newNotification);
+
+        queryClient.setQueryData<{
+          unreadNotifications: Notification[];
+          unreadBroadcasts: BroadcastNotification[];
+        }>(queryKeys.notifications.unread, (oldData) => {
+          if (!oldData) {
+            return isBroadcast
+              ? {
+                  unreadNotifications: [],
+                  unreadBroadcasts: [newNotification],
+                }
+              : {
+                  unreadNotifications: [newNotification],
+                  unreadBroadcasts: [],
+                };
+          }
+
+          const existsInNotifications = oldData.unreadNotifications.some(
+            (n) => n.id === newNotification.id
+          );
+          const existsInBroadcasts = oldData.unreadBroadcasts.some(
+            (n) => n.id === newNotification.id
+          );
+
+          if (existsInNotifications || existsInBroadcasts) {
+            return oldData;
+          }
+
+          return isBroadcast
+            ? {
+                ...oldData,
+                unreadBroadcasts: [
+                  newNotification,
+                  ...(oldData.unreadBroadcasts || []),
+                ],
+              }
+            : {
+                ...oldData,
+                unreadNotifications: [
+                  newNotification,
+                  ...(oldData.unreadNotifications || []),
+                ],
+              };
+        });
+
         queryClient.invalidateQueries({
           queryKey: queryKeys.notifications.unreadCount,
         });
-        queryClient.setQueryData<Notification[]>(
-          queryKeys.notifications.unread,
-          (oldData) => {
-            if (!oldData) {
-              return [newNotification];
-            }
-            if (oldData.some((n) => n.id === newNotification.id)) {
-              return oldData;
-            }
-            return [newNotification, ...oldData];
-          }
-        );
       } catch (e: unknown) {
         console.error("Error processing new notification:", e);
       }

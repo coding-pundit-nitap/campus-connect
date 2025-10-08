@@ -1,7 +1,9 @@
 export * from "./useCarts";
 export * from "./useCategories";
 export * from "./useImageUpload";
+export type { UseOrdersProps } from "./useOrders";
 export * from "./useOrders";
+export { useCreateOrder, useOrders } from "./useOrders";
 export * from "./useSearchQuery";
 export * from "./useShop";
 export * from "./useShopLinks";

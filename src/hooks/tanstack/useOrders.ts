@@ -14,19 +14,19 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { createSuccessResponse, SerializedOrderWithDetails } from "@/types";
 
-type Props = {
+export type UseOrdersProps = {
   initialData: SerializedOrderWithDetails[];
   initialHasNextPage: boolean;
   initialNextCursor: number | null;
   initialError?: string;
 };
 
-export const useOrders = ({
+function useOrders({
   initialData,
   initialHasNextPage,
   initialNextCursor,
   initialError,
-}: Props) => {
+}: UseOrdersProps) {
   const paginatedInitialData = {
     data: initialData,
     totalPages: initialHasNextPage ? 2 : 1,
@@ -75,9 +75,9 @@ export const useOrders = ({
     isFetchingNextPage,
     fetchNextPage,
   };
-};
+}
 
-export const useCreateOrder = () => {
+function useCreateOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -91,4 +91,10 @@ export const useCreateOrder = () => {
       toast.error(error.message);
     },
   });
-};
+}
+
+// Named exports
+export { useCreateOrder, useOrders };
+
+// Default export for more reliable importing
+export default useOrders;

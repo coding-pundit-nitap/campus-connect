@@ -34,6 +34,7 @@ export default function OrderDetailsCard({ order }: Props) {
       <OrderDetailsItems items={order.items} />
 
       <OrderDetailsActions
+        order={order}
         order_id={order.id}
         orderStatus={order.order_status}
         paymentStatus={order.payment_status}

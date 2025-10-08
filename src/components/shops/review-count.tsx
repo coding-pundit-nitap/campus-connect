@@ -1,9 +1,7 @@
 import { Star } from "lucide-react";
 import React, { useMemo } from "react";
 
-import { Button } from "../ui/button";
 import { Progress } from "../ui/progress";
-import ReviewForm from "./review-form";
 
 type Props = {
   reviewGroup: {
@@ -13,11 +11,9 @@ type Props = {
     four: number;
     five: number;
   };
-  product_id: string;
 };
 
-export default function ReviewCount({ reviewGroup, product_id }: Props) {
-  const [isOpen, setIsOpen] = React.useState(false);
+export default function ReviewCount({ reviewGroup }: Props) {
   const ratingDistribution = useMemo(
     () => [
       { star: 5, count: reviewGroup.five },
@@ -38,12 +34,6 @@ export default function ReviewCount({ reviewGroup, product_id }: Props) {
     [reviewGroup]
   );
 
-  if (isOpen) {
-    return (
-      <ReviewForm product_id={product_id} onClose={() => setIsOpen(false)} />
-    );
-  }
-
   if (totalReviews === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 p-8 rounded-lg bg-secondary/50 border-2 border-dashed border-muted-foreground/20">
@@ -53,17 +43,9 @@ export default function ReviewCount({ reviewGroup, product_id }: Props) {
             Be the first one to review it
           </h3>
           <p className="text-sm text-muted-foreground text-center">
-            Share your experience and help others make informed decisions
+            Buy and use this product, then share your experience with others.
           </p>
         </div>
-        <Button
-          onClick={() => setIsOpen(true)}
-          variant="default"
-          size="lg"
-          className="px-6"
-        >
-          Write the First Review
-        </Button>
       </div>
     );
   }
@@ -85,14 +67,6 @@ export default function ReviewCount({ reviewGroup, product_id }: Props) {
             </span>
           </div>
         ))}
-      </div>
-      <div className="flex flex-col items-center justify-center gap-2 p-4 rounded-lg bg-secondary">
-        <p className="text-sm text-muted-foreground">
-          Have you used this product?
-        </p>
-        <Button onClick={() => setIsOpen(true)} variant="outline">
-          Write a Review
-        </Button>
       </div>
     </div>
   );

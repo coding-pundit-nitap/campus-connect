@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 
-import { useOrders } from "@/hooks";
+import useOrders from "@/hooks/tanstack/useOrders";
 import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCard from "./order-card";
@@ -12,12 +12,18 @@ import {
 } from "./order-state";
 
 export default function OrderCardList() {
-  const { allOrders, isLoading, error } = useOrders({
+  const hookResult = useOrders({
     initialData: [],
     initialError: undefined,
     initialHasNextPage: false,
     initialNextCursor: null,
   });
+
+  if (!hookResult) {
+    return <OrderLoadingState />;
+  }
+
+  const { allOrders, isLoading, error } = hookResult;
 
   if (isLoading) {
     return <OrderLoadingState />;
