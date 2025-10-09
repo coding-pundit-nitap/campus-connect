@@ -1,91 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { NextAuthRequest } from "next-auth";
 
 import { auth as middleware } from "@/auth";
-import { securityMiddleware, withSecurity } from "@/lib/security";
+import { addSecurityHeaders } from "@/lib/security";
 import {
   apiAuthPrefix,
   authRoutes,
-  consumerPrefix,
   DEFAULT_LOGIN_REDIRECT,
   publicRoutes,
-  staffPrefix,
 } from "@/rbac";
 
-const roleBasedPrefixes: {
-  prefixes: string[];
-  isStaff: boolean;
-}[] = [
-  { prefixes: staffPrefix, isStaff: true },
-  { prefixes: consumerPrefix, isStaff: false },
-];
-
 export default middleware(async (req: NextAuthRequest) => {
-  const { nextUrl } = req;
-  const path = nextUrl.pathname;
-  const isLoggedIn = Boolean(req.auth);
+  try {
+    const { nextUrl } = req;
+    const path = nextUrl.pathname;
+    const isLoggedIn = !!req.auth;
+    const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
+    const isPublicRoute = publicRoutes.some((p) => path.startsWith(p));
+    const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
 
-  const securityResponse = await securityMiddleware(req);
-  if (securityResponse) {
-    return securityResponse;
-  }
+    let response: NextResponse;
 
-  // Allow unauthenticated access to API auth and public routes
-  if (
-    apiAuthPrefix.some((p) => path.startsWith(p)) ||
-    publicRoutes.some((p) => path.startsWith(p))
-  ) {
-    return withSecurity(NextResponse.next());
-  }
-
-  // In development, allow any route once authenticated
-  if (process.env.NODE_ENV !== "production" && isLoggedIn) {
-    return withSecurity(NextResponse.next());
-  }
-
-  // Prevent logged-in users from accessing auth pages
-  if (authRoutes.some((p) => path.startsWith(p))) {
-    if (isLoggedIn) {
-      return withSecurity(
-        NextResponse.redirect(new URL(DEFAULT_LOGIN_REDIRECT, nextUrl))
-      );
+    if (isApiAuthRoute || isPublicRoute) {
+      // Always allow access to API auth routes and public routes
+      response = NextResponse.next();
+    } else if (isAuthRoute && isLoggedIn) {
+      // Redirect logged-in users away from auth routes to the default redirect path
+      const redirectUrl = nextUrl.clone();
+      redirectUrl.pathname = DEFAULT_LOGIN_REDIRECT;
+      response = NextResponse.redirect(redirectUrl);
+    } else if (!isAuthRoute && !isLoggedIn) {
+      // Redirect unauthenticated users trying to access protected routes to login
+      const redirectUrl = nextUrl.clone();
+      redirectUrl.pathname = "/login";
+      redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+      response = NextResponse.redirect(redirectUrl);
+    } else {
+      // Allow access in all other cases (e.g., logged-in users accessing non-auth routes)
+      response = NextResponse.next();
     }
-    return withSecurity(NextResponse.next());
-  }
 
-  // Handle role-based protected prefixes
-  for (const { prefixes, isStaff } of roleBasedPrefixes) {
-    if (prefixes.some((p) => path.startsWith(p))) {
-      // Redirect unauthenticated
-      if (!isLoggedIn) {
-        return withSecurity(redirectToLogin(req));
-      }
-      // Insufficient role
-      if (!!req.auth?.user.shop_id !== isStaff) {
-        return withSecurity(
-          NextResponse.redirect(new URL("/unauthorized", nextUrl))
-        );
-      }
-      return withSecurity(NextResponse.next());
-    }
+    return addSecurityHeaders(response);
+  } catch (error) {
+    console.error("[MIDDLEWARE ERROR]:", error);
+    const errorResponse = NextResponse.next();
+    return addSecurityHeaders(errorResponse);
   }
-
-  // Catch-all: protect remaining routes
-  if (!isLoggedIn) {
-    return withSecurity(redirectToLogin(req));
-  }
-
-  // Default allow with security headers
-  return withSecurity(NextResponse.next());
 });
-
-// Utility to redirect to login with callback
-function redirectToLogin(req: NextRequest) {
-  const { nextUrl } = req;
-  const loginUrl = new URL("/login", nextUrl);
-  loginUrl.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
-  return NextResponse.redirect(loginUrl);
-}
 
 // Export matcher config for Next.js middleware
 export const config = {

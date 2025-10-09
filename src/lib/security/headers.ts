@@ -14,15 +14,23 @@ export interface SecurityHeadersConfig {
   frameOptionsValue?: "DENY" | "SAMEORIGIN";
 }
 
+const minioPublicEndpoint = process.env.NEXT_PUBLIC_MINIO_ENDPOINT;
+if (!minioPublicEndpoint) {
+  throw new Error("NEXT_PUBLIC_MINIO_ENDPOINT is not defined");
+}
+
+// We need to parse the URL to get the origin (e.g., http://127.0.0.1:9000)
+const minioOrigin = new URL(minioPublicEndpoint).origin;
+
 const defaultConfig: Required<SecurityHeadersConfig> = {
   enableCSP: true,
   cspDirectives: [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // unsafe-eval needed for Next.js dev
-    "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for styled-components
-    "img-src 'self' data: https: blob:",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: https: blob: ${minioOrigin}`,
     "font-src 'self' data:",
-    "connect-src 'self' https: wss:",
+    `connect-src 'self' https: wss: ${minioOrigin}`,
     "media-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -50,10 +58,9 @@ export function addSecurityHeaders(
   if (finalConfig.enableCSP) {
     const cspValue = finalConfig.cspDirectives.join("; ");
 
-    // Only set CSP in production to avoid Next.js dev server issues
-    if (process.env.NODE_ENV === "production") {
-      response.headers.set("Content-Security-Policy", cspValue);
-    }
+    // Apply CSP in both development and production
+    // In development, we allow HTTP connections to localhost for MinIO
+    response.headers.set("Content-Security-Policy", cspValue);
   }
 
   // Strict Transport Security - Force HTTPS
@@ -85,38 +92,4 @@ export function addSecurityHeaders(
   );
 
   return response;
-}
-
-/**
- * Generate a cryptographically secure nonce for CSP
- */
-export function generateNonce(): string {
-  const buffer = new Uint8Array(16);
-  crypto.getRandomValues(buffer);
-  return Buffer.from(buffer).toString("base64");
-}
-
-/**
- * Create a CSP header value with nonce support
- */
-export function createCSPWithNonce(
-  nonce: string,
-  customDirectives?: string[]
-): string {
-  const baseDirectives = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'unsafe-eval'`,
-    `style-src 'self' 'nonce-${nonce}' 'unsafe-inline'`,
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' data:",
-    "connect-src 'self' https: wss:",
-    "media-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-  ];
-
-  const directives = customDirectives || baseDirectives;
-  return directives.join("; ");
 }

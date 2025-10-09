@@ -1,20 +1,61 @@
 import axios from "axios";
 
 /**
- * Pre-configured axios instance for college connect API communication.
+ * Pre-configured axios instance for campus connect API communication.
  *
  * A centralized HTTP client instance configured with default settings for
- * communicating with the college connect backend API. This instance provides
+ * communicating with the campus connect backend API. This instance provides
  * consistent configuration across the application and serves as the foundation
  * for all API service classes.
  *
  */
+const getBaseURL = () => {
+  // Client-side: use relative URLs or configured URL
+  if (typeof window !== "undefined") {
+    return process.env.NEXT_PUBLIC_API_URL || "/api/";
+  }
+
+  // Server-side: use absolute URL if configured
+  return process.env.NEXT_PUBLIC_API_URL || "/api/";
+};
+
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: getBaseURL(),
   headers: {
     "Content-Type": "application/json",
   },
   timeout: 10000,
 });
+
+// Add request interceptor for better error handling
+axiosInstance.interceptors.request.use(
+  (config) => {
+    console.log(`Making API request to: ${config.baseURL}${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error("API request failed:", error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for better error handling
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API response error:", {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      config: {
+        method: error.config?.method,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+      },
+    });
+    return Promise.reject(error);
+  }
+);
 
 export default axiosInstance;

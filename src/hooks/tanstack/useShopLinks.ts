@@ -1,3 +1,4 @@
+"use client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -8,11 +9,13 @@ export function useShopLink() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createShopAction,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.shops.byUser(),
       });
-      toast.success("Shop linked successfully!");
+      if (data.success) {
+        toast.success(data.details || "Shop linked successfully!");
+      }
     },
     onError: () => {
       toast.error("Failed to link shop.");

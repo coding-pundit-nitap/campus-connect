@@ -7,6 +7,7 @@ import { ShopEditFormContainer } from "@/components/owned-shop/shop-edit";
 import { SharedCard } from "@/components/shared/shared-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { ImageUtils } from "@/lib/utils-functions/image.utils";
 import { ShopWithOwner } from "@/types";
@@ -103,13 +104,12 @@ export default function ShopCard({ shop }: ShopCardProps) {
       <Separator />
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-6 bg-muted/30">
-        <Link
-          href={`/owner-shops/${shop.id}`}
-          className="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-        >
-          <Store className="w-4 h-4 mr-2" />
-          Manage Shop & Products
-        </Link>
+        <Button asChild>
+          <Link href={`/owner-shops/${shop.id}`}>
+            <Store className="w-4 h-4 mr-2" />
+            Manage Shop & Products
+          </Link>
+        </Button>
 
         <ShopEditFormContainer shop={shop} className="w-full sm:w-auto" />
       </div>

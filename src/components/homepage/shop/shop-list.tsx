@@ -1,8 +1,9 @@
+"use client";
 import React from "react";
 
 import { ProductSkeletonGrid } from "@/components/shared/shared-product-list";
 import { useInfiniteScroll } from "@/hooks";
-import { ShopWithOwner } from "@/types";
+import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 import ShopGrid from "./shop-grid";
 import { ShopListEmpty } from "./shop-list-empty";
@@ -10,7 +11,7 @@ import { ShopListError } from "./shop-list-error";
 import ShopListFooter from "./shop-list-footer";
 
 type Props = {
-  displayShops: ShopWithOwner[];
+  displayShops: ShopWithOwnerDetails[];
   isLoading: boolean;
   isError: boolean;
   hasNextPage: boolean;
@@ -18,7 +19,7 @@ type Props = {
   error: Error | null;
   fetchNextPage: () => void;
   renderShopCard: (
-    shop: ShopWithOwner,
+    shop: ShopWithOwnerDetails,
     index: number,
     isLastShop: boolean,
     isNearEnd: boolean

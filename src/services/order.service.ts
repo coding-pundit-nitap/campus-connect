@@ -6,8 +6,49 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import orderRepository from "@/repositories/order.repository";
+import { shopRepository } from "@/repositories/shop.repository";
+
+import { notificationService } from "./notification.service";
+
+type GetOrdersOptions = {
+  page?: number;
+  limit?: number;
+  userId: string;
+};
 
 class OrderService {
+  async getOrders(options: GetOrdersOptions) {
+    const { page = 1, limit = 10, userId } = options;
+    const skip = (page - 1) * limit;
+
+    const orders = await orderRepository.getOrdersByUserId(userId, {
+      skip,
+      take: limit,
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+          },
+        },
+        shop: true,
+      },
+    });
+
+    const totalOrders = await prisma.order.count({
+      where: { user_id: userId },
+    });
+
+    return {
+      orders,
+      totalOrders,
+      totalPages: Math.ceil(totalOrders / limit),
+      currentPage: page,
+    };
+  }
   async createOrderFromCart(
     user_id: string,
     shop_id: string,
@@ -40,7 +81,7 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        totalPrice += item.product.price.toNumber() * item.quantity;
+        totalPrice += Number(item.product.price) * item.quantity;
       }
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
@@ -74,6 +115,15 @@ class OrderService {
         )
       );
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
+      const shop = await shopRepository.findById(shop_id);
+      if (shop) {
+        await notificationService.publishNotification(shop.owner_id, {
+          title: "New Order Received",
+          message: `You have received a new order with ID: ${order.display_id}`,
+          action_url: `/owner-shops/orders`,
+          type: "INFO",
+        });
+      }
 
       return order;
     });

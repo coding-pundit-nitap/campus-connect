@@ -1,3 +1,4 @@
+"use client";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
@@ -15,6 +16,18 @@ export const useOwnedShop = (shop_id: string) => {
     error,
     hasActiveFilters,
     clearFilters,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   } = useOwnerProducts(shop_id);
   const { mutate: deleteProduct } = useShopProductsDelete();
   const { mutateAsync: deleteImage } = useImageDelete();
@@ -35,11 +48,11 @@ export const useOwnedShop = (shop_id: string) => {
     () => ({
       onDeleteProduct: async (product_id: string, imageKey: string) => {
         await deleteImage(imageKey);
-        deleteProduct(product_id);
+        deleteProduct({ product_id, shop_id });
       },
       onResetFilters: clearFilters,
     }),
-    [clearFilters, deleteProduct, deleteImage]
+    [clearFilters, deleteProduct, deleteImage, shop_id]
   );
 
   const loadingStates = useMemo(
@@ -59,5 +72,19 @@ export const useOwnedShop = (shop_id: string) => {
     hasActiveFilters,
     ...actionHandlers,
     error,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };

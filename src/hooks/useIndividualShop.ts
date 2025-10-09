@@ -1,10 +1,11 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
 
 import { useAddToCart } from "./tanstack";
-import { useProducts } from "./useProduct";
+import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useIndividualShop = (shop_id: string) => {
   const {
@@ -19,9 +20,19 @@ export const useIndividualShop = (shop_id: string) => {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useProducts(shop_id);
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = useOwnerProducts(shop_id);
   const { mutate: onAddToCartAction, isPending: isAddingToCart } =
     useAddToCart();
+  const router = useRouter();
 
   const shopState = useMemo(
     () => ({
@@ -46,8 +57,11 @@ export const useIndividualShop = (shop_id: string) => {
   const actionHandlers = useMemo(
     () => ({
       onResetFilters: clearFilters,
+      onViewDetails: (product_id: string) => {
+        router.push(`/shops/${shop_id}/products/${product_id}`);
+      },
     }),
-    [clearFilters]
+    [clearFilters, router, shop_id]
   );
 
   const loadingStates = useMemo(
@@ -73,5 +87,14 @@ export const useIndividualShop = (shop_id: string) => {
     isFetchingNextPage,
     fetchNextPage,
     isAddingToCart,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };

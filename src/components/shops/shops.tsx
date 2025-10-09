@@ -1,6 +1,6 @@
 import React from "react";
 
-import { ProductListContainer } from "./products";
+import { Products } from "./products";
 
 type Props = {
   shop_id: string;
@@ -8,8 +8,8 @@ type Props = {
 
 export default function Shops({ shop_id }: Props) {
   return (
-    <div className="flex gap-2 flex-col justify-between flex-wrap ">
-      <ProductListContainer shop_id={shop_id} />
+    <div className="flex gap-2 flex-col justify-between flex-wrap h-full">
+      <Products shop_id={shop_id} />
     </div>
   );
 }

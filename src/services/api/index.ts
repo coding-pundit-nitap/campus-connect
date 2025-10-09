@@ -1,5 +1,7 @@
 export { default as cartAPIService } from "./cart-api.service";
+export { default as categoryAPIService } from "./category-api.service";
 export { default as fileUploadAPIService } from "./file-upload-api.service";
+export { default as notificationAPIService } from "./notification-api.service";
 export { default as orderAPIService } from "./order-api.service";
 export { default as productAPIService } from "./product-api.service";
 export { default as searchAPIService } from "./search-api.service";

@@ -10,10 +10,6 @@ interface OfflineWrapperProps {
   children: React.ReactNode;
 }
 
-interface OfflineWrapperProps {
-  children: React.ReactNode;
-}
-
 export function OfflineWrapper({ children }: OfflineWrapperProps) {
   const { isOnline, wasOffline, acknowledgeReconnection, isChecking, retry } =
     useOnlineStatus();

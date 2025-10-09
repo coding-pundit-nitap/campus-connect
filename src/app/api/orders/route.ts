@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import authUtils from "@/lib/utils-functions/auth.utils";
+import { serializeOrderWithDetails } from "@/lib/utils-functions/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
@@ -17,10 +18,20 @@ export async function GET() {
     }
 
     const orders = await orderRepository.getOrdersByUserId(user_id, {
-      include: { items: true, shop: true },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: { category: true },
+            },
+          },
+        },
+        shop: true,
+        delivery_address: true,
+      },
     });
     const successResponse = createSuccessResponse(
-      orders,
+      orders.map(serializeOrderWithDetails),
       "Orders retrieved successfully"
     );
     return NextResponse.json(successResponse);

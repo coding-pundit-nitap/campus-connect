@@ -7,6 +7,8 @@ import {
 } from "@/lib/custom-error";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
+import categoryServices from "@/services/category.service";
+import notificationService from "@/services/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 import {
   ShopActionFormData,
@@ -47,7 +49,7 @@ export async function updateShopAction(formData: ShopFormData) {
       select: { id: true },
     });
     if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to create a product");
+      throw new UnauthorizedError("User is not authorized to update a shop");
     }
 
     const shop_id = context.id;
@@ -57,11 +59,41 @@ export async function updateShopAction(formData: ShopFormData) {
       throw new BadRequestError(parsedData.error.message);
     }
 
-    await shopRepository.update(shop_id, parsedData.data);
+    await categoryServices.cleanupEmptyCategories(shop_id);
+
+    const updatedShop = await shopRepository.update(shop_id, parsedData.data);
+
+    await notificationService.publishNotification(user_id, {
+      title: "Shop Updated Successfully",
+      message: `Your shop ${updatedShop.name} has been updated.`,
+      action_url: `/owner-shops`,
+      type: "INFO",
+    });
 
     return createSuccessResponse("Shop updated successfully!");
   } catch (error) {
     console.error("UPDATE SHOP ERROR:", error);
     throw new InternalServerError("Failed to update shop.");
+  }
+}
+
+export async function deleteShopAction() {
+  try {
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to delete a shop");
+    }
+
+    const shop_id = context.id;
+
+    await shopRepository.delete(shop_id);
+
+    return createSuccessResponse(null, "Shop deleted successfully");
+  } catch (error) {
+    console.error("DELETE SHOP ERROR:", error);
+    throw new InternalServerError("Failed to delete shop.");
   }
 }

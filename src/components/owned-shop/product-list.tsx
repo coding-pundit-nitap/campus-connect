@@ -2,64 +2,70 @@
 import React from "react";
 
 import { ProductCard } from "@/components/shared/shared-product-card";
-import {
-  ProductList,
-  ProductListError,
-  ProductSkeletonGrid,
-} from "@/components/shared/shared-product-list";
-import { useOwnedShop } from "@/hooks";
-import { useOwnerProducts } from "@/hooks/useOwnerProducts";
+import { ProductListWithViewModes } from "@/components/shared/shared-product-list/product-list-with-view-modes";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
+import { SerializedProduct } from "@/types/product.types";
 
 interface ProductListProps {
   onDeleteProduct: (product_id: string, imageKey: string) => Promise<void>;
-  error?: Error | null;
-  shop_id: string;
+  shopData: {
+    displayProducts: SerializedProduct[];
+    isInitialLoading: boolean;
+    hasError: boolean;
+    isLoading: boolean;
+    isError: boolean;
+    hasNextPage: boolean;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
+    hasActiveFilters: boolean;
+    error: Error | null;
+  };
 }
 
 export function ProductListContainer({
   onDeleteProduct,
-  shop_id,
+  shopData,
 }: ProductListProps) {
-  const { isLoading, isError, hasNextPage, isFetchingNextPage, fetchNextPage } =
-    useOwnerProducts(shop_id);
   const {
     displayProducts,
     error,
     hasActiveFilters,
     isInitialLoading,
     hasError,
-  } = useOwnedShop(shop_id);
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = shopData;
 
-  if (isInitialLoading) {
-    return <ProductSkeletonGrid count={4} />;
-  }
-
-  if (hasError && error) {
-    return <ProductListError error={error} onRetry={fetchNextPage} />;
-  }
+  const renderProductCard = (product: SerializedProduct, index: number) => {
+    const cardProps = productUIServices.getProductCardProps(product, index);
+    return (
+      <ProductCard
+        {...cardProps}
+        product={product}
+        mode="owner"
+        onDelete={onDeleteProduct}
+      />
+    );
+  };
 
   return (
-    <ProductList
+    <ProductListWithViewModes
       displayProducts={displayProducts}
-      isLoading={isLoading}
-      fetchNextPage={fetchNextPage}
+      isInitialLoading={isInitialLoading}
+      hasError={hasError}
       error={error}
-      hasActiveFilters={hasActiveFilters}
-      hasNextPage={hasNextPage}
+      isLoading={isLoading}
       isError={isError}
+      hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      renderProductCard={(product, index) => {
-        const cardProps = productUIServices.getProductCardProps(product, index);
-        return (
-          <ProductCard
-            {...cardProps}
-            product={product}
-            mode="owner"
-            onDelete={onDeleteProduct}
-          />
-        );
-      }}
+      hasActiveFilters={hasActiveFilters}
+      fetchNextPage={fetchNextPage}
+      renderProductCard={renderProductCard}
+      showViewModeToggle={true}
+      skeletonCount={4}
     />
   );
 }

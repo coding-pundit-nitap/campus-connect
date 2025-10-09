@@ -16,7 +16,7 @@ import {
 } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService, shopAPIService } from "@/services/api";
-import { ProductFormData } from "@/validations/product";
+import { ProductUpdateFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {
   return useQuery({
@@ -28,7 +28,7 @@ export function useShop(shop_id: string) {
 
 export const useShopProducts = (shop_id: string) => {
   return useInfiniteQuery({
-    queryKey: queryKeys.shops.products(shop_id),
+    queryKey: queryKeys.products.byShop(shop_id),
     queryFn: ({ pageParam }) =>
       productAPIService.fetchShopProducts({ shop_id, cursor: pageParam }),
     initialPageParam: null as string | null,
@@ -36,18 +36,6 @@ export const useShopProducts = (shop_id: string) => {
     enabled: !!shop_id && shop_id.trim() !== "",
   });
 };
-
-export function useShopProductsFlat(shop_id: string) {
-  const query = useShopProducts(shop_id);
-  const products = query.data?.pages.flatMap((page) => page.data) ?? [];
-
-  return {
-    ...query,
-    products,
-    hasProducts: products.length > 0,
-    totalProducts: products.length,
-  };
-}
 
 export function useShopByUser() {
   const { data: session } = useSession();
@@ -64,7 +52,7 @@ export function useShopProductsUpdate(product_id: string) {
 
   return useMutation({
     mutationFn: (
-      formData: Omit<ProductFormData, "imageKey"> & {
+      formData: Omit<ProductUpdateFormData, "imageKey"> & {
         imageKey: string | null;
       }
     ) => updateProductAction(product_id, formData),
@@ -77,7 +65,7 @@ export function useShopProductsUpdate(product_id: string) {
 
       if (data.data?.shop_id) {
         queryClient.invalidateQueries({
-          queryKey: queryKeys.shops.products(data.data.shop_id),
+          queryKey: queryKeys.products.byShop(data.data.shop_id),
         });
       }
 
@@ -100,8 +88,20 @@ export function useShopProductsCreate() {
     onSuccess: ({ data, success, details }) => {
       if (success) {
         toast.success(details || "Product created successfully!");
+
+        // Invalidate products for the specific shop
         queryClient.invalidateQueries({
-          queryKey: queryKeys.shops.products(data.shop_id),
+          queryKey: queryKeys.products.byShop(data.shop_id),
+        });
+
+        // Invalidate shop detail to update product counts
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.detail(data.shop_id),
+        });
+
+        // Invalidate all shops in case they show product counts
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.all,
         });
       }
     },
@@ -116,13 +116,28 @@ export function useShopProductsDelete() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteProductAction,
-    onSuccess: ({ success, details }) => {
+    mutationFn: (params: { product_id: string; shop_id: string }) =>
+      deleteProductAction(params.product_id),
+    onSuccess: ({ success, details }, variables) => {
       if (success) {
         toast.success(details || "Product deleted successfully!");
+
+        // Invalidate specific product detail
         queryClient.invalidateQueries({
-          queryKey: queryKeys.products.all,
+          queryKey: queryKeys.products.detail(variables.product_id),
         });
+
+        // Invalidate products for the specific shop
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.byShop(variables.shop_id),
+        });
+
+        // Invalidate shop detail to update product counts
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.detail(variables.shop_id),
+        });
+
+        // Only invalidate shops.all if it might show product counts
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.all,
         });
