@@ -11,6 +11,12 @@ export class UnauthorizedError extends Error {
     this.name = "UnauthorizedError";
   }
 }
+export class UnauthenticatedError extends Error {
+  constructor(message = "Unauthenticated") {
+    super(message);
+    this.name = "UnauthenticatedError";
+  }
+}
 
 export class ValidationError extends Error {
   constructor(message = "Validation failed") {
@@ -37,5 +43,12 @@ export class NetworkError extends Error {
   constructor(message = "Network connectivity check failed") {
     super(message);
     this.name = "NetworkError";
+  }
+}
+
+export class BadRequestError extends Error {
+  constructor(message = "Bad request") {
+    super(message);
+    this.name = "BadRequestError";
   }
 }

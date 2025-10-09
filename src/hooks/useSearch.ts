@@ -1,65 +1,222 @@
 "use client";
-import { useState } from "react";
-type searchProps = {
+import { debounce } from "lodash";
+import { useEffect, useMemo, useState } from "react";
+
+import { SearchResult } from "@/types";
+
+type SearchHookProps = {
   /** Callback function when a search item is selected */
   onSelectItem: (value: string) => void;
   /** Callback function when search query changes */
   onSearch: (query: string) => void;
-  /** Array of suggestions to check if we should show popover */
+  /** Array of suggestions to check if we should show suggestions dropdown */
   suggestions: { id: string; title: string; subtitle: string }[];
+  /** Initial value for the search term */
+  initialValue?: string;
 };
+
+type SearchInputProps = {
+  /** Current selected category value */
+  value: string;
+  /** Callback when category is selected or created */
+  onChange: (category: string) => void;
+  /** Custom suggestions data */
+  suggestions?: Array<{ id: string; title: string; subtitle: string }>;
+  /** Loading state for suggestions */
+  isLoadingSuggestions?: boolean;
+  /** Custom search function for external data fetching */
+  onSearchQuery?: (query: string) => void;
+};
+
+type NavigationSearchProps = {
+  /** Function to handle navigation routing */
+  onNavigate: (result: SearchResult) => void;
+  /** Search results from API */
+  searchResults: SearchResult[];
+  /** Loading state from API query */
+  isLoading: boolean;
+  /** Debounce delay in milliseconds */
+  debounceDelay?: number;
+};
+
 export const useSearch = ({
   onSearch,
   onSelectItem,
   suggestions = [],
-}: searchProps) => {
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  initialValue = "",
+}: SearchHookProps) => {
+  const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
+  const [inputValue, setInputValue] = useState(initialValue);
+
+  useEffect(() => {
+    setInputValue(initialValue);
+  }, [initialValue]);
+
+  const shouldShowSuggestions = (value: string, hasSuggestions: boolean) => {
+    return hasSuggestions || value.trim().length > 0;
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setSearchTerm(value);
+    setInputValue(value);
 
-    if (suggestions.length > 0) {
-      setIsSearching(true);
-    } else if (value.trim().length > 0) {
-      setIsSearching(true);
+    const hasSuggestions = suggestions.length > 0;
+    if (shouldShowSuggestions(value, hasSuggestions)) {
+      setShowSuggestionsDropdown(true);
     } else {
-      setIsSearching(false);
+      setShowSuggestionsDropdown(false);
     }
+
     onSearch(value);
   };
 
   const handleSelectItem = (value: string) => {
-    setSearchTerm(value);
-    setIsSearching(false);
+    setInputValue(value);
+    setShowSuggestionsDropdown(false);
     onSelectItem(value);
   };
 
   const handleInputFocus = () => {
     if (suggestions.length > 0) {
-      setIsSearching(true);
+      setShowSuggestionsDropdown(true);
     }
   };
 
   const handleInputClick = () => {
     if (suggestions.length > 0) {
-      setIsSearching(true);
+      setShowSuggestionsDropdown(true);
     }
   };
 
   const handleInputBlur = () => {
-    setTimeout(() => setIsSearching(false), 100);
+    setTimeout(() => setShowSuggestionsDropdown(false), 200);
   };
 
   return {
-    isSearching,
-    setIsSearching,
-    searchTerm,
+    showSuggestionsDropdown,
+    inputValue,
+
     handleInputBlur,
     handleInputClick,
     handleSelectItem,
     handleInputFocus,
     handleInputChange,
+
+    setShowSuggestionsDropdown,
+  };
+};
+
+export const useSearchInput = ({
+  value,
+  onChange,
+  suggestions = [],
+  isLoadingSuggestions = false,
+  onSearchQuery,
+}: SearchInputProps) => {
+  const debouncedSearchQuery = useMemo(
+    () =>
+      debounce((query: string) => {
+        if (onSearchQuery) {
+          onSearchQuery(query);
+        }
+      }, 300),
+    [onSearchQuery]
+  );
+
+  const onSearch = useMemo(
+    () => (query: string) => {
+      onChange(query);
+
+      if (onSearchQuery) {
+        if (query.trim().length > 0) {
+          debouncedSearchQuery(query);
+        } else {
+          debouncedSearchQuery("");
+        }
+      }
+    },
+    [onChange, onSearchQuery, debouncedSearchQuery]
+  );
+
+  const onSelectItem = useMemo(
+    () => (selectedValue: string) => {
+      onChange(selectedValue);
+
+      if (onSearchQuery) {
+        debouncedSearchQuery.cancel();
+      }
+    },
+    [onChange, onSearchQuery, debouncedSearchQuery]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSearchQuery.cancel();
+    };
+  }, [debouncedSearchQuery]);
+
+  const baseSearch = useSearch({
+    onSearch,
+    onSelectItem,
+    suggestions,
+    initialValue: value,
+  });
+
+  return {
+    ...baseSearch,
+    isLoadingSuggestions,
+    suggestions,
+  };
+};
+
+export const useNavigationSearch = ({
+  onNavigate,
+  debounceDelay = 300,
+}: Omit<NavigationSearchProps, "searchResults" | "isLoading">) => {
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+
+  const debouncedSetQuery = useMemo(
+    () =>
+      debounce((query: string) => {
+        setDebouncedQuery(query);
+      }, debounceDelay),
+    [debounceDelay]
+  );
+
+  const onSearch = useMemo(
+    () => (query: string) => {
+      if (query.trim().length > 0) {
+        debouncedSetQuery(query);
+      } else {
+        debouncedSetQuery("");
+      }
+    },
+    [debouncedSetQuery]
+  );
+
+  const onSelectItem = useMemo(
+    () => (value: string, searchResults: SearchResult[]) => {
+      const selectedItem = searchResults.find(
+        (result) => result.title === value
+      );
+
+      if (selectedItem) {
+        onNavigate(selectedItem);
+      }
+    },
+    [onNavigate]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSetQuery.cancel();
+    };
+  }, [debouncedSetQuery]);
+
+  return {
+    debouncedQuery,
+    onSearch,
+    onSelectItem,
+    setDebouncedQuery,
   };
 };

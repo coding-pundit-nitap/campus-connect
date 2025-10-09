@@ -1,72 +1,100 @@
-# ---- Dependencies ----
-# Stage 1: Install dependencies
-FROM node:24-alpine AS deps
+# ==============================================================================
+# ---- Base Stage ----
+# ==============================================================================
+# This common stage prepares a Node.js environment with pnpm.
+FROM node:24-alpine AS base
 WORKDIR /app
 
-# Prisma needs this for its engine
-RUN apk add --no-cache libc6-compat
+# Add security updates and essential packages, then clean up.
+RUN apk add --no-cache libc6-compat openssl curl dumb-init && \
+    apk upgrade && \
+    rm -rf /var/cache/apk/*
 
-# Install pnpm
+# Enable and activate pnpm.
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 
-# Copy only package files and install all dependencies
+# ==============================================================================
+# ---- Dependencies Stage ----
+# ==============================================================================
+# This stage installs all dependencies (prod and dev).
+FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# ---- Builder ----
-# Stage 2: Build the application
-FROM node:24-alpine AS builder
-WORKDIR /app
 
-# Install pnpm in builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# ==============================================================================
+# ---- Development Stage ----
+# ==============================================================================
+# This is a minimal image for development. Code is mounted via volumes.
+FROM base AS dev
+# No extra commands needed, inherits from base.
 
-# Copy dependencies from the 'deps' stage
+
+# ==============================================================================
+# ---- Builder Stage ----
+# ==============================================================================
+# This stage builds the Next.js application for production.
+FROM base AS builder
+ENV NODE_ENV=production
+
+# Copy dependencies from the 'deps' stage.
 COPY --from=deps /app/node_modules ./node_modules
+# Copy the rest of the application source code.
 COPY . .
 
-# Generate Prisma Client for the correct platform (linux)
+# Accept build arguments for Next.js public environment variables.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_MINIO_ENDPOINT
+ARG NEXT_PUBLIC_MINIO_BUCKET
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
+ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
+
+# Build the application.
 RUN pnpm prisma generate
-
-# Build the Next.js application for production
 RUN pnpm build
+# Remove development dependencies to reduce image size.
+RUN pnpm prune --prod --ignore-scripts
 
-# Prune devDependencies to keep prod-only
-RUN pnpm prune --prod
 
-
-# ---- Runner ----
-# Stage 3: Production image
-FROM node:24-alpine AS runner
+# ==============================================================================
+# ---- Runner Stage ----
+# ==============================================================================
+# This is the final, optimized production image with security hardening.
+FROM base AS runner
 WORKDIR /app
-
-# Set the environment to production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nextjs
+# Create a non-root system user and group for security.
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 --ingroup nodejs --home /home/nextjs --shell /bin/false nextjs
 
-# Copy only production node_modules and build output
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+# Create corepack cache directory with proper permissions for the non-root user.
+RUN mkdir -p /home/nextjs/.cache/node/corepack && \
+    chown -R nextjs:nodejs /home/nextjs/.cache
+
+# Copy built assets from the 'builder' stage with correct ownership.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 
-# Copy and set up the entrypoint script for migrations
-COPY --chown=nextjs:nodejs entrypoint.sh ./
-RUN chmod +x entrypoint.sh
+# 1. Set a secure baseline for all files.
+RUN chmod -R u=rwX,go=rX /app
 
-# Switch to the non-root user
+# 2. Add execute permissions ONLY where necessary.
+RUN chmod 555 /app/scripts/entrypoint.sh && \
+    chmod +x /app/node_modules/.bin/* && \
+    find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
+
+# Switch to the non-root user.
 USER nextjs
-
-# Expose the port the app runs on
 EXPOSE 3000
 
-# Set the entrypoint to our script
-ENTRYPOINT ["./entrypoint.sh"]
-
-# The command that the entrypoint script will run after migrations
-CMD ["node", "server.js"]
+# Use dumb-init to properly handle process signals and run the app.
+ENTRYPOINT ["dumb-init", "--", "./scripts/entrypoint.sh"]
+CMD ["node_modules/.bin/next", "start"]

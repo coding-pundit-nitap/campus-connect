@@ -1,64 +1,159 @@
 "use server";
 
-import { Product } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
-import { InternalServerError } from "@/lib/custom-error";
+import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { serializeProduct } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
+import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
+import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
-import { ProductFormData, productSchema } from "@/validations/product";
+import {
+  ProductActionFormData,
+  productActionSchema,
+  productUpdateActionSchema,
+  ProductUpdateFormData,
+} from "@/validations/product";
 
 export async function createProductAction(
-  formData: ProductFormData
-): Promise<ActionResponse<Product>> {
+  formData: ProductActionFormData
+): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const shop_id = await authUtils.getShopId();
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to create a product");
+    }
 
-    const parsedData = productSchema.parse(formData);
+    const shop_id = context.id;
+
+    const parsedData = productActionSchema.parse(formData);
+
+    const category = await categoryRepository.findOrCreate(
+      parsedData.category,
+      shop_id
+    );
+
+    const { imageKey, name, price, stock_quantity, description, discount } =
+      parsedData;
+
+    const productData = {
+      imageKey,
+      name,
+      price,
+      stock_quantity,
+      description,
+      discount,
+    };
+
     const newProduct = await productRepository.create({
-      ...parsedData,
-      image_url: "",
+      ...productData,
       shop: {
         connect: { id: shop_id },
       },
+      category: {
+        connect: { id: category.id },
+      },
     });
 
-    // TODO: revalidate
+    const serializedProduct = serializeProduct(newProduct);
 
-    return createSuccessResponse(newProduct, "Product created successfully");
+    revalidatePath(`/shop/${shop_id}`);
+
+    return createSuccessResponse(
+      serializedProduct,
+      "Product created successfully"
+    );
   } catch (error) {
     console.error("CREATE PRODUCT ERROR:", error);
-    throw error;
+    throw new InternalServerError("Failed to create product.");
   }
-}
-
-interface UpdateProductActionFormData
-  extends Omit<ProductFormData, "image_url"> {
-  image_url: string | null;
 }
 
 export async function updateProductAction(
   product_id: string,
-  formData: UpdateProductActionFormData
-) {
+  formData: Omit<ProductUpdateFormData, "imageKey"> & {
+    imageKey: string | null;
+  }
+): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const parsedData = productSchema.parse(formData);
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to update a product");
+    }
 
-    const updateData = {
-      ...parsedData,
-      image_url:
-        typeof parsedData.image_url === "string"
-          ? parsedData.image_url
-          : undefined,
+    const shop_id = context.id;
+
+    const currentProduct = await productRepository.findById(product_id, {
+      select: { category_id: true },
+    });
+
+    const parsedData = productUpdateActionSchema.parse({
+      ...formData,
+      imageKey: formData.imageKey || "",
+    });
+
+    let category = null;
+    if (parsedData.category) {
+      category = await categoryRepository.findOrCreate(
+        parsedData.category,
+        shop_id
+      );
+    }
+
+    const { imageKey, name, price, stock_quantity, description, discount } =
+      parsedData;
+
+    const productData = {
+      imageKey,
+      name,
+      price,
+      stock_quantity,
+      description,
+      discount,
     };
 
-    const updatedProduct = await productRepository.update(product_id, {
-      data: updateData,
-    });
+    const updateData: {
+      data: typeof productData & {
+        category?: { connect: { id: string } } | { disconnect: true };
+      };
+    } = {
+      data: {
+        ...productData,
+      },
+    };
+
+    if (category) {
+      updateData.data.category = {
+        connect: { id: category.id },
+      };
+    } else {
+      updateData.data.category = {
+        disconnect: true,
+      };
+    }
+
+    const updatedProduct = await productRepository.update(
+      product_id,
+      updateData
+    );
+
+    if (
+      currentProduct?.category_id &&
+      currentProduct.category_id !== category?.id
+    ) {
+      await categoryRepository.deleteIfEmpty(currentProduct.category_id);
+    }
+
     const serializedProduct = serializeProduct(updatedProduct);
 
-    // TODO: revalidate
+    revalidatePath(`/shop/${updatedProduct.shop_id}`);
 
     return createSuccessResponse(
       serializedProduct,
@@ -70,9 +165,28 @@ export async function updateProductAction(
   }
 }
 
-export async function deleteProductAction(product_id: string) {
+export async function deleteProductAction(
+  product_id: string
+): Promise<ActionResponse<null>> {
   try {
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to delete a product");
+    }
+
+    const productToDelete = await productRepository.findById(product_id, {
+      select: { category_id: true, shop_id: true },
+    });
+
     await productRepository.delete(product_id);
+
+    if (productToDelete?.category_id) {
+      await categoryRepository.deleteIfEmpty(productToDelete.category_id);
+    }
+
     return createSuccessResponse(null, "Product deleted successfully");
   } catch (error) {
     console.log("DELETE PRODUCT ERROR:", error);

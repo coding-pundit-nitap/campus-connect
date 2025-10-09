@@ -1,6 +1,9 @@
+import { Role } from "@prisma/client";
 import { User } from "next-auth";
 
 import { auth } from "@/auth";
+
+import { UnauthenticatedError, UnauthorizedError } from "../custom-error";
 
 export interface IAuthUtils {
   getUserData: () => Promise<User>;
@@ -12,7 +15,7 @@ export interface IAuthUtils {
 class AuthUtils implements IAuthUtils {
   async getUserData() {
     const session = await auth();
-    if (!session || !session.user) this.unAuthenticated();
+    if (!session || !session.user || !session.user.id) this.unAuthenticated();
     return session.user;
   }
   async isAuthenticated() {
@@ -22,32 +25,32 @@ class AuthUtils implements IAuthUtils {
 
   async getUserId() {
     const user = await this.getUserData();
-    return user.id!;
+    if (!user || !user.id) this.unAuthenticated();
+    return user.id;
   }
 
   unAuthenticated(): never {
-    throw new Error("User not authenticated");
+    throw new UnauthenticatedError("User not authenticated");
   }
 
   unAuthorized(): never {
-    throw new Error("User not authorized");
+    throw new UnauthorizedError("User not authorized");
   }
 
   async isSeller(): Promise<boolean> {
     const user = await this.getUserData();
-    return !!user && !!user.shop_id;
+    return !!user.shop_id;
   }
 
   async getOwnedShopId(): Promise<string> {
     const user = await this.getUserData();
     if (!user || !user.shop_id) this.unAuthorized();
-    return user.shop_id!;
+    return user.shop_id;
   }
 
-  async getShopId(): Promise<string> {
+  async isAdmin(): Promise<boolean> {
     const user = await this.getUserData();
-    if (!user || !user.shop_id) this.unAuthorized();
-    return user.shop_id!;
+    return user.role === Role.ADMIN;
   }
 }
 

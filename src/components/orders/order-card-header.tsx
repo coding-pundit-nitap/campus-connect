@@ -6,7 +6,7 @@ import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Props = {
   orderId: string;
-  orderDate: Date;
+  orderDate: string;
   orderStatus: OrderStatus;
   orderTotal: number;
   orderItemsCount: number;
@@ -41,9 +41,8 @@ export default function OrderCardHeader({
       <div>
         <CardTitle>Order #{orderId}</CardTitle>
         <CardDescription>
-          {orderDate.toLocaleDateString()} • {orderItemsCount} items{" "}
-          {orderItemsCount > 1 ? "s" : ""}• ${orderTotal.toFixed(2)} •{" "}
-          {orderStatus}
+          {orderDate} • {orderItemsCount} items {orderItemsCount > 1 ? "s" : ""}
+          • ₹{orderTotal.toFixed(2)} • {orderStatus}
         </CardDescription>
       </div>
       <div className="flex items-center gap-2">

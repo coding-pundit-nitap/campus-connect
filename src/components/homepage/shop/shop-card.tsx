@@ -12,20 +12,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useShops } from "@/hooks/useShops";
-import { ShopWithOwner } from "@/types";
+import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
+import { environment } from "@/config/env.config";
+import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
-export default function ShopCard({
-  shop,
-  priority,
-}: {
-  shop: ShopWithOwner;
+type Props = {
+  shop: ShopWithOwnerDetails;
   priority: number;
-}) {
-  const { isOpen, formatTime } = useShops();
+};
 
-  const open = isOpen(shop);
-
+export function ShopCard({ shop, priority }: Props) {
   return (
     <Link href={`/shops/${shop.id}`}>
       <Card className="w-full max-w-sm hover:shadow-xl [box-shadow:rgba(50,50,93,0.25)_0px_2px_5px_-1px,rgba(0,0,0,0.3)_0px_1px_3px_-1px] overflow-hidden">
@@ -33,7 +29,10 @@ export default function ShopCard({
           <Image
             width={300}
             height={200}
-            src={"/placeholders/placeholder.png"}
+            src={
+              `${environment.minioBaseUrl}/${shop.imageKey}` ||
+              "/placeholders/placeholder.png"
+            }
             alt={`${shop.name}`}
             priority={priority < 5}
             className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
@@ -53,14 +52,7 @@ export default function ShopCard({
                 Inactive
               </Badge>
             )}
-            {shop.is_active && (
-              <Badge
-                variant={open ? "default" : "outline"}
-                className={open ? "bg-blue-500 hover:bg-blue-600" : ""}
-              >
-                {open ? "Open" : "Closed"}
-              </Badge>
-            )}
+            {shop.is_active && <ShopStatusBadge shop={shop} />}
           </div>
         </div>
 
@@ -86,7 +78,7 @@ export default function ShopCard({
           <div className="flex items-center text-sm text-muted-foreground">
             <Clock className="w-4 h-4 mr-2 text-primary" />
             <span>
-              {formatTime(shop.opening)} - {formatTime(shop.closing)}
+              {shop.openingFormatted} - {shop.closingFormatted}
             </span>
           </div>
 

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
+import { ImageUtils } from "@/lib/utils-functions";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductCardHeaderProps {
@@ -15,7 +16,7 @@ export function ProductCardHeader({
   return (
     <div className="aspect-square relative overflow-hidden">
       <Image
-        src={product.image_url || "/placeholders/placeholder.png"}
+        src={ImageUtils.getImageUrl(product.imageKey)}
         alt={product.name}
         fill
         className="object-cover"

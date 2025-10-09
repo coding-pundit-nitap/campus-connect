@@ -1,3 +1,4 @@
+"use client";
 import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -14,7 +15,8 @@ interface CartItemsProps {
 export function CartItems({ items, cart_id }: CartItemsProps) {
   const router = useRouter();
   const total_price = items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
+    (acc, item) =>
+      acc + ((item.price * (100 - item.discount)) / 100) * item.quantity,
     0
   );
   const handlePlaceOrder = () => {

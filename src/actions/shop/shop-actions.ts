@@ -1,22 +1,30 @@
 "use server";
 
+import {
+  BadRequestError,
+  InternalServerError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
+import categoryServices from "@/services/category.service";
+import notificationService from "@/services/notification.service";
+import { createSuccessResponse } from "@/types/response.types";
 import {
-  createErrorResponse,
-  createSuccessResponse,
-} from "@/types/response.types";
-import { ShopFormData, shopSchema } from "@/validations/shop";
+  ShopActionFormData,
+  shopActionSchema,
+  ShopFormData,
+} from "@/validations/shop";
 
-export async function createShopAction(formData: ShopFormData) {
+export async function createShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      throw new Error("User not authenticated");
+      throw new UnauthorizedError("User not authenticated");
     }
-    const parsedData = shopSchema.safeParse(formData);
+    const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
-      return createErrorResponse(parsedData.error.message);
+      throw new BadRequestError(parsedData.error.message);
     }
 
     const newShop = await shopRepository.create({
@@ -24,37 +32,68 @@ export async function createShopAction(formData: ShopFormData) {
       owner: { connect: { id: user_id } },
     });
 
-    // TODO: revalidate
-
     return createSuccessResponse(
       newShop,
       "Shop created successfully! Please log out and back in to access the seller dashboard."
     );
   } catch (error) {
     console.error("CREATE SHOP ERROR:", error);
-    return createErrorResponse("Failed to create shop.");
+    throw new InternalServerError("Failed to create shop.");
   }
 }
 
 export async function updateShopAction(formData: ShopFormData) {
   try {
-    const shop_id = await authUtils.getShopId();
-
-    if (!shop_id) {
-      return createErrorResponse("Unauthorized: You are not a seller.");
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to update a shop");
     }
 
-    const parsedData = shopSchema.safeParse(formData);
+    const shop_id = context.id;
 
+    const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
-      return createErrorResponse(parsedData.error.message);
+      throw new BadRequestError(parsedData.error.message);
     }
 
-    await shopRepository.update(shop_id, parsedData.data);
+    await categoryServices.cleanupEmptyCategories(shop_id);
+
+    const updatedShop = await shopRepository.update(shop_id, parsedData.data);
+
+    await notificationService.publishNotification(user_id, {
+      title: "Shop Updated Successfully",
+      message: `Your shop ${updatedShop.name} has been updated.`,
+      action_url: `/owner-shops`,
+      type: "INFO",
+    });
 
     return createSuccessResponse("Shop updated successfully!");
   } catch (error) {
     console.error("UPDATE SHOP ERROR:", error);
-    return createErrorResponse("Failed to update shop.");
+    throw new InternalServerError("Failed to update shop.");
+  }
+}
+
+export async function deleteShopAction() {
+  try {
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to delete a shop");
+    }
+
+    const shop_id = context.id;
+
+    await shopRepository.delete(shop_id);
+
+    return createSuccessResponse(null, "Shop deleted successfully");
+  } catch (error) {
+    console.error("DELETE SHOP ERROR:", error);
+    throw new InternalServerError("Failed to delete shop.");
   }
 }

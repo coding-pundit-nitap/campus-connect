@@ -15,15 +15,41 @@ interface HealthCheckPayload {
 }
 
 class HealthCheckAPIService {
+  private consecutiveFailures = 0;
+  private lastFailureTime?: number;
+  private readonly maxFailures = 5;
+  private readonly backoffDuration = 60000;
+
   checkDatabase = async (): Promise<DatabaseStatus> => {
+    if (this.consecutiveFailures >= this.maxFailures) {
+      const now = Date.now();
+      if (
+        this.lastFailureTime &&
+        now - this.lastFailureTime < this.backoffDuration
+      ) {
+        return {
+          status: "unreachable",
+          details: `Health check temporarily disabled due to ${this.consecutiveFailures} consecutive failures. Will retry after cooldown.`,
+        };
+      } else {
+        this.consecutiveFailures = 0;
+        this.lastFailureTime = undefined;
+      }
+    }
+
     try {
       const response = await axiosInstance.get<
         ActionResponse<HealthCheckPayload>
-      >("/health/database", { timeout: 10000 });
+      >("health/database", {
+        timeout: 5000,
+      });
 
       const payload = response.data;
 
       if (payload.success && payload.data) {
+        this.consecutiveFailures = 0;
+        this.lastFailureTime = undefined;
+
         return {
           status: "healthy",
           latency: payload.data.latency,
@@ -31,13 +57,20 @@ class HealthCheckAPIService {
         };
       }
 
+      this.recordFailure();
       return {
         status: "unhealthy",
         details: payload.details || "API returned a non-success response.",
       };
     } catch (error) {
+      this.recordFailure();
+
       if (error instanceof AxiosError) {
-        if (error.code === "ECONNABORTED" || !error.response) {
+        if (
+          error.code === "ECONNABORTED" ||
+          error.name === "TimeoutError" ||
+          !error.response
+        ) {
           return {
             status: "unreachable",
             details:
@@ -57,6 +90,16 @@ class HealthCheckAPIService {
       };
     }
   };
+
+  private recordFailure() {
+    this.consecutiveFailures++;
+    this.lastFailureTime = Date.now();
+  }
+
+  resetCircuitBreaker() {
+    this.consecutiveFailures = 0;
+    this.lastFailureTime = undefined;
+  }
 }
 
 export const healthCheckAPIService = new HealthCheckAPIService();

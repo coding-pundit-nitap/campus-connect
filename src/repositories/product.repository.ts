@@ -11,17 +11,30 @@ type ProductFindOptions = Omit<Prisma.ProductFindUniqueArgs, "where">;
 type ProductFindManyOptions = Omit<Prisma.ProductFindManyArgs, "where">;
 
 class ProductRepository {
-  async findById(
+  async findById(product_id: string): Promise<Product | null>;
+  async findById<T extends ProductFindOptions>(
+    shop_id: string,
+    data: T
+  ): Promise<Prisma.ProductGetPayload<{ where: { id: string } } & T> | null>;
+  async findById<T extends ProductFindOptions>(
     product_id: string,
-    data?: ProductFindOptions
-  ): Promise<Product | null> {
-    return prisma.product.findUnique({ where: { id: product_id }, ...data });
+    data?: T
+  ): Promise<
+    Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product | null
+  > {
+    const query = { where: { id: product_id }, ...(data ?? {}) };
+    return prisma.product.findUnique(query);
   }
 
-  async findManyByShopId(
+  async findManyByShopId(shop_id: string): Promise<Product[]>;
+  async findManyByShopId<T extends ProductFindManyOptions>(
     shop_id: string,
-    data?: ProductFindManyOptions
-  ): Promise<Product[]> {
+    data: T
+  ): Promise<Prisma.ProductGetPayload<T>[]>;
+  async findManyByShopId<T extends ProductFindManyOptions>(
+    shop_id: string,
+    data?: T
+  ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
     return prisma.product.findMany({ where: { shop_id }, ...data });
   }
 
@@ -38,6 +51,52 @@ class ProductRepository {
     data?: Omit<Prisma.ProductDeleteArgs, "where">
   ): Promise<Product> {
     return prisma.product.delete({ where: { id: product_id }, ...data });
+  }
+
+  async searchProducts(
+    searchTerm: string,
+    limit: number = 10
+  ): Promise<
+    (Product & {
+      shop: {
+        id: string;
+        name: string;
+      };
+    })[]
+  > {
+    return prisma.product.findMany({
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        shop: {
+          is_active: true,
+        },
+      },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    });
   }
 }
 

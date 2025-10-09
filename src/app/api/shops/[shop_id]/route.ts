@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import shopRepository from "@/repositories/shop.repository";
 import {
@@ -6,11 +6,8 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const config = {
-  runtime: "edge",
-};
 export async function GET(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ shop_id: string }> }
 ) {
   try {

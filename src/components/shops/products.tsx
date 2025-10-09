@@ -1,41 +1,31 @@
-"use client";
-import React from "react";
+import { getProductStates } from "@/lib/utils-functions";
+import productService from "@/services/product.service";
 
-import { ShopProductListHeader } from "@/components/owned-shop/shop-header/shop-product-list-header";
-import { NoMatchFilter } from "@/components/shared/shared-product-filters";
-import { ProductFiltersContainer } from "@/components/shared/shared-product-filters/";
-import { useIndividualShop } from "@/hooks/useIndividualShop";
+import { ProductsContainer } from "./products-container";
 
-import IndividualProductList from "./shop-product-list";
-
-interface ProductListProps {
-  error?: Error | null;
+type Props = {
   shop_id: string;
-}
+};
 
-export function ProductListContainer({ shop_id }: ProductListProps) {
-  const {
-    showNoMatchMessage,
-    allProducts,
-    displayProducts,
-    hasActiveFilters,
-    onResetFilters,
-  } = useIndividualShop(shop_id);
+export async function Products({ shop_id }: Props) {
+  const { initialProducts, hasNextPage, nextCursor, error } =
+    await productService.fetchShopProductsServer(shop_id);
 
-  const countMessage = hasActiveFilters
-    ? `Showing ${displayProducts.length} of ${allProducts.length} products`
-    : `${allProducts.length} products`;
+  const productStates = getProductStates(
+    initialProducts,
+    initialProducts,
+    false,
+    false
+  );
 
   return (
-    <div className="space-y-2">
-      <ProductFiltersContainer shop_id={shop_id} />
-      <ShopProductListHeader
-        countMessage={countMessage}
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={onResetFilters}
-      />
-      <IndividualProductList shop_id={shop_id} />
-      {showNoMatchMessage && <NoMatchFilter onClearFilters={onResetFilters} />}
-    </div>
+    <ProductsContainer
+      shop_id={shop_id}
+      initialProducts={initialProducts}
+      initialProductStates={productStates}
+      hasNextPage={hasNextPage}
+      nextCursor={nextCursor}
+      initialError={error}
+    />
   );
 }

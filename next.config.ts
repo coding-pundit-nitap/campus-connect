@@ -1,21 +1,21 @@
 import type { NextConfig } from "next";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const nextConfig: NextConfig = {
   /* config options here */
   typedRoutes: true,
-  output: "standalone",
+  output: isProduction ? "standalone" : undefined,
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "lh3.googleusercontent.com",
-        port: "",
         pathname: "/**",
       },
       {
         protocol: "https",
         hostname: "avatars.githubusercontent.com",
-        port: "",
         pathname: "/**",
       },
       {
@@ -26,10 +26,11 @@ const nextConfig: NextConfig = {
       },
     ],
     dangerouslyAllowSVG: false,
-    contentDispositionType: "attachment",
+    contentDispositionType: "inline",
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ["image/webp"],
+    minimumCacheTTL: 60,
   },
 };
 

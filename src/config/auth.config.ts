@@ -95,6 +95,7 @@ export const authConfig: NextAuthConfig = {
 
         // 5. If anything fails, return null
         console.error("Invalid credentials provided");
+
         return null;
       },
     }),

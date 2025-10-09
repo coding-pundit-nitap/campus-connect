@@ -38,6 +38,8 @@ export default function ShopAction() {
           submitButton={submitButton}
           onSubmit={handlers.onSubmit}
           fields={formFields}
+          error={state.error}
+          isLoading={state.isLoading || state.isSubmitting}
         />
       </SharedDialog>
     </div>

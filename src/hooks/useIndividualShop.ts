@@ -5,10 +5,9 @@ import { useMemo } from "react";
 import { productUIServices } from "@/lib/utils-functions";
 
 import { useAddToCart } from "./tanstack";
-import { useProducts } from "./useProduct";
+import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useIndividualShop = (shop_id: string) => {
-  const router = useRouter();
   const {
     allProducts,
     displayProducts,
@@ -21,9 +20,19 @@ export const useIndividualShop = (shop_id: string) => {
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-  } = useProducts(shop_id);
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = useOwnerProducts(shop_id);
   const { mutate: onAddToCartAction, isPending: isAddingToCart } =
     useAddToCart();
+  const router = useRouter();
 
   const shopState = useMemo(
     () => ({
@@ -36,25 +45,23 @@ export const useIndividualShop = (shop_id: string) => {
       onAddToCart: (product_id: string, quantity: number) => {
         onAddToCartAction({ product_id, quantity });
       },
-      onViewDetails: (product_id: string) => {
-        router.push(`/shops/${shop_id}/products/${product_id}`);
-      },
     }),
     [
       allProducts.length,
       displayProducts.length,
       hasActiveFilters,
       onAddToCartAction,
-      router,
-      shop_id,
     ]
   );
 
   const actionHandlers = useMemo(
     () => ({
       onResetFilters: clearFilters,
+      onViewDetails: (product_id: string) => {
+        router.push(`/shops/${shop_id}/products/${product_id}`);
+      },
     }),
-    [clearFilters]
+    [clearFilters, router, shop_id]
   );
 
   const loadingStates = useMemo(
@@ -80,5 +87,14 @@ export const useIndividualShop = (shop_id: string) => {
     isFetchingNextPage,
     fetchNextPage,
     isAddingToCart,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };

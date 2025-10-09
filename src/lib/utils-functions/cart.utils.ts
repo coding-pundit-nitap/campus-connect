@@ -1,3 +1,4 @@
+import { environment } from "@/config/env.config";
 import {
   CartItemData,
   CartSummary,
@@ -18,7 +19,9 @@ class CartDrawerServices {
   transformCartItem = (item: SerializedCartItem): CartItemData => {
     return {
       id: item.id,
-      image_url: item.product.image_url,
+      image_url:
+        `${environment.minioBaseUrl}/${item.product.imageKey}` ||
+        "/placeholders/placeholder.png",
       price: Number(item.product.price),
       quantity: item.quantity,
       name: item.product.name,
@@ -54,10 +57,14 @@ class CartDrawerServices {
       0
     );
 
+    const shop_id =
+      shopCarts.length > 0 ? shopCarts[0].items[0].shop_id : "unknown";
+
     return {
       totalPrice,
       totalItems,
       shopCarts,
+      shop_id,
     };
   };
 
@@ -70,27 +77,27 @@ class CartDrawerServices {
   };
 
   updateItemQuantity = (
-    productId: string,
+    product_id: string,
     newQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    mutationFn({ product_id: productId, quantity: newQuantity });
+    mutationFn({ product_id, quantity: newQuantity });
   };
 
   increaseItemQuantity = (
-    productId: string,
+    product_id: string,
     currentQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    this.updateItemQuantity(productId, currentQuantity + 1, mutationFn);
+    this.updateItemQuantity(product_id, currentQuantity + 1, mutationFn);
   };
 
   decreaseItemQuantity = (
-    productId: string,
+    product_id: string,
     currentQuantity: number,
     mutationFn: (data: { product_id: string; quantity: number }) => void
   ): void => {
-    this.updateItemQuantity(productId, currentQuantity - 1, mutationFn);
+    this.updateItemQuantity(product_id, currentQuantity - 1, mutationFn);
   };
 }
 

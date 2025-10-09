@@ -1,8 +1,9 @@
+"use client";
 import { useMemo } from "react";
 
 import { productUIServices } from "@/lib/utils-functions";
 
-import { useShopProductsDelete } from "./tanstack";
+import { useImageDelete, useShopProductsDelete } from "./tanstack";
 import { useOwnerProducts } from "./useOwnerProducts";
 
 export const useOwnedShop = (shop_id: string) => {
@@ -15,8 +16,21 @@ export const useOwnedShop = (shop_id: string) => {
     error,
     hasActiveFilters,
     clearFilters,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   } = useOwnerProducts(shop_id);
   const { mutate: deleteProduct } = useShopProductsDelete();
+  const { mutateAsync: deleteImage } = useImageDelete();
 
   const shopState = useMemo(
     () => ({
@@ -32,10 +46,13 @@ export const useOwnedShop = (shop_id: string) => {
 
   const actionHandlers = useMemo(
     () => ({
-      onDeleteProduct: deleteProduct,
+      onDeleteProduct: async (product_id: string, imageKey: string) => {
+        await deleteImage(imageKey);
+        deleteProduct({ product_id, shop_id });
+      },
       onResetFilters: clearFilters,
     }),
-    [clearFilters, deleteProduct]
+    [clearFilters, deleteProduct, deleteImage, shop_id]
   );
 
   const loadingStates = useMemo(
@@ -55,5 +72,19 @@ export const useOwnedShop = (shop_id: string) => {
     hasActiveFilters,
     ...actionHandlers,
     error,
+    isLoading,
+    isError,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    filters,
+    updateFilter,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
   };
 };

@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 export interface DialogAction {
   label: string;
@@ -52,7 +53,12 @@ export default function SharedDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className={className}>
+      <DialogContent
+        className={cn(
+          "overflow-y-auto hide-scrollbar max-h-screen sm:max-w-lg",
+          className
+        )}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}

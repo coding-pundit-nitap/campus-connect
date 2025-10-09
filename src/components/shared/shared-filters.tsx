@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-import { SharedSearchInput } from "./shared-search-input";
+import { SharedFilterProductSearch } from "./shared-filter-product-search";
 
 interface FilterOption {
   value: string;
@@ -67,14 +67,12 @@ export function FilterControls({
   return (
     <div className={cn("space-y-4", className)}>
       {onSearchChange && (
-        <div>
-          <SharedSearchInput
-            value={searchValue}
-            placeholder={searchPlaceholder}
-            className="max-w-sm"
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
+        <SharedFilterProductSearch
+          value={searchValue}
+          placeholder={searchPlaceholder}
+          className="max-w-sm"
+          onSearchChange={onSearchChange}
+        />
       )}
 
       <div className="flex flex-wrap items-center gap-4">

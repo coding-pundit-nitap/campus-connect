@@ -13,7 +13,7 @@ import {
 export default function Shop() {
   const shops = useShopByUser();
 
-  if (shops.isLoading) {
+  if (shops.isLoading || shops.isFetching || shops.isPending) {
     return <ShopLoadingState />;
   }
   if (shops.error) {

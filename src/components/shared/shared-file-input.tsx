@@ -1,9 +1,9 @@
 import { Image as ImageIcon, Upload, X } from "lucide-react";
 import Image from "next/image";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { FileRejection, useDropzone } from "react-dropzone";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 interface SharedFileInputProps {
@@ -16,24 +16,52 @@ interface SharedFileInputProps {
   className?: string;
   previewClassName?: string;
   showPreview?: boolean;
-  multiple?: boolean;
 }
 
 export function SharedFileInput({
   value,
   onChange,
   accept = "image/*",
-  maxSize = 5,
+  maxSize = 5, // 5MB
   placeholder = "Click to upload or drag and drop",
   disabled = false,
   className = "",
   previewClassName = "",
   showPreview = true,
-  multiple = false,
 }: SharedFileInputProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const onDrop = useCallback(
+    (acceptedFiles: File[], fileRejections: FileRejection[]) => {
+      setError(null);
+
+      if (fileRejections.length > 0) {
+        const firstRejection = fileRejections[0];
+        const firstError = firstRejection.errors[0];
+        if (firstError.code === "file-too-large") {
+          setError(`File is too large. Max size is ${maxSize}MB.`);
+        } else if (firstError.code === "file-invalid-type") {
+          setError("File type not supported.");
+        } else {
+          setError(firstError.message);
+        }
+        return;
+      }
+
+      if (acceptedFiles.length > 0) {
+        onChange(acceptedFiles[0]);
+      }
+    },
+    [onChange, maxSize]
+  );
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { [accept]: [] },
+    maxSize: maxSize * 1024 * 1024,
+    multiple: false,
+    disabled,
+  });
 
   const getPreviewUrl = () => {
     if (!value) return null;
@@ -41,90 +69,35 @@ export function SharedFileInput({
     return URL.createObjectURL(value);
   };
 
-  const handleFileSelect = (file: File) => {
-    setError(null);
-
-    if (file.size > maxSize * 1024 * 1024) {
-      setError(`File size must be less than ${maxSize}MB`);
-      return;
-    }
-
-    if (accept && !file.type.match(accept.replace("*", ".*"))) {
-      setError(`File type not supported. Please select a valid file.`);
-      return;
-    }
-
-    onChange(file);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true);
-    } else if (e.type === "dragleave") {
-      setDragActive(false);
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      handleFileSelect(file);
-    }
-  };
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleRemove = () => {
-    onChange(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const previewUrl = getPreviewUrl();
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && typeof value === "object") {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, value]);
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onChange(null);
+  };
 
   return (
     <div className={cn("space-y-2", className)}>
       <div
+        {...getRootProps()}
         className={cn(
           "relative border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer",
           {
-            "border-primary bg-primary/5": dragActive,
-            "border-gray-300 hover:border-gray-400": !dragActive && !disabled,
+            "border-primary bg-primary/5": isDragActive,
+            "border-gray-300 hover:border-gray-400": !isDragActive && !disabled,
             "border-gray-200 cursor-not-allowed opacity-50": disabled,
           }
         )}
-        onDragEnter={handleDrag}
-        onDragLeave={handleDrag}
-        onDragOver={handleDrag}
-        onDrop={handleDrop}
-        onClick={handleClick}
       >
-        <Input
-          ref={fileInputRef}
-          type="file"
-          accept={accept}
-          multiple={multiple}
-          onChange={handleInputChange}
-          disabled={disabled}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-
+        <input {...getInputProps()} /> {/* And here */}
         {previewUrl && showPreview ? (
           <div className="relative">
             <div
@@ -138,7 +111,6 @@ export function SharedFileInput({
                 alt="Preview"
                 fill
                 className="object-cover"
-                unoptimized={value instanceof File}
               />
             </div>
             <Button
@@ -146,10 +118,7 @@ export function SharedFileInput({
               variant="destructive"
               size="icon"
               className="absolute -top-2 -right-2 h-6 w-6"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRemove();
-              }}
+              onClick={handleRemove}
             >
               <X className="h-4 w-4" />
             </Button>

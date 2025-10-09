@@ -1,4 +1,4 @@
-import { Prisma, User } from "@prisma/client";
+import { Prisma, Role, User } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
@@ -9,6 +9,13 @@ export type UpdateUserDto = Prisma.UserUpdateInput;
 type UserFindOptions = Omit<Prisma.UserFindUniqueArgs, "where">;
 
 class UserRepository {
+  async findAdmins(): Promise<User[]>;
+  async findAdmins<T extends UserFindOptions>(
+    options: T
+  ): Promise<Prisma.UserGetPayload<{ where: { role: Role } } & T>[]>;
+  async findAdmins(): Promise<User[]> {
+    return prisma.user.findMany({ where: { role: Role.ADMIN } });
+  }
   async findByEmail(email: string): Promise<User | null>;
   async findByEmail<T extends UserFindOptions>(
     email: string,
