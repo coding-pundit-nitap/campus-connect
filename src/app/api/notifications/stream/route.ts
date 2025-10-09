@@ -1,5 +1,6 @@
 import notificationEmitter, {
   subscribeToChannel,
+  unsubscribeFromChannel,
 } from "@/lib/notification-emitter";
 import { authUtils } from "@/lib/utils-functions";
 
@@ -51,6 +52,10 @@ export async function GET() {
 
       listeners.forEach(({ channel, handler }) => {
         notificationEmitter.removeListener(channel, handler);
+      });
+
+      channels.forEach((channel) => {
+        unsubscribeFromChannel(channel);
       });
     },
   });

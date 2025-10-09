@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 
-import { SearchBarServer } from "./search-bar-server";
+import { SearchBar } from "./search-bar";
 
 interface SearchBarContainerProps {
   className?: string;
@@ -17,7 +17,7 @@ export function SearchBarContainer({
         <div className="h-10 w-full animate-pulse bg-muted rounded-md" />
       }
     >
-      <SearchBarServer className={className} placeholder={placeholder} />
+      <SearchBar className={className} placeholder={placeholder} />
     </Suspense>
   );
 }

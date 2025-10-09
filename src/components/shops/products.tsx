@@ -9,7 +9,7 @@ type Props = {
 
 export async function Products({ shop_id }: Props) {
   const { initialProducts, hasNextPage, nextCursor, error } =
-    await productService.fetchShopProductsServer(shop_id);
+    await productService.fetchShopProducts(shop_id);
 
   const productStates = getProductStates(
     initialProducts,

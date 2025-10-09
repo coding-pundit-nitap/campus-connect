@@ -19,9 +19,7 @@ export async function GET(request: NextRequest) {
 
     const trimmedQuery = query.trim();
 
-    const [products] = await Promise.all([
-      productRepository.searchProducts(trimmedQuery, 5),
-    ]);
+    const products = await productRepository.searchProducts(trimmedQuery, 5);
 
     const searchResults: SearchResult[] = [
       ...products.map((product) => ({

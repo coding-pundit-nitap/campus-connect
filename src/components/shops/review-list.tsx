@@ -35,7 +35,6 @@ type Props = {
     four: number;
     five: number;
   };
-  product_id: string;
 };
 
 export function ProductReviewsList({
@@ -48,7 +47,6 @@ export function ProductReviewsList({
   error,
   isError,
   reviewGroup,
-  product_id,
 }: Props) {
   const loadMoreRef = React.useRef<HTMLDivElement>(null);
   const { lastElementRef } = useInfiniteScroll({
@@ -139,7 +137,7 @@ export function ProductReviewsList({
         <p className="text-muted-foreground">{totalReviews} customer ratings</p>
       </CardHeader>
       <CardContent>
-        <ReviewCount product_id={product_id} reviewGroup={reviewGroup} />
+        <ReviewCount reviewGroup={reviewGroup} />
         {displayReviews.length > 0 && (
           <div className="space-y-6 py-6">
             {displayReviews.map((review, index) => {

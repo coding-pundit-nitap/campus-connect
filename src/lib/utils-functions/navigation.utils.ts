@@ -1,4 +1,4 @@
-import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
+import { HelpCircle, Home, Settings, ShoppingBag } from "lucide-react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
@@ -10,12 +10,6 @@ class NavigationUIService {
         title: "Home",
         url: "/",
         icon: Home,
-      },
-      {
-        id: "shops",
-        title: "Shops",
-        url: "/owner-shops",
-        icon: Store,
       },
       {
         id: "orders",
