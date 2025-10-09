@@ -44,7 +44,7 @@ class ProductService {
     });
   }
 
-  async fetchShopProductsServer(shop_id: string): Promise<ServerProductData> {
+  async fetchShopProducts(shop_id: string): Promise<ServerProductData> {
     try {
       const queryOptions = {
         take: 11,

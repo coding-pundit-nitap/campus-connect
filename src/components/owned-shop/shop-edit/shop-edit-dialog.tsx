@@ -1,9 +1,9 @@
+import { Edit } from "lucide-react";
 import React from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
-import { Button } from "@/components/ui/button";
 import { ButtonConfig, FormFieldConfig } from "@/types";
 import { ShopWithOwner } from "@/types/shop.types";
 import { ShopFormData } from "@/validations/shop";
@@ -46,15 +46,12 @@ export function ShopEditDialog({
 
   return (
     <SharedDialog
-      trigger={
-        <Button className={className} variant="outline">
-          Edit Shop
-        </Button>
-      }
+      trigger={<Edit className="mr-2" />}
       title="Edit Shop"
       showCloseButton={false}
       open={isDialogOpen}
       onOpenChange={setIsDialogOpen}
+      className={className}
     >
       <SharedForm
         fields={fields}

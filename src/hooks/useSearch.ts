@@ -6,11 +6,11 @@ import { SearchResult } from "@/types";
 
 type SearchHookProps = {
   /** Callback function when a search item is selected */
-  onSelectItem: (value: string) => void;
+  onSelectItem?: (value: string) => void;
   /** Callback function when search query changes */
   onSearch: (query: string) => void;
   /** Array of suggestions to check if we should show suggestions dropdown */
-  suggestions: { id: string; title: string; subtitle: string }[];
+  suggestions?: { id: string; title: string; subtitle: string }[];
   /** Initial value for the search term */
   initialValue?: string;
 };
@@ -41,7 +41,7 @@ type NavigationSearchProps = {
 
 export const useSearch = ({
   onSearch,
-  onSelectItem,
+  onSelectItem = () => {},
   suggestions = [],
   initialValue = "",
 }: SearchHookProps) => {
@@ -52,16 +52,13 @@ export const useSearch = ({
     setInputValue(initialValue);
   }, [initialValue]);
 
-  const shouldShowSuggestions = (value: string, hasSuggestions: boolean) => {
-    return hasSuggestions || value.trim().length > 0;
-  };
+  const hasSuggestions = suggestions.length > 0;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
 
-    const hasSuggestions = suggestions.length > 0;
-    if (shouldShowSuggestions(value, hasSuggestions)) {
+    if (hasSuggestions || value.trim().length > 0) {
       setShowSuggestionsDropdown(true);
     } else {
       setShowSuggestionsDropdown(false);
@@ -77,13 +74,13 @@ export const useSearch = ({
   };
 
   const handleInputFocus = () => {
-    if (suggestions.length > 0) {
+    if (hasSuggestions) {
       setShowSuggestionsDropdown(true);
     }
   };
 
   const handleInputClick = () => {
-    if (suggestions.length > 0) {
+    if (hasSuggestions) {
       setShowSuggestionsDropdown(true);
     }
   };

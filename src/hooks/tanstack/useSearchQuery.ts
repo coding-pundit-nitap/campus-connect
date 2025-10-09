@@ -1,5 +1,7 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
+import { OrderStatus } from "@prisma/client";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { DateRange } from "react-day-picker";
 
 import { queryKeys } from "@/lib/query-keys";
 import { searchAPIService } from "@/services/api";
@@ -19,5 +21,23 @@ export const useProductSearchQuery = (query: string) => {
     queryFn: () => searchAPIService.searchProducts(query),
     enabled: !!query && query.trim().length > 0,
     staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const useOrderSearchQuery = (
+  query: string,
+  filters: { status?: OrderStatus; dateRange?: DateRange }
+) => {
+  return useInfiniteQuery({
+    queryKey: queryKeys.search.orders(query, filters),
+    queryFn: ({ pageParam }) =>
+      searchAPIService.searchOrders({
+        query,
+        status: filters.status,
+        dateRange: filters.dateRange,
+        pageParam,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 };

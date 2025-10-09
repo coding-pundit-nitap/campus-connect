@@ -129,7 +129,7 @@ export async function updateOrderStatusAction({
     });
 
     return createSuccessResponse(
-      updatedOrder,
+      { ...updatedOrder, total_price: Number(updatedOrder.total_price) },
       `Order status updated to ${status}`
     );
   } catch (error) {
@@ -176,5 +176,99 @@ export async function getOrderByIdAction(
   } catch (error) {
     console.error("GET ORDER BY ID ERROR:", error);
     throw new InternalServerError("Failed to retrieve order details.");
+  }
+}
+
+export async function getShopOrderByIdAction(
+  order_id: string
+): Promise<ActionResponse<SerializedOrderWithDetails>> {
+  try {
+    const shop_id = await authUtils.getOwnedShopId();
+    if (!shop_id) {
+      throw new UnauthorizedError("Unauthorized: You do not own a shop.");
+    }
+
+    const order = await orderRepository.getOrderById(order_id, {
+      include: {
+        shop: true,
+        items: {
+          include: {
+            product: { include: { category: true } },
+          },
+        },
+        delivery_address: true,
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new Error("Order not found");
+    }
+
+    if (order.shop_id !== shop_id) {
+      throw new UnauthorizedError(
+        "Unauthorized: This order does not belong to your shop."
+      );
+    }
+
+    return createSuccessResponse(
+      serializeOrderWithDetails(order),
+      "Order details retrieved successfully"
+    );
+  } catch (error) {
+    console.error("GET SHOP ORDER BY ID ERROR:", error);
+    throw new InternalServerError("Failed to retrieve order details.");
+  }
+}
+
+export async function batchUpdateOrderStatusAction({
+  orderIds,
+  status,
+}: {
+  orderIds: string[];
+  status: OrderStatus;
+}) {
+  try {
+    const shop_id = await authUtils.getOwnedShopId();
+    if (!shop_id) {
+      throw new UnauthorizedError("Unauthorized: You do not own a shop.");
+    }
+
+    const orders = await orderRepository.getOrdersByIds(orderIds, {
+      select: { id: true, shop_id: true, user_id: true, display_id: true },
+    });
+
+    for (const order of orders) {
+      if (order.shop_id !== shop_id) {
+        throw new UnauthorizedError(
+          `Unauthorized: Order ${order.display_id} does not belong to your shop.`
+        );
+      }
+    }
+
+    await orderRepository.batchUpdateStatus(orderIds, status);
+
+    Promise.all(
+      orders.map((order) =>
+        notificationService.publishNotification(order.user_id, {
+          title: "Order Status Updated",
+          message: `Your order with ID: ${order.display_id} has been updated to ${status.replace("_", " ")}`,
+          action_url: `/orders`,
+          type: "INFO",
+        })
+      )
+    );
+
+    return createSuccessResponse(
+      null,
+      `Successfully updated ${orderIds.length} orders to ${status}`
+    );
+  } catch (error) {
+    console.error("BATCH UPDATE ORDER STATUS ERROR:", error);
+    throw new InternalServerError("Failed to update order statuses.");
   }
 }

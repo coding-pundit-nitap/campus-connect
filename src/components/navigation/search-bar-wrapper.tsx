@@ -8,7 +8,7 @@ import {
   mapSearchResultsToSuggestions,
 } from "@/lib/utils-functions/order.utils";
 
-import { SearchBar } from "./search-bar";
+import { SharedSearchBar } from "../shared/shared-search-bar";
 
 interface SearchBarClientWrapperProps {
   className?: string;
@@ -52,7 +52,7 @@ export function SearchBarWrapper({
   });
 
   return (
-    <SearchBar
+    <SharedSearchBar
       className={className}
       placeholder={placeholder}
       value={baseSearch.inputValue}

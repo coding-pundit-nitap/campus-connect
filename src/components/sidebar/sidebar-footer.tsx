@@ -1,9 +1,12 @@
 "use client";
 
+import { Store } from "lucide-react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 
 import { Separator } from "@/components/ui/separator";
 
+import { Button } from "../ui/button";
 import ShopOwnerBadge from "./shop-owner-badge";
 import SidebarAction from "./sidebar-action";
 import SignOutButton from "./signout-button";
@@ -34,8 +37,19 @@ export function SidebarFooter() {
           <UserAvatar user={user} />
           <UserDetail user={user} />
         </div>
-
-        {user.shop_id && <ShopOwnerBadge />}
+        <ShopOwnerBadge />
+        <Separator />
+        <Button variant="outline" className="w-full p-0" asChild>
+          <Link
+            href="/owner-shops"
+            className="flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <Store className="h-4 w-4" />
+              <span>{user.id ? "Shops" : "Add Shops"}</span>
+            </div>
+          </Link>
+        </Button>
       </div>
       <SidebarAction />
     </div>

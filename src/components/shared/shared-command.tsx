@@ -29,9 +29,9 @@ export interface SharedCommandProps {
   /** Current search query string */
   query: string;
   /** Array of suggestions to display (should be pre-filtered) */
-  commandSuggestions: SuggestionItem[];
+  commandSuggestions?: SuggestionItem[];
   /** Callback function when an item is selected */
-  onSelectItem: (value: string) => void;
+  onSelectItem?: (value: string) => void;
   /** Callback function when input value changes */
   onInputChange?: (value: string) => void;
   /** Placeholder text for the command input */
@@ -53,7 +53,7 @@ export interface SharedCommandProps {
 export function SharedCommand({
   query = "",
   commandSuggestions = [],
-  onSelectItem,
+  onSelectItem = () => {},
   onInputChange,
   placeholder = "Search...",
   emptyMessage = "No results found.",

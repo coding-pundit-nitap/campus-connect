@@ -41,7 +41,7 @@ export default function ShopCard({ shop }: ShopCardProps) {
       REQUIRES_ACTION: "Action Required",
       NOT_STARTED: "Not Started",
     };
-    return statusMap[status] || status.replace("_", " ");
+    return statusMap[status] || status.replaceAll("_", " ");
   };
 
   const shopImageUrl = shop.imageKey
@@ -73,6 +73,7 @@ export default function ShopCard({ shop }: ShopCardProps) {
             >
               {getStatusText(shop.verification_status)}
             </Badge>
+            <ShopEditFormContainer shop={shop} className="w-full sm:w-auto" />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -110,8 +111,11 @@ export default function ShopCard({ shop }: ShopCardProps) {
             Manage Shop & Products
           </Link>
         </Button>
-
-        <ShopEditFormContainer shop={shop} className="w-full sm:w-auto" />
+        <Link href="owner-shops/orders">
+          <Button variant="outline">
+            <span className="mr-2">View Orders</span>
+          </Button>
+        </Link>
       </div>
     </SharedCard>
   );

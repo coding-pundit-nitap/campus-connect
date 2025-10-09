@@ -35,7 +35,6 @@ type Props = {
     four: number;
     five: number;
   };
-  product_id: string;
 };
 
 export function ProductReviewsList({
@@ -48,7 +47,6 @@ export function ProductReviewsList({
   error,
   isError,
   reviewGroup,
-  product_id,
 }: Props) {
   const loadMoreRef = React.useRef<HTMLDivElement>(null);
   const { lastElementRef } = useInfiniteScroll({
