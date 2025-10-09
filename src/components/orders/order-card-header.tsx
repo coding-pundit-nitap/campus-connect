@@ -33,7 +33,7 @@ export default function OrderCardHeader({
   };
 
   const getStatusText = (status: OrderStatus) => {
-    return status.replace("_", " ").toUpperCase();
+    return status.replaceAll("_", " ").toUpperCase();
   };
 
   return (
@@ -42,7 +42,7 @@ export default function OrderCardHeader({
         <CardTitle>Order #{orderId}</CardTitle>
         <CardDescription>
           {orderDate} • {orderItemsCount} items {orderItemsCount > 1 ? "s" : ""}
-          • ₹{orderTotal.toFixed(2)} • {orderStatus}
+          • ₹{orderTotal.toFixed(2)} • {getStatusText(orderStatus)}
         </CardDescription>
       </div>
       <div className="flex items-center gap-2">

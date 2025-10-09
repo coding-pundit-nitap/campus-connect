@@ -56,7 +56,6 @@ export default function ReviewContainer({
       isError={isError}
       reviewGroup={reviewGroup}
       isFetchingNextPage={isFetchingNextPage}
-      product_id={product_id}
       renderReviewCard={(review) => {
         return <ReviewCard key={review.id} review={review} />;
       }}

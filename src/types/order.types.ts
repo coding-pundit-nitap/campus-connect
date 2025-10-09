@@ -49,4 +49,7 @@ export type SerializedOrderItemWithProduct = SerializedOrderItem & {
 export type SerializedOrderWithDetails = SerializedOrder & {
   shop: SerializedShop;
   items: SerializedOrderItemWithProduct[];
+  user: {
+    name: string;
+  };
 };

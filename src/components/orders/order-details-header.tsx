@@ -77,7 +77,7 @@ export default function OrderDetailsHeader({
 
       <div className="flex items-center gap-2">
         <Badge className={getStatusColor(orderStatus)}>
-          {orderStatus.replace("_", " ")}
+          {orderStatus.replaceAll("_", " ")}
         </Badge>
         <Badge className={getPaymentStatusColor(paymentStatus)}>
           Payment {paymentStatus.toLowerCase()}

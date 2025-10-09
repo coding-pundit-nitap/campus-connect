@@ -29,4 +29,17 @@ export const subscribeToChannel = (channel: string) => {
   }
 };
 
+export const unsubscribeFromChannel = (channel: string) => {
+  if (subscribedChannels.has(channel)) {
+    redisSubscriber.unsubscribe(channel, (err) => {
+      if (err) {
+        console.error(`[Redis] Failed to unsubscribe from ${channel}`, err);
+        return;
+      }
+      subscribedChannels.delete(channel);
+      console.log(`[Redis] Unsubscribed from channel: ${channel}`);
+    });
+  }
+};
+
 export default notificationEmitter;

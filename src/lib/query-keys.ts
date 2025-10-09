@@ -1,3 +1,6 @@
+import { OrderStatus } from "@prisma/client";
+import { DateRange } from "react-day-picker";
+
 /**
  * Centralized query key factory for React Query cache management in the campus connect application.
  *
@@ -95,6 +98,11 @@ export const queryKeys = {
     /** Search query key factory for product search  */
     products: (searchTerm: string) =>
       ["search", "products", searchTerm] as const,
+    /** Search query key factory for order search  */
+    orders: (
+      searchTerm: string,
+      filters: { status?: OrderStatus; dateRange?: DateRange }
+    ) => ["search", "orders", searchTerm, filters] as const,
   },
 
   /**
