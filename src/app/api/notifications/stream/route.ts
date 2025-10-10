@@ -1,8 +1,5 @@
-import notificationEmitter, {
-  subscribeToChannel,
-  unsubscribeFromChannel,
-} from "@/lib/notification-emitter";
-import { authUtils } from "@/lib/utils-functions";
+import notificationEmitter from "@/lib/notification-emitter";
+import { authUtils } from "@/lib/utils-functions/auth.utils";
 
 export async function GET() {
   const user_id = await authUtils.getUserId();
@@ -32,10 +29,9 @@ export async function GET() {
       };
 
       channels.forEach((channel) => {
-        subscribeToChannel(channel);
         const handler = (message: string) => messageHandler(channel, message);
         listeners.push({ channel, handler });
-        notificationEmitter.on(channel, handler);
+        notificationEmitter.subscribe(channel, handler);
       });
 
       heartbeatInterval = setInterval(() => {
@@ -51,11 +47,7 @@ export async function GET() {
       clearInterval(heartbeatInterval);
 
       listeners.forEach(({ channel, handler }) => {
-        notificationEmitter.removeListener(channel, handler);
-      });
-
-      channels.forEach((channel) => {
-        unsubscribeFromChannel(channel);
+        notificationEmitter.unsubscribe(channel, handler);
       });
     },
   });

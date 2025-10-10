@@ -1,7 +1,7 @@
 import { NotificationType } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-import { authUtils } from "@/lib/utils-functions";
+import { authUtils } from "@/lib/utils-functions/auth.utils";
 import { notificationService } from "@/services/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 

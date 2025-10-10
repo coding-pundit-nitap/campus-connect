@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { toast } from "sonner";
+import React from "react";
 
 import AddressCard from "@/components/profile/address-card";
 import ProfileCard from "@/components/profile/profile-card";

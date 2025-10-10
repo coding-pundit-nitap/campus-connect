@@ -1,18 +1,26 @@
 import Redis from "ioredis";
 
+declare global {
+  var redis: Redis | undefined;
+  var redisSubscriber: Redis | undefined;
+}
+
 const redisUrl = process.env.REDIS_URL || "redis://redis:6379";
 
-const redis = new Redis(redisUrl, {
-  maxRetriesPerRequest: null,
-});
+const redis =
+  global.redis || new Redis(redisUrl, { maxRetriesPerRequest: null });
+const redisSubscriber = global.redisSubscriber || redis.duplicate();
 
-redis.on("error", (err) => console.error("Redis Error:", err));
+if (process.env.NODE_ENV !== "production") {
+  global.redis = redis;
+  global.redisSubscriber = redisSubscriber;
+}
 
-export const redisPublisher = redis;
-export const redisSubscriber = redis.duplicate();
-
-redisSubscriber.on("error", (err) =>
-  console.error("Redis Subscriber Error:", err)
+redis.on("error", (error) => console.log("Redis Error:", error));
+redisSubscriber.on("error", (error) =>
+  console.log("Redis Subscriber Error: ", error)
 );
 
 redis.on("connect", () => console.log("✅ Redis clients initialized."));
+
+export { redis as redisPublisher, redisSubscriber };
