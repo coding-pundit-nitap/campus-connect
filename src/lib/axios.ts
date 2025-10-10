@@ -12,11 +12,11 @@ import axios from "axios";
 const getBaseURL = () => {
   // Client-side: use relative URLs or configured URL
   if (typeof window !== "undefined") {
-    return process.env.NEXT_PUBLIC_API_URL || "/api/";
+    return process.env.NEXT_PUBLIC_API_URL || "/api";
   }
 
   // Server-side: use absolute URL if configured
-  return process.env.NEXT_PUBLIC_API_URL || "/api/";
+  return `${process.env.NEXT_PUBLIC_APP_URL}${process.env.NEXT_PUBLIC_API_URL || "/api"}`;
 };
 
 const axiosInstance = axios.create({
@@ -26,18 +26,6 @@ const axiosInstance = axios.create({
   },
   timeout: 10000,
 });
-
-// Add request interceptor for better error handling
-axiosInstance.interceptors.request.use(
-  (config) => {
-    console.log(`Making API request to: ${config.baseURL}${config.url}`);
-    return config;
-  },
-  (error) => {
-    console.error("API request failed:", error);
-    return Promise.reject(error);
-  }
-);
 
 // Add response interceptor for better error handling
 axiosInstance.interceptors.response.use(

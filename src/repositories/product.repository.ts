@@ -53,6 +53,16 @@ class ProductRepository {
     return prisma.product.delete({ where: { id: product_id }, ...data });
   }
 
+  async findMany(): Promise<Product[]>;
+  async findMany<T extends ProductFindManyOptions>(
+    data: T
+  ): Promise<Prisma.ProductGetPayload<T>[]>;
+  async findMany<T extends ProductFindManyOptions>(
+    data?: T
+  ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
+    return prisma.product.findMany({ ...data });
+  }
+
   async searchProducts(
     searchTerm: string,
     limit: number = 10

@@ -22,7 +22,7 @@ type Props = {
   isInitialLoading: boolean;
   hasError: boolean;
   onAddToCart?: (product_id: string, quantity: number) => void;
-  onViewDetails?: (product_id: string) => void;
+  onViewDetails?: (product_id: string, shop_id: string) => void;
   isAddingToCart?: boolean;
 };
 
@@ -54,6 +54,7 @@ export function ShopProductList({
             onAddToCart={onAddToCart || (() => {})}
             onViewDetails={onViewDetails || (() => {})}
             product_id={product.id}
+            shop_id={product.shop_id}
             stock={product.stock_quantity}
           />
         }

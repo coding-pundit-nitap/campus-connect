@@ -13,6 +13,7 @@ import {
 } from "../ui/card";
 import { StarRating } from "./review-card";
 import ReviewCount from "./review-count";
+import { ReviewListSkeleton, ReviewSkeleton } from "./review-skeleton";
 
 type Props = {
   displayReviews: ReviewWithUser[];
@@ -76,19 +77,7 @@ export function ProductReviewsList({
   }, [reviewGroup, totalReviews]);
 
   if (isLoading) {
-    return (
-      <Card className="w-full py-4 mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Customer Reviews</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mb-4" />
-            <p className="text-muted-foreground">Loading reviews...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <ReviewListSkeleton />;
   }
 
   if (isError && error) {
@@ -157,7 +146,7 @@ export function ProductReviewsList({
           </div>
         )}
       </CardContent>
-      <CardFooter>
+      <CardFooter className="w-full justify-center">
         <ReviewListFooter
           hasNextPage={hasNextPage}
           isFetchingNextPage={isFetchingNextPage}
@@ -185,11 +174,10 @@ export default function ReviewListFooter({
 }: temp) {
   if (isFetchingNextPage) {
     return (
-      <div className="flex justify-center py-8">
-        <div className="flex items-center gap-2">
-          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
-          <span className="text-muted-foreground">Loading more reviews...</span>
-        </div>
+      <div className="space-y-6 py-4">
+        {[...Array(2)].map((_, i) => (
+          <ReviewSkeleton key={i} />
+        ))}
       </div>
     );
   }

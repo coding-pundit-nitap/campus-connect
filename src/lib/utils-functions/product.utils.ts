@@ -111,7 +111,9 @@ export const createDefaultFilterState = (): FilterState => ({
 });
 
 export const serializeProduct = (
-  product: Product & { category?: Category | null }
+  product: Product & { category?: Category | null } & {
+    shop: { id: string; name: string };
+  }
 ): SerializedProduct => ({
   ...product,
   price: Number(product.price),
@@ -122,7 +124,9 @@ export const serializeProduct = (
 });
 
 export const serializeProducts = (
-  products: (Product & { category: Category | null })[]
+  products: (Product & { category: Category | null } & {
+    shop: { id: string; name: string };
+  })[]
 ): SerializedProduct[] => products.map(serializeProduct);
 
 export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
