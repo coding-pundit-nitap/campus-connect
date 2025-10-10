@@ -11,8 +11,8 @@ class NotificationEmitter extends EventEmitter {
 
   constructor() {
     super();
-    redisSubscriber.on("message", (chennel, message) => {
-      this.emit(chennel, message);
+    redisSubscriber.on("message", (channel, message) => {
+      this.emit(channel, message);
     });
   }
 
