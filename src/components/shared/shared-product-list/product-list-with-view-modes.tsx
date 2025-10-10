@@ -22,7 +22,7 @@ interface ProductListWithViewModesProps {
   isError: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
-  hasActiveFilters: boolean;
+  hasActiveFilters?: boolean;
 
   fetchNextPage: () => void;
 

@@ -2,6 +2,8 @@ import axiosInstance from "@/lib/axios";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse } from "@/types/response.types";
 
+import { ServerProductData } from "../product.service";
+
 interface PaginatedProductsResponse {
   /** Array of product objects for the current page */
   data: SerializedProduct[];
@@ -17,9 +19,23 @@ class ProductAPIService {
     shop_id: string;
     cursor: string | null;
   }): Promise<PaginatedProductsResponse> {
-    const url = `shops/${shop_id}/products?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
+    const url = `/shops/${shop_id}/products?limit=20${cursor ? `&cursor=${cursor}` : ""}`;
     const response =
       await axiosInstance.get<ActionResponse<PaginatedProductsResponse>>(url);
+    return response.data.data;
+  }
+
+  async fetchProducts({
+    limit = 10,
+    cursor,
+  }: {
+    limit?: number;
+    cursor?: string | null;
+  }): Promise<ServerProductData> {
+    const url = `/products?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`;
+
+    const response =
+      await axiosInstance.get<ActionResponse<ServerProductData>>(url);
     return response.data.data;
   }
 }

@@ -17,7 +17,7 @@ interface ProductListProps {
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
-    hasActiveFilters: boolean;
+    hasActiveFilters?: boolean;
     error: Error | null;
   };
 }

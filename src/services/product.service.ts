@@ -8,7 +8,7 @@ import {
 } from "@/repositories/product.repository";
 import { SerializedProduct } from "@/types/product.types";
 
-type ServerProductData = {
+export type ServerProductData = {
   initialProducts: SerializedProduct[];
   hasNextPage: boolean;
   nextCursor: string | null;
@@ -36,12 +36,116 @@ class ProductService {
       include: {
         shop: {
           select: {
+            id: true,
             name: true,
           },
         },
         category: true,
       },
     });
+  }
+
+  async getPaginatedProducts({
+    limit = 20,
+    cursor,
+  }: {
+    limit: number;
+    cursor?: string;
+  }): Promise<ServerProductData> {
+    const queryOptions = {
+      take: limit + 1,
+      orderBy: {
+        orderItems: {
+          _count: Prisma.SortOrder.desc,
+        },
+      },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        category: true,
+      },
+    } as const;
+
+    const baseQuery = cursor
+      ? {
+          ...queryOptions,
+          cursor: { id: cursor },
+          skip: 1,
+        }
+      : queryOptions;
+
+    const products = await productRepository.findMany(queryOptions);
+
+    let hasNextPage = false;
+    let nextCursor: string | null = null;
+    let initialProducts = products;
+
+    if (products.length > limit) {
+      hasNextPage = true;
+      const lastItem = products.pop();
+      nextCursor = lastItem!.id;
+      initialProducts = products;
+    }
+
+    const serializedProducts = serializeProducts(initialProducts);
+
+    return {
+      initialProducts: serializedProducts,
+      hasNextPage,
+      nextCursor,
+    };
+  }
+
+  async searchProducts(
+    searchTerm: string,
+    limit: number = 10
+  ): Promise<
+    (Product & {
+      shop: {
+        id: string;
+        name: string;
+      };
+    })[]
+  > {
+    const queryOptions = {
+      where: {
+        OR: [
+          {
+            name: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+          {
+            description: {
+              contains: searchTerm,
+              mode: "insensitive",
+            },
+          },
+        ],
+        shop: {
+          is_active: true,
+        },
+      },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    } as const;
+
+    return productRepository.findMany(queryOptions);
   }
 
   async fetchShopProducts(shop_id: string): Promise<ServerProductData> {
@@ -51,8 +155,16 @@ class ProductService {
         orderBy: {
           created_at: Prisma.SortOrder.desc,
         },
-        include: { category: true },
-      };
+        include: {
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          category: true,
+        },
+      } as const;
 
       const products = await productRepository.findManyByShopId(
         shop_id,

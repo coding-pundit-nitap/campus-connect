@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { productRepository, shopRepository } from "@/repositories";
+import productService from "@/services/product.service";
 import { SearchResult } from "@/types";
 import {
   createErrorResponse,
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
 
     const [shops, products] = await Promise.all([
       shopRepository.searchShops(trimmedQuery, 5),
-      productRepository.searchProducts(trimmedQuery, 5),
+      productService.searchProducts(trimmedQuery, 5),
     ]);
 
     const searchResults: SearchResult[] = [

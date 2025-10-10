@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from "next/server";
+
+import { UnauthenticatedError } from "@/lib/custom-error";
+import productService from "@/services/product.service";
+import { createErrorResponse, createSuccessResponse } from "@/types";
+import { paginatedSchema } from "@/validations/broadcast";
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+
+    const response = await productService.getPaginatedProducts({
+      limit: Number(searchParams.get("limit")),
+      cursor: searchParams.get("cursor") ?? undefined,
+    });
+
+    const successResponse = createSuccessResponse(response);
+    return NextResponse.json(successResponse, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching Products: ", error);
+
+    if (error instanceof UnauthenticatedError) {
+      return NextResponse.json(createErrorResponse(error.message), {
+        status: 401,
+      });
+    }
+    const errorResponse = createErrorResponse("Failed to fetch products");
+    return NextResponse.json(errorResponse, { status: 500 });
+  }
+}
