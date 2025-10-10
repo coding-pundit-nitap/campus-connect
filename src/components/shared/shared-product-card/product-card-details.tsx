@@ -57,7 +57,7 @@ export function ProductCardDetails({
           </span>
           {productHasDiscount && (
             <span className="text-sm line-through text-muted-foreground">
-              ₹{product.price.toFixed(2)}
+              ₹{product.price}
             </span>
           )}
         </div>

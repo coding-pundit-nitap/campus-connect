@@ -1,7 +1,7 @@
 "use server";
 
 import { InternalServerError, UnauthenticatedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions";
+import { authUtils } from "@/lib/utils-functions/auth.utils";
 import reviewService from "@/services/review.service";
 import { createSuccessResponse } from "@/types";
 

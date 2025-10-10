@@ -2,7 +2,7 @@
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions";
+import { authUtils } from "@/lib/utils-functions/auth.utils";
 import {
   serializeOrder,
   serializeOrderWithDetails,

@@ -2,44 +2,60 @@ import { EventEmitter } from "events";
 
 import { redisSubscriber } from "./redis";
 
-class NotificationEmitter extends EventEmitter {}
-
-const notificationEmitter = new NotificationEmitter();
-let isRedisListenerAttached = false;
-
-const subscribedChannels = new Set<string>();
-
-if (!isRedisListenerAttached) {
-  redisSubscriber.on("message", (channel, message) => {
-    notificationEmitter.emit(channel, message);
-  });
-  isRedisListenerAttached = true;
+declare global {
+  var notificationEmitter: NotificationEmitter | undefined;
 }
 
-export const subscribeToChannel = (channel: string) => {
-  if (!subscribedChannels.has(channel)) {
-    redisSubscriber.subscribe(channel, (err) => {
-      if (err) {
-        console.error(`[Redis] Failed to subscribe to ${channel}`, err);
-        return;
-      }
-      subscribedChannels.add(channel);
-      console.log(`[Redis] Subscribed to channel: ${channel}`);
-    });
-  }
-};
+class NotificationEmitter extends EventEmitter {
+  private listenerCounts = new Map<string, number>();
 
-export const unsubscribeFromChannel = (channel: string) => {
-  if (subscribedChannels.has(channel)) {
-    redisSubscriber.unsubscribe(channel, (err) => {
-      if (err) {
-        console.error(`[Redis] Failed to unsubscribe from ${channel}`, err);
-        return;
-      }
-      subscribedChannels.delete(channel);
-      console.log(`[Redis] Unsubscribed from channel: ${channel}`);
+  constructor() {
+    super();
+    redisSubscriber.on("message", (chennel, message) => {
+      this.emit(chennel, message);
     });
   }
-};
+
+  subscribe(channel: string, handler: (message: string) => void) {
+    const currentCount = this.listenerCounts.get(channel) || 0;
+
+    if (currentCount === 0) {
+      redisSubscriber.subscribe(channel, (error) => {
+        if (error) {
+          console.error(`[Redis] Failed to subscribe to ${channel}`, error);
+        } else {
+          console.log(`[Redis] Subscribed to channel: ${channel}`);
+        }
+      });
+    }
+
+    this.listenerCounts.set(channel, currentCount + 1);
+    this.on(channel, handler);
+  }
+
+  unsubscribe(channel: string, handler: (message: string) => void) {
+    this.removeListener(channel, handler);
+    const currentCount = this.listenerCounts.get(channel) || 1;
+    if (currentCount <= 1) {
+      redisSubscriber.unsubscribe(channel, (err) => {
+        if (err) {
+          console.error(`[Redis] Failed to unsubscribe from ${channel}`, err);
+        } else {
+          console.log(`[Redis] Unsubscribed from channel: ${channel}`);
+        }
+      });
+      this.listenerCounts.delete(channel);
+    } else {
+      this.listenerCounts.set(channel, currentCount - 1);
+    }
+  }
+}
+
+const notificationEmitter =
+  global.notificationEmitter || new NotificationEmitter();
+
+if (process.env.NODE_ENV !== "production") {
+  global.notificationEmitter = notificationEmitter;
+}
 
 export default notificationEmitter;

@@ -48,7 +48,7 @@ export default function ProductDetails({
             )}
           >
             <Star className="w-3.5 h-3.5 mr-1 fill-white" />
-            {product.rating}
+            {product.rating.toFixed(1)}
           </Badge>
           <p className="text-sm font-medium text-muted-foreground">
             {product.review_count} Reviews

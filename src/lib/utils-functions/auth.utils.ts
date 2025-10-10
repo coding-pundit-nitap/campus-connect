@@ -1,9 +1,8 @@
 import { Role } from "@prisma/client";
 import { User } from "next-auth";
 
-import { auth } from "@/auth";
-
 import { UnauthenticatedError, UnauthorizedError } from "../custom-error";
+import { getCachedSession } from "../session";
 
 export interface IAuthUtils {
   getUserData: () => Promise<User>;
@@ -14,7 +13,7 @@ export interface IAuthUtils {
 
 class AuthUtils implements IAuthUtils {
   async getUserData() {
-    const session = await auth();
+    const session = await getCachedSession();
     if (!session || !session.user || !session.user.id) this.unAuthenticated();
     return session.user;
   }
