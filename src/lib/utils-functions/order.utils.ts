@@ -68,6 +68,10 @@ export const serializeOrderWithDetails = (
       ...serializeOrderItem(item),
       product: serializeProduct(item.product),
     })),
+    user: {
+      name: order.user.name || "Unknown",
+      phone: order.user.phone || "Unknown",
+    },
   };
 };
 

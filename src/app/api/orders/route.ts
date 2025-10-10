@@ -26,6 +26,7 @@ export async function GET() {
             },
           },
         },
+        user: { select: { name: true, phone: true } },
         shop: true,
         delivery_address: true,
       },

@@ -1,4 +1,3 @@
-export * from "./auth.utils";
 export * from "./cart.utils";
 export * from "./image.utils";
 export * from "./login.utils";

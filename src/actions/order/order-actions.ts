@@ -2,7 +2,7 @@
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions";
+import { authUtils } from "@/lib/utils-functions/auth.utils";
 import {
   serializeOrder,
   serializeOrderWithDetails,
@@ -124,7 +124,7 @@ export async function updateOrderStatusAction({
     await notificationService.publishNotification(order.user_id, {
       title: "Order Status Updated",
       message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
-      action_url: `/orders`,
+      action_url: `/orders/${order_id}`,
       type: "INFO",
     });
 
@@ -153,6 +153,12 @@ export async function getOrderByIdAction(
         items: {
           include: {
             product: { include: { category: true } },
+          },
+        },
+        user: {
+          select: {
+            name: true,
+            phone: true,
           },
         },
         delivery_address: true,
@@ -200,6 +206,7 @@ export async function getShopOrderByIdAction(
         user: {
           select: {
             name: true,
+            phone: true,
           },
         },
       },
@@ -256,8 +263,8 @@ export async function batchUpdateOrderStatusAction({
       orders.map((order) =>
         notificationService.publishNotification(order.user_id, {
           title: "Order Status Updated",
-          message: `Your order with ID: ${order.display_id} has been updated to ${status.replace("_", " ")}`,
-          action_url: `/orders`,
+          message: `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`,
+          action_url: `/orders/${order.id}`,
           type: "INFO",
         })
       )

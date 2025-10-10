@@ -49,7 +49,7 @@ export type SerializedCartItem = SerializedFullCart["items"][number];
 export type FullCart = Cart & {
   items: (CartItem & {
     product: Product & {
-      shop?: { name: string; id: string };
+      shop: { name: string; id: string };
       category: Category | null;
     };
   })[];

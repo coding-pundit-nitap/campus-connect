@@ -67,6 +67,7 @@ export default async function IndividualProduct({
     shop: {
       name: product.shop.name,
     },
+    stock_quantity: serializedProduct.stock_quantity,
     rating: serializedProduct.rating,
     review_count:
       reviewGroup.one +

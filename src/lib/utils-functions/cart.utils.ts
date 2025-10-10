@@ -1,4 +1,3 @@
-import { environment } from "@/config/env.config";
 import {
   CartItemData,
   CartSummary,
@@ -6,6 +5,8 @@ import {
   SerializedFullCart,
   ShopCart,
 } from "@/types";
+
+import { ImageUtils } from "./image.utils";
 
 class CartDrawerServices {
   calculateCartItemsPrice = (items: CartItemData[]): number => {
@@ -20,9 +21,9 @@ class CartDrawerServices {
     return {
       id: item.id,
       image_url:
-        `${environment.minioBaseUrl}/${item.product.imageKey}` ||
+        ImageUtils.getImageUrl(item.product.imageKey) ||
         "/placeholders/placeholder.png",
-      price: Number(item.product.price),
+      price: Number(Number(item.product.price).toFixed(2)),
       quantity: item.quantity,
       name: item.product.name,
       shop_name: item.product.shop?.name ?? "Unknown Shop",

@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatDate } from "@/lib/utils-functions/date";
 import { SerializedOrderWithDetails } from "@/types";
 
 type Props = {
@@ -48,13 +47,11 @@ const OrderCard = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-2 text-sm">
           <div>
             <p className="font-bold text-base">#{order.display_id}</p>
-            <p className="text-muted-foreground">
-              {formatDate(order.created_at)}
-            </p>
+            <p className="text-muted-foreground">{order.created_at}</p>
           </div>
           <div className="flex items-center gap-2">
             <User className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{order.user.name ?? "N/A"}</span>
+            <span className="font-medium">{order.user.name}</span>
           </div>
           <div className="flex items-center gap-2">
             <Package className="h-4 w-4 text-muted-foreground" />

@@ -70,7 +70,7 @@ export default function OrderDetailsHeader({
         <div className="text-right">
           <p className="text-2xl font-bold">₹{totalPrice}</p>
           <p className="text-sm text-muted-foreground capitalize">
-            {paymentMethod.toLowerCase().replace("_", " ")}
+            {paymentMethod.toLowerCase().replace(/_/g, " ")}
           </p>
         </div>
       </div>

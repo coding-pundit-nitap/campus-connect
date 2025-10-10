@@ -1,7 +1,6 @@
-// @/app/shops/[shopId]/orders/[orderId]/page.tsx
-
-import { CreditCard, Home, User } from "lucide-react";
+import { CreditCard, Home, Phone, User } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
@@ -27,30 +26,32 @@ import {
 import { ImageUtils } from "@/lib/utils-functions";
 
 type Props = {
-  params: { orderId: string };
+  params: Promise<{ order_id: string }>;
 };
 
 const DetailItem = ({
   icon,
   label,
   children,
+  className,
 }: {
   icon: ReactNode;
   label: string;
   children: ReactNode;
+  className?: string;
 }) => (
-  <div className="flex items-start gap-3">
+  <div className={`flex items-start gap-3`}>
     <div className="text-muted-foreground mt-1">{icon}</div>
-    <div className="flex flex-col">
+    <div className={`flex flex-col w-full`}>
       <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="font-medium">{children}</span>
+      <span className={`font-medium ${className}`}>{children}</span>
     </div>
   </div>
 );
 
 export default async function ShopOrderDetailPage({ params }: Props) {
-  const { orderId } = params;
-  const response = await getShopOrderByIdAction(orderId);
+  const { order_id } = await params;
+  const response = await getShopOrderByIdAction(order_id);
 
   if (!response.success || !response.data) {
     return notFound();
@@ -171,7 +172,33 @@ export default async function ShopOrderDetailPage({ params }: Props) {
             </CardHeader>
             <CardContent className="grid gap-4">
               <DetailItem icon={<User size={18} />} label="Customer">
-                {order.user.name ?? "N/A"}
+                {order.user.name}
+              </DetailItem>
+              <DetailItem
+                icon={<Phone size={18} />}
+                className="flex justify-between"
+                label="Customer"
+              >
+                {order.user.phone}
+                <Link
+                  href={`tel:+91${order.user.phone}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  <Phone size={16} />
+                </Link>
+                <Link
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`https://wa.me/91${order.user.phone}`}
+                  className="text-blue-500 hover:underline"
+                >
+                  <Image
+                    src="/svg/whatsapp-icon.svg"
+                    alt="WhatsApp"
+                    width={18}
+                    height={18}
+                  />
+                </Link>
               </DetailItem>
               <DetailItem icon={<Home size={18} />} label="Delivery Address">
                 {order.delivery_address_snapshot}

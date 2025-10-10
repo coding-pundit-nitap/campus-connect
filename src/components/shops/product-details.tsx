@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Package, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ type ProductDetailsProps = {
     shop: {
       name: string;
     };
+    stock_quantity: number;
     rating: number;
     review_count: number;
     price: number;
@@ -24,6 +25,20 @@ export default function ProductDetails({
 }: ProductDetailsProps) {
   const discountedPrice =
     (product.price * (100 - (product.discount ?? 0))) / 100;
+
+  const getStockStatus = () => {
+    if (product.stock_quantity === 0) return "Out of Stock";
+    if (product.stock_quantity <= 5) return "Low Stock";
+    if (product.stock_quantity <= 10) return "Limited Stock";
+    return "In Stock";
+  };
+
+  const getStockColor = () => {
+    if (product.stock_quantity === 0) return "text-red-600";
+    if (product.stock_quantity <= 5) return "text-orange-600";
+    if (product.stock_quantity <= 10) return "text-yellow-600";
+    return "text-green-600";
+  };
 
   const getRatingColors = () => {
     const rating = product.rating || 0;
@@ -48,7 +63,7 @@ export default function ProductDetails({
             )}
           >
             <Star className="w-3.5 h-3.5 mr-1 fill-white" />
-            {product.rating}
+            {product.rating.toFixed(1)}
           </Badge>
           <p className="text-sm font-medium text-muted-foreground">
             {product.review_count} Reviews
@@ -67,6 +82,16 @@ export default function ProductDetails({
               </span>
             </>
           )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Package className="w-4 h-4 text-muted-foreground" />
+          <span className={`font-medium ${getStockColor()}`}>
+            {getStockStatus()}
+          </span>
+          <span className="text-muted-foreground">
+            ({product.stock_quantity})
+          </span>
         </div>
 
         <p className="text-gray-600 text-sm leading-relaxed">

@@ -1,7 +1,20 @@
 import React from "react";
 
-import { Shops } from "./shop/shops";
+import { productAPIService } from "@/services/api";
 
-export default function Homepage() {
-  return <Shops />;
+import ProductsList from "./products-list";
+
+export default async function Homepage() {
+  const { initialProducts, nextCursor, hasNextPage, error } =
+    await productAPIService.fetchProducts({ limit: 20 });
+
+  return (
+    <ProductsList
+      initialProducts={initialProducts}
+      hasNextPage={hasNextPage}
+      nextCursor={nextCursor}
+      initialError={error}
+      limit={20}
+    />
+  );
 }
