@@ -164,7 +164,7 @@ class OrderRepository {
             },
           },
         },
-        user: true,
+        user: { select: { name: true, phone: true } },
         shop: true,
         delivery_address: true,
       },

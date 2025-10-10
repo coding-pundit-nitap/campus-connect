@@ -6,6 +6,10 @@ export type OrderWithDetails = Order & {
   items: (OrderItem & {
     product: Product;
   })[];
+  user: {
+    name: string | null;
+    phone: string | null;
+  };
 };
 
 export type CreateOrderPayload = {
@@ -51,5 +55,6 @@ export type SerializedOrderWithDetails = SerializedOrder & {
   items: SerializedOrderItemWithProduct[];
   user: {
     name: string;
+    phone: string;
   };
 };

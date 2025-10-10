@@ -35,6 +35,9 @@ class OrderService {
           },
         },
         shop: true,
+        user: {
+          select: { name: true, phone: true },
+        },
       },
     });
 
@@ -60,7 +63,10 @@ class OrderService {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
-        include: { items: { include: { product: true } } },
+        include: {
+          items: { include: { product: true } },
+          user: { select: { name: true, phone: true } },
+        },
       });
 
       const deliveryAddress = await tx.userAddress.findUnique({
@@ -120,7 +126,7 @@ class OrderService {
         await notificationService.publishNotification(shop.owner_id, {
           title: "New Order Received",
           message: `You have received a new order with ID: ${order.display_id}`,
-          action_url: `/owner-shops/orders`,
+          action_url: `/owner-shops/orders/${order.id}`,
           type: "INFO",
         });
       }
