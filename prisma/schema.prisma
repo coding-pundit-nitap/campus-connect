@@ -245,11 +245,11 @@ model Review {
   updated_at DateTime @updatedAt
 
   // Relations
-  user_id     String
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  product_id  String
-  product     Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  order_item   OrderItem @relation(fields: [order_item_id], references: [id])
+  user_id       String
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product_id    String
+  product       Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  order_item    OrderItem @relation(fields: [order_item_id], references: [id])
   order_item_id String    @unique
 
   @@index([product_id])
@@ -371,6 +371,7 @@ model BroadcastNotification {
 
   read_statuses BroadcastReadStatus[]
 
+  @@index([created_at])
   @@map("broadcast_notification")
 }
 

@@ -34,18 +34,13 @@ export async function PATCH(request: NextRequest) {
       await request.json();
 
     if (notification_ids && notification_ids.length > 0) {
-      await Promise.all(
-        notification_ids.map((id: string) =>
-          notificationService.markNotificationAsRead(id)
-        )
-      );
+      await notificationService.markNotificationsAsRead(notification_ids);
     }
 
     if (broadcast_notification_ids && broadcast_notification_ids.length > 0) {
-      await Promise.all(
-        broadcast_notification_ids.map((id: string) =>
-          notificationService.markBroadcastAsRead(user_id, id)
-        )
+      await notificationService.markBroadcastsAsRead(
+        user_id,
+        broadcast_notification_ids
       );
     }
 

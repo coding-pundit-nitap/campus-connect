@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
+import { NotificationSummaryType } from "@/services/api/notification-api.service";
 
 interface NotificationEvent {
   data: string;
@@ -24,13 +25,6 @@ export function useLiveNotifications() {
       console.log("Connection to notification stream opened.");
     };
 
-    eventSource.addEventListener("connected", (event) => {
-      console.log(
-        "Successfully connected to the notification stream:",
-        JSON.parse(event.data)
-      );
-    });
-
     const handleNewNotification = (event: NotificationEvent): void => {
       try {
         const newNotification: Notification | BroadcastNotification =
@@ -38,53 +32,41 @@ export function useLiveNotifications() {
 
         const isBroadcast = !("user_id" in newNotification);
 
-        queryClient.setQueryData<{
-          unreadNotifications: Notification[];
-          unreadBroadcasts: BroadcastNotification[];
-        }>(queryKeys.notifications.unread, (oldData) => {
-          if (!oldData) {
-            return isBroadcast
-              ? {
-                  unreadNotifications: [],
-                  unreadBroadcasts: [newNotification],
-                }
-              : {
-                  unreadNotifications: [newNotification],
-                  unreadBroadcasts: [],
-                };
+        queryClient.setQueryData(
+          queryKeys.notifications.summary(),
+          (oldSummary: NotificationSummaryType | undefined) => {
+            if (!oldSummary) return undefined;
+
+            const exists = isBroadcast
+              ? oldSummary.unreadBroadcasts.some(
+                  (n) => n.id === newNotification.id
+                )
+              : oldSummary.unreadNotifications.some(
+                  (n) => n.id === newNotification.id
+                );
+
+            if (exists) {
+              return oldSummary;
+            }
+
+            return {
+              ...oldSummary,
+              unreadNotifications: isBroadcast
+                ? oldSummary.unreadNotifications
+                : [newNotification, ...oldSummary.unreadNotifications],
+              unreadBroadcasts: !isBroadcast
+                ? oldSummary.unreadBroadcasts
+                : [newNotification, ...oldSummary.unreadBroadcasts],
+              unreadCount: {
+                notifications:
+                  oldSummary.unreadCount.notifications + (isBroadcast ? 0 : 1),
+                broadcasts:
+                  oldSummary.unreadCount.broadcasts + (isBroadcast ? 1 : 0),
+                total: oldSummary.unreadCount.total + 1,
+              },
+            };
           }
-
-          const existsInNotifications = oldData.unreadNotifications.some(
-            (n) => n.id === newNotification.id
-          );
-          const existsInBroadcasts = oldData.unreadBroadcasts.some(
-            (n) => n.id === newNotification.id
-          );
-
-          if (existsInNotifications || existsInBroadcasts) {
-            return oldData;
-          }
-
-          return isBroadcast
-            ? {
-                ...oldData,
-                unreadBroadcasts: [
-                  newNotification,
-                  ...(oldData.unreadBroadcasts || []),
-                ],
-              }
-            : {
-                ...oldData,
-                unreadNotifications: [
-                  newNotification,
-                  ...(oldData.unreadNotifications || []),
-                ],
-              };
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.notifications.unreadCount,
-        });
+        );
       } catch (e: unknown) {
         console.error("Error processing new notification:", e);
       }

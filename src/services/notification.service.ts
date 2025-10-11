@@ -1,5 +1,6 @@
-import { Notification, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
+import { prisma } from "@/lib/prisma";
 import { redisPublisher } from "@/lib/redis";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import { notificationRepository } from "@/repositories/notification.repository";
@@ -9,19 +10,28 @@ class NotificationService {
     user_id: string,
     data: Prisma.NotificationCreateWithoutUserInput
   ) {
-    const newNotification = await notificationRepository.create({
-      data: {
-        ...data,
-        user: { connect: { id: user_id } },
-      },
+    const newNotification = await prisma.$transaction(async (tx) => {
+      const createdNotification = await tx.notification.create({
+        data: {
+          ...data,
+          user: { connect: { id: user_id } },
+        },
+      });
+
+      return createdNotification;
     });
+
     const channel = `user:${user_id}:notifications`;
     await redisPublisher.publish(channel, JSON.stringify(newNotification));
     return newNotification;
   }
 
   async broadcastNotification(data: Prisma.BroadcastNotificationCreateInput) {
-    const newBroadcast = await broadcastRepository.create({ data });
+    const newBroadcast = await prisma.$transaction(async (tx) => {
+      const createdBroadcast = await tx.broadcastNotification.create({ data });
+
+      return createdBroadcast;
+    });
 
     const channel = `broadcast:notifications`;
     await redisPublisher.publish(channel, JSON.stringify(newBroadcast));
@@ -36,20 +46,6 @@ class NotificationService {
     });
   }
 
-  async getUnreadNotifications(user_id: string) {
-    return await notificationRepository.getUnreadNotificationsByUserId(user_id);
-  }
-
-  async getUnreadBroadcasts(user_id: string) {
-    const { broadcasts } = await broadcastRepository.findUnreadForUser(
-      user_id,
-      {
-        limit: 1000,
-      }
-    );
-    return broadcasts;
-  }
-
   async getPaginatedUnreadBroadcasts(
     user_id: string,
     limit = 20,
@@ -61,34 +57,35 @@ class NotificationService {
     });
   }
 
-  async markNotificationAsRead(notification_id: string): Promise<Notification> {
-    return notificationRepository.markAsRead(notification_id);
+  async markNotificationsAsRead(notification_ids: string[]): Promise<void> {
+    await notificationRepository.markManyAsRead(notification_ids);
   }
 
-  async markBroadcastAsRead(
-    userId: string,
-    broadcast_notification_id: string
+  async markBroadcastsAsRead(
+    user_id: string,
+    broadcast_ids: string[]
   ): Promise<void> {
-    await broadcastRepository.markAsReadForUser(
-      userId,
-      broadcast_notification_id
-    );
+    await broadcastRepository.markManyAsReadForUser(user_id, broadcast_ids);
   }
 
-  async getUnreadNotificationsCount(user_id: string): Promise<number> {
-    const unreadNotifications =
-      await notificationRepository.getUnreadNotificationsByUserId(user_id);
-    return unreadNotifications.length;
-  }
+  async getNotificationSummary(user_id: string) {
+    const [
+      [unreadNotifications, notificationsCount],
+      [unreadBroadcasts, broadcastsCount],
+    ] = await Promise.all([
+      notificationRepository.getUnreadWithCount(user_id),
+      broadcastRepository.getUnreadWithCount(user_id),
+    ]);
 
-  async getUnreadBroadcastsCount(user_id: string): Promise<number> {
-    const { broadcasts } = await broadcastRepository.findUnreadForUser(
-      user_id,
-      {
-        limit: 1000,
-      }
-    );
-    return broadcasts.length;
+    return {
+      unreadNotifications,
+      unreadBroadcasts,
+      unreadCount: {
+        notifications: notificationsCount,
+        broadcasts: broadcastsCount,
+        total: notificationsCount + broadcastsCount,
+      },
+    };
   }
 }
 

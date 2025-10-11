@@ -1,4 +1,4 @@
-import { CreditCard, Home, Phone, User } from "lucide-react";
+import { CreditCard, Home, Link2, Phone, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -7,6 +7,7 @@ import { ReactNode } from "react";
 import { getShopOrderByIdAction } from "@/actions/order/order-actions";
 import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -104,6 +105,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                     <TableHead className="text-center">Quantity</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Link</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -141,6 +143,18 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         ₹{(Number(item.price) * item.quantity).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link
+                            href={`/product/${item.product.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline"
+                          >
+                            <Link2 size={16} />
+                          </Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

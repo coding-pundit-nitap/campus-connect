@@ -153,10 +153,7 @@ export class ProductUIServices {
   }
 
   formatProductDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-    });
+    return new Date(date).toLocaleDateString();
   }
 
   getProductCountMessage(displayCount: number, totalCount: number): string {
