@@ -201,6 +201,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
     profiles:
       - prod
 
@@ -272,6 +277,7 @@ services:
     image: redis:8.2.1-alpine
     container_name: college_connect_redis
     restart: unless-stopped
+    command: redis-server --appendonly yes
     expose:
       - "6379"
     volumes:

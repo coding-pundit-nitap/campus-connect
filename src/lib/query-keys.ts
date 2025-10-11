@@ -101,9 +101,8 @@ export const queryKeys = {
    */
   notifications: {
     all: ["notifications"] as const,
-    unread: ["notifications", "unread"] as const,
-    unreadCount: ["notifications", "unread", "count"] as const,
     history: () => ["notifications", "history"] as const,
+    summary: () => ["notifications", "summary"] as const,
   },
 
   health: {

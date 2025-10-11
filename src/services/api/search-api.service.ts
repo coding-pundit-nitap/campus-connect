@@ -15,15 +15,27 @@ type FetchOrdersParams = {
 
 class SearchAPIService {
   async search(query: string): Promise<SearchResult[]> {
-    const url = `search?q=${encodeURIComponent(query)}`;
-    const response =
-      await axiosInstance.get<ActionResponse<SearchResult[]>>(url);
+    const url = `search`;
+    const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
+      url,
+      {
+        params: {
+          q: query,
+        },
+      }
+    );
     return response.data.data;
   }
   async searchProducts(query: string): Promise<SearchResult[]> {
-    const url = `search/product?q=${encodeURIComponent(query)}`;
-    const response =
-      await axiosInstance.get<ActionResponse<SearchResult[]>>(url);
+    const url = `search/product`;
+    const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
+      url,
+      {
+        params: {
+          q: query,
+        },
+      }
+    );
     return response.data.data;
   }
 
@@ -43,13 +55,21 @@ class SearchAPIService {
     if (dateRange?.to) params.append("to", dateRange.to.toISOString());
     if (pageParam) params.append("cursor", pageParam);
 
-    const url = `search/orders?${params.toString()}`;
+    const url = `search/orders`;
     const response = await axiosInstance.get<
       ActionResponse<{
         orders: SerializedOrderWithDetails[];
         nextCursor?: string;
       }>
-    >(url);
+    >(url, {
+      params: {
+        q: query,
+        status: status,
+        from: dateRange?.from?.toISOString(),
+        to: dateRange?.to?.toISOString(),
+        cursor: pageParam,
+      },
+    });
     return response.data.data;
   }
 }

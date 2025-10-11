@@ -1,6 +1,6 @@
 "use client";
 
-import { Notification, NotificationType } from "@prisma/client";
+import { NotificationType } from "@prisma/client";
 import {
   Bell,
   Info,
