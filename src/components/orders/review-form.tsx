@@ -1,6 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -96,7 +96,6 @@ export default function ReviewForm({ product_id, order_item_id }: Props) {
     </Form>
   );
 }
-
 const StarRating = ({
   rating,
   onChange,
@@ -104,23 +103,24 @@ const StarRating = ({
   rating: number;
   onChange: (rating: number) => void;
 }) => {
+  const [hoverRating, setHoverRating] = useState(0);
+
   return (
-    <div className="flex w-full justify-between space-x-1">
+    <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((star) => (
-        <Button
+        <button
           key={star}
           type="button"
-          variant="ghost"
-          onClick={() => {
-            onChange(star);
-          }}
-          className={`text-3xl cursor-pointer transition-colors hover:scale-110 transform duration-150`}
+          onClick={() => onChange(star)}
+          onMouseEnter={() => setHoverRating(star)}
+          onMouseLeave={() => setHoverRating(0)}
+          className="transform-gpu cursor-pointer text-4xl transition-all duration-150 ease-in-out hover:scale-125"
           style={{
-            color: star <= rating ? "#eab308" : "#d1d5db",
+            color: (hoverRating || rating) >= star ? "#f59e0b" : "#e5e7eb", // yellow-500 or gray-200
           }}
         >
           ★
-        </Button>
+        </button>
       ))}
     </div>
   );
