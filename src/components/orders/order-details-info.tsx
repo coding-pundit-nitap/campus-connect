@@ -3,79 +3,70 @@ import { Clock, MapPin, Store } from "lucide-react";
 import React from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SerializedOrderWithDetails } from "@/types";
 
 type Props = {
-  shopName: string;
-  deliveryAddress: string;
-  requestedDeliveryTime?: string;
-  estimatedDeliveryTime?: string;
-  actualDeliveryTime?: string;
+  order: SerializedOrderWithDetails;
 };
 
-export default function OrderDetailsInfo({
-  shopName,
-  deliveryAddress,
-  requestedDeliveryTime,
-  estimatedDeliveryTime,
-  actualDeliveryTime,
-}: Props) {
+// A reusable component for info rows
+const InfoRow = ({
+  Icon,
+  label,
+  children,
+}: {
+  Icon: React.ElementType;
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="flex items-start gap-4">
+    <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+    <div className="flex-1 break-words">
+      <p className="font-medium">{label}</p>
+      <div className="text-sm text-muted-foreground">{children}</div>
+    </div>
+  </div>
+);
+
+export default function OrderDetailsInfo({ order }: Props) {
+  const {
+    shop,
+    delivery_address_snapshot,
+    requested_delivery_time,
+    estimated_delivery_time,
+    actual_delivery_time,
+  } = order;
+
   return (
-    <Card className="py-4">
+    <Card className="col-span-1 py-4">
       <CardHeader>
-        <CardTitle className="text-lg">Order Information</CardTitle>
+        <CardTitle className="text-lg">Delivery Information</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex items-start gap-3">
-          <Store className="h-5 w-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="font-medium">Restaurant</p>
-            <p className="text-sm text-muted-foreground">{shopName}</p>
-          </div>
-        </div>
+        <InfoRow Icon={Store} label="Restaurant">
+          {shop.name}
+        </InfoRow>
+        <InfoRow Icon={MapPin} label="Delivery Address">
+          {delivery_address_snapshot}
+        </InfoRow>
 
-        <div className="flex items-start gap-3">
-          <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-          <div>
-            <p className="font-medium">Delivery Address</p>
-            <p className="text-sm text-muted-foreground">{deliveryAddress}</p>
-          </div>
-        </div>
-
-        {requestedDeliveryTime && (
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <p className="font-medium">Requested Delivery Time</p>
-              <p className="text-sm text-muted-foreground">
-                {format(new Date(requestedDeliveryTime), "PPP 'at' pp")}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {estimatedDeliveryTime && (
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div>
-              <p className="font-medium">Estimated Delivery Time</p>
-              <p className="text-sm text-blue-600">
-                {format(new Date(estimatedDeliveryTime), "PPP 'at' pp")}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {actualDeliveryTime && (
-          <div className="flex items-start gap-3">
-            <Clock className="h-5 w-5 text-green-600 mt-0.5" />
-            <div>
-              <p className="font-medium">Actual Delivery Time</p>
-              <p className="text-sm text-green-600">
-                {format(new Date(actualDeliveryTime), "PPP 'at' pp")}
-              </p>
-            </div>
-          </div>
-        )}
+        {actual_delivery_time ? (
+          <InfoRow Icon={Clock} label="Delivered At">
+            <span className="font-semibold text-green-600">
+              {format(new Date(actual_delivery_time), "PPp")}
+            </span>
+          </InfoRow>
+        ) : estimated_delivery_time ? (
+          <InfoRow Icon={Clock} label="Estimated Delivery">
+            <span className="font-semibold text-blue-600">
+              {format(new Date(estimated_delivery_time), "PPp")}
+            </span>
+          </InfoRow>
+        ) : requested_delivery_time ? (
+          <InfoRow Icon={Clock} label="Requested Delivery">
+            {format(new Date(requested_delivery_time), "PPp")}
+          </InfoRow>
+        ) : null}
       </CardContent>
     </Card>
   );

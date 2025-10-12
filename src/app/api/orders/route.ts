@@ -22,13 +22,21 @@ export async function GET() {
         items: {
           include: {
             product: {
-              include: { category: true },
+              include: {
+                category: true,
+                shop: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
             },
           },
         },
-        user: { select: { name: true, phone: true } },
         shop: true,
         delivery_address: true,
+        user: { select: { name: true, phone: true } },
       },
     });
     const successResponse = createSuccessResponse(

@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { z } from "zod";
 
 import axiosInstance from "@/lib/axios";
+import { registerSchema } from "@/validations";
 import { updateUserSchema } from "@/validations/user.validation";
 
 class UserAPIService {
@@ -15,8 +16,8 @@ class UserAPIService {
     return response.data;
   }
 
-  async registerUser(data: any): Promise<any> {
-    const response = await axiosInstance.post("/auth/register", data);
+  async registerUser(data: z.infer<typeof registerSchema>): Promise<User> {
+    const response = await axiosInstance.post<User>("/auth/register", data);
     return response.data;
   }
 }

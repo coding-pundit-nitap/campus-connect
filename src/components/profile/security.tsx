@@ -38,10 +38,9 @@ const SecuritySettings = () => {
     },
   });
 
-  const onSubmit = async (values: ChangePasswordFormValues) => {
+  const onSubmit = async (_values: ChangePasswordFormValues) => {
     setIsPending(true);
     await new Promise((res) => setTimeout(res, 1500));
-    console.log("Changing password with:", values);
     toast.success("Password changed successfully!");
     form.reset();
     setIsPending(false);

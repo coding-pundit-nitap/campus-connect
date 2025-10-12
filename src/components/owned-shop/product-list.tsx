@@ -29,9 +29,6 @@ export function ProductListContainer({
   const {
     displayProducts,
     error,
-    hasActiveFilters,
-    isInitialLoading,
-    hasError,
     isLoading,
     isError,
     hasNextPage,

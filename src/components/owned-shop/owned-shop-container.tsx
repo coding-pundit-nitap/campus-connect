@@ -6,12 +6,21 @@ import {
   NoMatchFilter,
   ProductFiltersContainer,
 } from "@/components/shared/shared-product-filters";
+import { useShopByUser } from "@/hooks";
 import { useSharedInfiniteProducts } from "@/hooks/useSharedInfiniteProducts";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
+import ShopAction from "./owned-individual-shop/shop-action";
+import { ShopHeaderCard } from "./owned-individual-shop/shop-header-card";
 import { ProductListContainer } from "./product-list";
 import { ShopEmptyState } from "./shop-states/shop-empty-state";
-import { ShopWrapper } from "./shop-states/shop-wrapper";
 
 type Props = {
   shop_id: string;
@@ -30,6 +39,8 @@ export function OwnedShopContainer({
   nextCursor: initialNextCursor,
   initialError,
 }: Props) {
+  const { data: shop, isLoading: isLoadingShop } = useShopByUser();
+
   const {
     displayProducts,
     isLoading,
@@ -60,15 +71,37 @@ export function OwnedShopContainer({
     initialNextCursor,
     initialError,
   });
+  if (isLoadingShop) {
+    return <div>Loading Shop Details...</div>;
+  }
+
+  if (!shop) {
+    return <div>No shop found for this user.</div>;
+  }
 
   if (isEmptyState) {
-    return <ShopEmptyState />;
+    return (
+      <div className="space-y-4">
+        <ShopHeaderCard shop={shop} />
+        <ShopEmptyState />
+      </div>
+    );
   }
 
   return (
-    <ShopWrapper>
-      <div className="flex flex-col h-full">
-        <div className="flex-shrink-0 space-y-4 pb-4">
+    <div className="space-y-4">
+      <ShopHeaderCard shop={shop} />
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Product Management</CardTitle>
+            <CardDescription>
+              View, filter, and manage your products.
+            </CardDescription>
+          </div>
+          <ShopAction />
+        </CardHeader>
+        <CardContent className="space-y-4">
           <ProductFiltersContainer
             filters={filters}
             hasActiveFilters={hasActiveFilters}
@@ -81,8 +114,6 @@ export function OwnedShopContainer({
             clearPriceFilter={clearPriceFilter}
             clearStockFilter={clearStockFilter}
           />
-        </div>
-        <div className="flex-1 hide-scrollbar overflow-y-auto">
           <ProductListContainer
             onDeleteProduct={onDeleteProduct || (() => Promise.resolve())}
             shopData={{
@@ -102,8 +133,8 @@ export function OwnedShopContainer({
           {showNoMatchMessage && (
             <NoMatchFilter onClearFilters={onResetFilters} />
           )}
-        </div>
-      </div>
-    </ShopWrapper>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

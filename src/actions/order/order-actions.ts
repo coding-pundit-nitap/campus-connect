@@ -33,7 +33,15 @@ export async function getOrdersAction(options: {
         items: {
           include: {
             product: {
-              include: { category: true },
+              include: {
+                category: true,
+                shop: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
             },
           },
         },
@@ -152,7 +160,17 @@ export async function getOrderByIdAction(
         shop: true,
         items: {
           include: {
-            product: { include: { category: true } },
+            product: {
+              include: {
+                category: true,
+                shop: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
         user: {
