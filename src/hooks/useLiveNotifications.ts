@@ -4,6 +4,7 @@ import { BroadcastNotification, Notification } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 import { queryKeys } from "@/lib/query-keys";
 import { NotificationSummaryType } from "@/services/api/notification-api.service";
@@ -48,6 +49,8 @@ export function useLiveNotifications() {
             if (exists) {
               return oldSummary;
             }
+
+            toast.success(newNotification.message);
 
             return {
               ...oldSummary,

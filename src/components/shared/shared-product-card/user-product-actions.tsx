@@ -37,7 +37,7 @@ export function UserProductActions({
         {isAddingToCart ? (
           <LoadingSpinner />
         ) : isMobile ? (
-          <Plus />
+          <ShoppingCart />
         ) : (
           <ShoppingCart className="mr-2 h-4 w-4" />
         )}
