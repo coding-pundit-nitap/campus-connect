@@ -1,19 +1,19 @@
 "use client";
+
 import { useSession } from "next-auth/react";
 
 import { UserAddress } from "@/components/checkout";
 import ProfileCard from "@/components/profile/profile-card";
-import SecuritySettings from "@/components/profile/security"; // New component
+import SecuritySettings from "@/components/profile/security";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LoginIndicator from "@/components/wrapper/login-indicator";
 
 export default function ProfilePage() {
   const session = useSession();
 
   if (!session.data?.user) {
-    return <p>Please log in to view your profile.</p>;
+    return <LoginIndicator />;
   }
-  const user = session.data.user;
-
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
@@ -25,16 +25,13 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          {/* ProfileCard doesn't need to be in another card */}
-          <ProfileCard user={user} />
+          <ProfileCard user={session.data.user} />
         </TabsContent>
-
         <TabsContent value="addresses" className="mt-6">
           <UserAddress />
         </TabsContent>
 
         <TabsContent value="security" className="mt-6">
-          {/* You can create this component for password changes */}
           <SecuritySettings />
         </TabsContent>
       </Tabs>

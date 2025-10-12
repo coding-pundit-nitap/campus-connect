@@ -227,21 +227,21 @@ export function useAddToCart() {
 }
 
 export function useGetUserAllCart() {
-  const { data: session } = useSession();
+  const { status } = useSession();
 
   return useQuery({
     queryKey: queryKeys.cart.all,
     queryFn: cartAPIService.fetchAllUserCarts,
-    enabled: !!session?.user?.id,
+    enabled: status === "authenticated",
   });
 }
 
 export function useGetCartByShop(shop_id: string) {
-  const { data: session } = useSession();
+  const { status } = useSession();
 
   return useQuery({
     queryKey: queryKeys.cart.byShop(shop_id),
     queryFn: () => cartAPIService.fetchCartForShop(shop_id),
-    enabled: !!session?.user?.id && !!shop_id,
+    enabled: status === "authenticated" && !!shop_id,
   });
 }

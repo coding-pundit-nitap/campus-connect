@@ -23,12 +23,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useChangePassword } from "@/hooks";
 import { changePasswordSchema } from "@/validations/user.validation";
 
-type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
+export type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>;
 
 const SecuritySettings = () => {
-  const [isPending, setIsPending] = useState(false);
+  const { mutate: changePassword, isPending } = useChangePassword();
+
   const form = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: {
@@ -38,12 +40,9 @@ const SecuritySettings = () => {
     },
   });
 
-  const onSubmit = async (_values: ChangePasswordFormValues) => {
-    setIsPending(true);
-    await new Promise((res) => setTimeout(res, 1500));
-    toast.success("Password changed successfully!");
+  const onSubmit = async (values: ChangePasswordFormValues) => {
+    changePassword(values);
     form.reset();
-    setIsPending(false);
   };
 
   return (
