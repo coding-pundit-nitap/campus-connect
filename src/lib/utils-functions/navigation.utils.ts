@@ -1,4 +1,4 @@
-import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
+import { Home, ShoppingBag, Store } from "lucide-react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
@@ -22,18 +22,6 @@ class NavigationUIService {
         title: "My Orders",
         url: "/orders",
         icon: ShoppingBag,
-      },
-      {
-        id: "settings",
-        title: "Settings",
-        url: "/settings",
-        icon: Settings,
-      },
-      {
-        id: "help",
-        title: "Help",
-        url: "/help",
-        icon: HelpCircle,
       },
     ];
   }

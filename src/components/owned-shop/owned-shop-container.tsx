@@ -39,8 +39,6 @@ export function OwnedShopContainer({
   nextCursor: initialNextCursor,
   initialError,
 }: Props) {
-  const { data: shop, isLoading: isLoadingShop } = useShopByUser();
-
   const {
     displayProducts,
     isLoading,
@@ -71,18 +69,10 @@ export function OwnedShopContainer({
     initialNextCursor,
     initialError,
   });
-  if (isLoadingShop) {
-    return <div>Loading Shop Details...</div>;
-  }
-
-  if (!shop) {
-    return <div>No shop found for this user.</div>;
-  }
 
   if (isEmptyState) {
     return (
       <div className="space-y-4">
-        <ShopHeaderCard shop={shop} />
         <ShopEmptyState />
       </div>
     );
@@ -90,7 +80,6 @@ export function OwnedShopContainer({
 
   return (
     <div className="space-y-4">
-      <ShopHeaderCard shop={shop} />
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>

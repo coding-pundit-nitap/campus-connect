@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { enhanceShopData } from "@/lib/shop-utils";
+import { formatShopData } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 
 import { ShopsContainer } from "./shops-container";
@@ -27,11 +27,11 @@ export async function Shops() {
       initialShops = shops;
     }
 
-    const enhancedShops = initialShops.map(enhanceShopData);
+    const formattededShops = initialShops.map(formatShopData);
 
     return (
       <ShopsContainer
-        initialShops={enhancedShops}
+        initialShops={formattededShops}
         hasNextPage={hasNextPage}
         nextCursor={nextCursor}
       />

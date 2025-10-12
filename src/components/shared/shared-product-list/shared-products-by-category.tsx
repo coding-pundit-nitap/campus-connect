@@ -31,8 +31,7 @@ function CategorySection({
 }: CategorySectionProps) {
   return (
     <section className="space-y-4">
-      {/* Sticky header for better UX on long lists */}
-      <div className="sticky top-0 z-10 border-b bg-background/95 py-3 backdrop-blur-sm">
+      <div className="sticky top-0 z-10 px-4 border-b bg-background/95 py-3 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold tracking-tight">{categoryName}</h2>
           <Badge variant="secondary">

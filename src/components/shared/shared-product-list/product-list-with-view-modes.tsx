@@ -20,7 +20,6 @@ interface ProductListWithViewModesProps {
     index: number
   ) => React.ReactNode;
 
-  // Component-specific props
   defaultViewMode?: "grid" | "category";
   showViewModeToggle?: boolean;
 }

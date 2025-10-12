@@ -71,7 +71,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime?
-  name          String?
+  name          String
   phone         String?
   hash_password String?
   image         String?

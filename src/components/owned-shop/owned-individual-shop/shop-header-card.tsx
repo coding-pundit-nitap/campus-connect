@@ -70,19 +70,27 @@ export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
       </CardContent>
       <Separator />
       <CardFooter className="p-4">
-        <div className="flex w-full flex-wrap items-center justify-end gap-2">
+        <div className="flex flex-col md:flex-row  justify-between w-full gap-2">
           <Button asChild variant="outline">
             <Link href={`/shops/${shop.id}`} target="_blank">
               <Eye className="mr-2 h-4 w-4" />
               View Public Page
             </Link>
           </Button>
-          <Button asChild>
-            <Link href="/owner-shops/orders">
-              <ListOrdered className="mr-2 h-4 w-4" />
-              Manage Orders
-            </Link>
-          </Button>
+          <div className="flex flex-col md:flex-row gap-2">
+            <Button asChild variant="outline">
+              <Link href={`owner-shops/shop`} target="_blank">
+                <Eye className="mr-2 h-4 w-4" />
+                Manage Products
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/owner-shops/orders">
+                <ListOrdered className="mr-2 h-4 w-4" />
+                Manage Orders
+              </Link>
+            </Button>
+          </div>
         </div>
       </CardFooter>
     </Card>

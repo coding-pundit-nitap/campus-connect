@@ -9,6 +9,24 @@ import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
 
+export function useRegisterUser() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: userAPIService.registerUser,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.users.all,
+      });
+
+      toast.success("Registration successful! Please log in.");
+    },
+    onError: (error) => {
+      toast.error("Registration failed: " + error.message);
+    },
+  });
+}
+
 export function useLoginUserMutation() {
   return useMutation({
     mutationFn: loginAction,
