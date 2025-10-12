@@ -71,7 +71,6 @@ export function useUserAddressManager() {
   };
 
   return {
-    // Data
     addresses: addresses?.data,
     isLoading,
     error,
@@ -79,11 +78,9 @@ export function useUserAddressManager() {
     selectedAddress: getSelectedAddress(),
     showForm,
 
-    // Mutations
     setDefaultMutation,
     deleteMutation,
 
-    // Handlers
     handleAddressSelect,
     handleSetDefault,
     handleDelete,

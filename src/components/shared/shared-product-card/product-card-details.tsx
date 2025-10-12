@@ -9,6 +9,7 @@ interface ProductCardDetailsProps {
   discountedPrice: string;
   productHasDiscount: boolean;
   productHasRating: boolean;
+  isMobileList?: boolean;
 }
 
 export function ProductCardDetails({
@@ -16,6 +17,7 @@ export function ProductCardDetails({
   discountedPrice,
   productHasDiscount,
   productHasRating,
+  isMobileList = false,
 }: ProductCardDetailsProps) {
   const stockInfo = (() => {
     const { stock_quantity } = product;
@@ -35,30 +37,39 @@ export function ProductCardDetails({
   })();
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className={`flex flex-col gap-3 ${isMobileList ? "p-2" : "p-4"}`}>
       {/* Section for Category and Rating */}
       <div className="flex items-center justify-between text-xs">
         {product.category ? (
-          <Badge variant="outline">{product.category.name}</Badge>
+          <Badge
+            variant="outline"
+            className={isMobileList ? "text-[10px] px-1.5 py-0" : ""}
+          >
+            {product.category.name}
+          </Badge>
         ) : (
           <span /> // Placeholder to maintain alignment
         )}
         {productHasRating && (
           <div
-            className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${ratingClasses}`}
+            className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${ratingClasses} ${isMobileList ? "px-1.5 py-0" : ""}`}
           >
-            <Star className="h-3 w-3" />
-            <span className="font-bold">{product.rating!.toFixed(1)}</span>
+            <Star className={isMobileList ? "h-2.5 w-2.5" : "h-3 w-3"} />
+            <span className={`font-bold ${isMobileList ? "text-[10px]" : ""}`}>
+              {product.rating!.toFixed(1)}
+            </span>
           </div>
         )}
       </div>
 
       {/* Section for Product Name and Description */}
-      <div className="space-y-1">
-        <h3 className="truncate font-semibold leading-tight text-lg">
+      <div className={isMobileList ? "space-y-0.5" : "space-y-1"}>
+        <h3
+          className={`truncate font-semibold leading-tight ${isMobileList ? "text-sm" : "text-lg"}`}
+        >
           {product.name}
         </h3>
-        {product.description && (
+        {product.description && !isMobileList && (
           <p className="min-h-[40px] text-sm leading-relaxed text-muted-foreground line-clamp-2">
             {product.description}
           </p>
@@ -67,17 +78,21 @@ export function ProductCardDetails({
 
       {/* Section for Price and Discount */}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <span className="text-2xl font-bold text-primary">
+        <span
+          className={`font-bold text-primary ${isMobileList ? "text-lg" : "text-2xl"}`}
+        >
           ₹{discountedPrice}
         </span>
         {productHasDiscount && (
           <>
-            <span className="text-sm text-muted-foreground line-through">
+            <span
+              className={`text-muted-foreground line-through ${isMobileList ? "text-xs" : "text-sm"}`}
+            >
               ₹{product.price}
             </span>
             <Badge
               variant="destructive"
-              className="border-none bg-green-500 hover:bg-green-600"
+              className={`border-none bg-green-500 hover:bg-green-600 ${isMobileList ? "text-[10px] px-1.5 py-0" : ""}`}
             >
               {product.discount}% OFF
             </Badge>
@@ -86,8 +101,10 @@ export function ProductCardDetails({
       </div>
 
       {/* Section for Stock Information */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Package className="h-4 w-4" />
+      <div
+        className={`flex items-center gap-2 text-muted-foreground ${isMobileList ? "text-xs" : "text-sm"}`}
+      >
+        <Package className={isMobileList ? "h-3 w-3" : "h-4 w-4"} />
         <span className={stockInfo.className}>{stockInfo.text}</span>
         <span>({product.stock_quantity} left)</span>
       </div>

@@ -1,7 +1,8 @@
-import { ShoppingCart } from "lucide-react";
-import React from "react";
+import { Plus, ShoppingCart } from "lucide-react";
+import React, { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks";
 
 import LoadingSpinner from "../shared-loading-spinner";
 
@@ -23,6 +24,7 @@ export function UserProductActions({
   shop_id,
 }: UserProductActionsProps) {
   const isOutOfStock = stock === 0;
+  const isMobile = useIsMobile();
 
   return (
     <div className="space-y-2">
@@ -34,12 +36,14 @@ export function UserProductActions({
       >
         {isAddingToCart ? (
           <LoadingSpinner />
+        ) : isMobile ? (
+          <Plus />
         ) : (
           <ShoppingCart className="mr-2 h-4 w-4" />
         )}
-        {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        {!isMobile && (isOutOfStock ? "Out of Stock" : "Add to Cart")}
       </Button>
-      {onViewDetails && (
+      {onViewDetails && !isMobile && (
         <Button
           variant="secondary"
           className="w-full"

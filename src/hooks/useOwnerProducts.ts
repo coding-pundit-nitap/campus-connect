@@ -40,22 +40,18 @@ export const useOwnerProducts = (shop_id: string) => {
   const displayProducts = hasActiveFilters ? filteredProducts : allProducts;
 
   return {
-    // Product data
     allProducts,
     displayProducts,
     isEmpty,
 
-    // Loading states
     isLoading,
     isError,
     error,
 
-    // Pagination
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
 
-    // Filtering
     filters,
     hasActiveFilters,
     updateFilter,

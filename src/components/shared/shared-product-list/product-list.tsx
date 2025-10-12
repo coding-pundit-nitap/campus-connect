@@ -41,33 +41,28 @@ export function ProductList({
     fetchNextPage,
   });
 
-  // Handle initial loading state
   if (isLoading) {
     return <ProductSkeletonGrid count={skeletonCount} />;
   }
 
-  // Handle error state
   if (isError && error) {
     return <ProductListError error={error} onRetry={fetchNextPage} />;
   }
 
-  // Handle empty state
   if (products?.length === 0) {
     return <ProductListEmpty />;
   }
 
-  // Render the product grid
   return (
     <div className="space-y-6">
       <ProductGrid>
         {products?.map((product, index) => {
-          // Attach the ref to the last product card's wrapper
           const isLastProduct = index === products.length - 1;
           return (
             <div
               key={product.id}
               ref={isLastProduct ? lastElementRef : null}
-              className="animate-fade-in" // Add a subtle fade-in animation
+              className="animate-fade-in"
             >
               {renderProductCard(product, index)}
             </div>

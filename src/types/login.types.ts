@@ -1,7 +1,3 @@
-/**
- * Type definitions for login module components
- */
-
 import { LoginFormData } from "@/validations/auth";
 
 export interface LoginCardConfig {

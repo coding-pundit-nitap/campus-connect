@@ -5,9 +5,7 @@ import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";
 
 interface PaginatedShopResponse {
-  /** Array of shop objects for the current page */
   data: ShopWithOwner[];
-  /** Cursor for fetching the next page of results, null if no more pages */
   nextCursor: string | null;
 }
 

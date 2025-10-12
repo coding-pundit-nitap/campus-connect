@@ -5,9 +5,7 @@ import { ActionResponse } from "@/types/response.types";
 import { ServerProductData } from "../product.service";
 
 interface PaginatedProductsResponse {
-  /** Array of product objects for the current page */
   data: SerializedProduct[];
-  /** Cursor for fetching the next page of results, null if no more pages */
   nextCursor: string | null;
 }
 
