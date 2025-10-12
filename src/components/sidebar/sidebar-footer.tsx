@@ -51,7 +51,7 @@ export function SidebarFooter() {
           >
             <div className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              <span>{user.id ? "Shops" : "Add Shops"}</span>
+              <span>{user.id ? "Manage Shops" : "Add Shops"}</span>
             </div>
           </Link>
         </Button>

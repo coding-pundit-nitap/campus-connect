@@ -33,7 +33,7 @@ export function BatchOrderStatusUpdater({
   };
 
   return (
-    <div className="flex items-center gap-2 p-4 rounded-lg">
+    <div className="flex flex-col md:flex-row items-center gap-2 p-4 rounded-lg">
       <Select
         onValueChange={(value) => setSelectedStatus(value as OrderStatus)}
         disabled={isUpdating}

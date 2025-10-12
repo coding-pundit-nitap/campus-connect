@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
-import { useRegisterUser } from "@/hooks";
 import { loginUIService } from "@/lib/utils-functions";
 import { FormState, RegisterHandlers } from "@/types";
 import { RegisterFormData, registerSchema } from "@/validations/auth";
+
+import { useRegisterUser } from "./tanstack";
 
 export function useRegister() {
   const router = useRouter();

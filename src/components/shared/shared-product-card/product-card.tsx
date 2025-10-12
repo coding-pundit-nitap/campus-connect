@@ -111,7 +111,7 @@ export function ProductCard({
         <CardHeader className="p-0">
           <ProductCardHeader product={product} priority={priority} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <ProductCardDetails
             product={product}
             discountedPrice={discountedPrice}

@@ -130,15 +130,15 @@ export default function OrderPage() {
       </Accordion>
 
       <Card>
-        <CardHeader className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
-          <div className="flex items-center justify-between gap-4">
+        <CardHeader className="sticky top-0 z-10 border-b ">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Checkbox
                 checked={areAllSelected}
                 onChange={(e) => handleSelectAll(e.target.checked)}
                 aria-label="Select all orders on this page"
               />
-              <div className="text-sm">
+              <div className="text-sm ">
                 {selectedOrders.length > 0 ? (
                   <span className="font-medium">
                     {selectedOrders.length} selected

@@ -17,6 +17,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 /**
@@ -99,12 +101,8 @@ export default function SharedSidebar({
   onRetry,
 }: SharedSidebarProps) {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
-  /**
-   * Normalizes a URL (Route or UrlObject) to a pathname string for comparison
-   * @param url - The URL to normalize
-   * @returns The pathname as a string
-   */
   const normalizeUrl = (url: Route | UrlObject): string => {
     if (typeof url === "string") {
       return url;
@@ -112,12 +110,6 @@ export default function SharedSidebar({
     return (url as UrlObject).pathname || "/";
   };
 
-  /**
-   * Checks if a navigation item is currently active
-   * @param url - The URL to check
-   * @param currentPath - The current pathname
-   * @returns Whether the item is active
-   */
   const isItemActive = (
     url: Route | UrlObject,
     currentPath: string
@@ -131,10 +123,6 @@ export default function SharedSidebar({
     return currentPath.startsWith(normalizedUrl);
   };
 
-  /**
-   * Renders the sidebar header section based on configuration.
-   * @returns The header JSX or null if header should not be shown
-   */
   const Header = () => {
     if (!showHeader || !header) return null;
 
@@ -163,7 +151,11 @@ export default function SharedSidebar({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
+            <SidebarMenuButton
+              onClick={() => setOpenMobile(false)}
+              size="lg"
+              asChild
+            >
               {header.href ? (
                 <Link href={header.href}>{content}</Link>
               ) : (
@@ -176,11 +168,6 @@ export default function SharedSidebar({
     );
   };
 
-  /**
-   * Renders a single navigation item with icon, text, and optional badge.
-   * @param item - The navigation item configuration
-   * @returns The rendered navigation item JSX
-   */
   const Item = (item: NavigationItem) => {
     const ItemIcon = item.icon;
     const isActive = isItemActive(item.url, pathname);
@@ -192,6 +179,7 @@ export default function SharedSidebar({
           isActive={isActive}
           tooltip={item.title}
           className={isActive ? activeClassName : ""}
+          onClick={() => setOpenMobile(false)}
         >
           <Link
             href={item.url as Route}
