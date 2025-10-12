@@ -3,7 +3,6 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "sonner";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
@@ -39,7 +38,6 @@ export default function RootLayout({
                 <QueryErrorBoundary>
                   <ViewportVhSetter />
                   <Layout>{children}</Layout>
-                  <Toaster position="top-right" richColors closeButton />
                 </QueryErrorBoundary>
               </DatabaseWrapper>
             </OfflineWrapper>

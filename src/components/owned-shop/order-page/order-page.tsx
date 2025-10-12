@@ -84,7 +84,6 @@ export default function OrderPage() {
         status,
       });
       if (response.success) {
-        toast.success(response.details);
         setSelectedOrders([]);
       } else {
         toast.error(response.details);

@@ -1,4 +1,5 @@
 import React from "react";
+import { Toaster } from "sonner";
 
 import { CartDrawer } from "@/components/cart-drawer";
 import SearchBarContainer from "@/components/navigation/search-bar-container";
@@ -48,6 +49,12 @@ export function Layout({
           </header>
           <main className="flex flex-1 p-4 flex-col w-full overflow-y-auto">
             {children}
+            <Toaster
+              className="z-50"
+              position="top-right"
+              richColors
+              closeButton
+            />
           </main>
         </div>
       </SidebarInset>
