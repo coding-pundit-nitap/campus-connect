@@ -93,8 +93,6 @@ function useCreateOrder() {
   });
 }
 
-// Named exports
 export { useCreateOrder, useOrders };
 
-// Default export for more reliable importing
 export default useOrders;

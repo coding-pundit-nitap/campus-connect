@@ -1,6 +1,6 @@
 import React from "react";
 
-import LoadingSpinner from "../shared-loading-spinner"; // Assuming a shared spinner component
+import LoadingSpinner from "../shared-loading-spinner";
 
 interface ProductListFooterProps {
   hasNextPage?: boolean;

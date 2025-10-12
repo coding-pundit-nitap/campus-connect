@@ -13,10 +13,6 @@ interface UploadOptions {
   prefix?: string;
 }
 
-/**
- * Secure file type validation
- * Maps MIME types to allowed file extensions to prevent type confusion attacks
- */
 const SECURE_FILE_TYPES: Record<string, string[]> = {
   "image/jpeg": [".jpg", ".jpeg"],
   "image/png": [".png"],
@@ -26,9 +22,6 @@ const SECURE_FILE_TYPES: Record<string, string[]> = {
   "text/plain": [".txt"],
 };
 
-/**
- * Dangerous file extensions that should never be allowed
- */
 const DANGEROUS_EXTENSIONS = [
   ".exe",
   ".bat",
@@ -84,9 +77,6 @@ class FileUploadService {
 
   private BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET!;
 
-  /**
-   * Validates file security constraints
-   */
   private validateFileSecurity(
     fileName: string,
     fileType: string,
@@ -158,9 +148,6 @@ class FileUploadService {
     }
   }
 
-  /**
-   * Generates a secure, random filename while preserving the extension
-   */
   private generateSecureFileName(
     originalFileName: string,
     prefix: string

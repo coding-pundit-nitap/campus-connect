@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 import { ProductEditDialog } from "@/components/owned-shop/product-card/product-edit-dialog";
@@ -127,22 +128,50 @@ export function ProductCard({
   }
 
   return (
-    <div className="group relative overflow-hidden  rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl">
-      <div className="relative">
-        <ProductCardHeader product={product} priority={priority} />
-        <ImageOverlays />
+    <div className="group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl">
+      {/* Mobile: Horizontal list layout */}
+      <Link
+        href={`/shops/${product.shop_id}/products/${product.id}`}
+        className="flex md:hidden h-36"
+      >
+        <div className="relative w-24 flex-shrink-0 h-full">
+          <ProductCardHeader
+            product={product}
+            priority={priority}
+            isMobileList
+          />
+          <ImageOverlays />
+        </div>
+        <div className="flex  md:flex-col h-full justify-between flex-1">
+          <ProductCardDetails
+            product={product}
+            discountedPrice={discountedPrice}
+            productHasDiscount={productHasDiscount}
+            productHasRating={productHasRating}
+            isMobileList
+          />
+          <div className="p-2">{userActions}</div>
+        </div>
+      </Link>
+
+      {/* Desktop: Vertical card layout */}
+      <div className="hidden md:block">
+        <div className="relative">
+          <ProductCardHeader product={product} priority={priority} />
+          <ImageOverlays />
+        </div>
+
+        <ProductCardDetails
+          product={product}
+          discountedPrice={discountedPrice}
+          productHasDiscount={productHasDiscount}
+          productHasRating={productHasRating}
+        />
+
+        <CardFooter className="p-4 pt-2 md:absolute md:bottom-0 md:left-0 md:w-full md:translate-y-full md:transform-gpu md:bg-gradient-to-t md:from-white md:via-white/90 md:to-transparent md:p-4 md:pt-12 md:transition-transform md:duration-300 md:ease-in-out md:group-hover:translate-y-0 dark:md:from-black flex items-center justify-center dark:md:via-black/90">
+          {userActions}
+        </CardFooter>
       </div>
-
-      <ProductCardDetails
-        product={product}
-        discountedPrice={discountedPrice}
-        productHasDiscount={productHasDiscount}
-        productHasRating={productHasRating}
-      />
-
-      <CardFooter className="p-4 pt-2 md:absolute md:bottom-0 md:left-0 md:w-full md:translate-y-full md:transform-gpu md:bg-gradient-to-t md:from-white md:via-white/90 md:to-transparent md:p-4 md:pt-12 md:transition-transform md:duration-300 md:ease-in-out md:group-hover:translate-y-0 dark:md:from-black flex items-center justify-center dark:md:via-black/90">
-        {userActions}
-      </CardFooter>
     </div>
   );
 }

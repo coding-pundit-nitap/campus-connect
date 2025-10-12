@@ -10,7 +10,7 @@ type FetchOrdersParams = {
   query: string;
   status?: OrderStatus;
   dateRange?: DateRange;
-  pageParam: string | undefined; // This is the cursor
+  pageParam: string | undefined;
 };
 
 class SearchAPIService {
