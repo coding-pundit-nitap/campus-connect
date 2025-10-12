@@ -1,10 +1,11 @@
 "use client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
 import { loginAction } from "@/actions";
+import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
 
@@ -68,4 +69,25 @@ export function useLoginUser() {
     ...mutation,
     loginUser,
   };
+}
+
+export function useUser() {
+  return useQuery({
+    queryKey: queryKeys.users.me,
+    queryFn: userAPIService.getMe,
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me });
+    },
+    onError: (error) => {
+      toast.error("Failed to update profile: " + error.message);
+    },
+  });
 }

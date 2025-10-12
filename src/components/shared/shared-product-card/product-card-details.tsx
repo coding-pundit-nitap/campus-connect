@@ -1,4 +1,4 @@
-import { Calendar, Package, Star } from "lucide-react";
+import { Package, Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,6 @@ interface ProductCardDetailsProps {
   discountedPrice: string;
   productHasDiscount: boolean;
   productHasRating: boolean;
-  formattedDate: string;
 }
 
 export function ProductCardDetails({
@@ -17,96 +16,81 @@ export function ProductCardDetails({
   discountedPrice,
   productHasDiscount,
   productHasRating,
-  formattedDate,
 }: ProductCardDetailsProps) {
-  const getStockColor = () => {
-    if (product.stock_quantity === 0) return "text-red-600";
-    if (product.stock_quantity <= 5) return "text-orange-600";
-    if (product.stock_quantity <= 10) return "text-yellow-600";
-    return "text-green-600";
-  };
+  const stockInfo = (() => {
+    const { stock_quantity } = product;
+    if (stock_quantity === 0)
+      return { text: "Out of Stock", className: "text-red-600" };
+    if (stock_quantity <= 5)
+      return { text: "Low Stock", className: "text-orange-500 font-semibold" };
+    return { text: "In Stock", className: "text-green-600" };
+  })();
 
-  const getStockStatus = () => {
-    if (product.stock_quantity === 0) return "Out of Stock";
-    if (product.stock_quantity <= 5) return "Low Stock";
-    if (product.stock_quantity <= 10) return "Limited Stock";
-    return "In Stock";
-  };
-
-  const getRatingColors = () => {
+  const ratingClasses = (() => {
     const rating = product.rating || 0;
-    if (rating >= 4.5) return "bg-green-50 border-green-200 text-green-700";
-    if (rating >= 4.0) return "bg-blue-50 border-blue-200 text-blue-700";
-    if (rating >= 3.5) return "bg-yellow-50 border-yellow-200 text-yellow-700";
-    if (rating >= 3.0) return "bg-orange-50 border-orange-200 text-orange-700";
-    return "bg-red-50 border-red-200 text-red-700";
-  };
+    if (rating >= 4.5) return "bg-green-100 text-green-800";
+    if (rating >= 4.0) return "bg-sky-100 text-sky-800";
+    if (rating >= 3.0) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
+  })();
 
   return (
-    <div className="space-y-2">
-      <h3 className="font-bold text-lg leading-tight">{product.name}</h3>
-      {product.description && (
-        <p className="text-sm text-muted-foreground min-h-[2.5rem] leading-relaxed">
-          {product.description}
-        </p>
-      )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-bold text-primary">
-            ₹{discountedPrice}
-          </span>
-          {productHasDiscount && (
-            <span className="text-sm line-through text-muted-foreground">
-              ₹{product.price}
-            </span>
-          )}
-        </div>
-
+    <div className="flex flex-col gap-3 p-4">
+      {/* Section for Category and Rating */}
+      <div className="flex items-center justify-between text-xs">
+        {product.category ? (
+          <Badge variant="outline">{product.category.name}</Badge>
+        ) : (
+          <span /> // Placeholder to maintain alignment
+        )}
         {productHasRating && (
           <div
-            className={`flex items-center gap-1 px-2 py-1 rounded-full border ${getRatingColors()}`}
+            className={`flex items-center gap-1.5 rounded-full px-2 py-0.5 ${ratingClasses}`}
           >
-            <Star className="w-3 h-3 fill-current" />
-            <span className="text-sm font-medium">
-              {product.rating.toFixed(1)}
-            </span>
+            <Star className="h-3 w-3" />
+            <span className="font-bold">{product.rating!.toFixed(1)}</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-1">
-          <Package className="w-4 h-4 text-muted-foreground" />
-          <span className={`font-medium ${getStockColor()}`}>
-            {getStockStatus()}
-          </span>
-          <span className="text-muted-foreground">
-            ({product.stock_quantity})
-          </span>
-        </div>
-
-        <div className="flex items-center gap-1 text-muted-foreground">
-          <Calendar className="w-3 h-3" />
-          <span className="text-xs">{formattedDate}</span>
-        </div>
+      {/* Section for Product Name and Description */}
+      <div className="space-y-1">
+        <h3 className="truncate font-semibold leading-tight text-lg">
+          {product.name}
+        </h3>
+        {product.description && (
+          <p className="min-h-[40px] text-sm leading-relaxed text-muted-foreground line-clamp-2">
+            {product.description}
+          </p>
+        )}
       </div>
 
-      {productHasDiscount && (
-        <div className="flex justify-between">
-          <Badge
-            variant="secondary"
-            className="text-xs bg-green-100 text-green-700 border-green-200"
-          >
-            Save {product.discount}%
-          </Badge>
-          {product.category && (
-            <Badge variant="secondary" className="">
-              <span>Category:- </span>
-              {product.category.name}
+      {/* Section for Price and Discount */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <span className="text-2xl font-bold text-primary">
+          ₹{discountedPrice}
+        </span>
+        {productHasDiscount && (
+          <>
+            <span className="text-sm text-muted-foreground line-through">
+              ₹{product.price}
+            </span>
+            <Badge
+              variant="destructive"
+              className="border-none bg-green-500 hover:bg-green-600"
+            >
+              {product.discount}% OFF
             </Badge>
-          )}
-        </div>
-      )}
+          </>
+        )}
+      </div>
+
+      {/* Section for Stock Information */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Package className="h-4 w-4" />
+        <span className={stockInfo.className}>{stockInfo.text}</span>
+        <span>({product.stock_quantity} left)</span>
+      </div>
     </div>
   );
 }

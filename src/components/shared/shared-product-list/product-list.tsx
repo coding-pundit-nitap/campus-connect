@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { SerializedProduct } from "@/types/product.types";
@@ -10,77 +10,75 @@ import { ProductListFooter } from "./product-list-footer";
 import { ProductSkeletonGrid } from "./product-skeleton-grid";
 
 interface ProductListProps {
-  displayProducts: SerializedProduct[];
+  products: SerializedProduct[];
   isLoading: boolean;
   isError: boolean;
-  hasNextPage: boolean;
-  isFetchingNextPage: boolean;
   error: Error | null;
-  hasActiveFilters?: boolean;
-
+  hasNextPage?: boolean;
+  isFetchingNextPage: boolean;
   fetchNextPage: () => void;
-
   renderProductCard: (
     product: SerializedProduct,
-    index: number,
-    isLastProduct: boolean,
-    isNearEnd: boolean
+    index: number
   ) => React.ReactNode;
-
   skeletonCount?: number;
-  rootMargin?: string;
 }
 
 export function ProductList({
-  displayProducts,
+  products,
   isLoading,
   isError,
-  hasNextPage,
+  error,
+  hasNextPage = false,
   isFetchingNextPage,
   fetchNextPage,
-  error,
-  hasActiveFilters,
   renderProductCard,
   skeletonCount = 8,
-  rootMargin = "100px",
 }: ProductListProps) {
-  const loadMoreRef = useRef<HTMLDivElement>(null);
-
   const { lastElementRef } = useInfiniteScroll({
-    hasNextPage: hasActiveFilters ? false : hasNextPage,
+    hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    rootMargin,
   });
 
-  if (isLoading && displayProducts.length === 0) {
+  // Handle initial loading state
+  if (isLoading) {
     return <ProductSkeletonGrid count={skeletonCount} />;
   }
 
+  // Handle error state
   if (isError && error) {
     return <ProductListError error={error} onRetry={fetchNextPage} />;
   }
 
-  if (!isLoading && displayProducts.length === 0) {
+  // Handle empty state
+  if (products?.length === 0) {
     return <ProductListEmpty />;
   }
 
+  // Render the product grid
   return (
     <div className="space-y-6">
-      <ProductGrid
-        products={displayProducts}
-        lastElementRef={lastElementRef}
-        renderProductCard={renderProductCard}
-      />
+      <ProductGrid>
+        {products?.map((product, index) => {
+          // Attach the ref to the last product card's wrapper
+          const isLastProduct = index === products.length - 1;
+          return (
+            <div
+              key={product.id}
+              ref={isLastProduct ? lastElementRef : null}
+              className="animate-fade-in" // Add a subtle fade-in animation
+            >
+              {renderProductCard(product, index)}
+            </div>
+          );
+        })}
+      </ProductGrid>
 
       <ProductListFooter
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        displayProductsLength={displayProducts.length}
-        onFetchNextPage={fetchNextPage}
       />
-
-      <div ref={loadMoreRef} className="h-1" />
     </div>
   );
 }

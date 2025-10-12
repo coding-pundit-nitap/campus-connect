@@ -1,9 +1,14 @@
 import React from "react";
 
 import { ProductEditDialog } from "@/components/owned-shop/product-card/product-edit-dialog";
-import { SharedCard } from "@/components/shared/shared-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { useCategorySearch } from "@/hooks";
 import { useUpdateProductForm } from "@/hooks/useProductForm";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
@@ -17,12 +22,9 @@ interface ProductCardProps {
   discountedPrice: string;
   productHasDiscount: boolean;
   productHasRating: boolean;
-  formattedDate: string;
   priority?: boolean;
   mode?: "user" | "owner";
-
   onDelete?: (product_id: string, imageKey: string) => Promise<void>;
-
   userActions?: React.ReactNode;
 }
 
@@ -31,7 +33,6 @@ export function ProductCard({
   discountedPrice,
   productHasDiscount,
   productHasRating,
-  formattedDate,
   priority = false,
   mode = "user",
   onDelete,
@@ -39,95 +40,36 @@ export function ProductCard({
 }: ProductCardProps) {
   const isOutOfStock = product.stock_quantity === 0;
   const hasLowStock = product.stock_quantity > 0 && product.stock_quantity <= 5;
+
   const { suggestions, isLoadingSuggestions, onSearchQuery } =
     useCategorySearch();
   const productFormHook = useUpdateProductForm({ product });
   const baseFields = productUIServices.createProductFormFields();
   const fields = baseFields.map((field) => {
     if (field.name === "category") {
-      return {
-        ...field,
-        suggestions,
-        isLoadingSuggestions,
-        onSearchQuery,
-      };
+      return { ...field, suggestions, isLoadingSuggestions, onSearchQuery };
     }
     return field;
   });
 
-  const renderUserOverlays = () => (
-    <div className="relative">
-      <ProductCardHeader product={product} priority={priority} />
-
-      <div className="absolute top-2 space-y-2 left-2 flex flex-col">
-        {productHasDiscount && (
-          <Badge
-            variant="default"
-            className="text-xs font-bold shadow-md bg-green-500 hover:bg-green-600"
-          >
-            -{product.discount}% OFF
-          </Badge>
-        )}
-        {isOutOfStock && (
-          <Badge
-            variant="outline"
-            className="bg-white/90 text-red-600 border-red-200 text-xs font-medium"
-          >
-            Out of Stock
-          </Badge>
-        )}
-        {hasLowStock && !isOutOfStock && (
-          <Badge
-            variant="outline"
-            className="bg-white/90 text-orange-600 border-orange-200 text-xs font-medium"
-          >
-            Low Stock
-          </Badge>
-        )}
-      </div>
-
-      {productHasRating && (
-        <div className="absolute top-2 right-2">
-          <Badge
-            variant="default"
-            className="bg-white/90 text-gray-800 border-gray-200 text-xs font-medium shadow-md"
-          >
-            ⭐ {product.rating!.toFixed(1)}
-          </Badge>
-        </div>
-      )}
-
-      {isOutOfStock && (
-        <div className="absolute inset-0 bg-gray-900/20 flex items-center justify-center">
-          <div className="bg-white/95 px-3 py-1 rounded-full border">
-            <span className="text-sm font-medium text-gray-700">
-              Out of Stock
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
   const renderOwnerActions = () => {
     if (!onDelete) return null;
-
     return (
-      <div className="flex flex-col w-full gap-2">
+      <div className="flex w-full flex-col gap-2">
         <ProductEditDialog
           product={product}
           form={productFormHook.form}
           state={productFormHook.state}
           handlers={productFormHook.handlers}
           fields={fields}
-          className="w-full hover:scale-105 transition-all duration-200 hover:shadow-md"
+          className="w-full transition-transform duration-200 hover:scale-[1.02]"
           isDialogOpen={productFormHook.isDialogOpen}
           setIsDialogOpen={productFormHook.setIsDialogOpen}
         />
         <Button
-          onClick={async () => await onDelete(product.id, product.imageKey)}
+          onClick={() => onDelete(product.id, product.imageKey)}
           variant="destructive"
-          className="w-full hover:scale-105 transition-all duration-200 hover:shadow-md"
+          className="w-full transition-transform duration-200 hover:scale-[1.02]"
         >
           Delete
         </Button>
@@ -135,36 +77,72 @@ export function ProductCard({
     );
   };
 
-  const getCardClassName = () => {
-    if (mode === "user") {
-      return "group hover:shadow-xl overflow-hidden border-0 shadow-lg";
-    }
-    return "group hover:shadow-lg transition-shadow duration-200 overflow-hidden";
-  };
+  const ImageOverlays = () => (
+    <>
+      <div className="absolute top-3 left-3 flex flex-col items-start gap-2">
+        {productHasDiscount && (
+          <Badge className="border-none bg-red-500 text-white shadow-lg">
+            -{product.discount}% OFF
+          </Badge>
+        )}
+        {isOutOfStock && (
+          <Badge variant="secondary" className="shadow-lg">
+            Out of Stock
+          </Badge>
+        )}
+        {hasLowStock && !isOutOfStock && (
+          <Badge
+            variant="secondary"
+            className="border-orange-200 text-orange-600 shadow-lg"
+          >
+            Low Stock
+          </Badge>
+        )}
+      </div>
+      {isOutOfStock && (
+        <div className="absolute inset-0 bg-white/60 dark:bg-black/60" />
+      )}
+    </>
+  );
+
+  if (mode === "owner") {
+    return (
+      <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+        <CardHeader className="p-0">
+          <ProductCardHeader product={product} priority={priority} />
+        </CardHeader>
+        <CardContent>
+          <ProductCardDetails
+            product={product}
+            discountedPrice={discountedPrice}
+            productHasDiscount={productHasDiscount}
+            productHasRating={productHasRating}
+          />
+        </CardContent>
+        <CardFooter className="bg-muted/40 p-3">
+          {renderOwnerActions()}
+        </CardFooter>
+      </Card>
+    );
+  }
 
   return (
-    <div className="relative">
-      <SharedCard
-        className={getCardClassName()}
-        headerClassName="p-0 relative"
-        showFooter={true}
-        headerContent={
-          mode === "user" ? (
-            renderUserOverlays()
-          ) : (
-            <ProductCardHeader product={product} priority={priority} />
-          )
-        }
-        footerContent={mode === "owner" ? renderOwnerActions() : userActions}
-      >
-        <ProductCardDetails
-          product={product}
-          discountedPrice={discountedPrice}
-          productHasDiscount={productHasDiscount}
-          productHasRating={productHasRating}
-          formattedDate={formattedDate}
-        />
-      </SharedCard>
+    <div className="group relative overflow-hidden  rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl">
+      <div className="relative">
+        <ProductCardHeader product={product} priority={priority} />
+        <ImageOverlays />
+      </div>
+
+      <ProductCardDetails
+        product={product}
+        discountedPrice={discountedPrice}
+        productHasDiscount={productHasDiscount}
+        productHasRating={productHasRating}
+      />
+
+      <CardFooter className="p-4 pt-2 md:absolute md:bottom-0 md:left-0 md:w-full md:translate-y-full md:transform-gpu md:bg-gradient-to-t md:from-white md:via-white/90 md:to-transparent md:p-4 md:pt-12 md:transition-transform md:duration-300 md:ease-in-out md:group-hover:translate-y-0 dark:md:from-black flex items-center justify-center dark:md:via-black/90">
+        {userActions}
+      </CardFooter>
     </div>
   );
 }

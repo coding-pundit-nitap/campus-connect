@@ -188,32 +188,34 @@ export default async function ShopOrderDetailPage({ params }: Props) {
               <DetailItem icon={<User size={18} />} label="Customer">
                 {order.user.name}
               </DetailItem>
-              <DetailItem
-                icon={<Phone size={18} />}
-                className="flex justify-between"
-                label="Customer"
-              >
-                {order.user.phone}
-                <Link
-                  href={`tel:+91${order.user.phone}`}
-                  className="text-blue-500 hover:underline"
+              {order.user.phone && (
+                <DetailItem
+                  icon={<Phone size={18} />}
+                  className="flex justify-between"
+                  label="Customer"
                 >
-                  <Phone size={16} />
-                </Link>
-                <Link
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={`https://wa.me/91${order.user.phone}`}
-                  className="text-blue-500 hover:underline"
-                >
-                  <Image
-                    src="/svg/whatsapp-icon.svg"
-                    alt="WhatsApp"
-                    width={18}
-                    height={18}
-                  />
-                </Link>
-              </DetailItem>
+                  {order.user.phone}
+                  <Link
+                    href={`tel:+91${order.user.phone}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    <Phone size={16} />
+                  </Link>
+                  <Link
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`https://wa.me/91${order.user.phone}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    <Image
+                      src="/svg/whatsapp-icon.svg"
+                      alt="WhatsApp"
+                      width={18}
+                      height={18}
+                    />
+                  </Link>
+                </DetailItem>
+              )}
               <DetailItem icon={<Home size={18} />} label="Delivery Address">
                 {order.delivery_address_snapshot}
               </DetailItem>

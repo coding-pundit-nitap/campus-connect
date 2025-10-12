@@ -18,85 +18,81 @@ import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 type Props = {
   shop: ShopWithOwnerDetails;
-  priority: number;
+  priority: boolean; // Simplified priority prop
 };
 
 export function ShopCard({ shop, priority }: Props) {
   return (
-    <Link href={`/shops/${shop.id}`}>
-      <Card className="w-full max-w-sm hover:shadow-xl [box-shadow:rgba(50,50,93,0.25)_0px_2px_5px_-1px,rgba(0,0,0,0.3)_0px_1px_3px_-1px] overflow-hidden">
-        <div className="relative">
+    <Link href={`/shops/${shop.id}`} className="group block">
+      <Card className="flex h-full w-full flex-col overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+        <div className="relative aspect-[4/3] overflow-hidden">
           <Image
-            width={300}
-            height={200}
+            fill
             src={
               `${environment.minioBaseUrl}/${shop.imageKey}` ||
               "/placeholders/placeholder.png"
             }
-            alt={`${shop.name}`}
-            priority={priority < 5}
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            alt={shop.name}
+            priority={priority}
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
           <div className="absolute top-2 right-2 flex gap-2">
-            {shop.is_active ? (
-              <Badge
-                variant="default"
-                className="bg-green-500 hover:bg-green-600"
-              >
-                <CheckCircle className="w-3 h-3 mr-1" />
-                Active
-              </Badge>
-            ) : (
-              <Badge variant="destructive">
-                <XCircle className="w-3 h-3 mr-1" />
-                Inactive
-              </Badge>
-            )}
+            <Badge
+              variant={shop.is_active ? "default" : "destructive"}
+              className={
+                shop.is_active ? "bg-green-500 hover:bg-green-600" : ""
+              }
+            >
+              {shop.is_active ? (
+                <CheckCircle className="mr-1 h-3 w-3" />
+              ) : (
+                <XCircle className="mr-1 h-3 w-3" />
+              )}
+              {shop.is_active ? "Active" : "Inactive"}
+            </Badge>
             {shop.is_active && <ShopStatusBadge shop={shop} />}
           </div>
         </div>
 
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <CardTitle className="font-bold text-xl mb-1 line-clamp-2 group-hover:text-primary transition-colors">
-                {shop.name}
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground line-clamp-2">
-                {shop.description}
-              </CardDescription>
+        <div className="flex flex-1 flex-col p-4">
+          <CardHeader className="p-0 pb-3">
+            <CardTitle className="mb-1 line-clamp-2 text-xl font-bold transition-colors group-hover:text-primary">
+              {shop.name}
+            </CardTitle>
+            <CardDescription className="line-clamp-2 text-sm">
+              {shop.description}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="flex-1 space-y-3 p-0">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <MapPin className="mr-2 h-4 w-4 text-primary" />
+              <span className="line-clamp-1">{shop.location}</span>
             </div>
-          </div>
-        </CardHeader>
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Clock className="mr-2 h-4 w-4 text-primary" />
+              <span>
+                {shop.openingFormatted} - {shop.closingFormatted}
+              </span>
+            </div>
+            <div className="flex items-center text-sm text-muted-foreground">
+              <User className="mr-2 h-4 w-4 text-primary" />
+              <span className="line-clamp-1">By {shop.owner.name}</span>
+            </div>
+          </CardContent>
 
-        <CardContent className="space-y-3 pt-0">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <MapPin className="w-4 h-4 mr-2 text-primary" />
-            <span className="line-clamp-1">{shop.location}</span>
-          </div>
-
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Clock className="w-4 h-4 mr-2 text-primary" />
-            <span>
-              {shop.openingFormatted} - {shop.closingFormatted}
-            </span>
-          </div>
-
-          <div className="flex items-center text-sm text-muted-foreground">
-            <User className="w-4 h-4 mr-2 text-primary" />
-            <span className="line-clamp-1">By {shop.owner.name}</span>
-          </div>
-        </CardContent>
-
-        <CardFooter className="pt-0">
-          <Button
-            className="w-full hover:scale-105 transition-all duration-200 hover:shadow-md"
-            variant={shop.is_active ? "default" : "outline"}
-            disabled={!shop.is_active}
-          >
-            {shop.is_active ? "Visit Shop" : "Shop Inactive"}
-          </Button>
-        </CardFooter>
+          <CardFooter className="p-0 pt-4">
+            <Button
+              className="w-full"
+              variant={shop.is_active ? "default" : "outline"}
+              disabled={!shop.is_active}
+              asChild // Allows button to act as a child of the Link
+            >
+              <span>{shop.is_active ? "Visit Shop" : "Shop Inactive"}</span>
+            </Button>
+          </CardFooter>
+        </div>
       </Card>
     </Link>
   );

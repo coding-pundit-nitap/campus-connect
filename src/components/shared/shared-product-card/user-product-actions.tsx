@@ -25,24 +25,24 @@ export function UserProductActions({
   const isOutOfStock = stock === 0;
 
   return (
-    <div className="p-4 pt-0 space-y-2">
+    <div className="space-y-2">
       <Button
         variant={isOutOfStock ? "outline" : "default"}
-        className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
+        className="w-full"
         disabled={isOutOfStock || isAddingToCart}
         onClick={() => onAddToCart(product_id, 1)}
       >
         {isAddingToCart ? (
           <LoadingSpinner />
         ) : (
-          <ShoppingCart className="w-4 h-4 mr-2" />
+          <ShoppingCart className="mr-2 h-4 w-4" />
         )}
         {isOutOfStock ? "Out of Stock" : "Add to Cart"}
       </Button>
       {onViewDetails && (
         <Button
-          variant="outline"
-          className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
+          variant="secondary"
+          className="w-full"
           onClick={() => onViewDetails(product_id, shop_id)}
         >
           View Details
