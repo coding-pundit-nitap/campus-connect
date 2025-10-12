@@ -5,6 +5,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 import { loginAction } from "@/actions";
+import { changePaswordAction } from "@/actions/authentication/change-password";
 import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
@@ -78,6 +79,18 @@ export function useUpdateUser() {
     },
     onError: (error) => {
       toast.error("Failed to update profile: " + error.message);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: changePaswordAction,
+    onSuccess({ details }) {
+      toast.success(details);
+    },
+    onError(error) {
+      toast.error(error.message || "Faild to Change Password.");
     },
   });
 }

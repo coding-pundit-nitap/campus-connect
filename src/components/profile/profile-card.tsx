@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Pencil, X } from "lucide-react";
 import { User } from "next-auth";
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -62,7 +62,6 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
             <div className="relative group">
               <UserAvatar image={user.image} name={user.name} dimention={40} />
               <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Placeholder for image upload feature */}
                 <p className="text-white text-sm">Change Photo</p>
               </div>
             </div>

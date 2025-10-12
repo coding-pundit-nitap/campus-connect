@@ -38,12 +38,35 @@ class ProductRepository {
     return prisma.product.findMany({ where: { shop_id }, ...data });
   }
 
-  async create(data: CreateProductDto): Promise<Product> {
-    return prisma.product.create({ data });
+  async create(data: CreateProductDto) {
+    return prisma.product.create({
+      data,
+      include: {
+        category: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
   }
 
-  async update(product_id: string, data: UpdateProductDto): Promise<Product> {
-    return prisma.product.update({ where: { id: product_id }, ...data });
+  async update(product_id: string, data: UpdateProductDto) {
+    return prisma.product.update({
+      where: { id: product_id },
+      ...data,
+      include: {
+        category: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
   }
 
   async delete(

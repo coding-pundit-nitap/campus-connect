@@ -98,7 +98,7 @@ services:
     networks:
       - college_connect_net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/status"]
+      test: ["CMD", "curl", "-I", "http://localhost:3000/api/health/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -196,7 +196,7 @@ services:
     networks:
       - college_connect_net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health/status"]
+      test: ["CMD", "curl", "-I", "http://localhost:3000/api/health/status"]
       interval: 30s
       timeout: 10s
       retries: 3
