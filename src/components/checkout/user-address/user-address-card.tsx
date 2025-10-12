@@ -11,7 +11,7 @@ import { Card } from "@/components/ui/card";
 interface UserAddressCardProps {
   address: UserAddress;
   isSelected: boolean;
-  onSelect: (address: UserAddress) => void;
+  onSelect?: (address: UserAddress) => void;
   onSetDefault: (addressId: string) => void;
   onDelete: (address: UserAddress) => void;
   isSetDefaultPending: boolean;
@@ -32,19 +32,21 @@ export function UserAddressCard({
       className={`p-4 cursor-pointer transition-all hover:shadow-md ${
         isSelected ? "ring-2 ring-primary border-primary" : ""
       }`}
-      onClick={() => onSelect(address)}
+      onClick={() => onSelect?.(address)}
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3 flex-1">
-          <div className="flex-shrink-0 mt-1">
-            {isSelected ? (
-              <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-                <Check className="h-3 w-3 text-primary-foreground" />
-              </div>
-            ) : (
-              <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
-            )}
-          </div>
+          {onSelect && (
+            <div className="flex-shrink-0 mt-1">
+              {isSelected ? (
+                <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                  <Check className="h-3 w-3 text-primary-foreground" />
+                </div>
+              ) : (
+                <div className="h-5 w-5 rounded-full border-2 border-muted-foreground" />
+              )}
+            </div>
+          )}
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">

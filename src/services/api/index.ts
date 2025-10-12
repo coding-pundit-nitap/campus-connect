@@ -7,4 +7,4 @@ export { default as productAPIService } from "./product-api.service";
 export { default as searchAPIService } from "./search-api.service";
 export { default as sellerAPIService } from "./seller-api.service";
 export { default as shopAPIService } from "./shop-api.service";
-export { default as userAPIService } from "./user-api.service";
+export { userAPIService } from "./user-api.service";

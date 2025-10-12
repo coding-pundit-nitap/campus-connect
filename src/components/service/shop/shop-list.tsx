@@ -1,74 +1,74 @@
 "use client";
+
 import React from "react";
 
 import { ProductSkeletonGrid } from "@/components/shared/shared-product-list";
 import { useInfiniteScroll } from "@/hooks";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
+import { ShopCard } from "./shop-card";
 import ShopGrid from "./shop-grid";
 import { ShopListEmpty } from "./shop-list-empty";
 import { ShopListError } from "./shop-list-error";
 import ShopListFooter from "./shop-list-footer";
 
 type Props = {
-  displayShops: ShopWithOwnerDetails[];
+  shops: ShopWithOwnerDetails[];
   isLoading: boolean;
   isError: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   error: Error | null;
   fetchNextPage: () => void;
-  renderShopCard: (
-    shop: ShopWithOwnerDetails,
-    index: number,
-    isLastShop: boolean,
-    isNearEnd: boolean
-  ) => React.ReactNode;
 };
 
 export default function ShopList({
-  displayShops,
+  shops,
   isLoading,
+  isError,
+  error,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
-  renderShopCard,
-  error,
-  isError,
 }: Props) {
-  const loadMoreRef = React.useRef<HTMLDivElement>(null);
   const { lastElementRef } = useInfiniteScroll({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    rootMargin: "100px",
   });
 
-  if (isLoading) return <ProductSkeletonGrid count={8} />;
+  if (isLoading) {
+    return <ProductSkeletonGrid count={8} />;
+  }
   if (isError && error) {
     return <ShopListError error={error} onRetry={fetchNextPage} />;
   }
-
-  if (!isLoading && displayShops.length === 0) {
+  if (shops.length === 0) {
     return <ShopListEmpty />;
   }
 
   return (
     <div className="space-y-6">
-      <ShopGrid
-        shops={displayShops}
-        lastElementRef={lastElementRef}
-        renderShopCard={renderShopCard}
-      />
+      <ShopGrid>
+        {shops.map((shop, index) => {
+          const isLastShop = index === shops.length - 1;
+          return (
+            // Attach ref to the wrapper div of the last element
+            <div
+              key={shop.id}
+              ref={isLastShop ? lastElementRef : null}
+              className="animate-fade-in" // Add a subtle fade-in animation
+            >
+              <ShopCard shop={shop} priority={index < 8} />
+            </div>
+          );
+        })}
+      </ShopGrid>
 
       <ShopListFooter
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        displayShopsLength={displayShops.length}
-        onFetchNextPage={fetchNextPage}
       />
-
-      <div ref={loadMoreRef} className="h-1" />
     </div>
   );
 }

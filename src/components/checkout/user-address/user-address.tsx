@@ -10,8 +10,8 @@ import {
 import { useUserAddressManager } from "@/hooks";
 
 interface UserAddressProps {
-  selectedAddressId: string | null;
-  onAddressSelect: (address: UserAddressType) => void;
+  selectedAddressId?: string | null;
+  onAddressSelect?: (address: UserAddressType) => void;
 }
 
 export function UserAddress({

@@ -5,7 +5,6 @@ import React from "react";
 import { useInfiniteShops } from "@/hooks";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
-import { ShopCard } from "./shop-card";
 import ShopList from "./shop-list";
 
 type Props = {
@@ -14,6 +13,7 @@ type Props = {
   nextCursor: string | null;
   initialError?: string;
 };
+
 export function ShopsContainer({
   initialShops,
   hasNextPage: initialHasNextPage,
@@ -37,16 +37,13 @@ export function ShopsContainer({
 
   return (
     <ShopList
-      displayShops={allShops}
+      shops={allShops}
       isLoading={isLoading}
-      fetchNextPage={fetchNextPage}
+      isError={isError}
       error={error}
       hasNextPage={hasNextPage}
-      isError={isError}
       isFetchingNextPage={isFetchingNextPage}
-      renderShopCard={(shop, index) => {
-        return <ShopCard priority={index} shop={shop} />;
-      }}
+      fetchNextPage={fetchNextPage}
     />
   );
 }

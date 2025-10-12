@@ -34,7 +34,12 @@ export function SidebarFooter() {
       <Separator />
       <div className="space-y-3">
         <div className="flex items-center space-x-3">
-          <UserAvatar user={user} />
+          <UserAvatar
+            dimention={40}
+            image={user.image}
+            email={user.email}
+            name={user.name}
+          />
           <UserDetail user={user} />
         </div>
         <ShopOwnerBadge />
