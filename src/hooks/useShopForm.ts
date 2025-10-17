@@ -1,50 +1,47 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { useImageUpload, useShopLink, useShopUpdate } from "@/hooks";
 import { useImageDelete } from "@/hooks/tanstack";
 import { ImageUtils } from "@/lib/utils-functions/image.utils";
 import { FormState } from "@/types";
 import { ShopWithOwner } from "@/types/shop.types";
-import { ShopFormData, shopSchema } from "@/validations/shop";
+import {
+  ShopActionFormData,
+  shopActionSchema,
+  ShopFormData,
+  shopSchema,
+} from "@/validations/shop";
 
 export function useLinkShop() {
   const { mutate: linkShop, isPending, error } = useShopLink();
-  const { mutateAsync: uploadImage, isPending: isUploadingImage } =
-    useImageUpload();
 
-  const form = useForm<ShopFormData>({
-    resolver: zodResolver(shopSchema),
+  const form = useForm<ShopActionFormData>({
+    resolver: zodResolver(shopActionSchema),
     defaultValues: {
       name: "",
       description: "",
       location: "",
       opening: "09:00",
       closing: "17:00",
-      imageKey: undefined,
+      image: undefined,
     },
   });
 
   const state: FormState = {
-    isLoading: isPending || isUploadingImage,
+    isLoading: isPending,
     error: error?.message || null,
     isSubmitting: form.formState.isSubmitting,
   };
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
+      console.log("Submitting form with data:", data);
       try {
-        let finalImageKey: string | null = null;
-
-        if (data.imageKey instanceof File) {
-          finalImageKey = await uploadImage(data.imageKey);
-        }
-
-        const processedData = { ...data, imageKey: finalImageKey };
-
-        linkShop(processedData, {
+        linkShop(data, {
           onSuccess: (result) => {
             if (result.success) {
               form.reset();
@@ -53,7 +50,7 @@ export function useLinkShop() {
         });
       } catch (uploadError) {
         console.error("Shop image upload failed:", uploadError);
-        form.setError("imageKey", {
+        form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
         });
@@ -61,6 +58,9 @@ export function useLinkShop() {
     }),
   };
 
+  useEffect(() => {
+    toast.error(error?.message);
+  }, [error?.message]);
   return {
     form,
     state,

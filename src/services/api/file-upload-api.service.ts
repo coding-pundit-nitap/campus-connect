@@ -8,7 +8,7 @@ interface PresignedUrlResponse {
 
 class FileUploadAPIService {
   private async getPresignedUrl(file: File): Promise<PresignedUrlResponse> {
-    const response = await fetch("/api/upload", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,17 +1,10 @@
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import React from "react";
 
-import SharedDialog from "@/components/shared/shared-dialog";
-import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
-import { useLinkShop } from "@/hooks";
-import { shopUIServices } from "@/lib/utils-functions";
 
 export default function ShopAction() {
-  const { form, state, handlers } = useLinkShop();
-  const formFields = shopUIServices.createShopLinkFormFields();
-  const submitButton = shopUIServices.createShopSubmitButton(state.isLoading);
-
   const { data: session } = useSession();
 
   if (session?.user.shop_id) {
@@ -20,28 +13,14 @@ export default function ShopAction() {
 
   return (
     <div className="flex flex-row justify-end">
-      <SharedDialog
-        title="Link Shop"
-        description="Link a shop to this product"
-        trigger={
-          <Button
-            className="mb-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-            variant="outline"
-          >
-            + Link Shop
-          </Button>
-        }
-        showCloseButton={false}
-      >
-        <SharedForm
-          form={form}
-          submitButton={submitButton}
-          onSubmit={handlers.onSubmit}
-          fields={formFields}
-          error={state.error}
-          isLoading={state.isLoading || state.isSubmitting}
-        />
-      </SharedDialog>
+      <Link href="/create-shop">
+        <Button
+          className="mb-4 bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
+          variant="outline"
+        >
+          + Link Shop
+        </Button>
+      </Link>
     </div>
   );
 }
