@@ -6,7 +6,7 @@ x-nginx-common: &nginx-common
   volumes:
     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
   networks:
-    - college_connect_net
+    - campus_connect_net
   healthcheck:
     test: ["CMD", "curl", "-f", "http://localhost:8080/nginx-health"]
     interval: 10s
@@ -24,7 +24,7 @@ services:
   # Nginx reverse proxy for development
   nginx-dev:
     <<: *nginx-common
-    container_name: college_connect_nginx_dev
+    container_name: campus_connect_nginx_dev
     restart: unless-stopped
     ports:
       - "80:80"
@@ -51,7 +51,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
-    container_name: college_connect_installer_dev
+    container_name: campus_connect_installer_dev
     command: pnpm install --frozen-lockfile --ignore-scripts
     volumes:
       - .:/app
@@ -66,7 +66,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
-    container_name: college_connect_app_dev
+    container_name: campus_connect_app_dev
     restart: unless-stopped
     entrypoint: ["/app/scripts/dev-entrypoint.sh"]
     command: ["pnpm", "dev"]
@@ -96,7 +96,7 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - TZ=UTC
     networks:
-      - college_connect_net
+      - campus_connect_net
     healthcheck:
       test: ["CMD", "curl", "-I", "http://localhost:3000/api/health/status"]
       interval: 30s
@@ -112,7 +112,7 @@ services:
       context: .
       dockerfile: Dockerfile
       target: dev
-    container_name: college_connect_prisma_studio
+    container_name: campus_connect_prisma_studio
     restart: unless-stopped
     command: pnpm prisma studio --port 5555
     depends_on:
@@ -131,7 +131,7 @@ services:
       - NODE_ENV=development
       - TZ=UTC
     networks:
-      - college_connect_net
+      - campus_connect_net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5555"]
       interval: 30s
@@ -148,7 +148,7 @@ services:
   # Nginx reverse proxy for production
   nginx-prod:
     <<: *nginx-common
-    container_name: college_connect_nginx_prod
+    container_name: campus_connect_nginx_prod
     restart: always
     ports:
       - "80:80"
@@ -173,10 +173,10 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=/api/
+        - NEXT_PUBLIC_API_URL=http://localhost/api
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
-        - NEXT_PUBLIC_MINIO_BUCKET=college-connect
-    container_name: college_connect_app_prod
+        - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+    container_name: campus_connect_app_prod
     restart: always
     depends_on:
       db:
@@ -194,7 +194,7 @@ services:
     environment:
       - TZ=UTC
     networks:
-      - college_connect_net
+      - campus_connect_net
     healthcheck:
       test: ["CMD", "curl", "-I", "http://localhost:3000/api/health/status"]
       interval: 30s
@@ -216,7 +216,7 @@ services:
   # PostgreSQL database
   db:
     image: postgres:17-alpine
-    container_name: college_connect_db
+    container_name: campus_connect_db
     restart: always
     env_file:
       - .env
@@ -227,17 +227,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myuser -d college_connect"]
+      test: ["CMD-SHELL", "pg_isready -U myuser -d campus_connect"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - college_connect_net
+      - campus_connect_net
 
   # MinIO S3-compatible object storage
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
-    container_name: college_connect_minio
+    container_name: campus_connect_minio
     restart: always
     command: server --console-address ":9001" /data
     env_file:
@@ -253,12 +253,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - college_connect_net
+      - campus_connect_net
 
   # One-off job to create MinIO buckets on startup
   create-buckets:
     image: minio/mc
-    container_name: college_connect_mc
+    container_name: campus_connect_mc
     depends_on:
       minio:
         condition: service_healthy
@@ -270,12 +270,12 @@ services:
     env_file:
       - .env
     networks:
-      - college_connect_net
+      - campus_connect_net
 
   # Redis cache
   redis:
     image: redis:8.2.1-alpine
-    container_name: college_connect_redis
+    container_name: campus_connect_redis
     restart: unless-stopped
     command: redis-server --appendonly yes
     expose:
@@ -288,7 +288,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - college_connect_net
+      - campus_connect_net
     profiles:
       - dev
       - prod
@@ -298,7 +298,7 @@ services:
 # ----------------------------------------------------------------------------
 
 networks:
-  college_connect_net:
+  campus_connect_net:
     driver: bridge
 
 volumes:
