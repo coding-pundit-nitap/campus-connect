@@ -42,7 +42,7 @@ export function SidebarFooter() {
           />
           <UserDetail user={user} />
         </div>
-        <ShopOwnerBadge />
+        {user.shop_id && <ShopOwnerBadge />}
         <Separator />
         <Button variant="outline" className="w-full p-0" asChild>
           <Link
@@ -51,7 +51,7 @@ export function SidebarFooter() {
           >
             <div className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              <span>{user.id ? "Manage Shops" : "Add Shops"}</span>
+              <span>{user.shop_id ? "Manage Shops" : "Add Shops"}</span>
             </div>
           </Link>
         </Button>

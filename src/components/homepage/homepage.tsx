@@ -5,16 +5,27 @@ import { productAPIService } from "@/services/api";
 import ProductsList from "./products-list";
 
 export default async function Homepage() {
-  const { initialProducts, nextCursor, hasNextPage, error } =
-    await productAPIService.fetchProducts({ limit: 20 });
+  try {
+    const { initialProducts, nextCursor, hasNextPage, error } =
+      await productAPIService.fetchProducts({ limit: 20 });
 
-  return (
-    <ProductsList
-      initialProducts={initialProducts}
-      hasNextPage={hasNextPage}
-      nextCursor={nextCursor}
-      initialError={error}
-      limit={20}
-    />
-  );
+    return (
+      <ProductsList
+        initialProducts={initialProducts}
+        hasNextPage={hasNextPage}
+        nextCursor={nextCursor}
+        initialError={error}
+        limit={20}
+      />
+    );
+  } catch (error) {
+    console.log("ERROR FETCHING DATA : ", error);
+    return (
+      <ProductsList
+        hasNextPage={false}
+        initialProducts={[]}
+        nextCursor={null}
+      />
+    );
+  }
 }
