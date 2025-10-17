@@ -159,6 +159,40 @@ class FileUploadService {
     return `${prefix}/${randomName}${extension}`;
   }
 
+  async upload(
+    fileName: string,
+    fileType: string,
+    fileSize: number,
+    fileBuffer: Buffer,
+    options: UploadOptions = {}
+  ): Promise<string> {
+    const { prefix = "general" } = options;
+
+    this.validateFileSecurity(fileName, fileType, fileSize, options);
+
+    const objectKey = this.generateSecureFileName(fileName, prefix);
+
+    const command = new PutObjectCommand({
+      Bucket: this.BUCKET_NAME,
+      Key: objectKey,
+      Body: fileBuffer,
+      ContentType: fileType,
+      Metadata: {
+        "original-filename": Buffer.from(fileName).toString("base64"),
+        "upload-timestamp": new Date().toISOString(),
+      },
+      CacheControl: "no-cache, no-store, must-revalidate",
+    });
+
+    try {
+      await this.internalS3Client.send(command);
+      return objectKey;
+    } catch (error) {
+      console.error("Error uploading to MinIO:", error);
+      throw new Error("Failed to upload file to MinIO");
+    }
+  }
+
   async createPresignedUploadUrl(
     fileName: string,
     fileType: string,

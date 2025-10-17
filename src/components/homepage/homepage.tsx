@@ -19,7 +19,6 @@ export default async function Homepage() {
       />
     );
   } catch (error) {
-    console.log("ERROR FETCHING DATA : ", error);
     return (
       <ProductsList
         hasNextPage={false}
