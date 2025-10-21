@@ -3,6 +3,13 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   currentPage: number;
 }
+
+export interface CursorPaginatedResponse<T> {
+  data: T[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
 export interface ActionResponse<T = unknown> {
   success: boolean;
   error: boolean;

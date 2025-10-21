@@ -2,6 +2,7 @@
 
 import { NotificationType } from "@prisma/client";
 import { Bell, Info, ShieldAlert, ShieldX, ThumbsUp } from "lucide-react";
+import { Route } from "next";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -134,7 +135,7 @@ export function OrderNotificationBell() {
               return (
                 <DropdownMenuItem key={notification.id} className="p-0">
                   <Link
-                    href={notification.action_url || "#"}
+                    href={notification.action_url || ("#" as Route)}
                     className="flex w-full items-start gap-3 p-3 transition-colors hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">

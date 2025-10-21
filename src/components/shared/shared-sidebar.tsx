@@ -118,6 +118,9 @@ export default function SharedSidebar({
     if (normalizedUrl === "/") {
       return currentPath === "/";
     }
+    if (normalizedUrl === "/admin") {
+      return currentPath === "/admin";
+    }
 
     return currentPath.startsWith(normalizedUrl);
   };

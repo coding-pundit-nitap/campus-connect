@@ -20,7 +20,13 @@ export interface CardConfig {
 export interface FormFieldConfig<T extends FieldValues> {
   name: Path<T>;
   label: string;
-  type?: HTMLInputTypeAttribute | "file" | "textarea" | "search" | "category";
+  type?:
+    | HTMLInputTypeAttribute
+    | "file"
+    | "textarea"
+    | "search"
+    | "category"
+    | "select";
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
@@ -31,6 +37,10 @@ export interface FormFieldConfig<T extends FieldValues> {
   suggestions?: Array<{ id: string; title: string; subtitle: string }>;
   isLoadingSuggestions?: boolean;
   onSearchQuery?: (query: string) => void;
+  options?: Array<{ value: string; label: string }>;
+  maxLength?: number;
+  showCharCount?: boolean;
+  description?: string;
 }
 
 export interface ButtonConfig {

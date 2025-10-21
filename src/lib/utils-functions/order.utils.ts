@@ -80,7 +80,33 @@ export const serializeOrder = (order: Order): SerializedOrder => {
       : undefined,
   };
 };
-
+export const orderWithDetailsInclude = {
+  items: {
+    include: {
+      product: {
+        include: {
+          category: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  shop: true,
+  delivery_address: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+  },
+};
 export const serializeOrderWithDetails = (
   order: OrderWithDetails
 ): SerializedOrderWithDetails => {

@@ -4,13 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { ImageUtils } from "@/lib/utils-functions";
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
 import { ProductActionFormData, productActionSchema } from "@/validations";
 
 import {
-  useImageDelete,
   useImageUpload,
   useShopProductsCreate,
   useShopProductsUpdate,
@@ -31,7 +29,6 @@ export function useUpdateProductForm({ product }: Props) {
 
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useImageUpload();
-  const { mutate: deleteImage } = useImageDelete();
 
   const form = useForm<ProductActionFormData>({
     resolver: zodResolver(productActionSchema),
