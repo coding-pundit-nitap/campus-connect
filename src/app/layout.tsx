@@ -8,7 +8,6 @@ import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import ViewportVhSetter from "@/components/ui/viewport-vh";
 import { DatabaseWrapper } from "@/components/wrapper/database-wrapper";
-import Layout from "@/components/wrapper/layout-container";
 import { OfflineWrapper } from "@/components/wrapper/offline-wrapper";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -37,7 +36,7 @@ export default function RootLayout({
               <DatabaseWrapper>
                 <QueryErrorBoundary>
                   <ViewportVhSetter />
-                  <Layout>{children}</Layout>
+                  {children}
                 </QueryErrorBoundary>
               </DatabaseWrapper>
             </OfflineWrapper>

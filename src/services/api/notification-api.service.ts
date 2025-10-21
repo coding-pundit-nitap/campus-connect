@@ -1,11 +1,16 @@
 import { BroadcastNotification, Notification } from "@prisma/client";
+import { Route } from "next";
 
 import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.types";
 
 export type NotificationSummaryType = {
-  unreadNotifications: Notification[];
-  unreadBroadcasts: BroadcastNotification[];
+  unreadNotifications: (Omit<Notification, "action_url"> & {
+    action_url: Route;
+  })[];
+  unreadBroadcasts: (Omit<BroadcastNotification, "action_url"> & {
+    action_url: Route;
+  })[];
   unreadCount: {
     notifications: number;
     broadcasts: number;

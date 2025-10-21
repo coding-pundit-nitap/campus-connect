@@ -31,7 +31,15 @@ export async function GET(
       orderBy: {
         created_at: Prisma.SortOrder.desc,
       },
-      include: { category: true },
+      include: {
+        category: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     };
 
     const products = await productRepository.findManyByShopId(

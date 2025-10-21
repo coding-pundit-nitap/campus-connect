@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { useShopLink, useShopUpdate } from "@/hooks";
-import { ImageUtils } from "@/lib/utils-functions/image.utils";
 import { FormState } from "@/types";
 import { ShopWithOwner } from "@/types/shop.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
@@ -53,7 +52,7 @@ export function useLinkShop() {
   };
 
   useEffect(() => {
-    if (error) toast.error(error.message);
+    if (error?.message) toast.error(error.message);
   }, [error?.message]);
   return {
     form,

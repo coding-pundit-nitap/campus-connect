@@ -1,12 +1,8 @@
 import { Role } from "@prisma/client";
 import { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 import Google, { GoogleProfile } from "next-auth/providers/google";
 
-import { verifyPassword } from "@/lib/auth";
 import shopRepository from "@/repositories/shop.repository";
-import userRepository from "@/repositories/user.repository";
-import { loginSchema } from "@/validations/auth";
 
 /**
  * NextAuth configuration object that defines authentication providers, callbacks, and settings.
@@ -35,68 +31,6 @@ export const authConfig: NextAuthConfig = {
           email: profile.email,
           image: profile.picture,
         };
-      },
-    }),
-    /**
-     * Credentials provider for email/password authentication
-     * Handles traditional username/password login flow
-     */
-    Credentials({
-      name: "credentials",
-      // Define the form fields for the credentials provider
-      credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-          placeholder: "Enter your email",
-        },
-        password: {
-          label: "Password",
-          type: "password",
-          placeholder: "Enter your password",
-        },
-      },
-      /**
-       * Authorization function that validates user credentials
-       * @param credentials - User-provided email and password
-       * @returns User object if valid, null if invalid
-       */
-      authorize: async (credentials) => {
-        const parsed = loginSchema.safeParse(credentials);
-
-        if (parsed.success) {
-          const { email, password } = parsed.data;
-
-          // 1. Find the user in your database
-          const user = await userRepository.findByEmail(email, {
-            select: {
-              id: true,
-              hash_password: true,
-              role: true,
-            },
-          });
-
-          // 2. If no user is found, or if they don't have a password (e.g., signed up with Google), reject login
-          if (!user || !user.hash_password) {
-            return null;
-          }
-
-          // 3. Compare the provided password with the stored hash
-          const passwordsMatch = await verifyPassword(
-            password,
-            user.hash_password
-          );
-
-          // 4. If passwords match, return the user object
-          if (passwordsMatch) {
-            return user;
-          }
-        }
-
-        // 5. If anything fails, return null
-        console.error("Invalid credentials provided");
-
-        return null;
       },
     }),
   ],

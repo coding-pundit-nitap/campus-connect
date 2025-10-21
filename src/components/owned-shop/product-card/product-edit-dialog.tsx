@@ -6,11 +6,11 @@ import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
 import { ButtonConfig, FormFieldConfig } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
-import { ProductFormData } from "@/validations";
+import { ProductActionFormData } from "@/validations";
 
 interface ProductEditDialogProps {
   product: SerializedProduct;
-  form: UseFormReturn<ProductFormData>;
+  form: UseFormReturn<ProductActionFormData>;
   state: {
     isLoading: boolean;
     isSubmitting?: boolean;
@@ -21,7 +21,7 @@ interface ProductEditDialogProps {
     openDialog: () => void;
     closeDialog: () => void;
   };
-  fields: FormFieldConfig<ProductFormData>[];
+  fields: FormFieldConfig<ProductActionFormData>[];
   className?: string;
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;

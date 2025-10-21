@@ -89,6 +89,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
     }
 
     const { image, ...rest } = values;
+    void image;
     const updatedShop = await shopRepository.update(shop_id, {
       ...rest,
       imageKey,

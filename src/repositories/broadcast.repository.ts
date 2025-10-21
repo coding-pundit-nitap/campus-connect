@@ -116,6 +116,10 @@ class BroadcastNotificationRepository {
       prisma.broadcastNotification.count({ where }),
     ]);
   }
+
+  async getCount(args: Prisma.BroadcastNotificationCountArgs) {
+    return prisma.broadcastNotification.count(args);
+  }
 }
 
 export const broadcastRepository = new BroadcastNotificationRepository();
