@@ -13,10 +13,6 @@ interface UploadOptions {
   prefix?: string;
 }
 
-/**
- * Secure file type validation
- * Maps MIME types to allowed file extensions to prevent type confusion attacks
- */
 const SECURE_FILE_TYPES: Record<string, string[]> = {
   "image/jpeg": [".jpg", ".jpeg"],
   "image/png": [".png"],
@@ -26,9 +22,6 @@ const SECURE_FILE_TYPES: Record<string, string[]> = {
   "text/plain": [".txt"],
 };
 
-/**
- * Dangerous file extensions that should never be allowed
- */
 const DANGEROUS_EXTENSIONS = [
   ".exe",
   ".bat",
@@ -84,9 +77,6 @@ class FileUploadService {
 
   private BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET!;
 
-  /**
-   * Validates file security constraints
-   */
   private validateFileSecurity(
     fileName: string,
     fileType: string,
@@ -158,9 +148,6 @@ class FileUploadService {
     }
   }
 
-  /**
-   * Generates a secure, random filename while preserving the extension
-   */
   private generateSecureFileName(
     originalFileName: string,
     prefix: string
@@ -170,6 +157,40 @@ class FileUploadService {
       .substring(originalFileName.lastIndexOf("."));
     const randomName = crypto.randomUUID();
     return `${prefix}/${randomName}${extension}`;
+  }
+
+  async upload(
+    fileName: string,
+    fileType: string,
+    fileSize: number,
+    fileBuffer: Buffer,
+    options: UploadOptions = {}
+  ): Promise<string> {
+    const { prefix = "general" } = options;
+
+    this.validateFileSecurity(fileName, fileType, fileSize, options);
+
+    const objectKey = this.generateSecureFileName(fileName, prefix);
+
+    const command = new PutObjectCommand({
+      Bucket: this.BUCKET_NAME,
+      Key: objectKey,
+      Body: fileBuffer,
+      ContentType: fileType,
+      Metadata: {
+        "original-filename": Buffer.from(fileName).toString("base64"),
+        "upload-timestamp": new Date().toISOString(),
+      },
+      CacheControl: "no-cache, no-store, must-revalidate",
+    });
+
+    try {
+      await this.internalS3Client.send(command);
+      return objectKey;
+    } catch (error) {
+      console.error("Error uploading to MinIO:", error);
+      throw new Error("Failed to upload file to MinIO");
+    }
   }
 
   async createPresignedUploadUrl(

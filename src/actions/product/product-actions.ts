@@ -1,5 +1,6 @@
 "use server";
 
+import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
@@ -80,15 +81,10 @@ export async function updateProductAction(
   }
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
+    const { id, shop_id } = await authUtils.getUserData();
+    if (!shop_id) {
       throw new UnauthorizedError("User is not authorized to update a product");
     }
-
-    const shop_id = context.id;
 
     const currentProduct = await productRepository.findById(product_id, {
       select: { category_id: true },
@@ -99,7 +95,7 @@ export async function updateProductAction(
       imageKey: formData.imageKey || "",
     });
 
-    let category = null;
+    let category: Category | null = null;
     if (parsedData.category) {
       category = await categoryRepository.findOrCreate(
         parsedData.category,

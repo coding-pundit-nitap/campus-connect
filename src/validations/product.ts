@@ -12,7 +12,7 @@ const priceSchema = z.number().positive("Price must be a positive number");
 const stockQuantitySchema = z.number().int().min(0, "Stock cannot be negative");
 
 const imageKeySchema = z.union([
-  z.string().min(1, "An image is required."), // Must be a non-empty string if it exists
+  z.string().min(1, "An image is required."),
   z.instanceof(File, { message: "An image is required." }),
 ]);
 

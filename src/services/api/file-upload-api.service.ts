@@ -8,7 +8,7 @@ interface PresignedUrlResponse {
 
 class FileUploadAPIService {
   private async getPresignedUrl(file: File): Promise<PresignedUrlResponse> {
-    const response = await fetch("/api/upload", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,16 +56,12 @@ class FileUploadAPIService {
       return objectKey;
     } catch (error) {
       console.error("Image upload failed:", error);
-      // Re-throw a user-friendly error
       throw new InternalServerError(
         "Could not upload the image. Please try again."
       );
     }
   }
 
-  /**
-   * Deletes an image from MinIO using its objectKey.
-   */
   async deleteImage(objectKey: string): Promise<void> {
     try {
       await fetch("/api/upload", {

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { NextAuthRequest } from "next-auth";
 
 import { auth as middleware } from "@/auth";
-import { addSecurityHeaders } from "@/lib/security";
 import {
   apiAuthPrefix,
   authRoutes,
@@ -40,11 +39,11 @@ export default middleware(async (req: NextAuthRequest) => {
       response = NextResponse.next();
     }
 
-    return addSecurityHeaders(response);
+    return response;
   } catch (error) {
     console.error("[MIDDLEWARE ERROR]:", error);
     const errorResponse = NextResponse.next();
-    return addSecurityHeaders(errorResponse);
+    return errorResponse;
   }
 });
 

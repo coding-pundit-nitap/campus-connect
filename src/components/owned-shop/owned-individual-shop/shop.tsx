@@ -2,7 +2,7 @@
 
 import { useShopByUser } from "@/hooks";
 
-import ShopCard from "./shop-card";
+import { ShopHeaderCard } from "./shop-header-card";
 import {
   ShopEmptyState,
   ShopErrorState,
@@ -26,7 +26,7 @@ export default function Shop() {
 
   return (
     <ShopWrapper>
-      <ShopCard key={shops.data.id} shop={shops.data} />
+      <ShopHeaderCard shop={shops.data} />
     </ShopWrapper>
   );
 }

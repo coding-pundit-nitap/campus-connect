@@ -22,7 +22,7 @@ export function CartItem({
   isUpsertingQuantity,
 }: CartItemProps) {
   return (
-    <div className="flex items-center space-x-3 p-3 border rounded-lg">
+    <div className="flex flex-col md:flex-row items-center space-x-3 p-3 border rounded-lg">
       <Image
         src={item.image_url || "/placeholders/placeholder.png"}
         alt={item.name}
@@ -39,11 +39,11 @@ export function CartItem({
           ₹{(item.price - (item.discount * item.price) / 100).toFixed(2)}
         </p>
       </div>
-      <div className="flex flex-col items-end space-y-2">
+      <div className="flex flex-col-reverse md:flex-col items-center space-y-2">
         <Button
           variant="ghost"
           size="icon"
-          className="h-6 w-6"
+          className="h-6 w-6 mb-0 md:mb-2"
           onClick={onRemove}
           disabled={isUpsertingQuantity || isUpsertingQuantity}
         >

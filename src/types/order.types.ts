@@ -1,10 +1,19 @@
-import { Order, OrderItem, PaymentMethod, Product, Shop } from "@prisma/client";
+import {
+  Category,
+  Order,
+  OrderItem,
+  PaymentMethod,
+  Product,
+  Shop,
+} from "@prisma/client";
 
 import { SerializedProduct } from "./product.types";
 export type OrderWithDetails = Order & {
   shop: Shop;
   items: (OrderItem & {
-    product: Product;
+    product: Product & { category?: Category | null } & {
+      shop: { id: string; name: string };
+    };
   })[];
   user: {
     name: string | null;

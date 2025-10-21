@@ -8,9 +8,9 @@ import { useUserAddressManager } from "@/hooks";
 import { UserAddressList } from "./user-address-list";
 
 interface UserAddressListContainerProps {
-  selectedAddressId: string | null;
-  onAddressSelect: (address: UserAddress) => void;
   onAddNewAddress: () => void;
+  selectedAddressId?: string | null;
+  onAddressSelect?: (address: UserAddress) => void;
 }
 
 export function UserAddressListContainer({

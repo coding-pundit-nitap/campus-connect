@@ -1,23 +1,15 @@
 "use client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
 import { loginAction } from "@/actions";
+import { changePaswordAction } from "@/actions/authentication/change-password";
+import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
 
-/**
- * Hook to handle user registration with form validation, mutation management, and automatic cache invalidation.
- *
- * This hook provides a complete user registration flow including form submission,
- * server-side validation, success/error handling, and automatic cache management.
- * It's designed for registration forms, sign-up pages, and user onboarding flows.
- *
- * @returns UseMutationResult for user registration with form data and response handling
- *
- */
 export function useRegisterUser() {
   const queryClient = useQueryClient();
 
@@ -68,4 +60,37 @@ export function useLoginUser() {
     ...mutation,
     loginUser,
   };
+}
+
+export function useUser() {
+  return useQuery({
+    queryKey: queryKeys.users.me,
+    queryFn: userAPIService.getMe,
+  });
+}
+
+export function useUpdateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me });
+    },
+    onError: (error) => {
+      toast.error("Failed to update profile: " + error.message);
+    },
+  });
+}
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: changePaswordAction,
+    onSuccess({ details }) {
+      toast.success(details);
+    },
+    onError(error) {
+      toast.error(error.message || "Faild to Change Password.");
+    },
+  });
 }

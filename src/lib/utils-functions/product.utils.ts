@@ -19,9 +19,6 @@ export function getProductCountMessage(
   return `Showing ${displayCount} of ${totalCount} product${totalCount === 1 ? "" : "s"}`;
 }
 
-/**
- * Determine various product states for UI
- */
 export function getProductStates(
   products: SerializedProduct[],
   displayProducts: SerializedProduct[],
@@ -153,10 +150,7 @@ export class ProductUIServices {
   }
 
   formatProductDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-    });
+    return new Date(date).toLocaleDateString();
   }
 
   getProductCountMessage(displayCount: number, totalCount: number): string {

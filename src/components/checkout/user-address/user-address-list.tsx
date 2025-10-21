@@ -14,8 +14,8 @@ interface UserAddressListProps {
   addresses: UserAddress[] | undefined;
   isLoading: boolean;
   error: boolean;
-  selectedAddressId: string | null;
-  onAddressSelect: (address: UserAddress) => void;
+  selectedAddressId?: string | null;
+  onAddressSelect?: (address: UserAddress) => void;
   onAddNewAddress: () => void;
   onSetDefault: (addressId: string) => void;
   onDelete: (address: UserAddress) => void;

@@ -1,29 +1,25 @@
 import { User } from "@prisma/client";
+import { z } from "zod";
 
 import axiosInstance from "@/lib/axios";
-import { OrderWithDetails } from "@/types/order.types";
-import { ActionResponse } from "@/types/response.types";
-import { RegisterFormData } from "@/validations/auth";
+import { registerSchema } from "@/validations";
+import { updateUserSchema } from "@/validations/user.validation";
 
 class UserAPIService {
-  async fetchUserOrders(): Promise<OrderWithDetails[]> {
-    const url = `users/orders`;
-    const response =
-      await axiosInstance.get<ActionResponse<OrderWithDetails[]>>(url);
-    return response.data.data;
+  async getMe(): Promise<User> {
+    const response = await axiosInstance.get("/user/me");
+    return response.data;
   }
 
-  async registerUser(
-    data: RegisterFormData
-  ): Promise<Pick<User, "id" | "email" | "name" | "role">> {
-    const url = `auth/register`;
-    const response = await axiosInstance.post<
-      ActionResponse<Pick<User, "id" | "email" | "name" | "role">>
-    >(url, data);
-    return response.data.data;
+  async updateMe(data: z.infer<typeof updateUserSchema>): Promise<User> {
+    const response = await axiosInstance.put("/user/me", data);
+    return response.data;
+  }
+
+  async registerUser(data: z.infer<typeof registerSchema>): Promise<User> {
+    const response = await axiosInstance.post<User>("/auth/register", data);
+    return response.data;
   }
 }
 
 export const userAPIService = new UserAPIService();
-
-export default userAPIService;

@@ -1,20 +1,40 @@
 "use client";
 
-import React from "react";
+import { useSession } from "next-auth/react";
 
-import AddressCard from "@/components/profile/address-card";
+import { UserAddress } from "@/components/checkout";
 import ProfileCard from "@/components/profile/profile-card";
-import ProfileHeader from "@/components/profile/profile-header";
-import { SharedCard } from "@/components/shared/shared-card";
+import SecuritySettings from "@/components/profile/security";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import LoginIndicator from "@/components/wrapper/login-indicator";
 
-export default function CheckoutPageComponent() {
+export default function ProfilePage() {
+  const session = useSession();
+
+  if (!session.data?.user) {
+    return <LoginIndicator />;
+  }
   return (
-    <SharedCard
-      headerContent={<ProfileHeader />}
-      contentClassName="grid lg:grid-cols-2 gap-8"
-    >
-      <ProfileCard />
-      <AddressCard />
-    </SharedCard>
+    <div className="container mx-auto py-8">
+      <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="profile">Profile</TabsTrigger>
+          <TabsTrigger value="addresses">Addresses</TabsTrigger>
+          <TabsTrigger value="security">Security</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="profile" className="mt-6">
+          <ProfileCard user={session.data.user} />
+        </TabsContent>
+        <TabsContent value="addresses" className="mt-6">
+          <UserAddress />
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <SecuritySettings />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

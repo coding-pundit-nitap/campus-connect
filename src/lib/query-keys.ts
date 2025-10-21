@@ -22,6 +22,7 @@ export const queryKeys = {
     profile: (user_id: string) => ["users", user_id, "profile"] as const,
     /** User addresses query key factory */
     addresses: () => ["users", "addresses"] as const,
+    me: ["users", "me"],
   },
 
   /**
@@ -113,9 +114,8 @@ export const queryKeys = {
    */
   notifications: {
     all: ["notifications"] as const,
-    unread: ["notifications", "unread"] as const,
-    unreadCount: ["notifications", "unread", "count"] as const,
     history: () => ["notifications", "history"] as const,
+    summary: () => ["notifications", "summary"] as const,
   },
 
   health: {

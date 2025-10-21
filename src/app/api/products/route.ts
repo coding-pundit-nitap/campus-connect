@@ -9,9 +9,21 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
+    const params = Object.fromEntries(searchParams);
+    const validation = paginatedSchema.safeParse(params);
+
+    if (!validation.success) {
+      return NextResponse.json(
+        createErrorResponse("Invalid query parameters"),
+        { status: 400 }
+      );
+    }
+
+    const { limit, cursor } = validation.data;
+
     const response = await productService.getPaginatedProducts({
-      limit: Number(searchParams.get("limit")),
-      cursor: searchParams.get("cursor") ?? undefined,
+      limit,
+      cursor,
     });
 
     const successResponse = createSuccessResponse(response);
