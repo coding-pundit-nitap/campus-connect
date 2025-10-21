@@ -26,6 +26,7 @@ export interface FormFieldConfig<T extends FieldValues> {
   disabled?: boolean;
   accept?: string;
   maxSize?: number;
+  previewUrl?: string;
   customProps?: Record<string, unknown>;
   suggestions?: Array<{ id: string; title: string; subtitle: string }>;
   isLoadingSuggestions?: boolean;

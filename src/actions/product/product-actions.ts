@@ -98,7 +98,7 @@ export async function updateProductAction(
     }
 
     const currentProduct = await productRepository.findById(product_id, {
-      select: { category_id: true },
+      select: { category_id: true, imageKey: true },
     });
 
     const parsedData = productUpdateActionSchema.parse({
@@ -116,6 +116,10 @@ export async function updateProductAction(
 
     const { imageKey, name, price, stock_quantity, description, discount } =
       parsedData;
+
+    if (currentProduct?.imageKey && currentProduct.imageKey !== imageKey) {
+      await fileUploadService.deleteFile(currentProduct.imageKey);
+    }
 
     const productData = {
       imageKey,

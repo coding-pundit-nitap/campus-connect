@@ -2,7 +2,7 @@ import { Category, Product } from "@prisma/client";
 
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
-import { ProductFormData } from "@/validations";
+import { ProductActionFormData } from "@/validations";
 
 export function getProductCountMessage(
   displayCount: number,
@@ -52,7 +52,7 @@ const SORT_OPTIONS = [
   { value: "rating-asc", label: "Lowest Rated" },
 ];
 
-const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductFormData>[] = [
+const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductActionFormData>[] = [
   { name: "name", label: "Product Name", type: "text", required: true },
   {
     name: "description",
@@ -76,12 +76,12 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductFormData>[] = [
     placeholder: "Select or create category...",
   },
   {
-    name: "imageKey",
+    name: "image",
     label: "Product Image",
     type: "file",
     accept: "image/*",
-    maxSize: 1,
-    required: true,
+    maxSize: 5,
+    required: false,
   },
 ];
 
@@ -157,7 +157,7 @@ export class ProductUIServices {
     return `Showing ${displayCount} of ${totalCount} products`;
   }
 
-  createProductFormFields(): FormFieldConfig<ProductFormData>[] {
+  createProductFormFields(): FormFieldConfig<ProductActionFormData>[] {
     return PRODUCT_FORM_FIELDS;
   }
 

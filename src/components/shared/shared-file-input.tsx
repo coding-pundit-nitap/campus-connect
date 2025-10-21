@@ -10,12 +10,13 @@ interface SharedFileInputProps {
   value?: string | File;
   onChange: (file: File | null) => void;
   accept?: string;
-  maxSize?: number; // in MB
+  maxSize?: number;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
   previewClassName?: string;
   showPreview?: boolean;
+  previewUrl?: string;
 }
 
 export function SharedFileInput({
@@ -28,6 +29,7 @@ export function SharedFileInput({
   className = "",
   previewClassName = "",
   showPreview = true,
+  previewUrl: initialPreviewUrl,
 }: SharedFileInputProps) {
   const [error, setError] = useState<string | null>(null);
 
@@ -64,9 +66,9 @@ export function SharedFileInput({
   });
 
   const getPreviewUrl = () => {
-    if (!value) return null;
+    if (value instanceof File) return URL.createObjectURL(value);
     if (typeof value === "string") return value;
-    return URL.createObjectURL(value);
+    return initialPreviewUrl || null;
   };
 
   const previewUrl = getPreviewUrl();
@@ -97,7 +99,7 @@ export function SharedFileInput({
           }
         )}
       >
-        <input {...getInputProps()} /> {/* And here */}
+        <input {...getInputProps()} />
         {previewUrl && showPreview ? (
           <div className="relative">
             <div
@@ -113,15 +115,6 @@ export function SharedFileInput({
                 className="object-cover"
               />
             </div>
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute -top-2 -right-2 h-6 w-6"
-              onClick={handleRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         ) : (
           <div className="text-center">

@@ -1,5 +1,5 @@
 import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
-import { ShopFormData } from "@/validations";
+import { ShopActionFormData, ShopFormData } from "@/validations";
 
 class ShopUIServices {
   createShopLinkFormFields = (): FormFieldConfig<ShopFormData>[] => {
@@ -50,7 +50,7 @@ class ShopUIServices {
     ];
   };
 
-  createShopUpdateFormFields = (): FormFieldConfig<ShopFormData>[] => {
+  createShopUpdateFormFields = (): FormFieldConfig<ShopActionFormData>[] => {
     return [
       {
         name: "name",
@@ -88,11 +88,11 @@ class ShopUIServices {
         required: true,
       },
       {
-        name: "imageKey",
+        name: "image",
         label: "Shop Image",
         type: "file",
         accept: "image/*",
-        maxSize: 1,
+        maxSize: 5,
         required: false,
       },
     ];

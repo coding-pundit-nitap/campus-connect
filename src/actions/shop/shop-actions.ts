@@ -11,12 +11,7 @@ import categoryServices from "@/services/category.service";
 import fileUploadService from "@/services/file-upload.service";
 import notificationService from "@/services/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
-import {
-  ShopActionFormData,
-  shopActionSchema,
-  ShopFormData,
-  shopUpdateSchema,
-} from "@/validations/shop";
+import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export async function createShopAction(formData: ShopActionFormData) {
   try {
@@ -29,7 +24,7 @@ export async function createShopAction(formData: ShopActionFormData) {
       parsedData.data;
     let imageKey = "";
     if (image) {
-      const imageFile = image as File;
+      const imageFile = image;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
       imageKey = await fileUploadService.upload(
         imageFile.name,
@@ -58,11 +53,7 @@ export async function createShopAction(formData: ShopActionFormData) {
   }
 }
 
-export async function updateShopAction(
-  formData: Omit<ShopFormData, "imageKey"> & {
-    imageKey: string | null;
-  }
-) {
+export async function updateShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
@@ -74,17 +65,33 @@ export async function updateShopAction(
 
     const shop_id = context.id;
 
-    const parsedData = shopUpdateSchema.safeParse(formData);
+    const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
       throw new BadRequestError(parsedData.error.message);
     }
 
     const values = parsedData.data;
     await categoryServices.cleanupEmptyCategories(shop_id);
+    let imageKey = "";
+    if (values.image) {
+      const imageFile = values.image;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageKey = await fileUploadService.upload(
+        imageFile.name,
+        imageFile.type,
+        imageFile.size,
+        buffer
+      );
+    }
 
+    if (imageKey && values.imageKey) {
+      await fileUploadService.deleteFile(values.imageKey);
+    }
+
+    const { image, ...rest } = values;
     const updatedShop = await shopRepository.update(shop_id, {
-      ...values,
-      imageKey: values.imageKey,
+      ...rest,
+      imageKey,
     });
 
     await notificationService.publishNotification(user_id, {
