@@ -1,9 +1,9 @@
 import { Star, StarHalf } from "lucide-react";
-import Image from "next/image";
 import React from "react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ReviewWithUser } from "@/types/review.type";
+
+import UserAvatar from "../sidebar/user-avatar";
 
 type Props = {
   review: ReviewWithUser;
@@ -42,28 +42,11 @@ export const StarRating = ({ rating }: { rating: number }) => {
 export default function ReviewCard({ review }: Props) {
   return (
     <div key={review.id} className="flex gap-4">
-      <Avatar>
-        {review.user.image ? (
-          <Image
-            src={review.user.image}
-            alt={review.user.name || "User"}
-            width={40}
-            height={40}
-            className="rounded-full object-cover"
-            priority={false}
-            unoptimized={false}
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-            }}
-          />
-        ) : null}
-        <AvatarFallback>
-          {(review.user.name || "Anonymous")
-            .split(" ")
-            .map((n) => n[0])
-            .join("")}
-        </AvatarFallback>
-      </Avatar>
+      <UserAvatar
+        image={review.user.image}
+        name={review.user.name}
+        dimention={40}
+      />
       <div className="flex-1">
         <div className="flex items-center justify-between">
           <p className="font-semibold">{review.user.name || "Anonymous"}</p>

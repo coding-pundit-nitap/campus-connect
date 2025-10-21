@@ -1,23 +1,12 @@
 "use client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { loginAction } from "@/actions";
+import { changePaswordAction } from "@/actions/authentication/change-password";
+import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
 
-/**
- * Hook to handle user registration with form validation, mutation management, and automatic cache invalidation.
- *
- * This hook provides a complete user registration flow including form submission,
- * server-side validation, success/error handling, and automatic cache management.
- * It's designed for registration forms, sign-up pages, and user onboarding flows.
- *
- * @returns UseMutationResult for user registration with form data and response handling
- *
- */
 export function useRegisterUser() {
   const queryClient = useQueryClient();
 
@@ -36,36 +25,35 @@ export function useRegisterUser() {
   });
 }
 
-export function useLoginUserMutation() {
-  return useMutation({
-    mutationFn: loginAction,
+export function useUser() {
+  return useQuery({
+    queryKey: queryKeys.users.me,
+    queryFn: userAPIService.getMe,
   });
 }
 
-export function useLoginUser() {
+export function useUpdateUser() {
   const queryClient = useQueryClient();
-  const router = useRouter();
-  const mutation = useLoginUserMutation();
-
-  const loginUser = useCallback(
-    (data: { email: string; password: string }) => {
-      mutation.mutate(data, {
-        onSuccess: (result) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-          toast.success(result.details);
-          router.push("/");
-          router.refresh();
-        },
-        onError: (error) => {
-          toast.error("Login failed: " + error.message);
-        },
-      });
+  return useMutation({
+    mutationFn: updateUser,
+    onSuccess: () => {
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.me });
     },
-    [mutation, queryClient, router]
-  );
+    onError: (error) => {
+      toast.error("Failed to update profile: " + error.message);
+    },
+  });
+}
 
-  return {
-    ...mutation,
-    loginUser,
-  };
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: changePaswordAction,
+    onSuccess: () => {
+      toast.success("Password updated successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to update password: " + error.message);
+    },
+  });
 }

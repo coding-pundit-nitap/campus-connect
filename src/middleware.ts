@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { NextAuthRequest } from "next-auth";
 
 import { auth as middleware } from "@/auth";
-import { addSecurityHeaders } from "@/lib/security";
 import {
+  adminRoutes,
   apiAuthPrefix,
   authRoutes,
   DEFAULT_LOGIN_REDIRECT,
@@ -15,9 +15,11 @@ export default middleware(async (req: NextAuthRequest) => {
     const { nextUrl } = req;
     const path = nextUrl.pathname;
     const isLoggedIn = !!req.auth;
+    const userRole = req.auth?.user?.role;
     const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
     const isPublicRoute = publicRoutes.some((p) => path.startsWith(p));
     const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
+    const isAdminRoute = adminRoutes.some((p) => path.startsWith(p));
 
     let response: NextResponse;
 
@@ -29,6 +31,22 @@ export default middleware(async (req: NextAuthRequest) => {
       const redirectUrl = nextUrl.clone();
       redirectUrl.pathname = DEFAULT_LOGIN_REDIRECT;
       response = NextResponse.redirect(redirectUrl);
+    } else if (isAdminRoute) {
+      // Admin routes require both authentication and ADMIN role
+      if (!isLoggedIn) {
+        const redirectUrl = nextUrl.clone();
+        redirectUrl.pathname = "/login";
+        redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+        response = NextResponse.redirect(redirectUrl);
+      } else if (userRole !== "ADMIN") {
+        // Redirect non-admin users to homepage with error
+        const redirectUrl = nextUrl.clone();
+        redirectUrl.pathname = "/";
+        redirectUrl.searchParams.set("error", "unauthorized");
+        response = NextResponse.redirect(redirectUrl);
+      } else {
+        response = NextResponse.next();
+      }
     } else if (!isAuthRoute && !isLoggedIn) {
       // Redirect unauthenticated users trying to access protected routes to login
       const redirectUrl = nextUrl.clone();
@@ -40,11 +58,11 @@ export default middleware(async (req: NextAuthRequest) => {
       response = NextResponse.next();
     }
 
-    return addSecurityHeaders(response);
+    return response;
   } catch (error) {
     console.error("[MIDDLEWARE ERROR]:", error);
     const errorResponse = NextResponse.next();
-    return addSecurityHeaders(errorResponse);
+    return errorResponse;
   }
 });
 

@@ -78,7 +78,7 @@ class ProductService {
         }
       : queryOptions;
 
-    const products = await productRepository.findMany(queryOptions);
+    const products = await productRepository.findMany(baseQuery);
 
     let hasNextPage = false;
     let nextCursor: string | null = null;

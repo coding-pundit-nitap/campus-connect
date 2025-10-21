@@ -2,18 +2,18 @@
 
 import { NotificationType } from "@prisma/client";
 import { Bell, Info, ShieldAlert, ShieldX, ThumbsUp } from "lucide-react";
+import { Route } from "next";
 import Link from "next/link";
 import { useMemo } from "react";
 
 import {
   useMarkNotificationsAsRead,
-  useUnreadNotificationCount,
-  useUnreadNotifications,
+  useNotificationSummary,
 } from "@/hooks/tanstack/useNotifications";
 import { useLiveNotifications } from "@/hooks/useLiveNotifications";
 import { cn } from "@/lib/utils";
 
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
@@ -41,41 +41,36 @@ const getNotificationConfig = (type?: NotificationType) => {
 
 export function OrderNotificationBell() {
   useLiveNotifications();
-
-  const { data: unreadData, isLoading } = useUnreadNotifications();
-  const { data: unreadCountResponse } = useUnreadNotificationCount();
+  const { data, isLoading } = useNotificationSummary();
   const { mutate: markAsRead } = useMarkNotificationsAsRead();
 
-  const unreadCount = unreadCountResponse?.count || 0;
+  const unreadCount = data?.unreadCount.total || 0;
 
   const allNotifications = useMemo(() => {
-    if (!unreadData) return [];
-    const combined = [
-      ...unreadData.unreadNotifications,
-      ...unreadData.unreadBroadcasts,
-    ];
+    if (!data?.unreadNotifications && !data?.unreadBroadcasts) return [];
+    if (!data?.unreadNotifications) return data.unreadBroadcasts;
+    if (!data?.unreadBroadcasts) return data.unreadNotifications;
+    const combined = [...data.unreadNotifications, ...data.unreadBroadcasts];
     return combined.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [unreadData]);
+  }, [data?.unreadBroadcasts, data?.unreadNotifications]);
 
   const displayCount = Math.max(unreadCount, allNotifications.length);
 
   const handleOpenChange = (open: boolean) => {
-    if (!open && unreadData) {
-      const notification_ids = unreadData.unreadNotifications.map((n) => n.id);
-      const broadcast_notification_ids = unreadData.unreadBroadcasts.map(
-        (b) => b.id
-      );
+    if (!open && data) {
+      const notification_ids = data.unreadNotifications.map((n) => n.id);
+      const broadcast_notification_ids = data.unreadBroadcasts.map((b) => b.id);
 
       if (
         notification_ids.length > 0 ||
         broadcast_notification_ids.length > 0
       ) {
         markAsRead({
-          notification_ids,
-          broadcast_notification_ids,
+          notificationIds: notification_ids,
+          broadcastIds: broadcast_notification_ids,
         });
       }
     }
@@ -140,7 +135,7 @@ export function OrderNotificationBell() {
               return (
                 <DropdownMenuItem key={notification.id} className="p-0">
                   <Link
-                    href={notification.action_url || "#"}
+                    href={notification.action_url || ("#" as Route)}
                     className="flex w-full items-start gap-3 p-3 transition-colors hover:bg-muted/50"
                   >
                     <Avatar className="h-8 w-8">

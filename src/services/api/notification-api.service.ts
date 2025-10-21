@@ -1,14 +1,29 @@
 import { BroadcastNotification, Notification } from "@prisma/client";
+import { Route } from "next";
 
 import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.types";
+
+export type NotificationSummaryType = {
+  unreadNotifications: (Omit<Notification, "action_url"> & {
+    action_url: Route;
+  })[];
+  unreadBroadcasts: (Omit<BroadcastNotification, "action_url"> & {
+    action_url: Route;
+  })[];
+  unreadCount: {
+    notifications: number;
+    broadcasts: number;
+    total: number;
+  };
+};
 
 interface PaginatedNotificationsResponse {
   notifications: Notification[];
   nextCursor?: string;
 }
 
-interface UnreadCountResponse {
+export interface UnreadCountResponse {
   count: number;
   notifications: number;
   broadcasts: number;
@@ -22,38 +37,34 @@ class NotificationAPIService {
     limit?: number;
     cursor: string | null;
   }): Promise<PaginatedNotificationsResponse> {
-    const url = `notifications/history?limit=${limit}${cursor ? `&cursor=${cursor}` : ""}`;
-    const response =
-      await axiosInstance.get<ActionResponse<PaginatedNotificationsResponse>>(
-        url
-      );
+    const url = `notifications/history`;
+    const response = await axiosInstance.get<
+      ActionResponse<PaginatedNotificationsResponse>
+    >(url, {
+      params: {
+        limit,
+        cursor: cursor || undefined,
+      },
+    });
     return response.data.data;
   }
 
-  async fetchUnreadCount(): Promise<UnreadCountResponse> {
-    const url = `notifications/unread-count`;
-    const response =
-      await axiosInstance.get<ActionResponse<UnreadCountResponse>>(url);
-    return response.data.data;
-  }
-
-  async markNotificationsAsRead(ids: {
-    notification_ids?: string[];
-    broadcast_notification_ids?: string[];
+  async markAsRead(data: {
+    notificationIds?: string[];
+    broadcastIds?: string[];
   }) {
-    const { data } = await axiosInstance.patch<ActionResponse<null>>(
-      "notifications",
-      ids
-    );
-    return data.data;
+    if (
+      (data.notificationIds?.length ?? 0) === 0 &&
+      (data.broadcastIds?.length ?? 0) === 0
+    )
+      return;
+    await axiosInstance.patch("notifications/mark-as-read", data);
   }
-  async fetchUnreadNotifications() {
+
+  async fetchNotificationSummary() {
     const { data } = await axiosInstance.get<
-      ActionResponse<{
-        unreadNotifications: Notification[];
-        unreadBroadcasts: BroadcastNotification[];
-      }>
-    >("notifications/unread");
+      ActionResponse<NotificationSummaryType>
+    >("notifications/summary");
     return data.data;
   }
 }

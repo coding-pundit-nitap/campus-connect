@@ -89,17 +89,14 @@ export function useShopProductsCreate() {
       if (success) {
         toast.success(details || "Product created successfully!");
 
-        // Invalidate products for the specific shop
         queryClient.invalidateQueries({
           queryKey: queryKeys.products.byShop(data.shop_id),
         });
 
-        // Invalidate shop detail to update product counts
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.detail(data.shop_id),
         });
 
-        // Invalidate all shops in case they show product counts
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.all,
         });
@@ -122,22 +119,18 @@ export function useShopProductsDelete() {
       if (success) {
         toast.success(details || "Product deleted successfully!");
 
-        // Invalidate specific product detail
         queryClient.invalidateQueries({
           queryKey: queryKeys.products.detail(variables.product_id),
         });
 
-        // Invalidate products for the specific shop
         queryClient.invalidateQueries({
           queryKey: queryKeys.products.byShop(variables.shop_id),
         });
 
-        // Invalidate shop detail to update product counts
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.detail(variables.shop_id),
         });
 
-        // Only invalidate shops.all if it might show product counts
         queryClient.invalidateQueries({
           queryKey: queryKeys.shops.all,
         });

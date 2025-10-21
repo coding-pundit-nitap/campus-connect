@@ -3,8 +3,13 @@ import { ActionResponse, SerializedFullCart } from "@/types";
 class CartAPIService {
   async fetchCartForShop(shop_id: string): Promise<SerializedFullCart> {
     const url = `cart?shop_id=${shop_id}`;
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedFullCart>>(url);
+    const response = await axiosInstance.get<
+      ActionResponse<SerializedFullCart>
+    >(url, {
+      params: {
+        shop_id: shop_id,
+      },
+    });
     return response.data.data;
   }
 

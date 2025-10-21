@@ -15,17 +15,14 @@ export const useCreateReview = () => {
     onSuccess: (_data, { product_id }) => {
       toast.success("Review submitted successfully!");
 
-      // Invalidate all review-related queries for this product
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.reviews(product_id),
       });
 
-      // Invalidate the product detail query to update rating and review count
       queryClient.invalidateQueries({
         queryKey: queryKeys.products.detail(product_id),
       });
 
-      // Invalidate all products queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
     },
   });

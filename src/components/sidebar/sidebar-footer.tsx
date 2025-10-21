@@ -34,10 +34,15 @@ export function SidebarFooter() {
       <Separator />
       <div className="space-y-3">
         <div className="flex items-center space-x-3">
-          <UserAvatar user={user} />
+          <UserAvatar
+            dimention={40}
+            image={user.image}
+            email={user.email}
+            name={user.name}
+          />
           <UserDetail user={user} />
         </div>
-        <ShopOwnerBadge />
+        {user.shop_id && <ShopOwnerBadge />}
         <Separator />
         <Button variant="outline" className="w-full p-0" asChild>
           <Link
@@ -46,7 +51,7 @@ export function SidebarFooter() {
           >
             <div className="flex items-center gap-2">
               <Store className="h-4 w-4" />
-              <span>{user.id ? "Shops" : "Add Shops"}</span>
+              <span>{user.shop_id ? "Manage Shops" : "Add Shops"}</span>
             </div>
           </Link>
         </Button>

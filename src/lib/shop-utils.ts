@@ -1,24 +1,4 @@
-import { SellerVerificationStatus } from "@prisma/client";
-
 import { ShopWithOwner } from "@/types";
-
-type DatabaseShop = {
-  owner: { email: string; name: string | null };
-} & {
-  id: string;
-  name: string;
-  created_at: Date;
-  updated_at: Date;
-  description: string;
-  location: string;
-  opening: string;
-  closing: string;
-  imageKey: string | null;
-  is_active: boolean;
-  pg_seller_id: string | null;
-  verification_status: SellerVerificationStatus;
-  owner_id: string;
-};
 
 export function isShopOpen(
   shop: Pick<ShopWithOwner, "opening" | "closing">
@@ -43,7 +23,7 @@ export function formatTime(time: string): string {
   return `${displayHour}:${minutes} ${ampm}`;
 }
 
-export function enhanceShopData(shop: DatabaseShop): ShopWithOwner & {
+export function formatShopData(shop: ShopWithOwner): ShopWithOwner & {
   openingFormatted: string;
   closingFormatted: string;
 } {
@@ -60,4 +40,4 @@ export function enhanceShopData(shop: DatabaseShop): ShopWithOwner & {
   };
 }
 
-export type ShopWithOwnerDetails = ReturnType<typeof enhanceShopData>;
+export type ShopWithOwnerDetails = ReturnType<typeof formatShopData>;

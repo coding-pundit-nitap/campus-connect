@@ -93,6 +93,19 @@ class ShopRepository {
       take: limit,
     });
   }
+
+  async findMany<T extends Prisma.ShopFindManyArgs>(
+    option: T
+  ): Promise<Prisma.ShopGetPayload<T>[]>;
+  async findMany<T extends Prisma.ShopFindManyArgs>(
+    options: T
+  ): Promise<Shop[]> {
+    return prisma.shop.findMany(options);
+  }
+
+  async count(where?: Prisma.ShopWhereInput): Promise<number> {
+    return prisma.shop.count({ where });
+  }
 }
 
 export const shopRepository = new ShopRepository();

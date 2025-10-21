@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { orderWithDetailsInclude } from "@/lib/utils-functions/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import { shopRepository } from "@/repositories/shop.repository";
 
@@ -28,17 +29,7 @@ class OrderService {
       orderBy: {
         created_at: "desc",
       },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-        shop: true,
-        user: {
-          select: { name: true, phone: true },
-        },
-      },
+      include: orderWithDetailsInclude,
     });
 
     const totalOrders = await prisma.order.count({

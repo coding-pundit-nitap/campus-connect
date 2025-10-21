@@ -78,6 +78,48 @@ class BroadcastNotificationRepository {
       where: { id: broadcastnotification_id },
     });
   }
+
+  // in BroadcastNotificationRepository
+  async markManyAsReadForUser(
+    user_id: string,
+    broadcast_ids: string[]
+  ): Promise<void> {
+    if (broadcast_ids.length === 0) return;
+    await prisma.broadcastReadStatus.createMany({
+      data: broadcast_ids.map((id) => ({
+        user_id,
+        broadcast_notification_id: id,
+        read_at: new Date(),
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  async getUnreadCountForUser(user_id: string): Promise<number> {
+    return await prisma.broadcastNotification.count({
+      where: {
+        read_statuses: {
+          none: { user_id: user_id },
+        },
+      },
+    });
+  }
+
+  async getUnreadWithCount(user_id: string) {
+    const where = { read_statuses: { none: { user_id } } };
+    return prisma.$transaction([
+      prisma.broadcastNotification.findMany({
+        where,
+        orderBy: { created_at: "desc" },
+        take: 100,
+      }),
+      prisma.broadcastNotification.count({ where }),
+    ]);
+  }
+
+  async getCount(args: Prisma.BroadcastNotificationCountArgs) {
+    return prisma.broadcastNotification.count(args);
+  }
 }
 
 export const broadcastRepository = new BroadcastNotificationRepository();

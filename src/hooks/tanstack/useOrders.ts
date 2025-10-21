@@ -1,12 +1,18 @@
 "use client";
+import { OrderStatus, PaymentStatus } from "@prisma/client";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
+import {
+  updateOrderStatusAction,
+  updatePaymentStatusAction,
+} from "@/actions/admin";
 import {
   createOrderAction,
   getOrdersAction,
@@ -93,8 +99,64 @@ function useCreateOrder() {
   });
 }
 
-// Named exports
+export function useUpdateOrderStatus() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      status,
+    }: {
+      orderId: string;
+      status: OrderStatus;
+    }) => {
+      const response = await updateOrderStatusAction(orderId, status);
+
+      if (!response.success) {
+        throw new Error(response.details);
+      }
+
+      return response;
+    },
+    onSuccess: (response) => {
+      toast.success(response.details);
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update order status");
+    },
+  });
+}
+
+export function useUpdatePaymentStatus() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async ({
+      orderId,
+      status,
+    }: {
+      orderId: string;
+      status: PaymentStatus;
+    }) => {
+      const response = await updatePaymentStatusAction(orderId, status);
+
+      if (!response.success) {
+        throw new Error(response.details);
+      }
+
+      return response;
+    },
+    onSuccess: (response) => {
+      toast.success(response.details);
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update payment status");
+    },
+  });
+}
+
 export { useCreateOrder, useOrders };
 
-// Default export for more reliable importing
 export default useOrders;

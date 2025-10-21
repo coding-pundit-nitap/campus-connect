@@ -4,19 +4,24 @@ import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
 export type CartFindOptions = Omit<Prisma.CartFindManyArgs, "where">;
-
+export const fullCartInclude = {
+  items: {
+    include: {
+      product: {
+        include: {
+          category: true,
+          shop: { select: { id: true, name: true } },
+        },
+      },
+    },
+    orderBy: { id: Prisma.SortOrder.asc },
+  },
+};
 class CartRepository {
   async findOrCreate(user_id: string, shop_id: string): Promise<FullCart> {
     const cart = await prisma.cart.findUnique({
       where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
-      include: {
-        items: {
-          include: {
-            product: { include: { category: true } },
-          },
-          orderBy: { id: "asc" },
-        },
-      },
+      include: fullCartInclude,
     });
 
     if (cart) {
@@ -25,14 +30,7 @@ class CartRepository {
 
     return prisma.cart.create({
       data: { user_id, shop_id },
-      include: {
-        items: {
-          include: {
-            product: { include: { category: true } },
-          },
-          orderBy: { id: "asc" },
-        },
-      },
+      include: fullCartInclude,
     });
   }
 
@@ -86,20 +84,7 @@ class CartRepository {
       where: {
         user_id,
       },
-      include: {
-        items: {
-          include: {
-            product: {
-              include: {
-                shop: {
-                  select: { name: true, id: true },
-                },
-                category: true,
-              },
-            },
-          },
-        },
-      },
+      include: fullCartInclude,
     });
   }
 

@@ -5,6 +5,7 @@ declare module "next-auth" {
   interface User {
     role: Role;
     shop_id?: string;
+    phone?: string;
   }
 
   interface Session {

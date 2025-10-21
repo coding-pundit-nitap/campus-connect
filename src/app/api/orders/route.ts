@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import authUtils from "@/lib/utils-functions/auth.utils";
-import { serializeOrderWithDetails } from "@/lib/utils-functions/order.utils";
+import {
+  orderWithDetailsInclude,
+  serializeOrderWithDetails,
+} from "@/lib/utils-functions/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
@@ -18,18 +21,7 @@ export async function GET() {
     }
 
     const orders = await orderRepository.getOrdersByUserId(user_id, {
-      include: {
-        items: {
-          include: {
-            product: {
-              include: { category: true },
-            },
-          },
-        },
-        user: { select: { name: true, phone: true } },
-        shop: true,
-        delivery_address: true,
-      },
+      include: orderWithDetailsInclude,
     });
     const successResponse = createSuccessResponse(
       orders.map(serializeOrderWithDetails),

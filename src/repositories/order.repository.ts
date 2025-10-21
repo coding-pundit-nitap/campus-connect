@@ -1,6 +1,7 @@
 import { Order, OrderStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
+import { orderWithDetailsInclude } from "@/lib/utils-functions/order.utils";
 import { OrderWithDetails } from "@/types";
 
 type OrderFindOptions = Omit<Prisma.OrderFindUniqueArgs, "where">;
@@ -156,18 +157,7 @@ class OrderRepository {
       orderBy: { created_at: Prisma.SortOrder.desc },
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
-      include: {
-        items: {
-          include: {
-            product: {
-              include: { category: true },
-            },
-          },
-        },
-        user: { select: { name: true, phone: true } },
-        shop: true,
-        delivery_address: true,
-      },
+      include: orderWithDetailsInclude,
     });
 
     let nextCursor: string | undefined = undefined;
@@ -178,6 +168,41 @@ class OrderRepository {
     }
 
     return { orders, nextCursor };
+  }
+
+  async findById(orderId: string): Promise<Order | null>;
+  async findById<T extends OrderFindOptions>(
+    orderId: string,
+    options: T
+  ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
+  async findById<T extends OrderFindOptions>(
+    orderId: string,
+    options?: T
+  ): Promise<
+    Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
+  > {
+    const query = { where: { id: orderId }, ...(options ?? {}) };
+    return prisma.order.findUnique(query);
+  }
+
+  async findMany<T extends Prisma.OrderFindManyArgs>(
+    options: T
+  ): Promise<Prisma.OrderGetPayload<T>[]>;
+  async findMany<T extends Prisma.OrderFindManyArgs>(
+    options: T
+  ): Promise<Order[]> {
+    return prisma.order.findMany(options);
+  }
+
+  async update(orderId: string, data: Prisma.OrderUpdateInput): Promise<Order> {
+    return prisma.order.update({
+      where: { id: orderId },
+      data,
+    });
+  }
+
+  async count(where?: Prisma.OrderWhereInput): Promise<number> {
+    return prisma.order.count({ where });
   }
 }
 

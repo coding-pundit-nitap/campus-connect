@@ -1,4 +1,23 @@
-import { Order, OrderItem, Shop } from "@prisma/client";
+import {
+  Order,
+  OrderItem,
+  OrderStatus,
+  PaymentStatus,
+  Shop,
+} from "@prisma/client";
+import {
+  BadgeCent,
+  Bike,
+  CheckCircle2,
+  CircleDot,
+  CircleSlash,
+  Clock,
+  CookingPot,
+  LucideIcon,
+  Package,
+  RefreshCcw,
+  XCircle,
+} from "lucide-react";
 
 import {
   OrderWithDetails,
@@ -10,6 +29,12 @@ import {
 } from "@/types";
 
 import { serializeProduct } from "./product.utils";
+
+interface StatusInfo {
+  label: string;
+  Icon: LucideIcon;
+  colorClassName: string;
+}
 
 export const transformDateToLocaleString = (date: Date): string => {
   return new Date(date).toLocaleString([], {
@@ -55,7 +80,33 @@ export const serializeOrder = (order: Order): SerializedOrder => {
       : undefined,
   };
 };
-
+export const orderWithDetailsInclude = {
+  items: {
+    include: {
+      product: {
+        include: {
+          category: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  shop: true,
+  delivery_address: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+  },
+};
 export const serializeOrderWithDetails = (
   order: OrderWithDetails
 ): SerializedOrderWithDetails => {
@@ -100,3 +151,75 @@ export function mapSearchResultsToSuggestions(searchResults: SearchResult[]) {
     subtitle: result.subtitle,
   }));
 }
+
+export const getOrderStatusInfo = (status: OrderStatus): StatusInfo => {
+  const info: Record<OrderStatus, StatusInfo> = {
+    NEW: {
+      label: "New",
+      Icon: CircleDot,
+      colorClassName: "text-blue-500",
+    },
+    PREPARING: {
+      label: "Preparing",
+      Icon: CookingPot,
+      colorClassName: "text-orange-500",
+    },
+    READY_FOR_PICKUP: {
+      label: "Ready for Pickup",
+      Icon: Package,
+      colorClassName: "text-yellow-500",
+    },
+    OUT_FOR_DELIVERY: {
+      label: "Out for Delivery",
+      Icon: Bike,
+      colorClassName: "text-purple-500",
+    },
+    COMPLETED: {
+      label: "Completed",
+      Icon: CheckCircle2,
+      colorClassName: "text-green-500",
+    },
+    CANCELLED: {
+      label: "Cancelled",
+      Icon: XCircle,
+      colorClassName: "text-red-500",
+    },
+  };
+  return info[status];
+};
+
+export const getPaymentStatusInfo = (status: PaymentStatus): StatusInfo => {
+  const info: Record<PaymentStatus, StatusInfo> = {
+    PENDING: {
+      label: "Pending",
+      Icon: Clock,
+      colorClassName: "text-yellow-500",
+    },
+    PROCESSING: {
+      label: "Processing",
+      Icon: RefreshCcw,
+      colorClassName: "text-blue-500",
+    },
+    COMPLETED: {
+      label: "Paid",
+      Icon: CheckCircle2,
+      colorClassName: "text-green-500",
+    },
+    FAILED: {
+      label: "Failed",
+      Icon: XCircle,
+      colorClassName: "text-red-500",
+    },
+    REFUNDED: {
+      label: "Refunded",
+      Icon: BadgeCent,
+      colorClassName: "text-blue-500",
+    },
+    CANCELLED: {
+      label: "Cancelled",
+      Icon: CircleSlash,
+      colorClassName: "text-gray-500",
+    },
+  };
+  return info[status];
+};

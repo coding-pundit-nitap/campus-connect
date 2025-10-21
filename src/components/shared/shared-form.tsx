@@ -8,12 +8,20 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { ButtonConfig, FormFieldConfig } from "@/types";
 
@@ -76,12 +84,32 @@ export function SharedForm<T extends FieldValues>({
                       maxSize={field.maxSize || 5}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
+                      previewUrl={field.previewUrl}
                     />
+                  ) : field.type === "select" ? (
+                    <Select
+                      value={formField.value}
+                      onValueChange={formField.onChange}
+                      disabled={field.disabled || isLoading}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder={field.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {field.options?.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   ) : field.type === "textarea" ? (
                     <Textarea
                       {...formField}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
+                      maxLength={field.maxLength}
+                      rows={field.customProps?.rows as number}
                     />
                   ) : (
                     <Input
@@ -89,6 +117,7 @@ export function SharedForm<T extends FieldValues>({
                       type={field.type}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
+                      maxLength={field.maxLength}
                       onChange={(e) => {
                         if (field.type === "number") {
                           const value = e.target.value;
@@ -100,6 +129,17 @@ export function SharedForm<T extends FieldValues>({
                     />
                   )}
                 </FormControl>
+                {field.showCharCount && field.maxLength && (
+                  <FormDescription className="text-xs">
+                    {String(formField.value || "").length}/{field.maxLength}{" "}
+                    characters
+                  </FormDescription>
+                )}
+                {field.description && !field.showCharCount && (
+                  <FormDescription className="text-xs">
+                    {field.description}
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}

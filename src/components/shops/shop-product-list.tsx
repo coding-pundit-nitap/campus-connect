@@ -31,12 +31,9 @@ export function ShopProductList({
   isLoading,
   fetchNextPage,
   error,
-  hasActiveFilters,
   hasNextPage,
   isError,
   isFetchingNextPage,
-  isInitialLoading,
-  hasError,
   onAddToCart,
   onViewDetails,
   isAddingToCart,
@@ -64,19 +61,15 @@ export function ShopProductList({
 
   return (
     <ProductListWithViewModes
-      displayProducts={displayProducts}
-      isInitialLoading={isInitialLoading}
-      hasError={hasError}
+      products={displayProducts}
       error={error}
       isLoading={isLoading}
       isError={isError}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      hasActiveFilters={hasActiveFilters}
       fetchNextPage={fetchNextPage}
       renderProductCard={renderProductCard}
       showViewModeToggle={true}
-      skeletonCount={4}
     />
   );
 }
