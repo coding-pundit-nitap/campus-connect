@@ -56,6 +56,19 @@ class UserRepository {
   async delete(user_id: string): Promise<User> {
     return prisma.user.delete({ where: { id: user_id } });
   }
+  async findMany<T extends Prisma.UserFindManyArgs>(
+    options: T
+  ): Promise<Prisma.UserGetPayload<T>[]>;
+  async findMany(options: Prisma.UserFindManyArgs): Promise<User[]>;
+  async findMany<T extends Prisma.UserFindManyArgs>(
+    options: T
+  ): Promise<Prisma.UserGetPayload<T>[] | User[]> {
+    return prisma.user.findMany(options);
+  }
+  async count<T extends Prisma.UserWhereInput>(where: T): Promise<number>;
+  async count<T extends Prisma.UserWhereInput>(where: T): Promise<number> {
+    return prisma.user.count({ where });
+  }
 }
 
 export const userRepository = new UserRepository();

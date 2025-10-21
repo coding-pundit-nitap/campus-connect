@@ -1,10 +1,7 @@
 "use client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
 import { toast } from "sonner";
 
-import { loginAction } from "@/actions";
 import { changePaswordAction } from "@/actions/authentication/change-password";
 import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
@@ -26,40 +23,6 @@ export function useRegisterUser() {
       toast.error("Registration failed: " + error.message);
     },
   });
-}
-
-export function useLoginUserMutation() {
-  return useMutation({
-    mutationFn: loginAction,
-  });
-}
-
-export function useLoginUser() {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-  const mutation = useLoginUserMutation();
-
-  const loginUser = useCallback(
-    (data: { email: string; password: string }) => {
-      mutation.mutate(data, {
-        onSuccess: (result) => {
-          queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-          toast.success(result.details);
-          router.push("/");
-          router.refresh();
-        },
-        onError: (error) => {
-          toast.error("Login failed: " + error.message);
-        },
-      });
-    },
-    [mutation, queryClient, router]
-  );
-
-  return {
-    ...mutation,
-    loginUser,
-  };
 }
 
 export function useUser() {
@@ -86,11 +49,11 @@ export function useUpdateUser() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: changePaswordAction,
-    onSuccess({ details }) {
-      toast.success(details);
+    onSuccess: () => {
+      toast.success("Password updated successfully");
     },
-    onError(error) {
-      toast.error(error.message || "Faild to Change Password.");
+    onError: (error) => {
+      toast.error("Failed to update password: " + error.message);
     },
   });
 }

@@ -1,4 +1,4 @@
-import { Home, ShoppingBag, Store } from "lucide-react";
+import { Bell, Home, Settings, ShoppingBag, Store, Users } from "lucide-react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
@@ -22,6 +22,40 @@ class NavigationUIService {
         title: "My Orders",
         url: "/orders",
         icon: ShoppingBag,
+      },
+    ];
+  }
+  getProNavigationItems(): NavigationItem[] {
+    return [
+      {
+        id: "dashboard",
+        title: "Dashboard",
+        url: "/admin",
+        icon: Home,
+      },
+      {
+        id: "users",
+        title: "Users",
+        url: "/admin/users",
+        icon: Users,
+      },
+      {
+        id: "orders",
+        title: "Orders",
+        url: "/admin/orders",
+        icon: ShoppingBag,
+      },
+      {
+        id: "broadcasts",
+        title: "Broadcasts",
+        url: "/admin/broadcasts",
+        icon: Bell,
+      },
+      {
+        id: "settings",
+        title: "Settings",
+        url: "/admin/settings",
+        icon: Settings,
       },
     ];
   }

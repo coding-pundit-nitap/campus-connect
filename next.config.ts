@@ -4,6 +4,11 @@ const isProduction = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
+  },
   typedRoutes: true,
   output: isProduction ? "standalone" : undefined,
   images: {

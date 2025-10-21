@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, MapPin, User, XCircle } from "lucide-react";
+import { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -23,7 +24,7 @@ type Props = {
 
 export function ShopCard({ shop, priority }: Props) {
   return (
-    <Link href={`/shops/${shop.id}`} className="group block">
+    <Link href={`/shops/${shop.id}` as Route} className="group block">
       <Card className="flex h-full w-full flex-col overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="relative aspect-[4/3] overflow-hidden">
           <Image
@@ -87,7 +88,7 @@ export function ShopCard({ shop, priority }: Props) {
               className="w-full"
               variant={shop.is_active ? "default" : "outline"}
               disabled={!shop.is_active}
-              asChild // Allows button to act as a child of the Link
+              asChild
             >
               <span>{shop.is_active ? "Visit Shop" : "Shop Inactive"}</span>
             </Button>

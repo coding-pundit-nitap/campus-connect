@@ -17,7 +17,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -118,6 +117,9 @@ export default function SharedSidebar({
 
     if (normalizedUrl === "/") {
       return currentPath === "/";
+    }
+    if (normalizedUrl === "/admin") {
+      return currentPath === "/admin";
     }
 
     return currentPath.startsWith(normalizedUrl);

@@ -6,18 +6,18 @@ import SharedSidebar, {
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
 
-import { SidebarFooter } from "./sidebar-footer";
-
 interface AppSidebarProps {
   navigation: NavigationItem[];
   isLoading?: boolean;
   error?: string | null;
+  footer: React.ReactNode;
 }
 
 export default function AppSidebar({
   navigation,
   isLoading = false,
   error,
+  footer,
 }: AppSidebarProps) {
   const headerConfig: SidebarHeaderConfig = {
     title: "Campus Connect",
@@ -34,7 +34,7 @@ export default function AppSidebar({
       errorMessage={error || undefined}
     >
       <Suspense fallback={<div className="mt-auto p-4">Loading...</div>}>
-        <SidebarFooter />
+        {footer}
       </Suspense>
     </SharedSidebar>
   );

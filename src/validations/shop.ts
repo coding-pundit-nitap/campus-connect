@@ -15,10 +15,7 @@ const locationSchema = z
   .min(1, "Location is required")
   .min(3, "Location must be at least 3 characters");
 
-const imageKeySchema = z.union([
-  z.string().min(1, "An image is required."),
-  z.instanceof(File, { message: "Invalid file" }),
-]);
+const imageKeySchema = z.string().min(1, "An image is required.");
 
 const openingSchema = z
   .string()
@@ -39,24 +36,10 @@ export const shopSchema = z.object({
   imageKey: imageKeySchema,
 });
 
-export const shopUpdateSchema = z.object({
-  name: nameSchema,
-  description: descriptionSchema,
-  location: locationSchema,
-  opening: openingSchema,
-  closing: closingSchema,
-  imageKey: z.string().min(1, "An image is required."),
-});
-
 export type ShopFormData = z.infer<typeof shopSchema>;
 
 export const shopActionSchema = shopSchema.extend({
-  image: z.instanceof(File, { message: "Invalid file" }),
-  imageKey: z
-    .union([
-      z.string().min(1, "An image is required."),
-      z.instanceof(File, { message: "Invalid file" }),
-    ])
-    .optional(),
+  image: z.instanceof(File, { message: "Invalid file" }).optional(),
+  imageKey: z.string().min(1, "An image is required.").optional(),
 });
 export type ShopActionFormData = z.infer<typeof shopActionSchema>;

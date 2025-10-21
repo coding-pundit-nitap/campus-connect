@@ -79,7 +79,7 @@ export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
           </Button>
           <div className="flex flex-col md:flex-row gap-2">
             <Button asChild variant="outline">
-              <Link href={`owner-shops/shop`} target="_blank">
+              <Link href={`/owner-shops/shop`} target="_blank">
                 <Eye className="mr-2 h-4 w-4" />
                 Manage Products
               </Link>

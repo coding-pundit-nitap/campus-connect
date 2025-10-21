@@ -6,7 +6,6 @@ import {
   NoMatchFilter,
   ProductFiltersContainer,
 } from "@/components/shared/shared-product-filters";
-import { useShopByUser } from "@/hooks";
 import { useSharedInfiniteProducts } from "@/hooks/useSharedInfiniteProducts";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
@@ -18,7 +17,6 @@ import {
   CardTitle,
 } from "../ui/card";
 import ShopAction from "./owned-individual-shop/shop-action";
-import { ShopHeaderCard } from "./owned-individual-shop/shop-header-card";
 import { ProductListContainer } from "./product-list";
 import { ShopEmptyState } from "./shop-states/shop-empty-state";
 

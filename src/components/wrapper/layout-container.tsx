@@ -6,13 +6,13 @@ import React from "react";
 import { navigationUIService } from "@/lib/utils-functions";
 import { authRoutes } from "@/rbac";
 
-import { Layout } from "./layout";
+import { PubLayout } from "./pub-layout";
 
 interface LayoutContainerProps {
   children: React.ReactNode;
 }
 
-export function LayoutContainer({ children }: LayoutContainerProps) {
+export function PubLayoutContainer({ children }: LayoutContainerProps) {
   const pathname = usePathname();
   const navigation = navigationUIService.getNavigationItems();
 
@@ -22,9 +22,9 @@ export function LayoutContainer({ children }: LayoutContainerProps) {
 
   return (
     <SessionProvider>
-      <Layout navigation={navigation}>{children}</Layout>
+      <PubLayout navigation={navigation}>{children}</PubLayout>
     </SessionProvider>
   );
 }
 
-export default LayoutContainer;
+export default PubLayoutContainer;

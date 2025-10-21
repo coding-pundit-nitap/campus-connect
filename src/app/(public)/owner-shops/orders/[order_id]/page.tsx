@@ -1,4 +1,5 @@
 import { CreditCard, Home, Link2, Phone, User } from "lucide-react";
+import { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -147,7 +148,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                       <TableCell className="text-right font-medium">
                         <Button variant="ghost" size="icon" asChild>
                           <Link
-                            href={`/product/${item.product.id}`}
+                            href={`/product/${item.product.id}` as Route}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline"
@@ -196,7 +197,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                 >
                   {order.user.phone}
                   <Link
-                    href={`tel:+91${order.user.phone}`}
+                    href={`tel:+91${order.user.phone}` as Route}
                     className="text-blue-500 hover:underline"
                   >
                     <Phone size={16} />
@@ -204,7 +205,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                   <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`https://wa.me/91${order.user.phone}`}
+                    href={`https://wa.me/91${order.user.phone}` as Route}
                     className="text-blue-500 hover:underline"
                   >
                     <Image
