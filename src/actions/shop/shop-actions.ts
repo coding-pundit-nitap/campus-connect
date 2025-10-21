@@ -60,7 +60,7 @@ export async function createShopAction(formData: ShopActionFormData) {
 
 export async function updateShopAction(
   formData: Omit<ShopFormData, "imageKey"> & {
-    imageKey: string;
+    imageKey: string | null;
   }
 ) {
   try {

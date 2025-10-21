@@ -8,6 +8,7 @@ import { serializeProduct } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
+import fileUploadService from "@/services/file-upload.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
@@ -38,9 +39,19 @@ export async function createProductAction(
       shop_id
     );
 
-    const { imageKey, name, price, stock_quantity, description, discount } =
+    const { image, name, price, stock_quantity, description, discount } =
       parsedData;
-
+    let imageKey = "";
+    if (image) {
+      const imageFile = image as File;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageKey = await fileUploadService.upload(
+        imageFile.name,
+        imageFile.type,
+        imageFile.size,
+        buffer
+      );
+    }
     const productData = {
       imageKey,
       name,
@@ -81,7 +92,7 @@ export async function updateProductAction(
   }
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const { id, shop_id } = await authUtils.getUserData();
+    const { shop_id } = await authUtils.getUserData();
     if (!shop_id) {
       throw new UnauthorizedError("User is not authorized to update a product");
     }

@@ -1,5 +1,3 @@
-import { Shop } from "@prisma/client";
-
 import { ShopWithOwner } from "@/types";
 
 export function isShopOpen(

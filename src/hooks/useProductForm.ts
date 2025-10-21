@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { ImageUtils } from "@/lib/utils-functions";
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
-import { ProductFormData, productSchema } from "@/validations";
+import { ProductActionFormData, productActionSchema } from "@/validations";
 
 import {
   useImageDelete,
@@ -33,8 +33,8 @@ export function useUpdateProductForm({ product }: Props) {
     useImageUpload();
   const { mutate: deleteImage } = useImageDelete();
 
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+  const form = useForm<ProductActionFormData>({
+    resolver: zodResolver(productActionSchema),
     defaultValues: {
       name: product.name,
       description: product.description || "",
@@ -43,6 +43,7 @@ export function useUpdateProductForm({ product }: Props) {
       imageKey: ImageUtils.getImageUrl(product.imageKey),
       discount: product.discount || 0,
       category: product.category?.name || "",
+      image: undefined,
     },
   });
 
@@ -58,9 +59,9 @@ export function useUpdateProductForm({ product }: Props) {
         let finalImageKey: string = product.imageKey;
         const oldImageKey = product.imageKey;
 
-        if (data.imageKey instanceof File) {
-          finalImageKey = await uploadImage(data.imageKey);
-        } else {
+        if (data.image instanceof File) {
+          finalImageKey = await uploadImage(data.image);
+        } else if (data.imageKey) {
           finalImageKey = ImageUtils.processImageKeyForSubmission(
             data.imageKey,
             product.imageKey
@@ -105,12 +106,14 @@ export function useUpdateProductForm({ product }: Props) {
 }
 
 export function useCreateProductForm() {
-  const { mutate: createProduct, isPending, error } = useShopProductsCreate();
-  const { mutateAsync: uploadImage, isPending: isUploadingImage } =
-    useImageUpload();
+  const {
+    mutateAsync: createProduct,
+    isPending,
+    error,
+  } = useShopProductsCreate();
 
-  const form = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+  const form = useForm<ProductActionFormData>({
+    resolver: zodResolver(productActionSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -119,11 +122,12 @@ export function useCreateProductForm() {
       imageKey: undefined,
       discount: 0,
       category: "",
+      image: undefined,
     },
   });
 
   const state: FormState = {
-    isLoading: isPending || isUploadingImage,
+    isLoading: isPending,
     error: error?.message || null,
     isSubmitting: form.formState.isSubmitting,
   };
@@ -131,22 +135,7 @@ export function useCreateProductForm() {
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
       try {
-        if (!(data.imageKey instanceof File)) {
-          form.setError("imageKey", {
-            message: "An image is required to create a product.",
-          });
-          return;
-        }
-        const finalImageKey = await uploadImage(data.imageKey);
-        const processedData = { ...data, imageKey: finalImageKey };
-
-        createProduct(processedData, {
-          onSuccess: (result) => {
-            if (result.success) {
-              form.reset();
-            }
-          },
-        });
+        await createProduct(data);
       } catch (uploadError) {
         console.error("Upload failed:", uploadError);
         form.setError("imageKey", {

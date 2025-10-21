@@ -1,5 +1,5 @@
-import { Plus, ShoppingCart } from "lucide-react";
-import React, { useEffect } from "react";
+import { ShoppingCart } from "lucide-react";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks";
