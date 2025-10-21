@@ -76,6 +76,7 @@ export function SharedForm<T extends FieldValues>({
                       maxSize={field.maxSize || 5}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
+                      previewUrl={field.previewUrl}
                     />
                   ) : field.type === "textarea" ? (
                     <Textarea

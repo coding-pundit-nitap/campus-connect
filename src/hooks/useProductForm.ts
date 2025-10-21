@@ -40,7 +40,7 @@ export function useUpdateProductForm({ product }: Props) {
       description: product.description || "",
       price: product.price,
       stock_quantity: product.stock_quantity,
-      imageKey: ImageUtils.getImageUrl(product.imageKey),
+      imageKey: product.imageKey,
       discount: product.discount || 0,
       category: product.category?.name || "",
       image: undefined,
@@ -57,15 +57,9 @@ export function useUpdateProductForm({ product }: Props) {
     onSubmit: form.handleSubmit(async (data) => {
       try {
         let finalImageKey: string = product.imageKey;
-        const oldImageKey = product.imageKey;
 
         if (data.image instanceof File) {
           finalImageKey = await uploadImage(data.image);
-        } else if (data.imageKey) {
-          finalImageKey = ImageUtils.processImageKeyForSubmission(
-            data.imageKey,
-            product.imageKey
-          );
         }
 
         const processedData = { ...data, imageKey: finalImageKey };
@@ -73,20 +67,17 @@ export function useUpdateProductForm({ product }: Props) {
         updateProduct(processedData, {
           onSuccess: (result) => {
             if (result.success) {
-              if (oldImageKey && oldImageKey !== finalImageKey) {
-                deleteImage(oldImageKey);
-              }
               setIsDialogOpen(false);
               form.reset({
                 ...processedData,
-                imageKey: ImageUtils.getImageUrl(finalImageKey),
+                imageKey: finalImageKey,
               });
             }
           },
         });
       } catch (uploadError) {
         console.error("Upload failed:", uploadError);
-        form.setError("imageKey", {
+        form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
         });

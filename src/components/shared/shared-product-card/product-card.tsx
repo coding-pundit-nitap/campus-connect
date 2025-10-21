@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useCategorySearch } from "@/hooks";
 import { useUpdateProductForm } from "@/hooks/useProductForm";
+import { ImageUtils } from "@/lib/utils-functions";
 import { productUIServices } from "@/lib/utils-functions/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
@@ -49,6 +50,12 @@ export function ProductCard({
   const fields = baseFields.map((field) => {
     if (field.name === "category") {
       return { ...field, suggestions, isLoadingSuggestions, onSearchQuery };
+    }
+    if (field.name === "image" && product.imageKey) {
+      return {
+        ...field,
+        previewUrl: ImageUtils.getImageUrl(product.imageKey),
+      };
     }
     return field;
   });
