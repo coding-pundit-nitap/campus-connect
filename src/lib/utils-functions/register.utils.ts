@@ -1,49 +1,4 @@
-import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
-import { RegisterFormData } from "@/validations/auth";
-
 class RegisterUIService {
-  createRegisterFormFields = (): FormFieldConfig<RegisterFormData>[] => {
-    return [
-      {
-        name: "name",
-        label: "Full Name",
-        type: "text",
-        placeholder: "Enter your full name",
-        required: true,
-      },
-      {
-        name: "email",
-        label: "Email",
-        type: "email",
-        placeholder: "Enter your email",
-        required: true,
-      },
-      {
-        name: "password",
-        label: "Password",
-        type: "password",
-        placeholder: "Enter your password",
-        required: true,
-      },
-      {
-        name: "confirmPassword",
-        label: "Confirm Password",
-        type: "password",
-        placeholder: "Confirm your password",
-        required: true,
-      },
-    ];
-  };
-
-  createRegisterSubmitButton = (isLoading: boolean): ButtonConfig => {
-    return {
-      text: "Create Account",
-      type: "submit",
-      variant: "default",
-      loading: isLoading,
-    };
-  };
-
   getDefaultRegisterCardConfig = () => {
     return {
       className: "mx-4 w-full md:w-1/2 lg:w-1/3",

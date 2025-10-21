@@ -1,8 +1,5 @@
 import { signIn } from "next-auth/react";
 
-import { ButtonConfig, FormFieldConfig } from "@/types/ui.types";
-import { LoginFormData } from "@/validations/auth";
-
 class LoginUIService {
   handleGoogleLogin = async (): Promise<void> => {
     try {
@@ -11,33 +8,6 @@ class LoginUIService {
       console.error("Google login failed:", err);
       throw new Error("Failed to initiate Google login.");
     }
-  };
-  createLoginFormFields = (): FormFieldConfig<LoginFormData>[] => {
-    return [
-      {
-        name: "email",
-        label: "Email",
-        type: "email",
-        placeholder: "Enter your email",
-        required: true,
-      },
-      {
-        name: "password",
-        label: "Password",
-        type: "password",
-        placeholder: "Enter your password",
-        required: true,
-      },
-    ];
-  };
-
-  createLoginSubmitButton = (isLoading: boolean): ButtonConfig => {
-    return {
-      text: `Sign In`,
-      type: "submit",
-      variant: "default",
-      loading: isLoading,
-    };
   };
   getDefaultLoginCardConfig = () => {
     return {

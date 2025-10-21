@@ -18,7 +18,7 @@ export default async function Homepage() {
         limit={20}
       />
     );
-  } catch (error) {
+  } catch {
     return (
       <ProductsList
         hasNextPage={false}
