@@ -51,7 +51,7 @@ export default function ReviewCard({ review }: Props) {
         <div className="flex items-center justify-between">
           <p className="font-semibold">{review.user.name || "Anonymous"}</p>
           <span className="text-xs text-muted-foreground">
-            {new Date(review.created_at).toLocaleDateString("en-IN")}
+            {new Date(review.created_at).toLocaleDateString()}
           </span>
         </div>
         <div className="flex items-center gap-2 my-1">

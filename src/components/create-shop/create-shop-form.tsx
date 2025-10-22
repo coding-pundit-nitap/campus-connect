@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,8 @@ export function CreateShopForm() {
   const [step, setStep] = useState(1);
   const { form, handlers, state } = useLinkShop();
   const { isSubmitting } = state;
+
+  const router = useRouter();
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -60,6 +63,7 @@ export function CreateShopForm() {
                       <FormLabel>Description</FormLabel>
                       <FormControl>
                         <Textarea
+                          aria-label="Shop Description"
                           placeholder="The best shop on campus"
                           {...field}
                         />
@@ -175,7 +179,12 @@ export function CreateShopForm() {
               </Button>
             )}
             {step === 3 && (
-              <Button type="submit" disabled={isSubmitting} className="ml-auto">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                onClick={() => router.push("/owner-shops")}
+                className="ml-auto"
+              >
                 {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
             )}

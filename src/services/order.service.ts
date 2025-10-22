@@ -79,7 +79,10 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        totalPrice += Number(item.product.price) * item.quantity;
+        const discountedPrice =
+          Number(item.product.price) -
+          (Number(item.product.price) * Number(item.product.discount)) / 100;
+        totalPrice += discountedPrice * item.quantity;
       }
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 

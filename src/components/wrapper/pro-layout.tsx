@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import { Toaster } from "sonner";
@@ -35,14 +35,14 @@ export function ProLayout({
         isLoading={isNavigationLoading}
         error={navigationError}
         footer={
-          <div>
-            <Button asChild variant="ghost" className="w-full justify-start">
-              <Link href="/">
-                <ArrowRight className="mr-2 h-4 w-4" />
-                Back to Main Site
-              </Link>
-            </Button>
-          </div>
+          <Button variant="outline" className="w-full p-0" asChild>
+            <Link href="/" className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Main Page</span>
+              </div>
+            </Link>
+          </Button>
         }
       />
       <SidebarInset>

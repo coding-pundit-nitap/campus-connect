@@ -20,8 +20,8 @@ const InfoRow = ({
   children: React.ReactNode;
 }) => (
   <div className="flex items-start gap-4">
-    <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-    <div className="flex-1 break-words">
+    <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+    <div className="flex-1 wrap-break-words">
       <p className="font-medium">{label}</p>
       <div className="text-sm text-muted-foreground">{children}</div>
     </div>

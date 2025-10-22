@@ -62,7 +62,7 @@ export function ProductsContainer({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-shrink-0 space-y-4 pb-4">
+      <div className="shrink-0 space-y-4 pb-4">
         <ProductFiltersContainer
           filters={filters}
           hasActiveFilters={hasActiveFilters}

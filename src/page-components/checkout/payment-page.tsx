@@ -88,11 +88,10 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
           paymentMethod === "ONLINE" ? upiTransactionId : undefined,
       },
       {
-        onSuccess: () => {
-          // Clear checkout data
+        onSuccess: ({ data }) => {
           sessionStorage.removeItem("checkout_data");
           toast.success("Order placed successfully!");
-          router.push("/orders");
+          router.push(`/orders/${data.id}`);
         },
         onError: (error) => {
           toast.error(error.message || "Failed to place order");
@@ -115,7 +114,7 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
           <CardHeader>
             <CardTitle>Payment Method</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-0">
             <RadioGroup
               value={paymentMethod}
               onValueChange={(value) =>
@@ -154,7 +153,6 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
 
                 <div className="flex justify-center p-4 bg-white rounded-lg">
                   <div className="text-center space-y-2">
-                    {/* Placeholder for QR Code - Replace with actual QR code generation */}
                     <div className="w-48 h-48 bg-gray-200 flex items-center justify-center rounded-lg">
                       <span className="text-sm text-gray-500">QR Code</span>
                     </div>

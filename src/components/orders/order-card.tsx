@@ -14,6 +14,13 @@ type Props = {
 
 export default function OrderCard({ order }: Props) {
   const statusInfo = getOrderStatusInfo(order.order_status);
+  const subtotal = order.items.reduce((acc, item) => {
+    return (
+      acc +
+      (item.price - (item.price * (item.product.discount || 0)) / 100) *
+        item.quantity
+    );
+  }, 0);
 
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-md">
@@ -26,7 +33,7 @@ export default function OrderCard({ order }: Props) {
           `}
         >
           <statusInfo.Icon
-            className={`h-8 w-8 flex-shrink-0 ${statusInfo.colorClassName}`}
+            className={`h-8 w-8 shrink-0 ${statusInfo.colorClassName}`}
           />
 
           <Separator orientation="horizontal" className="flex-1 md:hidden" />
@@ -51,13 +58,11 @@ export default function OrderCard({ order }: Props) {
                 {order.shop.name}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {format(new Date(order.created_at), "PPp")}
+                {new Date(order.created_at).toLocaleString()}
               </p>
             </div>
             <div className="text-left md:text-right">
-              <p className="font-bold text-xl">
-                ₹{Number(order.total_price).toFixed(2)}
-              </p>
+              <p className="font-bold text-xl">₹{subtotal.toFixed(2)}</p>
               <p className="text-xs text-muted-foreground">
                 {order.items.length} items
               </p>

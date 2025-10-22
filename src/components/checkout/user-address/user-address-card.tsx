@@ -37,7 +37,7 @@ export function UserAddressCard({
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-3 flex-1">
           {onSelect && (
-            <div className="flex-shrink-0 mt-1">
+            <div className="shrink-0 mt-1">
               {isSelected ? (
                 <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
                   <Check className="h-3 w-3 text-primary-foreground" />

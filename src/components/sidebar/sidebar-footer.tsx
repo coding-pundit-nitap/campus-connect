@@ -1,6 +1,7 @@
 "use client";
 
-import { Store } from "lucide-react";
+import { Role } from "@prisma/client";
+import { ArrowRight, Store } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -55,6 +56,19 @@ export function SidebarFooter() {
             </div>
           </Link>
         </Button>
+        {user.role === Role.ADMIN && (
+          <>
+            <Separator />
+            <Button variant="outline" className="w-full p-0" asChild>
+              <Link href="/admin" className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="h-4 w-4" />
+                  <span>Go to Admin Page</span>
+                </div>
+              </Link>
+            </Button>
+          </>
+        )}
       </div>
       <SidebarAction />
     </div>

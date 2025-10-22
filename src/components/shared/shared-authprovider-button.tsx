@@ -30,7 +30,7 @@ export function SharedAuthProviderButton({
       alt={`${config.provider} Icon`}
       width={16}
       height={16}
-      className="flex-shrink-0"
+      className="shrink-0"
     />
   );
 

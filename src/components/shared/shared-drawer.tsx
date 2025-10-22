@@ -158,7 +158,7 @@ export default function SharedDrawer({
               )}
             </div>
             {showCloseButton && (
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 {closeButton || (
                   <DrawerClose asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
