@@ -144,7 +144,6 @@ export function ProductCard({
             priority={priority}
             isMobileList
           />
-          <ImageOverlays />
         </div>
         <div className="flex  md:flex-col h-full justify-between flex-1">
           <ProductCardDetails
@@ -172,7 +171,7 @@ export function ProductCard({
           productHasRating={productHasRating}
         />
 
-        <CardFooter className="p-4 pt-2 md:absolute md:bottom-0 md:left-0 md:w-full md:translate-y-full md:transform-gpu md:bg-gradient-to-t md:from-white md:via-white/90 md:to-transparent md:p-4 md:pt-12 md:transition-transform md:duration-300 md:ease-in-out md:group-hover:translate-y-0 dark:md:from-black flex items-center justify-center dark:md:via-black/90">
+        <CardFooter className="p-4 pt-2 md:absolute md:bottom-0 md:left-0 md:w-full md:translate-y-full md:transform-gpu md:bg-linear-to-t md:from-white md:via-white/90 md:to-transparent md:p-4 md:pt-12 md:transition-transform md:duration-300 md:ease-in-out md:group-hover:translate-y-0 dark:md:from-black flex items-center justify-center dark:md:via-black/90">
           {userActions}
         </CardFooter>
       </div>

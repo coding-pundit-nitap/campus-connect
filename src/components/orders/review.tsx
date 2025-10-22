@@ -18,7 +18,7 @@ export default function Review({ item }: Props) {
   return (
     <Card className="py-4 w-fit">
       <CardContent className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="relative h-20 w-20 lg:h-24 lg:w-24 overflow-hidden flex-shrink-0">
+        <div className="relative h-20 w-20 lg:h-24 lg:w-24 overflow-hidden shrink-0">
           {item.product.imageKey ? (
             <Image
               src={ImageUtils.getImageUrl(item.product.imageKey)}

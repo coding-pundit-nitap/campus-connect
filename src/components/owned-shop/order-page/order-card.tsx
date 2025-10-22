@@ -23,6 +23,14 @@ export default function OrderCard({
 }: Props) {
   const statusInfo = getOrderStatusInfo(order.order_status);
 
+  const subtotal = order.items.reduce((acc, item) => {
+    return (
+      acc +
+      (item.price - (item.price * (item.product.discount || 0)) / 100) *
+        item.quantity
+    );
+  }, 0);
+
   return (
     <Card
       ref={lastElementRef}
@@ -41,7 +49,7 @@ export default function OrderCard({
               <span className="font-bold text-base">#{order.display_id}</span>
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5" />
-                <span>{format(new Date(order.created_at), "PP")}</span>
+                <span>{new Date(order.created_at).toLocaleString()}</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -64,9 +72,7 @@ export default function OrderCard({
               <statusInfo.Icon className="h-4 w-4" />
               <span>{statusInfo.label}</span>
             </div>
-            <p className="font-bold text-lg">
-              ₹{Number(order.total_price).toFixed(2)}
-            </p>
+            <p className="font-bold text-lg">₹{subtotal.toFixed(2)}</p>
             <Button asChild variant="outline" size="sm">
               <Link href={`/owner-shops/orders/${order.id}`}>Details</Link>
             </Button>

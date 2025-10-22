@@ -153,13 +153,7 @@ export function OrderNotificationBell() {
                         {notification.message}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground/80">
-                        {new Date(notification.created_at).toLocaleTimeString(
-                          [],
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(notification.created_at).toLocaleString()}
                       </p>
                     </div>
                   </Link>

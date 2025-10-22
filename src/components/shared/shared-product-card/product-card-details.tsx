@@ -38,7 +38,6 @@ export function ProductCardDetails({
 
   return (
     <div className={`flex flex-col gap-3 ${isMobileList ? "p-2" : "p-4"}`}>
-      {/* Section for Category and Rating */}
       <div className="flex items-center justify-between text-xs">
         {product.category ? (
           <Badge
@@ -48,7 +47,7 @@ export function ProductCardDetails({
             {product.category.name}
           </Badge>
         ) : (
-          <span /> // Placeholder to maintain alignment
+          <span />
         )}
         {productHasRating && (
           <div
@@ -62,7 +61,6 @@ export function ProductCardDetails({
         )}
       </div>
 
-      {/* Section for Product Name and Description */}
       <div className={isMobileList ? "space-y-0.5" : "space-y-1"}>
         <h3
           className={`truncate font-semibold leading-tight ${isMobileList ? "text-sm" : "text-lg"}`}
@@ -76,7 +74,6 @@ export function ProductCardDetails({
         )}
       </div>
 
-      {/* Section for Price and Discount */}
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         <span
           className={`font-bold text-primary ${isMobileList ? "text-lg" : "text-2xl"}`}
@@ -100,7 +97,6 @@ export function ProductCardDetails({
         )}
       </div>
 
-      {/* Section for Stock Information */}
       <div
         className={`flex items-center gap-2 text-muted-foreground ${isMobileList ? "text-xs" : "text-sm"}`}
       >

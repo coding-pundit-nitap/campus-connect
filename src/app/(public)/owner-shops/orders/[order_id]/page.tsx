@@ -68,10 +68,11 @@ export default async function ShopOrderDetailPage({ params }: Props) {
   }
 
   const order = response.data;
-  const subtotal = order.items.reduce(
-    (acc, item) => acc + Number(item.price) * item.quantity,
-    0
-  );
+  const subtotal = order.items.reduce((acc, item) => {
+    const discountedPrice =
+      item.price - (item.price * (item.product.discount || 0)) / 100;
+    return acc + discountedPrice * item.quantity;
+  }, 0);
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -80,7 +81,9 @@ export default async function ShopOrderDetailPage({ params }: Props) {
           <h1 className="text-2xl font-bold tracking-tight">
             Order #{order.display_id}
           </h1>
-          <p className="text-muted-foreground">Placed on {order.created_at}</p>
+          <p className="text-muted-foreground">
+            Placed on {new Date(order.created_at).toLocaleString()}
+          </p>
         </div>
         <Badge
           variant={order.order_status === "COMPLETED" ? "default" : "secondary"}
@@ -141,15 +144,24 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                         x{item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        ₹{Number(item.price).toFixed(2)}
+                        ₹
+                        {(
+                          item.price -
+                          (item.price * (item.product.discount || 0)) / 100
+                        ).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹{(Number(item.price) * item.quantity).toFixed(2)}
+                        ₹
+                        {(
+                          (item.price -
+                            (item.price * (item.product.discount || 0)) / 100) *
+                          item.quantity
+                        ).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         <Button variant="ghost" size="icon" asChild>
                           <Link
-                            href={`/product/${item.product.id}` as Route}
+                            href={`/product/${item.product.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-500 hover:underline"
@@ -227,7 +239,13 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                   label="Requested Delivery Time"
                 >
                   <span className="text-orange-600 font-semibold">
-                    {order.requested_delivery_time}
+                    {new Date(order.requested_delivery_time).toLocaleString(
+                      "en-IN",
+                      {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }
+                    )}
                   </span>
                 </DetailItem>
               )}
@@ -264,7 +282,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
               <Separator className="my-2" />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>₹{Number(order.total_price).toFixed(2)}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>

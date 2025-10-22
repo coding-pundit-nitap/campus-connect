@@ -179,10 +179,7 @@ export default function NotificationHistoryPage() {
                     {notification.title}
                   </CardTitle>
                   <CardDescription>
-                    {new Date(notification.created_at).toLocaleString([], {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {new Date(notification.created_at).toLocaleString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
