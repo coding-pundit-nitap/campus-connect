@@ -137,11 +137,8 @@ export function ProductCard({
   return (
     <div className="group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl">
       {/* Mobile: Horizontal list layout */}
-      <Link
-        href={`/shops/${product.shop_id}/products/${product.id}`}
-        className="flex md:hidden h-36"
-      >
-        <div className="relative w-24 flex-shrink-0 h-full">
+      <Link href={`/product/${product.id}`} className="flex md:hidden h-36">
+        <div className="relative w-24 shrink-0 h-full">
           <ProductCardHeader
             product={product}
             priority={priority}

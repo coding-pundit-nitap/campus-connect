@@ -10,7 +10,7 @@ import {
   publicRoutes,
 } from "@/rbac";
 
-export default middleware(async (req: NextAuthRequest) => {
+export const proxy = middleware(async (req: NextAuthRequest) => {
   try {
     const { nextUrl } = req;
     const path = nextUrl.pathname;

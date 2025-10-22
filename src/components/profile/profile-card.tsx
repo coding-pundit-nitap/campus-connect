@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera, Mail, Pencil, Phone, User as UserIcon, X } from "lucide-react";
+import { Mail, Pencil, Phone, User as UserIcon, X } from "lucide-react";
 import { User } from "next-auth";
 import { useSession } from "next-auth/react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
