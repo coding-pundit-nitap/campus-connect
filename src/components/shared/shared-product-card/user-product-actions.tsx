@@ -9,10 +9,9 @@ import LoadingSpinner from "../shared-loading-spinner";
 interface UserProductActionsProps {
   product_id: string;
   onAddToCart: (product_id: string, quantity: number) => void;
-  onViewDetails?: (product_id: string, shop_id: string) => void;
+  onViewDetails?: (product_id: string) => void;
   isAddingToCart: boolean;
   stock: number;
-  shop_id: string;
 }
 
 export function UserProductActions({
@@ -21,7 +20,6 @@ export function UserProductActions({
   onViewDetails,
   isAddingToCart,
   stock,
-  shop_id,
 }: UserProductActionsProps) {
   const isOutOfStock = stock === 0;
   const isMobile = useIsMobile();
@@ -47,7 +45,7 @@ export function UserProductActions({
         <Button
           variant="secondary"
           className="w-full"
-          onClick={() => onViewDetails(product_id, shop_id)}
+          onClick={() => onViewDetails(product_id)}
         >
           View Details
         </Button>
