@@ -2,7 +2,7 @@
 
 import { UserAddress as UserAddressType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -46,7 +46,6 @@ export default function CheckoutPageComponent({
       return;
     }
 
-    // Store checkout data in sessionStorage
     const checkoutData = {
       cart_id,
       delivery_address_id: selectedAddress.id,
@@ -54,7 +53,6 @@ export default function CheckoutPageComponent({
     };
     sessionStorage.setItem("checkout_data", JSON.stringify(checkoutData));
 
-    // Navigate to payment page
     router.push(`/checkout/${cart_id}/payment`);
   };
 
@@ -63,7 +61,6 @@ export default function CheckoutPageComponent({
     [summary, cart_id]
   );
 
-  const cart = summary?.shopCarts.find((cart) => cart.id === cart_id);
   const total = items.reduce(
     (sum, item) =>
       sum + ((item.price * (100 - item.discount)) / 100) * item.quantity,

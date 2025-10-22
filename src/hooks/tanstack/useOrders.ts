@@ -85,7 +85,6 @@ function useOrders({
 
 function useCreateOrder() {
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   return useMutation({
     mutationFn: createOrderAction,
