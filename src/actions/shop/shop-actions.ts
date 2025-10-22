@@ -8,27 +8,38 @@ import {
 import authUtils from "@/lib/utils-functions/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
 import categoryServices from "@/services/category.service";
+import fileUploadService from "@/services/file-upload.service";
 import notificationService from "@/services/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
-import {
-  ShopActionFormData,
-  shopActionSchema,
-  ShopFormData,
-} from "@/validations/shop";
+import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export async function createShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      throw new UnauthorizedError("User not authenticated");
-    }
     const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
       throw new BadRequestError(parsedData.error.message);
     }
-
+    const { name, description, location, opening, closing, image } =
+      parsedData.data;
+    let imageKey = "";
+    if (image) {
+      const imageFile = image;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageKey = await fileUploadService.upload(
+        imageFile.name,
+        imageFile.type,
+        imageFile.size,
+        buffer
+      );
+    }
     const newShop = await shopRepository.create({
-      ...parsedData.data,
+      closing,
+      description,
+      location,
+      name,
+      opening,
+      imageKey,
       owner: { connect: { id: user_id } },
     });
 
@@ -42,7 +53,7 @@ export async function createShopAction(formData: ShopActionFormData) {
   }
 }
 
-export async function updateShopAction(formData: ShopFormData) {
+export async function updateShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
@@ -59,9 +70,30 @@ export async function updateShopAction(formData: ShopFormData) {
       throw new BadRequestError(parsedData.error.message);
     }
 
+    const values = parsedData.data;
     await categoryServices.cleanupEmptyCategories(shop_id);
+    let imageKey = "";
+    if (values.image) {
+      const imageFile = values.image;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageKey = await fileUploadService.upload(
+        imageFile.name,
+        imageFile.type,
+        imageFile.size,
+        buffer
+      );
+    }
 
-    const updatedShop = await shopRepository.update(shop_id, parsedData.data);
+    if (imageKey && values.imageKey) {
+      await fileUploadService.deleteFile(values.imageKey);
+    }
+
+    const { image, ...rest } = values;
+    void image;
+    const updatedShop = await shopRepository.update(shop_id, {
+      ...rest,
+      imageKey,
+    });
 
     await notificationService.publishNotification(user_id, {
       title: "Shop Updated Successfully",

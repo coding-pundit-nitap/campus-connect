@@ -29,9 +29,6 @@ export function ProductListContainer({
   const {
     displayProducts,
     error,
-    hasActiveFilters,
-    isInitialLoading,
-    hasError,
     isLoading,
     isError,
     hasNextPage,
@@ -53,19 +50,15 @@ export function ProductListContainer({
 
   return (
     <ProductListWithViewModes
-      displayProducts={displayProducts}
-      isInitialLoading={isInitialLoading}
-      hasError={hasError}
+      products={displayProducts}
       error={error}
       isLoading={isLoading}
       isError={isError}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      hasActiveFilters={hasActiveFilters}
       fetchNextPage={fetchNextPage}
       renderProductCard={renderProductCard}
       showViewModeToggle={true}
-      skeletonCount={4}
     />
   );
 }

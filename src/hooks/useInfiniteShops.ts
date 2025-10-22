@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 
-import { enhanceShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
+import { formatShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 import { useAllShops } from "./tanstack";
 
@@ -38,10 +38,10 @@ export const useInfiniteShops = ({
     const clientPages = data.pages.slice(1);
 
     const clientShops = clientPages.flatMap((page) =>
-      page.data.map(enhanceShopData)
+      page.data.map(formatShopData)
     );
 
-    return [...serverData.map(enhanceShopData), ...clientShops];
+    return [...serverData.map(formatShopData), ...clientShops];
   }, [data, initialData]);
 
   const finalIsError =

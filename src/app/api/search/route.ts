@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { productRepository, shopRepository } from "@/repositories";
+import { shopRepository } from "@/repositories";
 import productService from "@/services/product.service";
 import { SearchResult } from "@/types";
 import {

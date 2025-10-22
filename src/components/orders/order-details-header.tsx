@@ -1,90 +1,60 @@
-import { OrderStatus, PaymentMethod, PaymentStatus } from "@prisma/client";
 import { format } from "date-fns";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import {
+  getOrderStatusInfo,
+  getPaymentStatusInfo,
+} from "@/lib/utils-functions/order.utils";
+import { SerializedOrderWithDetails } from "@/types";
 
 type Props = {
-  order_id: string;
-  orderStatus: OrderStatus;
-  paymentStatus: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  createdAt: string;
-  totalPrice: number;
+  order: SerializedOrderWithDetails;
 };
 
-const getStatusColor = (status: OrderStatus) => {
-  switch (status) {
-    case "NEW":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-    case "PREPARING":
-      return "bg-orange-100 text-orange-800 hover:bg-orange-100";
-    case "READY_FOR_PICKUP":
-      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
-    case "OUT_FOR_DELIVERY":
-      return "bg-purple-100 text-purple-800 hover:bg-purple-100";
-    case "COMPLETED":
-      return "bg-green-100 text-green-800 hover:bg-green-100";
-    case "CANCELLED":
-      return "bg-red-100 text-red-800 hover:bg-red-100";
-    default:
-      return "bg-gray-100 text-gray-800 hover:bg-gray-100";
-  }
-};
+export default function OrderDetailsHeader({ order }: Props) {
+  const orderStatusInfo = getOrderStatusInfo(order.order_status);
+  const paymentStatusInfo = getPaymentStatusInfo(order.payment_status);
 
-const getPaymentStatusColor = (status: PaymentStatus) => {
-  switch (status) {
-    case "COMPLETED":
-      return "bg-green-100 text-green-800 hover:bg-green-100";
-    case "PENDING":
-      return "bg-yellow-100 text-yellow-800 hover:bg-yellow-100";
-    case "PROCESSING":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-    case "FAILED":
-      return "bg-red-100 text-red-800 hover:bg-red-100";
-    case "REFUNDED":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-    default:
-      return "bg-gray-100 text-gray-800 hover:bg-gray-100";
-  }
-};
-
-export default function OrderDetailsHeader({
-  order_id,
-  orderStatus,
-  paymentStatus,
-  paymentMethod,
-  createdAt,
-  totalPrice,
-}: Props) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div>
+      {/* Make this container stack vertically on mobile and horizontally on larger screens */}
+      <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-start">
         <div>
-          <h2 className="text-xl font-semibold">Order #{order_id}</h2>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Order #{order.display_id}
+          </h1>
           <p className="text-sm text-muted-foreground">
-            Placed on {format(new Date(createdAt), "PPP 'at' pp")}
+            Placed on {format(new Date(order.created_at), "PPp")}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-bold">₹{totalPrice}</p>
-          <p className="text-sm text-muted-foreground capitalize">
-            {paymentMethod.toLowerCase().replace(/_/g, " ")}
+        {/* Align text left on mobile and right on larger screens */}
+        <div className="text-left sm:text-right">
+          <p className="text-3xl font-bold">
+            ₹{Number(order.total_price).toFixed(2)}
+          </p>
+          <p className="text-sm capitalize text-muted-foreground">
+            via {order.payment_method.toLowerCase().replace(/_/g, " ")}
           </p>
         </div>
       </div>
-
-      <div className="flex items-center gap-2">
-        <Badge className={getStatusColor(orderStatus)}>
-          {orderStatus.replaceAll("_", " ")}
+      {/* flex-wrap ensures badges wrap if there isn't enough space */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <Badge
+          variant="outline"
+          className={`gap-1.5 ${orderStatusInfo.colorClassName}`}
+        >
+          <orderStatusInfo.Icon className="h-3.5 w-3.5" />
+          {orderStatusInfo.label}
         </Badge>
-        <Badge className={getPaymentStatusColor(paymentStatus)}>
-          Payment {paymentStatus.toLowerCase()}
+        <Badge
+          variant="outline"
+          className={`gap-1.5 ${paymentStatusInfo.colorClassName}`}
+        >
+          <paymentStatusInfo.Icon className="h-3.5 w-3.5" />
+          Payment {paymentStatusInfo.label}
         </Badge>
       </div>
-
-      <Separator />
     </div>
   );
 }

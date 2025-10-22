@@ -54,6 +54,11 @@ class ProductService {
   }): Promise<ServerProductData> {
     const queryOptions = {
       take: limit + 1,
+      where: {
+        shop: {
+          is_active: true,
+        },
+      },
       orderBy: {
         orderItems: {
           _count: Prisma.SortOrder.desc,
@@ -78,7 +83,7 @@ class ProductService {
         }
       : queryOptions;
 
-    const products = await productRepository.findMany(queryOptions);
+    const products = await productRepository.findMany(baseQuery);
 
     let hasNextPage = false;
     let nextCursor: string | null = null;

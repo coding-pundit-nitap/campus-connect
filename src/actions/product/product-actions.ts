@@ -1,5 +1,6 @@
 "use server";
 
+import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
@@ -7,6 +8,7 @@ import { serializeProduct } from "@/lib/utils-functions";
 import authUtils from "@/lib/utils-functions/auth.utils";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
+import fileUploadService from "@/services/file-upload.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
@@ -37,9 +39,19 @@ export async function createProductAction(
       shop_id
     );
 
-    const { imageKey, name, price, stock_quantity, description, discount } =
+    const { image, name, price, stock_quantity, description, discount } =
       parsedData;
-
+    let imageKey = "";
+    if (image) {
+      const imageFile = image as File;
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      imageKey = await fileUploadService.upload(
+        imageFile.name,
+        imageFile.type,
+        imageFile.size,
+        buffer
+      );
+    }
     const productData = {
       imageKey,
       name,
@@ -80,18 +92,13 @@ export async function updateProductAction(
   }
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
+    const { shop_id } = await authUtils.getUserData();
+    if (!shop_id) {
       throw new UnauthorizedError("User is not authorized to update a product");
     }
 
-    const shop_id = context.id;
-
     const currentProduct = await productRepository.findById(product_id, {
-      select: { category_id: true },
+      select: { category_id: true, imageKey: true },
     });
 
     const parsedData = productUpdateActionSchema.parse({
@@ -99,7 +106,7 @@ export async function updateProductAction(
       imageKey: formData.imageKey || "",
     });
 
-    let category = null;
+    let category: Category | null = null;
     if (parsedData.category) {
       category = await categoryRepository.findOrCreate(
         parsedData.category,
@@ -109,6 +116,10 @@ export async function updateProductAction(
 
     const { imageKey, name, price, stock_quantity, description, discount } =
       parsedData;
+
+    if (currentProduct?.imageKey && currentProduct.imageKey !== imageKey) {
+      await fileUploadService.deleteFile(currentProduct.imageKey);
+    }
 
     const productData = {
       imageKey,

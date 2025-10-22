@@ -1,4 +1,4 @@
-import { HelpCircle, Home, Settings, ShoppingBag, Store } from "lucide-react";
+import { Bell, Home, Settings, ShoppingBag, Store, Users } from "lucide-react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
@@ -23,17 +23,45 @@ class NavigationUIService {
         url: "/orders",
         icon: ShoppingBag,
       },
+    ];
+  }
+  getProNavigationItems(): NavigationItem[] {
+    return [
+      {
+        id: "dashboard",
+        title: "Dashboard",
+        url: "/admin",
+        icon: Home,
+      },
+      {
+        id: "users",
+        title: "Users",
+        url: "/admin/users",
+        icon: Users,
+      },
+      {
+        id: "shops",
+        title: "Shops",
+        url: "/admin/shops",
+        icon: Store,
+      },
+      {
+        id: "orders",
+        title: "Orders",
+        url: "/admin/orders",
+        icon: ShoppingBag,
+      },
+      {
+        id: "broadcasts",
+        title: "Broadcasts",
+        url: "/admin/broadcasts",
+        icon: Bell,
+      },
       {
         id: "settings",
         title: "Settings",
-        url: "/settings",
+        url: "/admin/settings",
         icon: Settings,
-      },
-      {
-        id: "help",
-        title: "Help",
-        url: "/help",
-        icon: HelpCircle,
       },
     ];
   }

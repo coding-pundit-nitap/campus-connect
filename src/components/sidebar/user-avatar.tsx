@@ -1,31 +1,45 @@
 import Image from "next/image";
-import { User } from "next-auth";
 import React from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type Props = {
-  user: User;
+  image?: string | null;
+  dimention: number | `${number}` | undefined;
+  name?: string | null;
+  email?: string | null;
+  className?: string;
 };
 
-export default function UserAvatar({ user }: Props) {
-  const userInitials = user.name
-    ? user.name
+export default function UserAvatar({
+  name,
+  email,
+  dimention,
+  image,
+  className,
+}: Props) {
+  const userInitials = name
+    ? name
         .split(" ")
+        .slice(0, 2)
         .map((n) => n[0])
         .join("")
         .toUpperCase()
-    : user.email?.[0]?.toUpperCase() || "U";
+    : email?.[0]?.toUpperCase() || "U";
 
   return (
-    <Avatar className="h-10 w-10">
-      {user.image ? (
+    <Avatar
+      className="bg-primary text-primary-foreground"
+      style={{ width: `${dimention}px`, height: `${dimention}px` }}
+    >
+      {image ? (
         <Image
-          src={user.image}
-          alt={user.name || "User"}
-          width={40}
-          height={40}
-          className="rounded-full object-cover"
+          src={image}
+          alt={name || "User"}
+          width={dimention}
+          height={dimention}
+          className={cn("rounded-full object-cover", className)}
           priority={false}
           unoptimized={false}
           onError={(e) => {

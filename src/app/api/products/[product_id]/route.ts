@@ -21,7 +21,7 @@ export async function GET(
     const successResponse = createSuccessResponse<SerializedProductDetail>(
       {
         ...serializeProduct(product),
-        shop: { name: product.shop.name },
+        shop: { name: product.shop.name, id: product.shop.id },
       },
       "Product retrieved successfully"
     );

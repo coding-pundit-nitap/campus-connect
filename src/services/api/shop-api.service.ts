@@ -5,9 +5,7 @@ import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";
 
 interface PaginatedShopResponse {
-  /** Array of shop objects for the current page */
   data: ShopWithOwner[];
-  /** Cursor for fetching the next page of results, null if no more pages */
   nextCursor: string | null;
 }
 
@@ -30,9 +28,15 @@ class ShopAPIService {
   }: {
     cursor: string | null;
   }): Promise<PaginatedShopResponse> {
-    const url = `shops/all?limit=10${cursor ? `&cursor=${cursor}` : ""}`;
-    const response =
-      await axiosInstance.get<ActionResponse<PaginatedShopResponse>>(url);
+    const url = `shops/all`;
+    const response = await axiosInstance.get<
+      ActionResponse<PaginatedShopResponse>
+    >(url, {
+      params: {
+        limit: 10,
+        cursor: cursor || undefined,
+      },
+    });
     return response.data.data;
   }
 }

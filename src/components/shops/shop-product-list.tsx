@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 import {
   ProductCard,
   UserProductActions,
@@ -22,7 +20,7 @@ type Props = {
   isInitialLoading: boolean;
   hasError: boolean;
   onAddToCart?: (product_id: string, quantity: number) => void;
-  onViewDetails?: (product_id: string, shop_id: string) => void;
+  onViewDetails?: (product_id: string) => void;
   isAddingToCart?: boolean;
 };
 
@@ -31,12 +29,9 @@ export function ShopProductList({
   isLoading,
   fetchNextPage,
   error,
-  hasActiveFilters,
   hasNextPage,
   isError,
   isFetchingNextPage,
-  isInitialLoading,
-  hasError,
   onAddToCart,
   onViewDetails,
   isAddingToCart,
@@ -54,7 +49,6 @@ export function ShopProductList({
             onAddToCart={onAddToCart || (() => {})}
             onViewDetails={onViewDetails || (() => {})}
             product_id={product.id}
-            shop_id={product.shop_id}
             stock={product.stock_quantity}
           />
         }
@@ -64,19 +58,15 @@ export function ShopProductList({
 
   return (
     <ProductListWithViewModes
-      displayProducts={displayProducts}
-      isInitialLoading={isInitialLoading}
-      hasError={hasError}
+      products={displayProducts}
       error={error}
       isLoading={isLoading}
       isError={isError}
       hasNextPage={hasNextPage}
       isFetchingNextPage={isFetchingNextPage}
-      hasActiveFilters={hasActiveFilters}
       fetchNextPage={fetchNextPage}
       renderProductCard={renderProductCard}
       showViewModeToggle={true}
-      skeletonCount={4}
     />
   );
 }

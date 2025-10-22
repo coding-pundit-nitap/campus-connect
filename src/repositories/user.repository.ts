@@ -16,6 +16,20 @@ class UserRepository {
   async findAdmins(): Promise<User[]> {
     return prisma.user.findMany({ where: { role: Role.ADMIN } });
   }
+  async findById(id: string): Promise<User | null>;
+  async findById<T extends UserFindOptions>(
+    id: string,
+    options: T
+  ): Promise<Prisma.UserGetPayload<{ where: { id: string } } & T> | null>;
+  async findById<T extends UserFindOptions>(
+    id: string,
+    options?: T
+  ): Promise<
+    Prisma.UserGetPayload<{ where: { id: string } } & T> | User | null
+  > {
+    return prisma.user.findUnique({ where: { id }, ...options });
+  }
+
   async findByEmail(email: string): Promise<User | null>;
   async findByEmail<T extends UserFindOptions>(
     email: string,
@@ -41,6 +55,19 @@ class UserRepository {
 
   async delete(user_id: string): Promise<User> {
     return prisma.user.delete({ where: { id: user_id } });
+  }
+  async findMany<T extends Prisma.UserFindManyArgs>(
+    options: T
+  ): Promise<Prisma.UserGetPayload<T>[]>;
+  async findMany(options: Prisma.UserFindManyArgs): Promise<User[]>;
+  async findMany<T extends Prisma.UserFindManyArgs>(
+    options: T
+  ): Promise<Prisma.UserGetPayload<T>[] | User[]> {
+    return prisma.user.findMany(options);
+  }
+  async count<T extends Prisma.UserWhereInput>(where: T): Promise<number>;
+  async count<T extends Prisma.UserWhereInput>(where: T): Promise<number> {
+    return prisma.user.count({ where });
   }
 }
 

@@ -1,12 +1,8 @@
 import { Role } from "@prisma/client";
 import { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
 import Google, { GoogleProfile } from "next-auth/providers/google";
 
-import { verifyPassword } from "@/lib/auth";
 import shopRepository from "@/repositories/shop.repository";
-import userRepository from "@/repositories/user.repository";
-import { loginSchema } from "@/validations/auth";
 
 /**
  * NextAuth configuration object that defines authentication providers, callbacks, and settings.
@@ -37,68 +33,6 @@ export const authConfig: NextAuthConfig = {
         };
       },
     }),
-    /**
-     * Credentials provider for email/password authentication
-     * Handles traditional username/password login flow
-     */
-    Credentials({
-      name: "credentials",
-      // Define the form fields for the credentials provider
-      credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-          placeholder: "Enter your email",
-        },
-        password: {
-          label: "Password",
-          type: "password",
-          placeholder: "Enter your password",
-        },
-      },
-      /**
-       * Authorization function that validates user credentials
-       * @param credentials - User-provided email and password
-       * @returns User object if valid, null if invalid
-       */
-      authorize: async (credentials) => {
-        const parsed = loginSchema.safeParse(credentials);
-
-        if (parsed.success) {
-          const { email, password } = parsed.data;
-
-          // 1. Find the user in your database
-          const user = await userRepository.findByEmail(email, {
-            select: {
-              id: true,
-              hash_password: true,
-              role: true,
-            },
-          });
-
-          // 2. If no user is found, or if they don't have a password (e.g., signed up with Google), reject login
-          if (!user || !user.hash_password) {
-            return null;
-          }
-
-          // 3. Compare the provided password with the stored hash
-          const passwordsMatch = await verifyPassword(
-            password,
-            user.hash_password
-          );
-
-          // 4. If passwords match, return the user object
-          if (passwordsMatch) {
-            return user;
-          }
-        }
-
-        // 5. If anything fails, return null
-        console.error("Invalid credentials provided");
-
-        return null;
-      },
-    }),
   ],
   /**
    * Callback functions that handle various stages of the authentication flow
@@ -124,9 +58,11 @@ export const authConfig: NextAuthConfig = {
      * Called whenever a JWT is accessed (e.g., during sign-in or when accessing session)
      * @param token - JWT token object
      * @param user - User object (only available during initial sign-in)
+     * @param trigger - What caused the callback to be called
+     * @param session - Updated session data from update() call
      * @returns Modified token object
      */
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Only update token if user is present (during initial sign-in)
       if (user?.id) {
         token.id = user.id;
@@ -138,18 +74,35 @@ export const authConfig: NextAuthConfig = {
           token.shop_id = shop.id;
         }
       }
+
+      // Handle session updates from update() calls
+      if (trigger === "update" && session) {
+        if (session.name) {
+          token.name = session.name;
+        }
+        if (session.phone !== undefined) {
+          token.phone = session.phone;
+        }
+        if (session.shop_id !== undefined) {
+          token.shop_id = session.shop_id;
+        }
+      }
+
       return token;
     },
     /**
      * Handles session object creation and modification
      * Called whenever a session is checked (e.g., getSession, useSession)
      * @param session - Session object containing user data
+     * @param token - JWT token object
      * @returns Modified session object
      */
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
+        session.user.name = token.name as string;
+        session.user.phone = token.phone as string | undefined;
         if (token.shop_id) {
           session.user.shop_id = token.shop_id as string;
         }

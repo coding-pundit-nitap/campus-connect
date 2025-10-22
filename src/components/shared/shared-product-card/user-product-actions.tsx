@@ -2,16 +2,16 @@ import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks";
 
 import LoadingSpinner from "../shared-loading-spinner";
 
 interface UserProductActionsProps {
   product_id: string;
   onAddToCart: (product_id: string, quantity: number) => void;
-  onViewDetails?: (product_id: string, shop_id: string) => void;
+  onViewDetails?: (product_id: string) => void;
   isAddingToCart: boolean;
   stock: number;
-  shop_id: string;
 }
 
 export function UserProductActions({
@@ -20,30 +20,32 @@ export function UserProductActions({
   onViewDetails,
   isAddingToCart,
   stock,
-  shop_id,
 }: UserProductActionsProps) {
   const isOutOfStock = stock === 0;
+  const isMobile = useIsMobile();
 
   return (
-    <div className="p-4 pt-0 space-y-2">
+    <div className="space-y-2">
       <Button
         variant={isOutOfStock ? "outline" : "default"}
-        className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
+        className="w-full"
         disabled={isOutOfStock || isAddingToCart}
         onClick={() => onAddToCart(product_id, 1)}
       >
         {isAddingToCart ? (
           <LoadingSpinner />
+        ) : isMobile ? (
+          <ShoppingCart />
         ) : (
-          <ShoppingCart className="w-4 h-4 mr-2" />
+          <ShoppingCart className="mr-2 h-4 w-4" />
         )}
-        {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        {!isMobile && (isOutOfStock ? "Out of Stock" : "Add to Cart")}
       </Button>
-      {onViewDetails && (
+      {onViewDetails && !isMobile && (
         <Button
-          variant="outline"
-          className="w-full transition-all hover:scale-105 duration-200 hover:shadow-md"
-          onClick={() => onViewDetails(product_id, shop_id)}
+          variant="secondary"
+          className="w-full"
+          onClick={() => onViewDetails(product_id)}
         >
           View Details
         </Button>

@@ -4,13 +4,14 @@ import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils-functions/auth.utils";
 import {
+  orderWithDetailsInclude,
   serializeOrder,
   serializeOrderWithDetails,
 } from "@/lib/utils-functions/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import notificationService from "@/services/notification.service";
 import orderService from "@/services/order.service";
-import { SerializedOrderWithDetails } from "@/types";
+import { OrderWithDetails, SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -29,23 +30,17 @@ export async function getOrdersAction(options: {
     const queryOptions = {
       page: options.page || 1,
       limit: options.limit || 10,
-      include: {
-        items: {
-          include: {
-            product: {
-              include: { category: true },
-            },
-          },
-        },
-        shop: true,
-        delivery_address: true,
-      },
     };
 
-    const { orders, totalPages, currentPage } = await orderService.getOrders({
-      ...queryOptions,
-      userId,
-    });
+    const {
+      orders,
+      totalPages,
+      currentPage,
+    }: { orders: OrderWithDetails[]; totalPages: number; currentPage: number } =
+      await orderService.getOrders({
+        ...queryOptions,
+        userId,
+      });
 
     return createSuccessResponse(
       {
@@ -66,11 +61,13 @@ export async function createOrderAction({
   payment_method,
   delivery_address_id,
   requested_delivery_time,
+  upi_transaction_id,
 }: {
   shop_id: string;
   payment_method: PaymentMethod;
   delivery_address_id: string;
   requested_delivery_time?: Date;
+  upi_transaction_id?: string;
 }) {
   try {
     const user_id = await authUtils.getUserId();
@@ -88,7 +85,8 @@ export async function createOrderAction({
       payment_method,
       delivery_address_id,
       pg_payment_id,
-      requested_delivery_time
+      requested_delivery_time,
+      upi_transaction_id
     );
 
     return createSuccessResponse(
@@ -148,21 +146,7 @@ export async function getOrderByIdAction(
     }
 
     const order = await orderRepository.getOrderById(order_id, {
-      include: {
-        shop: true,
-        items: {
-          include: {
-            product: { include: { category: true } },
-          },
-        },
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
-        },
-        delivery_address: true,
-      },
+      include: orderWithDetailsInclude,
     });
 
     if (!order) {
@@ -195,21 +179,7 @@ export async function getShopOrderByIdAction(
     }
 
     const order = await orderRepository.getOrderById(order_id, {
-      include: {
-        shop: true,
-        items: {
-          include: {
-            product: { include: { category: true } },
-          },
-        },
-        delivery_address: true,
-        user: {
-          select: {
-            name: true,
-            phone: true,
-          },
-        },
-      },
+      include: orderWithDetailsInclude,
     });
 
     if (!order) {

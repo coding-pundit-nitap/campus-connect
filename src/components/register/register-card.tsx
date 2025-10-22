@@ -4,13 +4,11 @@ import React from "react";
 
 import { SharedAuthProviderButton } from "@/components/shared/shared-authprovider-button";
 import { SharedCard } from "@/components/shared/shared-card";
-import { Separator } from "@/components/ui/separator";
 import { useRegister } from "@/hooks/useRegisterForm";
 import { registerUIService } from "@/lib/utils-functions";
 import { AuthProviderConfig } from "@/types";
 
 import { RegisterFooter } from "./register-footer";
-import { RegisterForm } from "./register-form";
 
 export interface RegisterCardConfig {
   className?: string;
@@ -24,7 +22,7 @@ export function RegisterCard({
   description,
 }: RegisterCardConfig) {
   const config = registerUIService.getDefaultRegisterCardConfig();
-  const { handlers, state } = useRegister();
+  const { handlers } = useRegister();
 
   const googleAuthConfig: AuthProviderConfig = {
     provider: "google",
@@ -50,12 +48,7 @@ export function RegisterCard({
       }
       className={finalConfig.className}
     >
-      <RegisterForm />
-      <Separator className={"my-4"} />
-      <SharedAuthProviderButton
-        config={googleAuthConfig}
-        disabled={state.isLoading}
-      />
+      <SharedAuthProviderButton config={googleAuthConfig} />
     </SharedCard>
   );
 }

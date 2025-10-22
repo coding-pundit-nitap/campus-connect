@@ -6,6 +6,7 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { orderWithDetailsInclude } from "@/lib/utils-functions/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import { shopRepository } from "@/repositories/shop.repository";
 
@@ -28,17 +29,7 @@ class OrderService {
       orderBy: {
         created_at: "desc",
       },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-        shop: true,
-        user: {
-          select: { name: true, phone: true },
-        },
-      },
+      include: orderWithDetailsInclude,
     });
 
     const totalOrders = await prisma.order.count({
@@ -58,7 +49,8 @@ class OrderService {
     payment_method: PaymentMethod,
     delivery_address_id: string,
     pg_payment_id?: string,
-    requested_delivery_time?: Date
+    requested_delivery_time?: Date,
+    upi_transaction_id?: string
   ) {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -100,6 +92,7 @@ class OrderService {
           payment_method,
           payment_status: payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
           pg_payment_id,
+          upi_transaction_id,
           delivery_address_id,
           delivery_address_snapshot,
           requested_delivery_time,

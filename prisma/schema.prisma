@@ -60,6 +60,7 @@ enum PaymentStatus {
   COMPLETED
   FAILED
   REFUNDED
+  CANCELLED
 }
 
 // ----------------------------------------
@@ -70,7 +71,7 @@ model User {
   id            String    @id @default(cuid())
   email         String    @unique
   emailVerified DateTime?
-  name          String?
+  name          String
   phone         String?
   hash_password String?
   image         String?
@@ -245,11 +246,11 @@ model Review {
   updated_at DateTime @updatedAt
 
   // Relations
-  user_id     String
-  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  product_id  String
-  product     Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
-  order_item   OrderItem @relation(fields: [order_item_id], references: [id])
+  user_id       String
+  user          User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product_id    String
+  product       Product   @relation(fields: [product_id], references: [id], onDelete: Cascade)
+  order_item    OrderItem @relation(fields: [order_item_id], references: [id])
   order_item_id String    @unique
 
   @@index([product_id])
@@ -269,6 +270,7 @@ model Order {
   order_status              OrderStatus   @default(NEW)
   pg_payment_id             String?       @unique
   pg_refund_id              String?       @unique
+  upi_transaction_id        String?
   delivery_address_snapshot String
   requested_delivery_time   DateTime?
   estimated_delivery_time   DateTime?
@@ -371,6 +373,7 @@ model BroadcastNotification {
 
   read_statuses BroadcastReadStatus[]
 
+  @@index([created_at])
   @@map("broadcast_notification")
 }
 

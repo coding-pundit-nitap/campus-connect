@@ -6,11 +6,11 @@ import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { ButtonConfig, FormFieldConfig } from "@/types";
 import { ShopWithOwner } from "@/types/shop.types";
-import { ShopFormData } from "@/validations/shop";
+import { ShopActionFormData } from "@/validations";
 
 interface ShopEditDialogProps {
   shop: ShopWithOwner;
-  form: UseFormReturn<ShopFormData>;
+  form: UseFormReturn<ShopActionFormData>;
   state: {
     isLoading: boolean;
     isSubmitting?: boolean;
@@ -21,7 +21,7 @@ interface ShopEditDialogProps {
     openDialog: () => void;
     closeDialog: () => void;
   };
-  fields: FormFieldConfig<ShopFormData>[];
+  fields: FormFieldConfig<ShopActionFormData>[];
   className?: string;
   isDialogOpen: boolean;
   setIsDialogOpen: (open: boolean) => void;
