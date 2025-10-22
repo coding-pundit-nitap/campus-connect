@@ -111,7 +111,7 @@ export function OrderNotificationBell() {
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex items-start gap-4 p-3">
                 <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
-                <div className="flex-grow space-y-1">
+                <div className="grow space-y-1">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-full" />
                   <Skeleton className="h-2 w-1/4" />
@@ -145,7 +145,7 @@ export function OrderNotificationBell() {
                         <Icon className="h-5 w-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-grow">
+                    <div className="grow">
                       <p className="text-sm font-medium leading-tight">
                         {notification.title}
                       </p>
