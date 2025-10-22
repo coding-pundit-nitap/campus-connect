@@ -54,6 +54,11 @@ class ProductService {
   }): Promise<ServerProductData> {
     const queryOptions = {
       take: limit + 1,
+      where: {
+        shop: {
+          is_active: true,
+        },
+      },
       orderBy: {
         orderItems: {
           _count: Prisma.SortOrder.desc,
