@@ -37,12 +37,7 @@ interface StatusInfo {
 }
 
 export const transformDateToLocaleString = (date: Date): string => {
-  return new Date(date).toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return date.toISOString();
 };
 
 export const serializeShop = (shop: Shop): SerializedShop => {
@@ -78,6 +73,7 @@ export const serializeOrder = (order: Order): SerializedOrder => {
     actual_delivery_time: order.actual_delivery_time
       ? transformDateToLocaleString(order.actual_delivery_time)
       : undefined,
+    upi_transaction_id: order.upi_transaction_id ?? "",
   };
 };
 export const orderWithDetailsInclude = {

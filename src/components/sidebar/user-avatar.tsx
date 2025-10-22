@@ -29,7 +29,10 @@ export default function UserAvatar({
     : email?.[0]?.toUpperCase() || "U";
 
   return (
-    <Avatar className="bg-primary text-primary-foreground">
+    <Avatar
+      className="bg-primary text-primary-foreground"
+      style={{ width: `${dimention}px`, height: `${dimention}px` }}
+    >
       {image ? (
         <Image
           src={image}

@@ -40,6 +40,12 @@ class NavigationUIService {
         icon: Users,
       },
       {
+        id: "shops",
+        title: "Shops",
+        url: "/admin/shops",
+        icon: Store,
+      },
+      {
         id: "orders",
         title: "Orders",
         url: "/admin/orders",

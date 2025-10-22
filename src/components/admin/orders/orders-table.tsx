@@ -140,9 +140,7 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                     />
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </span>
+                    <span className="text-sm">{order.created_at}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <OrderActionsDropdown

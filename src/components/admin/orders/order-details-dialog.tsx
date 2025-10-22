@@ -223,32 +223,24 @@ export function OrderDetailsDialog({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-muted-foreground">Order Placed</p>
-                <p className="font-medium">
-                  {new Date(order.created_at).toLocaleString()}
-                </p>
+                <p className="font-medium">{order.created_at}</p>
               </div>
               {order.requested_delivery_time && (
                 <div>
                   <p className="text-muted-foreground">Requested Delivery</p>
-                  <p className="font-medium">
-                    {new Date(order.requested_delivery_time).toLocaleString()}
-                  </p>
+                  <p className="font-medium">{order.requested_delivery_time}</p>
                 </div>
               )}
               {order.estimated_delivery_time && (
                 <div>
                   <p className="text-muted-foreground">Estimated Delivery</p>
-                  <p className="font-medium">
-                    {new Date(order.estimated_delivery_time).toLocaleString()}
-                  </p>
+                  <p className="font-medium">{order.estimated_delivery_time}</p>
                 </div>
               )}
               {order.actual_delivery_time && (
                 <div>
                   <p className="text-muted-foreground">Actual Delivery</p>
-                  <p className="font-medium">
-                    {new Date(order.actual_delivery_time).toLocaleString()}
-                  </p>
+                  <p className="font-medium">{order.actual_delivery_time}</p>
                 </div>
               )}
             </div>

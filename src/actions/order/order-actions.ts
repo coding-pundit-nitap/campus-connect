@@ -61,11 +61,13 @@ export async function createOrderAction({
   payment_method,
   delivery_address_id,
   requested_delivery_time,
+  upi_transaction_id,
 }: {
   shop_id: string;
   payment_method: PaymentMethod;
   delivery_address_id: string;
   requested_delivery_time?: Date;
+  upi_transaction_id?: string;
 }) {
   try {
     const user_id = await authUtils.getUserId();
@@ -83,7 +85,8 @@ export async function createOrderAction({
       payment_method,
       delivery_address_id,
       pg_payment_id,
-      requested_delivery_time
+      requested_delivery_time,
+      upi_transaction_id
     );
 
     return createSuccessResponse(
