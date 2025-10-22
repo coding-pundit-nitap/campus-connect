@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CartItemData } from "@/types";
@@ -7,15 +6,9 @@ import { CartItemContainer } from "../cart-drawer/cart-item-container";
 
 interface OrderSummaryProps {
   items: CartItemData[];
-  onPlaceOrder: () => void;
-  isProcessing: boolean;
 }
 
-export default function OrderSummary({
-  items,
-  onPlaceOrder,
-  isProcessing,
-}: OrderSummaryProps) {
+export default function OrderSummary({ items }: OrderSummaryProps) {
   const subtotal = items.reduce(
     (sum, item) =>
       sum + ((item.price * (100 - item.discount)) / 100) * item.quantity,
@@ -41,17 +34,6 @@ export default function OrderSummary({
             <span>₹{total.toFixed(2)}</span>
           </div>
         </div>
-
-        <Button
-          onClick={onPlaceOrder}
-          disabled={isProcessing}
-          className="w-full"
-          size="lg"
-        >
-          {isProcessing
-            ? "Processing..."
-            : `Place Order - ₹${total.toFixed(2)}`}
-        </Button>
       </CardContent>
     </Card>
   );

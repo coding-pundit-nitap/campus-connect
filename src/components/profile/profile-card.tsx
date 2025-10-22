@@ -1,14 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Pencil, X } from "lucide-react";
+import { Camera, Mail, Pencil, Phone, User as UserIcon, X } from "lucide-react";
 import { User } from "next-auth";
+import { useSession } from "next-auth/react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SharedCard } from "@/components/shared/shared-card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,6 +19,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { useUpdateUser } from "@/hooks/tanstack/useUser";
 import { updateUserSchema } from "@/validations/user.validation";
 
@@ -29,6 +31,7 @@ interface ProfileCardProps {
 
 const ProfileCard = ({ user }: ProfileCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const { update } = useSession();
 
   const form = useForm<z.infer<typeof updateUserSchema>>({
     resolver: zodResolver(updateUserSchema),
@@ -48,88 +51,151 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
   const { mutate: updateUserMutation, isPending } = useUpdateUser();
 
   const onSubmit = (values: z.infer<typeof updateUserSchema>) => {
-    updateUserMutation(values);
+    updateUserMutation(values, {
+      onSuccess: async () => {
+        setIsEditing(false);
+        await update({ phone: values.phone, name: values.name });
+        form.reset();
+      },
+    });
   };
 
-  return (
+  const headerContent = (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>My Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="relative group">
-              <UserAvatar image={user.image} name={user.name} dimention={40} />
-              <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-white text-sm">Change Photo</p>
-              </div>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-semibold">{user.name}</p>
-              <p className="text-muted-foreground">{user.email}</p>
-            </div>
+      <div className="flex flex-col items-center gap-6 py-6">
+        <div className="relative group">
+          <UserAvatar image={user.image} name={user.name} dimention={140} />
+        </div>
+        <div className="text-center space-y-1">
+          <p className="text-3xl font-bold tracking-tight">{user.name}</p>
+          <div className="flex items-center justify-center gap-2 text-muted-foreground">
+            <Mail className="h-4 w-4" />
+            <p className="text-sm">{user.email}</p>
           </div>
+        </div>
+      </div>
 
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {!isEditing ? (
-                <div className="space-y-4">
-                  <div>
-                    <FormLabel>Name</FormLabel>
-                    <p className="text-lg">{user.name}</p>
-                  </div>
-                  <div>
-                    <FormLabel>Phone</FormLabel>
-                    <p className="text-lg">{user.phone || "Not provided"}</p>
-                  </div>
-                  <Button onClick={() => setIsEditing(true)}>
-                    <Pencil className="mr-2 h-4 w-4" /> Edit Profile
-                  </Button>
-                </div>
-              ) : (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Your phone number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="flex gap-2">
-                    <Button type="submit" disabled={isPending}>
-                      {isPending ? "Saving..." : "Save Changes"}
-                    </Button>
-                    <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                      <X className="mr-2 h-4 w-4" /> Cancel
-                    </Button>
-                  </div>
-                </>
-              )}
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <Separator />
     </>
+  );
+
+  return (
+    <SharedCard
+      title="Personal Information"
+      description="Update your personal details and profile picture"
+      className="border-2"
+      showHeader={true}
+      headerContent={headerContent}
+    >
+      {/* Profile Form Section */}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {!isEditing ? (
+            <div className="space-y-6">
+              {/* Display Mode */}
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2 p-4 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <UserIcon className="h-4 w-4" />
+                    <FormLabel className="text-xs uppercase font-semibold">
+                      Full Name
+                    </FormLabel>
+                  </div>
+                  <p className="text-lg font-medium">{user.name}</p>
+                </div>
+                <div className="space-y-2 p-4 rounded-lg border bg-muted/30">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                    <Phone className="h-4 w-4" />
+                    <FormLabel className="text-xs uppercase font-semibold">
+                      Phone Number
+                    </FormLabel>
+                  </div>
+                  <p className="text-lg font-medium">
+                    {user.phone || (
+                      <span className="text-muted-foreground italic">
+                        Not provided
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setIsEditing(true)}
+                size="lg"
+                className="w-full md:w-auto"
+              >
+                <Pencil className="mr-2 h-4 w-4" /> Edit Profile
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* Edit Mode */}
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <UserIcon className="h-4 w-4" />
+                        Full Name
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your full name"
+                          {...field}
+                          className="h-11"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        Phone Number
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter your phone number"
+                          {...field}
+                          className="h-11"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  size="lg"
+                  className="flex-1 md:flex-none"
+                >
+                  {isPending ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsEditing(false)}
+                  size="lg"
+                  disabled={isPending}
+                  className="flex-1 md:flex-none"
+                >
+                  <X className="mr-2 h-4 w-4" /> Cancel
+                </Button>
+              </div>
+            </>
+          )}
+        </form>
+      </Form>
+    </SharedCard>
   );
 };
 

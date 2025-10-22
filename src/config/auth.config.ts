@@ -58,9 +58,11 @@ export const authConfig: NextAuthConfig = {
      * Called whenever a JWT is accessed (e.g., during sign-in or when accessing session)
      * @param token - JWT token object
      * @param user - User object (only available during initial sign-in)
+     * @param trigger - What caused the callback to be called
+     * @param session - Updated session data from update() call
      * @returns Modified token object
      */
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       // Only update token if user is present (during initial sign-in)
       if (user?.id) {
         token.id = user.id;
@@ -72,18 +74,35 @@ export const authConfig: NextAuthConfig = {
           token.shop_id = shop.id;
         }
       }
+
+      // Handle session updates from update() calls
+      if (trigger === "update" && session) {
+        if (session.name) {
+          token.name = session.name;
+        }
+        if (session.phone !== undefined) {
+          token.phone = session.phone;
+        }
+        if (session.shop_id !== undefined) {
+          token.shop_id = session.shop_id;
+        }
+      }
+
       return token;
     },
     /**
      * Handles session object creation and modification
      * Called whenever a session is checked (e.g., getSession, useSession)
      * @param session - Session object containing user data
+     * @param token - JWT token object
      * @returns Modified session object
      */
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as Role;
+        session.user.name = token.name as string;
+        session.user.phone = token.phone as string | undefined;
         if (token.shop_id) {
           session.user.shop_id = token.shop_id as string;
         }

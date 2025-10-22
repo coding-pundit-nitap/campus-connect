@@ -1,5 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -11,6 +12,7 @@ import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export function useLinkShop() {
   const { mutate: linkShop, isPending, error } = useShopLink();
+  const { update } = useSession();
 
   const form = useForm<ShopActionFormData>({
     resolver: zodResolver(shopActionSchema),
@@ -35,8 +37,9 @@ export function useLinkShop() {
       console.log("Submitting form with data:", data);
       try {
         linkShop(data, {
-          onSuccess: (result) => {
+          onSuccess: async (result) => {
             if (result.success) {
+              await update({ shop_id: result.data.id });
               form.reset();
             }
           },

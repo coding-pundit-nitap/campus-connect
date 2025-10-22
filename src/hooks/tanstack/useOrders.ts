@@ -85,16 +85,13 @@ function useOrders({
 
 function useCreateOrder() {
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: createOrderAction,
     onSuccess: () => {
-      toast.success("Order created successfully!");
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
-    },
-    onError: (error) => {
-      toast.error(error.message);
     },
   });
 }
