@@ -1,4 +1,12 @@
-import { CreditCard, Home, Link2, Phone, User } from "lucide-react";
+import {
+  Calendar,
+  CreditCard,
+  Hash,
+  Home,
+  Link2,
+  Phone,
+  User,
+} from "lucide-react";
 import { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -72,14 +80,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
           <h1 className="text-2xl font-bold tracking-tight">
             Order #{order.display_id}
           </h1>
-          <p className="text-muted-foreground">
-            Placed on{" "}
-            {new Date(order.created_at).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-          </p>
+          <p className="text-muted-foreground">Placed on {order.created_at}</p>
         </div>
         <Badge
           variant={order.order_status === "COMPLETED" ? "default" : "secondary"}
@@ -220,6 +221,16 @@ export default async function ShopOrderDetailPage({ params }: Props) {
               <DetailItem icon={<Home size={18} />} label="Delivery Address">
                 {order.delivery_address_snapshot}
               </DetailItem>
+              {order.requested_delivery_time && (
+                <DetailItem
+                  icon={<Calendar size={18} />}
+                  label="Requested Delivery Time"
+                >
+                  <span className="text-orange-600 font-semibold">
+                    {order.requested_delivery_time}
+                  </span>
+                </DetailItem>
+              )}
               <DetailItem
                 icon={<CreditCard size={18} />}
                 label="Payment Method"
@@ -228,6 +239,17 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                   {order.payment_method.toLowerCase()}
                 </Badge>
               </DetailItem>
+              {order.payment_method === "ONLINE" &&
+                order.upi_transaction_id && (
+                  <DetailItem
+                    icon={<Hash size={18} />}
+                    label="UPI Transaction ID"
+                  >
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {order.upi_transaction_id}
+                    </code>
+                  </DetailItem>
+                )}
             </CardContent>
             <Separator />
             <CardContent className="p-6">

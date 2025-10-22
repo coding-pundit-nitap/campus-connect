@@ -49,7 +49,8 @@ class OrderService {
     payment_method: PaymentMethod,
     delivery_address_id: string,
     pg_payment_id?: string,
-    requested_delivery_time?: Date
+    requested_delivery_time?: Date,
+    upi_transaction_id?: string
   ) {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -91,6 +92,7 @@ class OrderService {
           payment_method,
           payment_status: payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
           pg_payment_id,
+          upi_transaction_id,
           delivery_address_id,
           delivery_address_snapshot,
           requested_delivery_time,

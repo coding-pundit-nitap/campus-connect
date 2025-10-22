@@ -270,6 +270,7 @@ model Order {
   order_status              OrderStatus   @default(NEW)
   pg_payment_id             String?       @unique
   pg_refund_id              String?       @unique
+  upi_transaction_id        String?
   delivery_address_snapshot String
   requested_delivery_time   DateTime?
   estimated_delivery_time   DateTime?

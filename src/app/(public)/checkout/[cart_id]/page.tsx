@@ -7,6 +7,6 @@ export default async function CheckoutPage({
 }: {
   params: Promise<{ cart_id: string }>;
 }) {
-  const cart_id = (await params).cart_id;
+  const { cart_id } = await params;
   return <CheckoutPageComponent cart_id={cart_id} />;
 }

@@ -73,8 +73,8 @@ export const useInfiniteProducts = ({
       onAddToCart: (product_id: string, quantity: number) => {
         addToCart({ product_id, quantity });
       },
-      onViewDetails: (product_id: string, shop_id: string) => {
-        router.push(`/shops/${shop_id}/products/${product_id}`);
+      onViewDetails: (product_id: string) => {
+        router.push(`/product/${product_id}`);
       },
     };
   }, [addToCart, router]);
