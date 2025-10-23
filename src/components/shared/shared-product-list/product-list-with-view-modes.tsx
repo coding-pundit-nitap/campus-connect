@@ -48,7 +48,9 @@ export function ProductListWithViewModes({
             type="single"
             value={viewMode}
             onValueChange={(value) => {
-              if (value) setViewMode(value as "grid" | "category");
+              if (value) {
+                setViewMode(value as "grid" | "category");
+              }
             }}
             className="border rounded-md p-1"
           >

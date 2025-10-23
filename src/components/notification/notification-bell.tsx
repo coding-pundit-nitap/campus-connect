@@ -35,7 +35,9 @@ const notificationConfig = {
 };
 
 const getNotificationConfig = (type?: NotificationType) => {
-  if (!type) return notificationConfig.DEFAULT;
+  if (!type) {
+    return notificationConfig.DEFAULT;
+  }
   return notificationConfig[type] || notificationConfig.DEFAULT;
 };
 
@@ -47,15 +49,21 @@ export function OrderNotificationBell() {
   const unreadCount = data?.unreadCount.total || 0;
 
   const allNotifications = useMemo(() => {
-    if (!data?.unreadNotifications && !data?.unreadBroadcasts) return [];
-    if (!data?.unreadNotifications) return data.unreadBroadcasts;
-    if (!data?.unreadBroadcasts) return data.unreadNotifications;
+    if (!data?.unreadNotifications && !data?.unreadBroadcasts) {
+      return [];
+    }
+    if (!data?.unreadNotifications) {
+      return data.unreadBroadcasts;
+    }
+    if (!data?.unreadBroadcasts) {
+      return data.unreadNotifications;
+    }
     const combined = [...data.unreadNotifications, ...data.unreadBroadcasts];
     return combined.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [data?.unreadBroadcasts, data?.unreadNotifications]);
+  }, [data]);
 
   const displayCount = Math.max(unreadCount, allNotifications.length);
 

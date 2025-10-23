@@ -57,7 +57,9 @@ export const useInfiniteProducts = ({
   });
 
   const allProducts: SerializedProduct[] = useMemo(() => {
-    if (!data?.pages) return initialProducts;
+    if (!data?.pages) {
+      return initialProducts;
+    }
 
     const serverData = data.pages[0]?.initialProducts ?? [];
     const clientPages = data.pages.slice(1);

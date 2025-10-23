@@ -11,14 +11,8 @@ type Props = {
 export const useAllShops = ({ initialData, initialNextCursor }: Props) => {
   return useInfiniteQuery({
     queryKey: queryKeys.shops.all,
-    queryFn: async ({ pageParam }) => {
-      try {
-        return await shopAPIService.fetchShops({ cursor: pageParam });
-      } catch (error) {
-        console.error("Failed to fetch shops in useInfiniteShops:", error);
-        throw error;
-      }
-    },
+    queryFn: async ({ pageParam }) =>
+      shopAPIService.fetchShops({ cursor: pageParam }),
     initialPageParam: initialNextCursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData:

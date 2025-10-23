@@ -5,7 +5,9 @@ class UserAddressUIService {
     address: UserAddress,
     allAddresses: UserAddress[]
   ): boolean => {
-    if (allAddresses.length === 1) return false;
+    if (allAddresses.length === 1) {
+      return false;
+    }
 
     return true;
   };

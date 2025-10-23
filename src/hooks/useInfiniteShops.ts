@@ -32,7 +32,9 @@ export const useInfiniteShops = ({
   });
 
   const allShops: ShopWithOwnerDetails[] = useMemo(() => {
-    if (!data?.pages) return initialData;
+    if (!data?.pages) {
+      return initialData;
+    }
 
     const serverData = data.pages[0]?.data ?? [];
     const clientPages = data.pages.slice(1);

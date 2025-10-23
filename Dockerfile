@@ -2,7 +2,7 @@
 # ---- Base Stage ----
 # ==============================================================================
 # This common stage prepares a Node.js environment with pnpm.
-FROM node:24-alpine AS base
+FROM node:25-alpine AS base
 WORKDIR /app
 
 # Add security updates and essential packages, then clean up.
@@ -11,7 +11,10 @@ RUN apk add --no-cache libc6-compat openssl curl dumb-init && \
     rm -rf /var/cache/apk/*
 
 # Enable and activate pnpm.
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+    && npm install -g corepack@latest \
+    && corepack enable \
+    && corepack prepare pnpm@latest --activate
 
 
 # ==============================================================================

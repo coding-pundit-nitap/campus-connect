@@ -61,7 +61,9 @@ export function ProductCard({
   });
 
   const renderOwnerActions = () => {
-    if (!onDelete) return null;
+    if (!onDelete) {
+      return null;
+    }
     return (
       <div className="flex w-full flex-col gap-2">
         <ProductEditDialog
@@ -84,34 +86,6 @@ export function ProductCard({
       </div>
     );
   };
-
-  const ImageOverlays = () => (
-    <>
-      <div className="absolute top-3 left-3 flex flex-col items-start gap-2">
-        {productHasDiscount && (
-          <Badge className="border-none bg-red-500 text-white shadow-lg">
-            -{product.discount}% OFF
-          </Badge>
-        )}
-        {isOutOfStock && (
-          <Badge variant="secondary" className="shadow-lg">
-            Out of Stock
-          </Badge>
-        )}
-        {hasLowStock && !isOutOfStock && (
-          <Badge
-            variant="secondary"
-            className="border-orange-200 text-orange-600 shadow-lg"
-          >
-            Low Stock
-          </Badge>
-        )}
-      </div>
-      {isOutOfStock && (
-        <div className="absolute inset-0 bg-white/60 dark:bg-black/60" />
-      )}
-    </>
-  );
 
   if (mode === "owner") {
     return (
@@ -161,7 +135,31 @@ export function ProductCard({
       <div className="hidden md:block">
         <div className="relative">
           <ProductCardHeader product={product} priority={priority} />
-          <ImageOverlays />
+          <>
+            <div className="absolute top-3 left-3 flex flex-col items-start gap-2">
+              {productHasDiscount && (
+                <Badge className="border-none bg-red-500 text-white shadow-lg">
+                  -{product.discount}% OFF
+                </Badge>
+              )}
+              {isOutOfStock && (
+                <Badge variant="secondary" className="shadow-lg">
+                  Out of Stock
+                </Badge>
+              )}
+              {hasLowStock && !isOutOfStock && (
+                <Badge
+                  variant="secondary"
+                  className="border-orange-200 text-orange-600 shadow-lg"
+                >
+                  Low Stock
+                </Badge>
+              )}
+            </div>
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-white/60 dark:bg-black/60" />
+            )}
+          </>
         </div>
 
         <ProductCardDetails

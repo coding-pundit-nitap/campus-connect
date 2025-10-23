@@ -26,7 +26,9 @@ export function DateTimePicker({
     selectedDate: Date | undefined,
     selectedTime: string
   ) => {
-    if (!selectedDate) return undefined;
+    if (!selectedDate) {
+      return undefined;
+    }
 
     const [hours, minutes, seconds] = selectedTime.split(":").map(Number);
     const combinedDate = new Date(selectedDate);

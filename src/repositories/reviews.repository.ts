@@ -1,5 +1,6 @@
 import { Prisma, Review } from "@prisma/client";
 
+import { BadRequestError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 
 export type CreateReviewDto = Prisma.ReviewCreateInput;
@@ -12,7 +13,9 @@ class ReviewRepository {
     options?: Omit<Prisma.ReviewCreateArgs, "data">
   ) {
     const product_id = data.product.connect!.id;
-    if (!product_id) throw new Error("Product ID required for review");
+    if (!product_id) {
+      throw new BadRequestError("Product ID required for review");
+    }
     return prisma.$transaction(async (prisma) => {
       const review = await prisma.review.create({ data, ...options });
       await prisma.product.update({

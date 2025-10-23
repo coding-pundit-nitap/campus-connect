@@ -259,6 +259,7 @@ services:
   create-buckets:
     image: minio/mc
     container_name: campus_connect_mc
+    pull_policy: if_not_present
     depends_on:
       minio:
         condition: service_healthy
