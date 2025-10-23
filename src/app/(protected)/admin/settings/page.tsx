@@ -43,7 +43,9 @@ export default async function AdminSettingsPage() {
         orders: orderStats.data,
       };
     }
-  } catch {}
+  } catch {
+    // Handle errors silently; systemStats will remain null
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">

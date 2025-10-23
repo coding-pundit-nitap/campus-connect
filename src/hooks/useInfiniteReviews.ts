@@ -49,7 +49,9 @@ export const useInfiniteReviews = ({
         : undefined,
   });
   const allReviews: ReviewWithUser[] = useMemo(() => {
-    if (!data?.pages) return initialData;
+    if (!data?.pages) {
+      return initialData;
+    }
 
     const serverData = data.pages[0]?.data ?? [];
     const clientPages = data.pages.slice(1);

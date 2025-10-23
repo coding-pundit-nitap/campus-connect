@@ -171,7 +171,9 @@ interface ActiveFiltersProps {
 }
 
 export function ActiveFilters({ className, filters }: ActiveFiltersProps) {
-  if (filters.length === 0) return null;
+  if (filters.length === 0) {
+    return null;
+  }
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>

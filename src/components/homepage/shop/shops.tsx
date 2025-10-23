@@ -1,13 +1,19 @@
 import { Prisma } from "@prisma/client";
 
-import { formatShopData } from "@/lib/shop-utils";
+import { formatShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 
 import { ShopsContainer } from "./shops-container";
 
 export async function Shops() {
+  let formattededShops: ShopWithOwnerDetails[] = [];
+  let hasNextPage = false;
+  let nextCursor: string | null = null;
+  let initialError: string | undefined;
+
   try {
     const queryOptions = {
+      where: { is_active: true },
       include: { owner: { select: { name: true, email: true } } },
       take: 11,
       orderBy: {
@@ -16,8 +22,6 @@ export async function Shops() {
     };
 
     const shops = await shopRepository.getShops(queryOptions);
-    let hasNextPage = false;
-    let nextCursor: string | null = null;
     let initialShops = shops;
 
     if (shops.length > 10) {
@@ -27,23 +31,17 @@ export async function Shops() {
       initialShops = shops;
     }
 
-    const formattededShops = initialShops.map(formatShopData);
-
-    return (
-      <ShopsContainer
-        initialShops={formattededShops}
-        hasNextPage={hasNextPage}
-        nextCursor={nextCursor}
-      />
-    );
+    formattededShops = initialShops.map(formatShopData);
   } catch {
-    return (
-      <ShopsContainer
-        initialShops={[]}
-        hasNextPage={false}
-        nextCursor={null}
-        initialError="Failed to load shops. Please try again."
-      />
-    );
+    initialError = "Failed to load shops. Please try again.";
   }
+
+  return (
+    <ShopsContainer
+      initialShops={formattededShops}
+      hasNextPage={hasNextPage}
+      nextCursor={nextCursor}
+      initialError={initialError}
+    />
+  );
 }

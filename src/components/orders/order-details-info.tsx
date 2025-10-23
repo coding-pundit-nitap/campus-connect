@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Calendar, Clock, CreditCard, Hash, MapPin, Store } from "lucide-react";
 import React from "react";
 
@@ -20,8 +19,8 @@ const InfoRow = ({
   children: React.ReactNode;
 }) => (
   <div className="flex items-start gap-4">
-    <Icon className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
-    <div className="flex-1 break-words">
+    <Icon className="h-5 w-5 shrink-0 text-muted-foreground" />
+    <div className="flex-1 wrap-break-words">
       <p className="font-medium">{label}</p>
       <div className="text-sm text-muted-foreground">{children}</div>
     </div>
@@ -57,7 +56,7 @@ export default function OrderDetailsInfo({ order }: Props) {
           {requested_delivery_time && (
             <InfoRow Icon={Calendar} label="Requested Delivery Time">
               <span className="font-semibold text-orange-600">
-                {format(new Date(requested_delivery_time), "PPp")}
+                {new Date(requested_delivery_time).toLocaleString()}
               </span>
             </InfoRow>
           )}
@@ -65,13 +64,13 @@ export default function OrderDetailsInfo({ order }: Props) {
           {actual_delivery_time ? (
             <InfoRow Icon={Clock} label="Delivered At">
               <span className="font-semibold text-green-600">
-                {format(new Date(actual_delivery_time), "PPp")}
+                {new Date(actual_delivery_time).toLocaleString()}
               </span>
             </InfoRow>
           ) : estimated_delivery_time ? (
             <InfoRow Icon={Clock} label="Estimated Delivery">
               <span className="font-semibold text-blue-600">
-                {format(new Date(estimated_delivery_time), "PPp")}
+                {new Date(estimated_delivery_time).toLocaleString()}
               </span>
             </InfoRow>
           ) : null}

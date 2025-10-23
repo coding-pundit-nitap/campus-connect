@@ -9,14 +9,17 @@ type Props = {
 };
 
 export default async function OrderDetailsContainer({ order_id }: Props) {
+  let order;
+
   try {
     const response = await getOrderByIdAction(order_id);
     if (!response.success) {
       notFound();
     }
-    const order = response.data;
-    return <OrderDetailsCard order={order} />;
+    order = response.data;
   } catch {
     notFound();
   }
+
+  return <OrderDetailsCard order={order} />;
 }

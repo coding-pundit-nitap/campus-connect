@@ -58,10 +58,10 @@ export const useIndividualShop = (shop_id: string) => {
     () => ({
       onResetFilters: clearFilters,
       onViewDetails: (product_id: string) => {
-        router.push(`/shops/${shop_id}/products/${product_id}`);
+        router.push(`/product/${product_id}`);
       },
     }),
-    [clearFilters, router, shop_id]
+    [clearFilters, router]
   );
 
   const loadingStates = useMemo(

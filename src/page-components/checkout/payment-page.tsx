@@ -2,7 +2,7 @@
 
 import { PaymentMethod } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { CheckoutHeader, OrderSummary } from "@/components/checkout";
@@ -19,19 +19,16 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
   const { summary } = useCartDrawer();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [upiTransactionId, setUpiTransactionId] = useState("");
-  const [checkoutData, setCheckoutData] = useState<{
+
+  const checkoutData = useMemo<{
     delivery_address_id: string;
     requested_delivery_time: string;
-  } | null>(null);
-
-  const { mutate: createOrder, isPending } = useCreateOrder();
-
-  useEffect(() => {
+  } | null>(() => {
     const data = sessionStorage.getItem("checkout_data");
     if (!data) {
       toast.error("Checkout session expired. Please start over.");
       router.push(`/checkout/${cart_id}`);
-      return;
+      return null;
     }
 
     try {
@@ -39,14 +36,17 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
       if (parsed.cart_id !== cart_id) {
         toast.error("Invalid checkout session.");
         router.push(`/checkout/${cart_id}`);
-        return;
+        return null;
       }
-      setCheckoutData(parsed);
+      return parsed;
     } catch {
       toast.error("Invalid checkout data.");
       router.push(`/checkout/${cart_id}`);
+      return null;
     }
   }, [cart_id, router]);
+
+  const { mutate: createOrder, isPending } = useCreateOrder();
 
   const items = useMemo(
     () => summary?.shopCarts.find((cart) => cart.id === cart_id)?.items || [],
@@ -88,11 +88,10 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
           paymentMethod === "ONLINE" ? upiTransactionId : undefined,
       },
       {
-        onSuccess: () => {
-          // Clear checkout data
+        onSuccess: ({ data }) => {
           sessionStorage.removeItem("checkout_data");
           toast.success("Order placed successfully!");
-          router.push("/orders");
+          router.push(`/orders/${data.id}`);
         },
         onError: (error) => {
           toast.error(error.message || "Failed to place order");
@@ -115,7 +114,7 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
           <CardHeader>
             <CardTitle>Payment Method</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-0">
             <RadioGroup
               value={paymentMethod}
               onValueChange={(value) =>
@@ -154,7 +153,6 @@ export default function PaymentPageComponent({ cart_id }: { cart_id: string }) {
 
                 <div className="flex justify-center p-4 bg-white rounded-lg">
                   <div className="text-center space-y-2">
-                    {/* Placeholder for QR Code - Replace with actual QR code generation */}
                     <div className="w-48 h-48 bg-gray-200 flex items-center justify-center rounded-lg">
                       <span className="text-sm text-gray-500">QR Code</span>
                     </div>

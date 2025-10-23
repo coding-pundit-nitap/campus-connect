@@ -19,6 +19,13 @@ type Props = {
 
 export default function OrderDetailsItems({ items, orderStatus }: Props) {
   const isCompleted = orderStatus === "COMPLETED";
+  const subTotal = items.reduce(
+    (sum, item) =>
+      sum +
+      (item.price - (item.price * (item.product.discount || 0)) / 100) *
+        item.quantity,
+    0
+  );
 
   return (
     <Card className="col-span-1 py-4">
@@ -30,7 +37,7 @@ export default function OrderDetailsItems({ items, orderStatus }: Props) {
           {items.map((item) => (
             <div key={item.id} className="space-y-3">
               <div className="flex items-start gap-4">
-                <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-md bg-muted">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
                   <Image
                     src={ImageUtils.getImageUrl(item.product.imageKey)}
                     alt={item.product.name}
@@ -39,15 +46,24 @@ export default function OrderDetailsItems({ items, orderStatus }: Props) {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold break-words">
+                  <h4 className="font-semibold wrap-break-words">
                     {item.product.name}
                   </h4>
                   <p className="text-sm text-muted-foreground">
-                    {item.quantity} x ₹{item.price.toFixed(2)}
+                    {item.quantity} x ₹
+                    {(
+                      item.price -
+                      (item.price * (item.product.discount || 0)) / 100
+                    ).toFixed(2)}
                   </p>
                 </div>
                 <p className="font-semibold">
-                  ₹{(item.price * item.quantity).toFixed(2)}
+                  ₹
+                  {(
+                    (item.price -
+                      (item.price * (item.product.discount || 0)) / 100) *
+                    item.quantity
+                  ).toFixed(2)}
                 </p>
               </div>
               {isCompleted && (
@@ -75,12 +91,7 @@ export default function OrderDetailsItems({ items, orderStatus }: Props) {
           ))}
           <div className="flex items-center justify-between pt-2 font-bold">
             <span>Total</span>
-            <span>
-              ₹
-              {items
-                .reduce((sum, item) => sum + item.price * item.quantity, 0)
-                .toFixed(2)}
-            </span>
+            <span>₹{subTotal.toFixed(2)}</span>
           </div>
         </div>
       </CardContent>

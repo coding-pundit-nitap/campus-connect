@@ -4,6 +4,7 @@ import { Role } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ClientDate } from "@/components/shared/client-date";
 import { UserActionsDropdown } from "@/components/shared/user-actions-dropdown";
 import { UserRoleBadge } from "@/components/shared/user-badges";
 import { UserFilterBar } from "@/components/shared/user-filter-bar";
@@ -38,7 +39,7 @@ interface UsersTableProps {
     role: Role;
     phone: string | null;
     image: string | null;
-    created_at: Date;
+    created_at: Date | string;
   }>;
   searchParams: { cursor?: string; search?: string; role?: string };
 }
@@ -117,7 +118,7 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
                   </TableCell>
                   <TableCell>{user.phone || "—"}</TableCell>
                   <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
+                    <ClientDate date={user.created_at} format="datetime" />
                   </TableCell>
                   <TableCell className="text-right">
                     <UserActionsDropdown

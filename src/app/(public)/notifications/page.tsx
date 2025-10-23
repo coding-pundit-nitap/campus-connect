@@ -90,7 +90,7 @@ export default function NotificationHistoryPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="relative flex items-start gap-6">
               <Skeleton className="relative z-10 mt-1 h-8 w-8 shrink-0 rounded-full" />
-              <div className="flex-grow space-y-2 pt-1">
+              <div className="grow space-y-2 pt-1">
                 <Skeleton className="h-6 w-3/5" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-4/5" />
@@ -170,7 +170,7 @@ export default function NotificationHistoryPage() {
 
               <Card
                 className={cn(
-                  "flex-grow transition-colors",
+                  "grow transition-colors",
                   !notification.read && "border-primary/20 bg-muted/40"
                 )}
               >
@@ -179,10 +179,7 @@ export default function NotificationHistoryPage() {
                     {notification.title}
                   </CardTitle>
                   <CardDescription>
-                    {new Date(notification.created_at).toLocaleString([], {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
+                    {new Date(notification.created_at).toLocaleString()}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -116,7 +116,9 @@ class ShopUIServices {
   };
 
   formatShopLinkError = (error: Error | null): string | null => {
-    if (!error) return null;
+    if (!error) {
+      return null;
+    }
     if (error.message.includes("already exists")) {
       return "A shop with this name already exists.";
     }

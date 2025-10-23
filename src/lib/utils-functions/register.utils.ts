@@ -8,7 +8,9 @@ class RegisterUIService {
   };
 
   formatRegisterError = (error: Error | null): string | null => {
-    if (!error) return null;
+    if (!error) {
+      return null;
+    }
     if (error.message.includes("already exists")) {
       return "A user with this email address already exists.";
     }

@@ -1,71 +1,68 @@
-import { FlatCompat } from "@eslint/eslintrc";
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 import prettierConfig from "eslint-config-prettier";
+import reactHooks from "eslint-plugin-react-hooks";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  {
-    ignores: [".next/", "node_modules/", "next-env.d.ts", "**/*.generated.ts"],
-  },
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "**/*.generated.ts",
+  ]),
   {
     plugins: {
       "simple-import-sort": simpleImportSort,
+      "react-hooks": reactHooks,
     },
     rules: {
-      "simple-import-sort/imports": "warn",
-      "simple-import-sort/exports": "warn",
-    },
-  },
-
-  {
-    rules: {
-      // TypeScript specific rules
-      "@typescript-eslint/no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_" },
-      ],
+      
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "@typescript-eslint/no-explicit-any": "warn",
 
-      // React specific rules
+      "simple-import-sort/imports": "warn",
+      "simple-import-sort/exports": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+
       "react/no-unescaped-entities": "off",
       "react/prop-types": "off",
       "react-hooks/exhaustive-deps": "warn",
+      "react-hooks/rules-of-hooks": "error",
 
-      // General JavaScript rules
       "no-debugger": "error",
       "no-var": "error",
       "prefer-const": "error",
-
-      // Code quality rules
       eqeqeq: ["error", "always"],
       curly: ["error", "all"],
       "no-duplicate-imports": "error",
       "no-unused-expressions": "warn",
-    },
-  },
-
-  {
-    files: ["**/*.tsx"],
-    rules: {
       "no-console": "warn",
     },
-  },
 
+  },
   {
+    files: [
+      "src/app/api/**/*.{ts,tsx}",
+      "src/actions/**/*.{ts,tsx}",
+      "src/lib/**/*.{ts,tsx}",
+      "src/repositories/**/*.{ts,tsx}",
+      "src/services/**/*.{ts,tsx}",
+      "src/proxy.ts"
+    ],
     rules: {
-      ...prettierConfig.rules,
+      "no-console": "off",
     },
   },
-];
+
+  prettierConfig,
+]);
 
 export default eslintConfig;

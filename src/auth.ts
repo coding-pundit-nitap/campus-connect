@@ -1,8 +1,6 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import NextAuth from "next-auth";
 
 import { authConfig } from "@/config/auth.config";
-import { prisma } from "@/lib/prisma";
 
 /**
  * Exports authentication utilities and handlers from NextAuth, configured with JWT session strategy and custom settings.
@@ -17,7 +15,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET,
   ...authConfig,
 });

@@ -35,7 +35,9 @@ const notificationConfig = {
 };
 
 const getNotificationConfig = (type?: NotificationType) => {
-  if (!type) return notificationConfig.DEFAULT;
+  if (!type) {
+    return notificationConfig.DEFAULT;
+  }
   return notificationConfig[type] || notificationConfig.DEFAULT;
 };
 
@@ -47,15 +49,21 @@ export function OrderNotificationBell() {
   const unreadCount = data?.unreadCount.total || 0;
 
   const allNotifications = useMemo(() => {
-    if (!data?.unreadNotifications && !data?.unreadBroadcasts) return [];
-    if (!data?.unreadNotifications) return data.unreadBroadcasts;
-    if (!data?.unreadBroadcasts) return data.unreadNotifications;
+    if (!data?.unreadNotifications && !data?.unreadBroadcasts) {
+      return [];
+    }
+    if (!data?.unreadNotifications) {
+      return data.unreadBroadcasts;
+    }
+    if (!data?.unreadBroadcasts) {
+      return data.unreadNotifications;
+    }
     const combined = [...data.unreadNotifications, ...data.unreadBroadcasts];
     return combined.sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
-  }, [data?.unreadBroadcasts, data?.unreadNotifications]);
+  }, [data]);
 
   const displayCount = Math.max(unreadCount, allNotifications.length);
 
@@ -111,7 +119,7 @@ export function OrderNotificationBell() {
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex items-start gap-4 p-3">
                 <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
-                <div className="flex-grow space-y-1">
+                <div className="grow space-y-1">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-full" />
                   <Skeleton className="h-2 w-1/4" />
@@ -145,7 +153,7 @@ export function OrderNotificationBell() {
                         <Icon className="h-5 w-5" />
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex-grow">
+                    <div className="grow">
                       <p className="text-sm font-medium leading-tight">
                         {notification.title}
                       </p>
@@ -153,13 +161,7 @@ export function OrderNotificationBell() {
                         {notification.message}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground/80">
-                        {new Date(notification.created_at).toLocaleTimeString(
-                          [],
-                          {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          }
-                        )}
+                        {new Date(notification.created_at).toLocaleString()}
                       </p>
                     </div>
                   </Link>

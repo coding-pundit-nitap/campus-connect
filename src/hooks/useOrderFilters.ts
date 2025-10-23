@@ -21,21 +21,27 @@ export function useOrderFilters({
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (orderStatusFilter !== "all")
+    if (search) {
+      params.set("search", search);
+    }
+    if (orderStatusFilter !== "all") {
       params.set("order_status", orderStatusFilter);
-    if (paymentStatusFilter !== "all")
+    }
+    if (paymentStatusFilter !== "all") {
       params.set("payment_status", paymentStatusFilter);
+    }
     router.push(`/admin/orders?${params.toString()}`);
   };
 
   const handleClearSearch = () => {
     setSearch("");
     const params = new URLSearchParams();
-    if (orderStatusFilter !== "all")
+    if (orderStatusFilter !== "all") {
       params.set("order_status", orderStatusFilter);
-    if (paymentStatusFilter !== "all")
+    }
+    if (paymentStatusFilter !== "all") {
       params.set("payment_status", paymentStatusFilter);
+    }
     router.push(`/admin/orders?${params.toString()}`);
   };
 

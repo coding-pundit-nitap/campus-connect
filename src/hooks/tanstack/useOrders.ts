@@ -67,7 +67,9 @@ function useOrders({
   });
 
   const allOrders: SerializedOrderWithDetails[] = useMemo(() => {
-    if (!data?.pages) return initialData;
+    if (!data?.pages) {
+      return initialData;
+    }
 
     return data.pages.flatMap((page) => page.data.data);
   }, [data, initialData]);

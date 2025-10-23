@@ -25,7 +25,7 @@ export function UserAddressListContainer({
     handleSetDefault,
     handleDelete,
     setDefaultMutation,
-    deleteMutation,
+    isPending,
   } = useUserAddressManager();
 
   return (
@@ -39,7 +39,7 @@ export function UserAddressListContainer({
       onSetDefault={handleSetDefault}
       onDelete={handleDelete}
       isSetDefaultPending={setDefaultMutation.isPending}
-      isDeletePending={deleteMutation.isPending}
+      isDeletePending={isPending}
     />
   );
 }

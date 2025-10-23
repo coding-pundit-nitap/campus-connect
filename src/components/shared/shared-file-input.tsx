@@ -66,8 +66,12 @@ export function SharedFileInput({
   });
 
   const getPreviewUrl = () => {
-    if (value instanceof File) return URL.createObjectURL(value);
-    if (typeof value === "string") return value;
+    if (value instanceof File) {
+      return URL.createObjectURL(value);
+    }
+    if (typeof value === "string") {
+      return value;
+    }
     return initialPreviewUrl || null;
   };
 

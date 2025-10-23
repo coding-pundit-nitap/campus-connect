@@ -17,13 +17,13 @@ export function ProductCardHeader({
 }: ProductCardHeaderProps) {
   return (
     <div
-      className={`relative overflow-hidden ${isMobileList ? "aspect-[4/3] h-full" : "aspect-square"}`}
+      className={`relative overflow-hidden ${isMobileList ? "h-full" : "aspect-square"}`}
     >
       <Image
         src={ImageUtils.getImageUrl(product.imageKey)}
         alt={product.name}
         fill
-        className="object-cover transition-transform duration-300 ease-in-out group-hover:scale-105"
+        className="object-contain transition-transform duration-300 ease-in-out group-hover:scale-105"
         priority={priority}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />

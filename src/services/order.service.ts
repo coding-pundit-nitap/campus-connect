@@ -65,12 +65,15 @@ class OrderService {
         where: { id: delivery_address_id },
       });
 
-      if (!cart || cart.items.length === 0)
+      if (!cart || cart.items.length === 0) {
         throw new NotFoundError("Cart is empty.");
-      if (!deliveryAddress)
+      }
+      if (!deliveryAddress) {
         throw new NotFoundError("Delivery address not found.");
-      if (deliveryAddress.user_id !== user_id)
+      }
+      if (deliveryAddress.user_id !== user_id) {
         throw new UnauthorizedError("Address does not belong to user.");
+      }
 
       let totalPrice = 0;
       for (const item of cart.items) {
@@ -79,7 +82,10 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        totalPrice += Number(item.product.price) * item.quantity;
+        const discountedPrice =
+          Number(item.product.price) -
+          (Number(item.product.price) * Number(item.product.discount)) / 100;
+        totalPrice += discountedPrice * item.quantity;
       }
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 

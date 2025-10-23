@@ -20,19 +20,27 @@ export function useAdminShopFilters({
 
   const handleSearch = () => {
     const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    if (statusFilter !== "all") params.set("is_active", statusFilter);
-    if (verificationFilter !== "all")
+    if (search) {
+      params.set("search", search);
+    }
+    if (statusFilter !== "all") {
+      params.set("is_active", statusFilter);
+    }
+    if (verificationFilter !== "all") {
       params.set("verification_status", verificationFilter);
+    }
     router.push(`/admin/shops?${params.toString()}`);
   };
 
   const handleClearSearch = () => {
     setSearch("");
     const params = new URLSearchParams();
-    if (statusFilter !== "all") params.set("is_active", statusFilter);
-    if (verificationFilter !== "all")
+    if (statusFilter !== "all") {
+      params.set("is_active", statusFilter);
+    }
+    if (verificationFilter !== "all") {
       params.set("verification_status", verificationFilter);
+    }
     router.push(`/admin/shops?${params.toString()}`);
   };
 

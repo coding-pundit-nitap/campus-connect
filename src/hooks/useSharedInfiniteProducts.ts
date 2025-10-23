@@ -63,7 +63,9 @@ export const useSharedInfiniteProducts = ({
   });
 
   const allProducts: SerializedProduct[] = useMemo(() => {
-    if (!data?.pages) return initialProducts;
+    if (!data?.pages) {
+      return initialProducts;
+    }
 
     const serverData = data.pages[0]?.data ?? [];
     const clientPages = data.pages.slice(1);
@@ -120,7 +122,7 @@ export const useSharedInfiniteProducts = ({
         addToCart({ product_id, quantity });
       },
       onViewDetails: (product_id: string) => {
-        router.push(`/shops/${shop_id}/products/${product_id}`);
+        router.push(`/product/${product_id}`);
       },
       onResetFilters: clearFilters,
     };

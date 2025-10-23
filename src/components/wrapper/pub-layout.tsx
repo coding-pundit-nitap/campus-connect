@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import React from "react";
 import { Toaster } from "sonner";
 
@@ -13,8 +14,15 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-import { OrderNotificationBell } from "../notification/notification-bell";
 import { SidebarFooter } from "../sidebar/sidebar-footer";
+
+const OrderNotificationBell = dynamic(
+  () =>
+    import("../notification/notification-bell").then(
+      (mod) => mod.OrderNotificationBell
+    ),
+  { ssr: false }
+);
 
 interface LayoutProps {
   children: React.ReactNode;
