@@ -19,7 +19,7 @@ export function useUserAddressManager() {
 
   const { data: addresses, isLoading, error } = useUserAddresses();
   const setDefaultMutation = useSetDefaultAddress();
-  const deleteMutation = useDeleteAddress();
+  const { mutateAsync: deleteMutation, isPending } = useDeleteAddress();
 
   const handleAddressSelect = (address: UserAddress) => {
     setSelectedAddressId(address.id);
@@ -28,8 +28,8 @@ export function useUserAddressManager() {
   const handleSetDefault = async (addressId: string) => {
     try {
       await setDefaultMutation.mutateAsync(addressId);
-    } catch (error) {
-      console.error("Error setting default address:", error);
+    } catch {
+      // TODO: Loggind
     }
   };
 
@@ -46,12 +46,12 @@ export function useUserAddressManager() {
       userAddressUIService.getDeleteConfirmationMessage(address);
     if (confirm(confirmMessage)) {
       try {
-        await deleteMutation.mutateAsync(address.id);
+        await deleteMutation(address.id);
         if (selectedAddressId === address.id) {
           setSelectedAddressId(null);
         }
-      } catch (error) {
-        console.error("Error deleting address:", error);
+      } catch {
+        // TODO: Logging
       }
     }
   };
@@ -64,7 +64,9 @@ export function useUserAddressManager() {
     setShowForm(false);
   };
   const getSelectedAddress = (): UserAddress | null => {
-    if (!addresses?.data || !selectedAddressId) return null;
+    if (!addresses?.data || !selectedAddressId) {
+      return null;
+    }
     return (
       addresses.data.find((address) => address.id === selectedAddressId) || null
     );
@@ -73,13 +75,13 @@ export function useUserAddressManager() {
   return {
     addresses: addresses?.data,
     isLoading,
+    isPending,
     error,
     selectedAddressId,
     selectedAddress: getSelectedAddress(),
     showForm,
 
     setDefaultMutation,
-    deleteMutation,
 
     handleAddressSelect,
     handleSetDefault,

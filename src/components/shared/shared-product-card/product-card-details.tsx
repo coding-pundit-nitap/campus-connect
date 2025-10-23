@@ -21,18 +21,26 @@ export function ProductCardDetails({
 }: ProductCardDetailsProps) {
   const stockInfo = (() => {
     const { stock_quantity } = product;
-    if (stock_quantity === 0)
+    if (stock_quantity === 0) {
       return { text: "Out of Stock", className: "text-red-600" };
-    if (stock_quantity <= 5)
+    }
+    if (stock_quantity <= 5) {
       return { text: "Low Stock", className: "text-orange-500 font-semibold" };
+    }
     return { text: "In Stock", className: "text-green-600" };
   })();
 
   const ratingClasses = (() => {
     const rating = product.rating || 0;
-    if (rating >= 4.5) return "bg-green-100 text-green-800";
-    if (rating >= 4.0) return "bg-sky-100 text-sky-800";
-    if (rating >= 3.0) return "bg-yellow-100 text-yellow-800";
+    if (rating >= 4.5) {
+      return "bg-green-100 text-green-800";
+    }
+    if (rating >= 4.0) {
+      return "bg-sky-100 text-sky-800";
+    }
+    if (rating >= 3.0) {
+      return "bg-yellow-100 text-yellow-800";
+    }
     return "bg-red-100 text-red-800";
   })();
 

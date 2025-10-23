@@ -126,7 +126,9 @@ export default function SharedSidebar({
   };
 
   const Header = () => {
-    if (!showHeader || !header) return null;
+    if (!showHeader || !header) {
+      return null;
+    }
 
     if (header.customContent) {
       return <SidebarHeader>{header.customContent}</SidebarHeader>;

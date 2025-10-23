@@ -20,8 +20,7 @@ export const useImageDelete = () => {
   return useMutation({
     mutationFn: (imageKey: string) =>
       fileUploadAPIService.deleteImage(imageKey),
-    onError: (error) => {
-      console.error("Background image deletion failed:", error);
+    onError: () => {
       toast.error("Could not delete the old image from storage.");
     },
   });

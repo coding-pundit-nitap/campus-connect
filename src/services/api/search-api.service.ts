@@ -49,11 +49,21 @@ class SearchAPIService {
     nextCursor?: string;
   }> {
     const params = new URLSearchParams();
-    if (query) params.append("q", query);
-    if (status) params.append("status", status);
-    if (dateRange?.from) params.append("from", dateRange.from.toISOString());
-    if (dateRange?.to) params.append("to", dateRange.to.toISOString());
-    if (pageParam) params.append("cursor", pageParam);
+    if (query) {
+      params.append("q", query);
+    }
+    if (status) {
+      params.append("status", status);
+    }
+    if (dateRange?.from) {
+      params.append("from", dateRange.from.toISOString());
+    }
+    if (dateRange?.to) {
+      params.append("to", dateRange.to.toISOString());
+    }
+    if (pageParam) {
+      params.append("cursor", pageParam);
+    }
 
     const url = `search/orders`;
     const response = await axiosInstance.get<

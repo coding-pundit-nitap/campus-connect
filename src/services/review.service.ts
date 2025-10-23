@@ -25,7 +25,7 @@ class ReviewService {
       await notificationService.publishNotification(product.shop.owner_id, {
         title: "New Review on Your Product",
         message: `Your product ${product.name} has received a new review.`,
-        action_url: `/shops/${product.shop.id}/products/${product.id}`,
+        action_url: `/product/${product.id}`,
         type: "INFO",
       });
     }

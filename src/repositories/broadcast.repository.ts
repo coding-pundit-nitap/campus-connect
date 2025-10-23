@@ -84,7 +84,9 @@ class BroadcastNotificationRepository {
     user_id: string,
     broadcast_ids: string[]
   ): Promise<void> {
-    if (broadcast_ids.length === 0) return;
+    if (broadcast_ids.length === 0) {
+      return;
+    }
     await prisma.broadcastReadStatus.createMany({
       data: broadcast_ids.map((id) => ({
         user_id,

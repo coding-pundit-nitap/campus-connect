@@ -62,7 +62,9 @@ class NotificationRepository {
   }
 
   async markManyAsRead(notification_ids: string[]): Promise<{ count: number }> {
-    if (notification_ids.length === 0) return { count: 0 };
+    if (notification_ids.length === 0) {
+      return { count: 0 };
+    }
     return await prisma.notification.updateMany({
       where: {
         id: { in: notification_ids },

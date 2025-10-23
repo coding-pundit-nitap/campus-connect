@@ -72,8 +72,8 @@ export function useUpdateProductForm({ product }: Props) {
             }
           },
         });
-      } catch (uploadError) {
-        console.error("Upload failed:", uploadError);
+      } catch {
+        // TODO: Loggind
         form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
@@ -124,8 +124,8 @@ export function useCreateProductForm() {
     onSubmit: form.handleSubmit(async (data) => {
       try {
         await createProduct(data);
-      } catch (uploadError) {
-        console.error("Upload failed:", uploadError);
+      } catch {
+        // TODO: Loggind
         form.setError("imageKey", {
           type: "manual",
           message: "Image upload failed. Please try again.",

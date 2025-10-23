@@ -53,7 +53,9 @@ class ConnectivityAPIService {
 
   isSlow = (): boolean => {
     const info = this.getInfo();
-    if (!info) return false;
+    if (!info) {
+      return false;
+    }
 
     return (
       info.effectiveType === "slow-2g" ||

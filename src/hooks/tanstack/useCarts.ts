@@ -69,7 +69,9 @@ export function useUpsertCartItem() {
           queryClient.setQueryData<SerializedFullCart[]>(
             queryKeys.cart.all,
             (oldData) => {
-              if (!oldData) return oldData;
+              if (!oldData) {
+                return oldData;
+              }
               return oldData.map((c) =>
                 c.shop_id === targetShopId ? optimisticCart : c
               );
@@ -92,7 +94,9 @@ export function useUpsertCartItem() {
       queryClient.setQueryData<SerializedFullCart[]>(
         queryKeys.cart.all,
         (oldData) => {
-          if (!oldData) return data.items.length > 0 ? [data] : [];
+          if (!oldData) {
+            return data.items.length > 0 ? [data] : [];
+          }
 
           const existingCartIndex = oldData.findIndex(
             (cart) => cart.shop_id === data.shop_id
@@ -137,8 +141,6 @@ export function useUpsertCartItem() {
           context.previousShopCart
         );
       }
-
-      console.error("Failed to update cart:", error);
 
       const action = variables.quantity === 0 ? "remove item from" : "update";
       toast.dismiss();
@@ -186,7 +188,9 @@ export function useAddToCart() {
       queryClient.setQueryData<SerializedFullCart[]>(
         queryKeys.cart.all,
         (oldData) => {
-          if (!oldData) return [data];
+          if (!oldData) {
+            return [data];
+          }
 
           const existingCartIndex = oldData.findIndex(
             (cart) => cart.shop_id === data.shop_id
@@ -219,7 +223,6 @@ export function useAddToCart() {
         );
       }
 
-      console.error("Failed to add to cart:", error);
       toast.dismiss();
       toast.error("Failed to add to cart. Please try again.");
     },

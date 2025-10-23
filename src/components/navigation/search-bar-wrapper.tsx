@@ -27,7 +27,7 @@ export function SearchBarWrapper({
     },
     onNavigateToProduct: (productId: string, shopId?: string) => {
       if (shopId) {
-        router.push(`/shops/${shopId}/products/${productId}`);
+        router.push(`/product/${productId}`);
       }
     },
   });

@@ -20,9 +20,13 @@ export function useInfiniteScroll({
 
   const lastElementRef = useCallback(
     (node: HTMLElement | null) => {
-      if (isFetchingNextPage) return;
+      if (isFetchingNextPage) {
+        return;
+      }
 
-      if (observerRef.current) observerRef.current.disconnect();
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
 
       observerRef.current = new IntersectionObserver(
         (entries) => {
@@ -36,7 +40,9 @@ export function useInfiniteScroll({
         }
       );
 
-      if (node) observerRef.current.observe(node);
+      if (node) {
+        observerRef.current.observe(node);
+      }
     },
     [isFetchingNextPage, hasNextPage, fetchNextPage, rootMargin, threshold]
   );

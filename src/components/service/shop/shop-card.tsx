@@ -14,8 +14,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
-import { environment } from "@/config/env.config";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
+import { ImageUtils } from "@/lib/utils-functions/image.utils";
 
 type Props = {
   shop: ShopWithOwnerDetails;
@@ -26,13 +26,10 @@ export function ShopCard({ shop, priority }: Props) {
   return (
     <Link href={`/shops/${shop.id}` as Route} className="group block">
       <Card className="flex h-full w-full flex-col overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-4/3 overflow-hidden">
           <Image
             fill
-            src={
-              `${environment.minioBaseUrl}/${shop.imageKey}` ||
-              "/placeholders/placeholder.png"
-            }
+            src={ImageUtils.getImageUrl(shop.imageKey)}
             alt={shop.name}
             priority={priority}
             className="object-cover transition-transform duration-300 group-hover:scale-105"

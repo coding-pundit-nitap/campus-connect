@@ -333,8 +333,12 @@ export class ProductUIServices {
     return Object.entries(grouped)
       .map(([categoryName, products]) => ({ categoryName, products }))
       .sort((a, b) => {
-        if (a.categoryName === "Uncategorized") return 1;
-        if (b.categoryName === "Uncategorized") return -1;
+        if (a.categoryName === "Uncategorized") {
+          return 1;
+        }
+        if (b.categoryName === "Uncategorized") {
+          return -1;
+        }
         return a.categoryName.localeCompare(b.categoryName);
       });
   }

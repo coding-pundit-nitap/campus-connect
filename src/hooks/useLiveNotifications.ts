@@ -18,12 +18,14 @@ export function useLiveNotifications() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (session.status !== "authenticated") return;
+    if (session.status !== "authenticated") {
+      return;
+    }
 
     const eventSource = new EventSource("/api/notifications/stream");
 
     eventSource.onopen = () => {
-      console.log("Connection to notification stream opened.");
+      // TODO: Logging
     };
 
     const handleNewNotification = (event: NotificationEvent): void => {
@@ -36,7 +38,9 @@ export function useLiveNotifications() {
         queryClient.setQueryData(
           queryKeys.notifications.summary(),
           (oldSummary: NotificationSummaryType | undefined) => {
-            if (!oldSummary) return undefined;
+            if (!oldSummary) {
+              return undefined;
+            }
 
             const exists = isBroadcast
               ? oldSummary.unreadBroadcasts.some(
@@ -70,20 +74,18 @@ export function useLiveNotifications() {
             };
           }
         );
-      } catch (e: unknown) {
-        console.error("Error processing new notification:", e);
+      } catch {
+        // TODO: Loggind
       }
     };
     eventSource.addEventListener("new_notification", handleNewNotification);
     eventSource.addEventListener("new_broadcast", handleNewNotification);
 
-    eventSource.onerror = (error) => {
-      console.error("EventSource error:", error);
+    eventSource.onerror = () => {
       eventSource.close();
     };
     return () => {
       eventSource.close();
-      console.log("Connection to notification stream closed.");
     };
   }, [queryClient, session.status]);
 }

@@ -8,8 +8,7 @@ export const useCreateReview = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createReviewAction,
-    onError: (error) => {
-      console.error("Error creating review:", error);
+    onError: () => {
       toast.error("Failed to submit review. Please try again.");
     },
     onSuccess: (_data, { product_id }) => {

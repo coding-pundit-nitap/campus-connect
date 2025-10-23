@@ -16,8 +16,8 @@ export function useImageKeyExtractor() {
   ): string => {
     try {
       return extractImageKey(formImageKey);
-    } catch (error) {
-      console.warn("Failed to extract image key, using fallback:", error);
+    } catch {
+      // TODO: Loggind
       return fallbackKey;
     }
   };

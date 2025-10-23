@@ -56,8 +56,9 @@ class NotificationAPIService {
     if (
       (data.notificationIds?.length ?? 0) === 0 &&
       (data.broadcastIds?.length ?? 0) === 0
-    )
+    ) {
       return;
+    }
     await axiosInstance.patch("notifications/mark-as-read", data);
   }
 

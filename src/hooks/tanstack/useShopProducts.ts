@@ -73,8 +73,7 @@ export function useShopProductsUpdate(product_id: string) {
         queryKey: queryKeys.shops.all,
       });
     },
-    onError: (error) => {
-      console.error("Failed to update product:", error);
+    onError: () => {
       toast.error("Failed to update product. Please try again.");
     },
   });
@@ -102,8 +101,7 @@ export function useShopProductsCreate() {
         });
       }
     },
-    onError: (error) => {
-      console.error("Failed to create product:", error);
+    onError: () => {
       toast.error("Failed to create product. Please try again.");
     },
   });
@@ -136,8 +134,7 @@ export function useShopProductsDelete() {
         });
       }
     },
-    onError: (error) => {
-      console.error("Failed to delete product:", error);
+    onError: () => {
       toast.error("Failed to delete product. Please try again.");
     },
   });

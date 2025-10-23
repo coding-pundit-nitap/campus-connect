@@ -14,7 +14,9 @@ export interface IAuthUtils {
 class AuthUtils implements IAuthUtils {
   async getUserData() {
     const session = await getCachedSession();
-    if (!session || !session.user || !session.user.id) this.unAuthenticated();
+    if (!session || !session.user || !session.user.id) {
+      this.unAuthenticated();
+    }
     return session.user;
   }
   async isAuthenticated() {
@@ -24,7 +26,9 @@ class AuthUtils implements IAuthUtils {
 
   async getUserId() {
     const user = await this.getUserData();
-    if (!user || !user.id) this.unAuthenticated();
+    if (!user || !user.id) {
+      this.unAuthenticated();
+    }
     return user.id;
   }
 
@@ -43,7 +47,9 @@ class AuthUtils implements IAuthUtils {
 
   async getOwnedShopId(): Promise<string> {
     const user = await this.getUserData();
-    if (!user || !user.shop_id) this.unAuthorized();
+    if (!user || !user.shop_id) {
+      this.unAuthorized();
+    }
     return user.shop_id;
   }
 

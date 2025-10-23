@@ -155,7 +155,7 @@ export async function getOrderByIdAction(
 
     if (order.user_id !== user_id) {
       throw new UnauthorizedError(
-        "Unauthorized: This order doesn\'t belong to you."
+        "Unauthorized: This order doesn't belong to you."
       );
     }
 

@@ -17,7 +17,9 @@ class LoginUIService {
     };
   };
   formatLoginError = (error: Error | null): string | null => {
-    if (!error) return null;
+    if (!error) {
+      return null;
+    }
     if (error.message.includes("CredentialsSignin")) {
       return "Invalid email or password. Please try again.";
     }

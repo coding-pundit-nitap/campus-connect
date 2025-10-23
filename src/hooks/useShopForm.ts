@@ -34,7 +34,6 @@ export function useLinkShop() {
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
-      console.log("Submitting form with data:", data);
       try {
         linkShop(data, {
           onSuccess: async (result) => {
@@ -44,8 +43,8 @@ export function useLinkShop() {
             }
           },
         });
-      } catch (uploadError) {
-        console.error("Shop image upload failed:", uploadError);
+      } catch {
+        // TODO: Loggind
         form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
@@ -55,7 +54,9 @@ export function useLinkShop() {
   };
 
   useEffect(() => {
-    if (error?.message) toast.error(error.message);
+    if (error?.message) {
+      toast.error(error.message);
+    }
   }, [error?.message]);
   return {
     form,
@@ -103,8 +104,8 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
             }
           },
         });
-      } catch (error) {
-        console.error("Shop update failed:", error);
+      } catch {
+        // TODO: Loggind
         form.setError("imageKey", {
           type: "manual",
           message: "Shop update failed. Please try again.",

@@ -24,9 +24,7 @@ export function SharedFilterProductSearch({
   const handleNavigation = (selectedItem: SearchResult) => {
     if (selectedItem.type === "product") {
       if (selectedItem.shop_id) {
-        router.push(
-          `/shops/${selectedItem.shop_id}/products/${selectedItem.id}`
-        );
+        router.push(`/product/${selectedItem.id}`);
       }
     }
   };

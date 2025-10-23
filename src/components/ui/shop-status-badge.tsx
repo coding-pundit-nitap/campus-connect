@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +15,9 @@ type ShopStatusBadgeProps = {
 };
 
 export function ShopStatusBadge({ shop }: ShopStatusBadgeProps) {
-  const [mounted, setMounted] = useState(false);
-  const [shopOpen, setShopOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(() => isShopOpen(shop));
 
   useEffect(() => {
-    setMounted(true);
     setShopOpen(isShopOpen(shop));
   }, [shop]);
 
@@ -28,15 +26,6 @@ export function ShopStatusBadge({ shop }: ShopStatusBadgeProps) {
       <Badge variant="destructive">
         <XCircle className="w-3 h-3 mr-1" />
         Inactive
-      </Badge>
-    );
-  }
-
-  if (!mounted) {
-    return (
-      <Badge variant="outline" className="bg-gray-100">
-        <Clock className="w-3 h-3 mr-1" />
-        ...
       </Badge>
     );
   }
