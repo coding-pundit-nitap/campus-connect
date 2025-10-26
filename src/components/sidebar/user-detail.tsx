@@ -1,7 +1,6 @@
 import { Crown, Mail, User as UserIcon } from "lucide-react";
-import { User } from "next-auth";
-import React from "react";
 
+import { User } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,

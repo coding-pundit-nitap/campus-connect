@@ -3,9 +3,9 @@
 import { Role } from "@prisma/client";
 import { ArrowRight, Store } from "lucide-react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 
 import { Separator } from "@/components/ui/separator";
+import { useSession } from "@/lib/auth-client";
 
 import { Button } from "../ui/button";
 import ShopOwnerBadge from "./shop-owner-badge";
@@ -15,16 +15,9 @@ import UserAvatar from "./user-avatar";
 import UserDetail from "./user-detail";
 
 export function SidebarFooter() {
-  const { data: session, status } = useSession();
-  if (status === "loading") {
-    return (
-      <div className="mt-auto space-y-4 p-4">
-        <Separator />
-      </div>
-    );
-  }
+  const { data: session } = useSession();
 
-  if (status === "unauthenticated" || !session?.user) {
+  if (!session?.user) {
     return <SignOutButton />;
   }
 

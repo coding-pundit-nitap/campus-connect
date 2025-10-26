@@ -10,10 +10,9 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
-import { useCategorySearch } from "@/hooks";
-import { useUpdateProductForm } from "@/hooks/useProductForm";
-import { ImageUtils } from "@/lib/utils-functions";
-import { productUIServices } from "@/lib/utils-functions/product.utils";
+import { useCategorySearch, useUpdateProductForm } from "@/hooks";
+import { ImageUtils } from "@/lib/utils";
+import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 import { ProductCardDetails } from "./product-card-details";
@@ -26,7 +25,7 @@ interface ProductCardProps {
   productHasRating: boolean;
   priority?: boolean;
   mode?: "user" | "owner";
-  onDelete?: (product_id: string, imageKey: string) => Promise<void>;
+  onDelete?: (product_id: string, image_key: string) => Promise<void>;
   userActions?: React.ReactNode;
 }
 
@@ -51,10 +50,10 @@ export function ProductCard({
     if (field.name === "category") {
       return { ...field, suggestions, isLoadingSuggestions, onSearchQuery };
     }
-    if (field.name === "image" && product.imageKey) {
+    if (field.name === "image" && product.image_key) {
       return {
         ...field,
-        previewUrl: ImageUtils.getImageUrl(product.imageKey),
+        previewUrl: ImageUtils.getImageUrl(product.image_key),
       };
     }
     return field;
@@ -77,7 +76,7 @@ export function ProductCard({
           setIsDialogOpen={productFormHook.setIsDialogOpen}
         />
         <Button
-          onClick={() => onDelete(product.id, product.imageKey)}
+          onClick={() => onDelete(product.id, product.image_key)}
           variant="destructive"
           className="w-full transition-transform duration-200 hover:scale-[1.02]"
         >

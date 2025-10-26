@@ -1,4 +1,8 @@
+import { notFound } from "next/navigation";
+
 import { NotFoundError } from "@/lib/custom-error";
+import { cartUIService, serializeFullCart } from "@/lib/utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { cartRepository, productRepository } from "@/repositories";
 import { FullCart } from "@/types";
 
@@ -9,6 +13,28 @@ class CartService {
 
   async getCartForShop(user_id: string, shop_id: string) {
     return cartRepository.findOrCreate(user_id, shop_id);
+  }
+
+  async getCartData(cart_id: string) {
+    const user_id = await authUtils.getUserId();
+
+    const fullCart = await cartRepository.getUserCartWithItemsByCartId(
+      user_id,
+      cart_id
+    );
+    if (!fullCart || fullCart.items.length === 0) {
+      return notFound();
+    }
+
+    const cart = cartUIService.transformToShopCart(serializeFullCart(fullCart));
+
+    return {
+      cart,
+      total: cart.totalPrice,
+      shop_id: cart.items[0].shop_id,
+      qr_image_key: cart.qr_image_key,
+      upi_id: cart.upi_id,
+    };
   }
 
   async upsertCartItem(user_id: string, product_id: string, quantity: number) {

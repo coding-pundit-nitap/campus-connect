@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-import { serializeProducts } from "@/lib/utils-functions/product.utils";
+import { serializeProducts } from "@/lib/utils/product.utils";
 import productRepository from "@/repositories/product.repository";
 import {
   createErrorResponse,

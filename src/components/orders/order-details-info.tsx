@@ -38,7 +38,6 @@ export default function OrderDetailsInfo({ order }: Props) {
     payment_status,
     upi_transaction_id,
   } = order;
-
   return (
     <div className="space-y-4 col-span-1">
       <Card className="py-4">

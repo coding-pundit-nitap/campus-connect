@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { serializeProduct } from "@/lib/utils-functions";
+import { serializeProduct } from "@/lib/utils";
 import productService from "@/services/product.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { SerializedProductDetail } from "@/types/product.types";

@@ -1,7 +1,7 @@
 import { AlertCircle, FileQuestion, Loader2 } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 
 interface EmptyStateProps {
   title: string;

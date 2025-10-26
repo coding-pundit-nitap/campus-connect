@@ -1,7 +1,7 @@
-import "server-only";
+// import "server-only";
 
-import { cache } from "react";
+// import { cache } from "react";
 
-import { auth } from "@/auth";
+// import { auth } from "@/auth";
 
-export const getCachedSession = cache(auth);
+// export const getCachedSession = cache();

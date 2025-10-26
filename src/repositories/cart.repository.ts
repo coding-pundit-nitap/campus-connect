@@ -10,7 +10,9 @@ export const fullCartInclude = {
       product: {
         include: {
           category: true,
-          shop: { select: { id: true, name: true } },
+          shop: {
+            select: { id: true, name: true, qr_image_key: true, upi_id: true },
+          },
         },
       },
     },
@@ -82,6 +84,18 @@ class CartRepository {
   async getAllUserCartsWithItems(user_id: string): Promise<FullCart[]> {
     return prisma.cart.findMany({
       where: {
+        user_id,
+      },
+      include: fullCartInclude,
+    });
+  }
+  async getUserCartWithItemsByCartId(
+    user_id: string,
+    cart_id: string
+  ): Promise<FullCart | null> {
+    return prisma.cart.findUnique({
+      where: {
+        id: cart_id,
         user_id,
       },
       include: fullCartInclude,

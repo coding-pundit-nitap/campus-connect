@@ -1,4 +1,3 @@
-
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -9,9 +8,7 @@ import simpleImportSort from "eslint-plugin-simple-import-sort";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
@@ -24,8 +21,10 @@ const eslintConfig = defineConfig([
       "react-hooks": reactHooks,
     },
     rules: {
-      
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_" },
+      ],
       "@typescript-eslint/no-explicit-any": "warn",
 
       "simple-import-sort/imports": "warn",
@@ -46,7 +45,6 @@ const eslintConfig = defineConfig([
       "no-unused-expressions": "warn",
       "no-console": "warn",
     },
-
   },
   {
     files: [
@@ -55,7 +53,8 @@ const eslintConfig = defineConfig([
       "src/lib/**/*.{ts,tsx}",
       "src/repositories/**/*.{ts,tsx}",
       "src/services/**/*.{ts,tsx}",
-      "src/proxy.ts"
+      "src/proxy.ts",
+      "prisma/**/*.ts"
     ],
     rules: {
       "no-console": "off",

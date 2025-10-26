@@ -19,6 +19,8 @@ export async function getDashboardAnalyticsAction(): Promise<
       totalAdmins: number;
       totalRegularUsers: number;
       recentUsers: number;
+      activeUsers: number;
+      inactiveUsers: number;
     };
     shops: {
       totalShops: number;

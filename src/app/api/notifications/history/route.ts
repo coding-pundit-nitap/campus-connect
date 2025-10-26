@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions/auth.utils";
+import { authUtils } from "@/lib/utils/auth.utils";
 import { notificationService } from "@/services/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 

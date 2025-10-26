@@ -3,11 +3,11 @@ import React from "react";
 
 import { ProductCard } from "@/components/shared/shared-product-card";
 import { ProductListWithViewModes } from "@/components/shared/shared-product-list/product-list-with-view-modes";
-import { productUIServices } from "@/lib/utils-functions/product.utils";
+import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductListProps {
-  onDeleteProduct: (product_id: string, imageKey: string) => Promise<void>;
+  onDeleteProduct: (product_id: string, image_key: string) => Promise<void>;
   shopData: {
     displayProducts: SerializedProduct[];
     isInitialLoading: boolean;

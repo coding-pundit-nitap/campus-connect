@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getVerificationStatusInfo } from "@/lib/shop.utils";
-import { ImageUtils } from "@/lib/utils-functions/image.utils";
+import { ImageUtils } from "@/lib/utils/image.utils";
 import { ShopWithOwner } from "@/types";
 
 interface ShopHeaderCardProps {
@@ -25,8 +25,8 @@ interface ShopHeaderCardProps {
 
 export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
   const statusInfo = getVerificationStatusInfo(shop.verification_status);
-  const shopImageUrl = shop.imageKey
-    ? ImageUtils.getImageUrl(shop.imageKey)
+  const shopImageUrl = shop.image_key
+    ? ImageUtils.getImageUrl(shop.image_key)
     : undefined;
 
   return (

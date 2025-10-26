@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 
-import { serializeProduct } from "@/lib/utils-functions";
+import { serializeProduct } from "@/lib/utils";
 import reviewRepository from "@/repositories/reviews.repository";
 import productService from "@/services/product.service";
 import { ReviewWithUser } from "@/types/review.type";
@@ -63,7 +63,7 @@ export default async function IndividualProduct({
   const productData = {
     id: serializedProduct.id,
     name: serializedProduct.name,
-    imageKey: serializedProduct.imageKey,
+    image_key: serializedProduct.image_key,
     shop: {
       name: product.shop.name,
     },
@@ -85,7 +85,7 @@ export default async function IndividualProduct({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <ProductImage
           className="lg:col-span-5"
-          imageKey={productData.imageKey}
+          image_key={productData.image_key}
           name={productData.name}
         />
         <div className="lg:col-span-7 flex flex-col gap-6">

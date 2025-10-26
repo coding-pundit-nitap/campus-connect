@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 
-import { useInfiniteReviews } from "@/hooks/useInfiniteReviews";
+import { useInfiniteReviews } from "@/hooks/queries/useInfiniteReviews";
 import { ReviewWithUser } from "@/types/review.type";
 
 import ReviewCard from "./review-card";

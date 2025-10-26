@@ -27,8 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useDemoteUser, usePromoteUser } from "@/hooks/tanstack/useUserAdmin";
-import { useAdminUserFilters } from "@/hooks/useAdminUserFilters";
+import {
+  useAdminUserFilters,
+  useDemoteUser,
+  useForceSignOutUser,
+  usePromoteUser,
+} from "@/hooks";
 import { CursorPaginatedResponse } from "@/types/response.types";
 
 interface UsersTableProps {
@@ -39,7 +43,7 @@ interface UsersTableProps {
     role: Role;
     phone: string | null;
     image: string | null;
-    created_at: Date | string;
+    createdAt: Date | string;
   }>;
   searchParams: { cursor?: string; search?: string; role?: string };
 }
@@ -51,13 +55,15 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
     open: boolean;
     userId: string;
     userEmail: string;
-    action: "promote" | "demote" | null;
+    action: "promote" | "demote" | "signout" | null;
   }>({ open: false, userId: "", userEmail: "", action: null });
 
   const { mutate: promoteUser, isPending: isPromoting } = usePromoteUser();
   const { mutate: demoteUser, isPending: isDemoting } = useDemoteUser();
+  const { mutate: forceSignOutUser, isPending: isSigningOut } =
+    useForceSignOutUser();
 
-  const isPending = isPromoting || isDemoting;
+  const isPending = isPromoting || isDemoting || isSigningOut;
 
   const handleLoadMore = () => {
     const params = new URLSearchParams(searchParams);
@@ -72,6 +78,8 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
       promoteUser(actionDialog.userId);
     } else if (actionDialog.action === "demote") {
       demoteUser(actionDialog.userId);
+    } else if (actionDialog.action === "signout") {
+      forceSignOutUser(actionDialog.userId);
     }
     setActionDialog({ open: false, userId: "", userEmail: "", action: null });
   };
@@ -118,7 +126,7 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
                   </TableCell>
                   <TableCell>{user.phone || "—"}</TableCell>
                   <TableCell>
-                    <ClientDate date={user.created_at} format="datetime" />
+                    <ClientDate date={user.createdAt} format="datetime" />
                   </TableCell>
                   <TableCell className="text-right">
                     <UserActionsDropdown
@@ -137,6 +145,14 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
                           userId: user.id,
                           userEmail: user.email,
                           action: "demote",
+                        })
+                      }
+                      onSignOut={() =>
+                        setActionDialog({
+                          open: true,
+                          userId: user.id,
+                          userEmail: user.email,
+                          action: "signout",
                         })
                       }
                       disabled={isPending}

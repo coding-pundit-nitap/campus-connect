@@ -6,7 +6,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ImageUtils } from "@/lib/utils-functions";
+import { ImageUtils } from "@/lib/utils";
 import { SerializedOrderItemWithProduct } from "@/types";
 
 import SharedDialog from "../shared/shared-dialog";
@@ -39,7 +39,7 @@ export default function OrderDetailsItems({ items, orderStatus }: Props) {
               <div className="flex items-start gap-4">
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
                   <Image
-                    src={ImageUtils.getImageUrl(item.product.imageKey)}
+                    src={ImageUtils.getImageUrl(item.product.image_key)}
                     alt={item.product.name}
                     fill
                     className="object-cover"

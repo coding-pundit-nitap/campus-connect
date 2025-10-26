@@ -4,7 +4,7 @@ import { CheckCircle, RefreshCw, Wifi, WifiOff } from "lucide-react";
 import { useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { useOnlineStatus } from "@/hooks/utils/useOnlineStatus";
 
 interface OfflineWrapperProps {
   children: React.ReactNode;

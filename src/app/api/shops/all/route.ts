@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
     const queryOptions = {
       where: { is_active: true },
-      include: { owner: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, email: true } } },
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,

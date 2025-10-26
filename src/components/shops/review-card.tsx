@@ -3,6 +3,7 @@ import React from "react";
 
 import { ReviewWithUser } from "@/types/review.type";
 
+import { ClientDate } from "../shared/client-date";
 import UserAvatar from "../sidebar/user-avatar";
 
 type Props = {
@@ -51,7 +52,7 @@ export default function ReviewCard({ review }: Props) {
         <div className="flex items-center justify-between">
           <p className="font-semibold">{review.user.name || "Anonymous"}</p>
           <span className="text-xs text-muted-foreground">
-            {new Date(review.created_at).toLocaleDateString()}
+            <ClientDate date={review.created_at} format="datetime" />
           </span>
         </div>
         <div className="flex items-center gap-2 my-1">

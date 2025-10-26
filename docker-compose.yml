@@ -236,7 +236,7 @@ services:
 
   # MinIO S3-compatible object storage
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: campus_connect_minio
     restart: always
     command: server --console-address ":9001" /data
@@ -293,7 +293,6 @@ services:
     profiles:
       - dev
       - prod
-
 # ----------------------------------------------------------------------------
 # Networks and Volumes
 # ----------------------------------------------------------------------------
