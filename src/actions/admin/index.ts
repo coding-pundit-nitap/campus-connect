@@ -18,6 +18,7 @@ export {
   updateShopVerificationAction,
 } from "./shop-actions";
 export {
+  forceSignOutUserAction,
   getAllUsersAction,
   getUserStatsAction,
   makeUserAdminAction,

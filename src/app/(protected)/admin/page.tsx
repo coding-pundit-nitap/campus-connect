@@ -8,10 +8,9 @@ import {
 } from "lucide-react";
 import { Metadata, Route } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
 import { getDashboardAnalyticsAction } from "@/actions/admin";
-import { auth } from "@/auth";
+import { SharedCard } from "@/components/shared/shared-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
@@ -20,12 +19,6 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminDashboardPage() {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
-
   let analytics = null;
   let error = null;
 
@@ -57,159 +50,175 @@ export default async function AdminDashboardPage() {
 
       {analytics && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {analytics.users.totalUsers}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {analytics.users.recentUsers} new this week
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Shops</CardTitle>
+          <SharedCard
+            title="Total User"
+            titleClassName="text-sm font-medium"
+            headerContent={<Users className="h-4 w-4 text-muted-foreground" />}
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+          >
+            <div className="text-2xl font-bold">
+              {analytics.users.totalUsers}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analytics.users.recentUsers} new this week
+            </p>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">
+                Active Users
+              </span>
+              <span className="font-medium">{analytics.users.activeUsers}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">
+                Inactive Users
+              </span>
+              <span className="font-medium">
+                {analytics.users.inactiveUsers}
+              </span>
+            </div>
+          </SharedCard>
+          <SharedCard
+            title="Total Shops"
+            titleClassName="text-sm font-medium"
+            headerContent={
               <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {analytics.shops.totalShops}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {analytics.shops.activeShops} active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Orders
-              </CardTitle>
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+          >
+            <div className="text-2xl font-bold">
+              {analytics.shops.totalShops}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analytics.shops.recentShops} active
+            </p>
+          </SharedCard>
+          <SharedCard
+            title="Total Orders"
+            titleClassName="text-sm font-medium"
+            headerContent={
               <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {analytics.orders.totalOrders}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {analytics.orders.newOrders} new orders
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Today's Revenue
-              </CardTitle>
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+          >
+            <div className="text-2xl font-bold">
+              {analytics.orders.totalOrders}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analytics.orders.recentOrders} new orders
+            </p>
+          </SharedCard>
+          <SharedCard
+            title="Today's Revenue"
+            titleClassName="text-sm font-medium"
+            headerContent={
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ₹{analytics.orders.todayRevenue.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {analytics.orders.completedOrders} completed orders
-              </p>
-            </CardContent>
-          </Card>
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+          >
+            <div className="text-2xl font-bold">
+              ₹{analytics.orders.todayRevenue.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {analytics.orders.completedOrders} completed orders
+            </p>
+          </SharedCard>
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link href={"/admin/users" as Route}>
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">
-                Manage Users
-              </CardTitle>
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View, promote, and manage user accounts
-              </p>
-            </CardContent>
-          </Card>
+          <SharedCard
+            title="Manage Users"
+            titleClassName="text-sm font-medium"
+            headerContent={<Users className="h-4 w-4 text-muted-foreground" />}
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+            className="hover:bg-accent transition-colors cursor-pointer"
+          >
+            <p className="text-sm text-muted-foreground">
+              View, promote, and manage user accounts
+            </p>
+          </SharedCard>
         </Link>
 
         <Link href={"/admin/shops" as Route}>
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">
-                Manage Shops
-              </CardTitle>
-              <ShoppingBag className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Activate, deactivate, and delete shops
-              </p>
-            </CardContent>
-          </Card>
+          <SharedCard
+            title="Manage Shops"
+            titleClassName="text-sm font-medium"
+            headerContent={
+              <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+            className="hover:bg-accent transition-colors cursor-pointer"
+          >
+            <p className="text-sm text-muted-foreground">
+              Activate, deactivate, and delete shops
+            </p>
+          </SharedCard>
         </Link>
 
         <Link href={"/admin/orders" as Route}>
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">
-                Manage Orders
-              </CardTitle>
-              <Package className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                View and update order statuses
-              </p>
-            </CardContent>
-          </Card>
+          <SharedCard
+            title="Manage Orders"
+            titleClassName="text-sm font-medium"
+            headerContent={
+              <Package className="h-4 w-4 text-muted-foreground" />
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+            className="hover:bg-accent transition-colors cursor-pointer"
+          >
+            <p className="text-sm text-muted-foreground">
+              View and update order statuses
+            </p>
+          </SharedCard>
         </Link>
 
         <Link href={"/admin/broadcasts" as Route}>
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">
-                Send Broadcasts
-              </CardTitle>
-              <Bell className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Send notifications to all users
-              </p>
-            </CardContent>
-          </Card>
+          <SharedCard
+            title="Send Broadcasts"
+            titleClassName="text-sm font-medium"
+            headerContent={<Bell className="h-4 w-4 text-muted-foreground" />}
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+            className="hover:bg-accent transition-colors cursor-pointer"
+          >
+            <p className="text-sm text-muted-foreground">
+              Send notifications to all users
+            </p>
+          </SharedCard>
         </Link>
 
         <Link href={"/admin/settings" as Route}>
-          <Card className="hover:bg-accent transition-colors cursor-pointer">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base font-medium">Settings</CardTitle>
-              <Settings className="h-5 w-5 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                Configure system settings
-              </p>
-            </CardContent>
-          </Card>
+          <SharedCard
+            title="Settings"
+            titleClassName="text-sm font-medium"
+            headerContent={
+              <Settings className="h-4 w-4 text-muted-foreground" />
+            }
+            headerClassName="flex flex-row items-center justify-between space-y-0 pb-2"
+            contentClassName=""
+            className="hover:bg-accent transition-colors cursor-pointer"
+          >
+            <p className="text-sm text-muted-foreground">
+              Configure system settings
+            </p>
+          </SharedCard>
         </Link>
       </div>
 
       {analytics && (
         <div className="grid gap-4 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>User Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <SharedCard
+            title="User Statistics"
+            titleClassName="text-sm font-medium"
+          >
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Total Users
@@ -240,14 +249,14 @@ export default async function AdminDashboardPage() {
                   {analytics.users.recentUsers}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Shop Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <SharedCard
+            title="Shop Statistics"
+            titleClassName="text-sm font-medium"
+          >
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Total Shops
@@ -280,14 +289,14 @@ export default async function AdminDashboardPage() {
                   {analytics.shops.pendingVerification}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Order Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <SharedCard
+            title="Order Statistics"
+            titleClassName="text-sm font-medium"
+          >
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Total Orders
@@ -320,14 +329,14 @@ export default async function AdminDashboardPage() {
                   {analytics.orders.cancelledOrders}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+          <SharedCard
+            title="Payment Statistics"
+            titleClassName="text-sm font-medium"
+          >
+            <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
                   Today's Revenue
@@ -352,8 +361,8 @@ export default async function AdminDashboardPage() {
                   {analytics.orders.recentOrders}
                 </span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </SharedCard>
         </div>
       )}
     </div>

@@ -1,8 +1,8 @@
 import React from "react";
 
 import { ProductFilters } from "@/components/shared/shared-product-filters";
-import { productUIServices } from "@/lib/utils-functions";
-import { FilterState } from "@/lib/utils-functions/product.utils";
+import { productUIServices } from "@/lib/utils";
+import { FilterState } from "@/lib/utils/product.utils";
 
 interface ProductFiltersProps {
   filters: FilterState;

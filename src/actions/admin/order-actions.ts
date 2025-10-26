@@ -11,7 +11,7 @@ import {
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
-} from "@/lib/utils-functions/order.utils";
+} from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import notificationService from "@/services/notification.service";
 import { SerializedOrderWithDetails } from "@/types";

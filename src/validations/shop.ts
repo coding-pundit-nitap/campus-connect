@@ -15,7 +15,7 @@ const locationSchema = z
   .min(1, "Location is required")
   .min(3, "Location must be at least 3 characters");
 
-const imageKeySchema = z.string().min(1, "An image is required.");
+const image_keySchema = z.string().min(1, "An image is required.");
 
 const openingSchema = z
   .string()
@@ -27,19 +27,24 @@ const closingSchema = z
   .min(1, "Closing hours are required")
   .min(5, "Closing hours format is invalid");
 
+const qr_image_keySchema = z.string().min(1, "An QR code image is required.");
+
 export const shopSchema = z.object({
   name: nameSchema,
   description: descriptionSchema,
   location: locationSchema,
   opening: openingSchema,
   closing: closingSchema,
-  imageKey: imageKeySchema,
+  image_key: image_keySchema,
+  qr_image_key: qr_image_keySchema,
 });
 
 export type ShopFormData = z.infer<typeof shopSchema>;
 
 export const shopActionSchema = shopSchema.extend({
   image: z.instanceof(File, { message: "Invalid file" }).optional(),
-  imageKey: z.string().min(1, "An image is required.").optional(),
+  image_key: image_keySchema.optional(),
+  qr_image: z.instanceof(File, { message: "Invalid file" }).optional(),
+  qr_image_key: qr_image_keySchema.optional(),
 });
 export type ShopActionFormData = z.infer<typeof shopActionSchema>;

@@ -4,7 +4,7 @@ import React from "react";
 
 import { NoMatchFilter } from "@/components/shared/shared-product-filters";
 import { ProductFiltersContainer } from "@/components/shared/shared-product-filters/";
-import { useSharedInfiniteProducts } from "@/hooks/useSharedInfiniteProducts";
+import { useSharedInfiniteProducts } from "@/hooks/queries/useSharedInfiniteProducts";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
 import { ShopProductList } from "./shop-product-list";

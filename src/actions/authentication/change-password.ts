@@ -3,7 +3,7 @@
 import { ChangePasswordFormValues } from "@/components/profile/security";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { UnauthorizedError } from "@/lib/custom-error";
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { userRepository } from "@/repositories";
 import { createSuccessResponse } from "@/types";
 import { changePasswordSchema } from "@/validations/user.validation";

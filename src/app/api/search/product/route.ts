@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
         title: product.name,
         subtitle: product.shop.name,
         type: "product" as const,
-        imageKey: product.imageKey,
+        image_key: product.image_key,
         shop_id: product.shop.id,
       })),
     ];

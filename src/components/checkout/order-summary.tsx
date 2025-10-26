@@ -6,16 +6,10 @@ import { CartItemContainer } from "../cart-drawer/cart-item-container";
 
 interface OrderSummaryProps {
   items: CartItemData[];
+  total: number;
 }
 
-export default function OrderSummary({ items }: OrderSummaryProps) {
-  const subtotal = items.reduce(
-    (sum, item) =>
-      sum + ((item.price * (100 - item.discount)) / 100) * item.quantity,
-    0
-  );
-  const total = subtotal;
-
+export default function OrderSummary({ items, total }: OrderSummaryProps) {
   return (
     <Card className="sticky py-4 top-4">
       <CardHeader>

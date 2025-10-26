@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getOrderStatusInfo } from "@/lib/utils-functions/order.utils";
+import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCardFooter from "./order-card-footer";

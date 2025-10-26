@@ -14,7 +14,7 @@ export async function Shops() {
   try {
     const queryOptions = {
       where: { is_active: true },
-      include: { owner: { select: { name: true, email: true } } },
+      include: { user: { select: { name: true, email: true } } },
       take: 11,
       orderBy: {
         created_at: Prisma.SortOrder.desc,

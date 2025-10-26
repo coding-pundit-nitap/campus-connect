@@ -1,8 +1,7 @@
 "use client";
-import { SessionProvider } from "next-auth/react";
 import React from "react";
 
-import { navigationUIService } from "@/lib/utils-functions";
+import { navigationUIService } from "@/lib/utils";
 
 import { ProLayout } from "./pro-layout";
 
@@ -14,9 +13,9 @@ export function ProLayoutContainer({ children }: LayoutContainerProps) {
   const navigation = navigationUIService.getProNavigationItems();
 
   return (
-    <SessionProvider>
+    <>
       <ProLayout navigation={navigation}>{children}</ProLayout>
-    </SessionProvider>
+    </>
   );
 }
 

@@ -6,7 +6,7 @@ import { useNavigationSearch, useSearch, useSearchQuery } from "@/hooks";
 import {
   createSearchNavigationHandler,
   mapSearchResultsToSuggestions,
-} from "@/lib/utils-functions/order.utils";
+} from "@/lib/utils/order.utils";
 
 import { SharedSearchBar } from "../shared/shared-search-bar";
 

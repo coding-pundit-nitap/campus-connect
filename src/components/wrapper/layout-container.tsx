@@ -1,9 +1,8 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { SessionProvider } from "next-auth/react";
 import React from "react";
 
-import { navigationUIService } from "@/lib/utils-functions";
+import { navigationUIService } from "@/lib/utils";
 import { authRoutes } from "@/rbac";
 
 import { PubLayout } from "./pub-layout";
@@ -17,13 +16,13 @@ export function PubLayoutContainer({ children }: LayoutContainerProps) {
   const navigation = navigationUIService.getNavigationItems();
 
   if (authRoutes.includes(pathname)) {
-    return <SessionProvider>{children}</SessionProvider>;
+    return <>{children}</>;
   }
 
   return (
-    <SessionProvider>
+    <>
       <PubLayout navigation={navigation}>{children}</PubLayout>
-    </SessionProvider>
+    </>
   );
 }
 

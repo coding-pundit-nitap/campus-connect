@@ -5,7 +5,7 @@ import {
   ProductListEmpty,
 } from "@/components/shared/shared-product-list";
 import { Badge } from "@/components/ui/badge";
-import { productUIServices } from "@/lib/utils-functions";
+import { productUIServices } from "@/lib/utils";
 import { SerializedProduct } from "@/types/product.types";
 
 interface SharedProductsByCategoryProps {

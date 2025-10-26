@@ -5,7 +5,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { useCreateAddress } from "@/hooks/tanstack/useAddress";
+import { useCreateAddress } from "@/hooks/queries/useAddress";
 import {
   AddressFormData,
   addressSchema,

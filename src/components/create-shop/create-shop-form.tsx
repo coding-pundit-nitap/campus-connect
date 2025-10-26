@@ -30,7 +30,7 @@ export function CreateShopForm() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <Progress value={(step / 3) * 100} className="mb-8" />
+      <Progress value={(step / 4) * 100} className="mb-8" />
       <Form {...form}>
         <form onSubmit={handlers.onSubmit} className="space-y-8">
           {step === 1 && (
@@ -162,6 +162,37 @@ export function CreateShopForm() {
               </CardContent>
             </Card>
           )}
+          {step === 4 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Payment QR Image</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="qr_image"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>QR Image</FormLabel>
+                      <FormControl>
+                        <SharedFileInput
+                          value={field.value}
+                          onChange={(file) => field.onChange(file)}
+                          accept="image/*"
+                          maxSize={5}
+                          placeholder="Enter Your QR Image"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Upload an qr image for payment for your shop.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           <div className="flex justify-between">
             {step > 1 && (
@@ -169,7 +200,7 @@ export function CreateShopForm() {
                 Previous
               </Button>
             )}
-            {step < 3 && (
+            {step < 4 && (
               <Button
                 type="button"
                 onClick={() => setStep(step + 1)}
@@ -178,7 +209,7 @@ export function CreateShopForm() {
                 Next
               </Button>
             )}
-            {step === 3 && (
+            {step === 4 && (
               <Button
                 type="submit"
                 disabled={isSubmitting}

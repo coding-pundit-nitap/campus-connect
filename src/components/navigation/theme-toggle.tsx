@@ -55,7 +55,12 @@ export function ThemeToggle({
 }: ThemeToggleProps) {
   if (!mounted) {
     return (
-      <Button variant={variant} size={size} className={className}>
+      <Button
+        variant={variant}
+        size={size}
+        className={className}
+        aria-label="Switch to light mode"
+      >
         <DefaultIcon className="h-4 w-4" />
         <span className="sr-only">Toggle theme</span>
         {showLabel && <span className="ml-2">Theme</span>}

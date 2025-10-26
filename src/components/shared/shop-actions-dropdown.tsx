@@ -1,23 +1,7 @@
 import { SellerVerificationStatus } from "@prisma/client";
-import {
-  CheckCircle,
-  MoreVertical,
-  Shield,
-  Trash2,
-  XCircle,
-} from "lucide-react";
+import { CheckCircle, Shield, Trash2, XCircle } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ActionsDropdown } from "@/components/shared/actions-dropdown";
 
 interface ShopActionsDropdownProps {
   isActive: boolean;
@@ -36,68 +20,61 @@ export function ShopActionsDropdown({
   onUpdateVerification,
   disabled = false,
 }: ShopActionsDropdownProps) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={disabled}>
-          <MoreVertical className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {isActive ? (
-          <DropdownMenuItem onClick={onDeactivate}>
-            <XCircle className="mr-2 h-4 w-4" />
-            Deactivate
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={onActivate}>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            Activate
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Shield className="mr-2 h-4 w-4" />
-            Update Verification
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuItem
-              onClick={() =>
-                onUpdateVerification(SellerVerificationStatus.VERIFIED)
-              }
-            >
-              Verified
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                onUpdateVerification(SellerVerificationStatus.PENDING)
-              }
-            >
-              Pending
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                onUpdateVerification(SellerVerificationStatus.REJECTED)
-              }
-            >
-              Rejected
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                onUpdateVerification(SellerVerificationStatus.REQUIRES_ACTION)
-              }
-            >
-              Requires Action
-            </DropdownMenuItem>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onDelete} className="text-destructive">
-          <Trash2 className="mr-2 h-4 w-4" />
-          Delete Shop
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  const items = [
+    isActive
+      ? {
+          id: "deactivate",
+          label: "Deactivate",
+          icon: XCircle,
+          onClick: onDeactivate,
+          separator: true,
+        }
+      : {
+          id: "activate",
+          label: "Activate",
+          icon: CheckCircle,
+          onClick: onActivate,
+          separator: true,
+        },
+    {
+      id: "verification",
+      label: "Update Verification",
+      icon: Shield,
+      items: [
+        {
+          id: "verified",
+          label: "Verified",
+          onClick: () =>
+            onUpdateVerification(SellerVerificationStatus.VERIFIED),
+        },
+        {
+          id: "pending",
+          label: "Pending",
+          onClick: () => onUpdateVerification(SellerVerificationStatus.PENDING),
+        },
+        {
+          id: "rejected",
+          label: "Rejected",
+          onClick: () =>
+            onUpdateVerification(SellerVerificationStatus.REJECTED),
+        },
+        {
+          id: "requires-action",
+          label: "Requires Action",
+          onClick: () =>
+            onUpdateVerification(SellerVerificationStatus.REQUIRES_ACTION),
+        },
+      ],
+      separator: true,
+    },
+    {
+      id: "delete",
+      label: "Delete Shop",
+      icon: Trash2,
+      onClick: onDelete,
+      destructive: true,
+    },
+  ];
+
+  return <ActionsDropdown items={items} disabled={disabled} />;
 }

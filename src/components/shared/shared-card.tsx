@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/cn";
 import type { CardConfig } from "@/types";
 
 /**
@@ -47,6 +47,10 @@ interface SharedCardProps extends CardConfig {
    * Optional custom class names to be applied to the card content section.
    */
   contentClassName?: string;
+  /**
+   * Optional custom class names to be applied to the card title section.
+   */
+  titleClassName?: string;
 }
 
 export function SharedCard({
@@ -60,13 +64,19 @@ export function SharedCard({
   headerClassName,
   footerContent,
   contentClassName = "space-y-6",
+  titleClassName,
 }: SharedCardProps) {
   return (
     <Card className={`border-none shadow-xl ${className}`}>
       {showHeader && (
         <CardHeader className={cn("py-4", headerClassName)}>
           {title && (
-            <CardTitle className="text-center text-2xl font-semibold">
+            <CardTitle
+              className={cn(
+                "text-center text-2xl font-semibold",
+                titleClassName
+              )}
+            >
               {title}
             </CardTitle>
           )}

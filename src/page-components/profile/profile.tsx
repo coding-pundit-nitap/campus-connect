@@ -1,12 +1,11 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-
 import { UserAddress } from "@/components/checkout";
 import ProfileCard from "@/components/profile/profile-card";
 // import SecuritySettings from "@/components/profile/security";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginIndicator from "@/components/wrapper/login-indicator";
+import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
   const session = useSession();

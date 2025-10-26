@@ -1,7 +1,5 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
-import { auth } from "@/auth";
 import { BroadcastForm } from "@/components/admin/broadcasts/broadcast-form";
 
 export const metadata: Metadata = {
@@ -10,12 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminBroadcastsPage() {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col gap-2">

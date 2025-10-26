@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
-import { useCreateReview } from "@/hooks/tanstack/useReview";
+import { useCreateReview } from "@/hooks";
 
 import { Button } from "../ui/button";
 import {

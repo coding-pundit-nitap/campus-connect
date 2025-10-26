@@ -2,7 +2,7 @@
 import { Role } from "@prisma/client";
 
 import { ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions/auth.utils";
+import { authUtils } from "@/lib/utils/auth.utils";
 import userRepository from "@/repositories/user.repository";
 
 export async function verifyAdmin(): Promise<string> {

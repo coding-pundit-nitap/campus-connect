@@ -4,8 +4,8 @@ import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { serializeProduct } from "@/lib/utils-functions";
-import authUtils from "@/lib/utils-functions/auth.utils";
+import { serializeProduct } from "@/lib/utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
 import fileUploadService from "@/services/file-upload.service";
@@ -41,11 +41,11 @@ export async function createProductAction(
 
     const { image, name, price, stock_quantity, description, discount } =
       parsedData;
-    let imageKey = "";
+    let image_key = "";
     if (image) {
       const imageFile = image as File;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      imageKey = await fileUploadService.upload(
+      image_key = await fileUploadService.upload(
         imageFile.name,
         imageFile.type,
         imageFile.size,
@@ -53,7 +53,7 @@ export async function createProductAction(
       );
     }
     const productData = {
-      imageKey,
+      image_key,
       name,
       price,
       stock_quantity,
@@ -87,8 +87,8 @@ export async function createProductAction(
 
 export async function updateProductAction(
   product_id: string,
-  formData: Omit<ProductUpdateFormData, "imageKey"> & {
-    imageKey: string | null;
+  formData: Omit<ProductUpdateFormData, "image_key"> & {
+    image_key: string | null;
   }
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
@@ -98,12 +98,12 @@ export async function updateProductAction(
     }
 
     const currentProduct = await productRepository.findById(product_id, {
-      select: { category_id: true, imageKey: true },
+      select: { category_id: true, image_key: true },
     });
 
     const parsedData = productUpdateActionSchema.parse({
       ...formData,
-      imageKey: formData.imageKey || "",
+      image_key: formData.image_key || "",
     });
 
     let category: Category | null = null;
@@ -114,15 +114,15 @@ export async function updateProductAction(
       );
     }
 
-    const { imageKey, name, price, stock_quantity, description, discount } =
+    const { image_key, name, price, stock_quantity, description, discount } =
       parsedData;
 
-    if (currentProduct?.imageKey && currentProduct.imageKey !== imageKey) {
-      await fileUploadService.deleteFile(currentProduct.imageKey);
+    if (currentProduct?.image_key && currentProduct.image_key !== image_key) {
+      await fileUploadService.deleteFile(currentProduct.image_key);
     }
 
     const productData = {
-      imageKey,
+      image_key,
       name,
       price,
       stock_quantity,

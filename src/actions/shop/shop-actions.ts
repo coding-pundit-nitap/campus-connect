@@ -5,7 +5,7 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import shopRepository from "@/repositories/shop.repository";
 import categoryServices from "@/services/category.service";
 import fileUploadService from "@/services/file-upload.service";
@@ -20,16 +20,27 @@ export async function createShopAction(formData: ShopActionFormData) {
     if (!parsedData.success) {
       throw new BadRequestError(parsedData.error.message);
     }
-    const { name, description, location, opening, closing, image } =
+    const { name, description, location, opening, closing, image, qr_image } =
       parsedData.data;
-    let imageKey = "";
+    let image_key = "";
     if (image) {
       const imageFile = image;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      imageKey = await fileUploadService.upload(
+      image_key = await fileUploadService.upload(
         imageFile.name,
         imageFile.type,
         imageFile.size,
+        buffer
+      );
+    }
+    let qr_image_key = "";
+    if (qr_image) {
+      const qrImageFile = qr_image;
+      const buffer = Buffer.from(await qrImageFile.arrayBuffer());
+      qr_image_key = await fileUploadService.upload(
+        qrImageFile.name,
+        qrImageFile.type,
+        qrImageFile.size,
         buffer
       );
     }
@@ -39,8 +50,9 @@ export async function createShopAction(formData: ShopActionFormData) {
       location,
       name,
       opening,
-      imageKey,
-      owner: { connect: { id: user_id } },
+      image_key,
+      qr_image_key,
+      user: { connect: { id: user_id } },
     });
 
     return createSuccessResponse(
@@ -72,11 +84,11 @@ export async function updateShopAction(formData: ShopActionFormData) {
 
     const values = parsedData.data;
     await categoryServices.cleanupEmptyCategories(shop_id);
-    let imageKey = "";
+    let image_key = "";
     if (values.image) {
       const imageFile = values.image;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      imageKey = await fileUploadService.upload(
+      image_key = await fileUploadService.upload(
         imageFile.name,
         imageFile.type,
         imageFile.size,
@@ -84,15 +96,15 @@ export async function updateShopAction(formData: ShopActionFormData) {
       );
     }
 
-    if (imageKey && values.imageKey) {
-      await fileUploadService.deleteFile(values.imageKey);
+    if (image_key && values.image_key) {
+      await fileUploadService.deleteFile(values.image_key);
     }
 
     const { image, ...rest } = values;
     void image;
     const updatedShop = await shopRepository.update(shop_id, {
       ...rest,
-      imageKey,
+      image_key,
     });
 
     await notificationService.publishNotification(user_id, {

@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const searchResults: SearchResult[] = categories.map((category) => ({
       id: category.id,
       title: category.name,
-      imageKey: "",
+      image_key: "",
       subtitle: "category",
       type: "category",
       shop_id: category.shop_id,

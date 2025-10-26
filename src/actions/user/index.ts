@@ -2,7 +2,7 @@
 import z from "zod";
 
 import { ValidationError } from "@/lib/custom-error";
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { userAddressRepository, userRepository } from "@/repositories";
 import {
   updateUserSchema,

@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { useInfiniteScroll } from "@/hooks/utils/useInfiniteScroll";
 import { SerializedProduct } from "@/types/product.types";
 
 import { ProductGrid } from "./product-grid";

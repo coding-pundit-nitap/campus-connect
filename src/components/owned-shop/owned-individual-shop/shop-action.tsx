@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import React from "react";
 
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/lib/auth-client";
 
 export default function ShopAction() {
   const { data: session } = useSession();

@@ -33,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ImageUtils } from "@/lib/utils-functions";
+import { ImageUtils } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ order_id: string }>;
@@ -103,7 +103,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[80px] hidden md:table-cell">
+                    <TableHead className="w-20 hidden md:table-cell">
                       Image
                     </TableHead>
                     <TableHead>Product</TableHead>
@@ -118,10 +118,10 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                     <TableRow key={item.id}>
                       <TableCell className="hidden md:table-cell">
                         <div className="relative h-16 w-16 rounded-md overflow-hidden bg-gray-100">
-                          {item.product.imageKey ? (
+                          {item.product.image_key ? (
                             <Image
                               src={ImageUtils.getImageUrl(
-                                item.product.imageKey
+                                item.product.image_key
                               )}
                               alt={item.product.name}
                               fill

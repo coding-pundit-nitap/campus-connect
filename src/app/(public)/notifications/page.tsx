@@ -19,9 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useInfiniteScroll } from "@/hooks";
-import { useNotificationHistory } from "@/hooks/tanstack/useNotificationHistory";
-import { cn } from "@/lib/utils";
+import { useInfiniteScroll, useNotificationHistory } from "@/hooks";
+import { cn } from "@/lib/cn";
 
 const notificationConfig = {
   INFO: {

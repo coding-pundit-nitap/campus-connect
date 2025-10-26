@@ -6,7 +6,7 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
-import { orderWithDetailsInclude } from "@/lib/utils-functions/order.utils";
+import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import { shopRepository } from "@/repositories/shop.repository";
 
@@ -120,9 +120,11 @@ class OrderService {
         )
       );
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
-      const shop = await shopRepository.findById(shop_id);
+      const shop = await shopRepository.findById(shop_id, {
+        include: { user: { select: { id: true } } },
+      });
       if (shop) {
-        await notificationService.publishNotification(shop.owner_id, {
+        await notificationService.publishNotification(shop.user[0].id, {
           title: "New Order Received",
           message: `You have received a new order with ID: ${order.display_id}`,
           action_url: `/owner-shops/orders/${order.id}`,

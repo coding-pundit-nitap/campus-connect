@@ -1,8 +1,8 @@
 import React from "react";
 
-import { useUpdateShop } from "@/hooks/useShopForm";
-import { shopUIServices } from "@/lib/utils-functions";
-import { ImageUtils } from "@/lib/utils-functions/image.utils";
+import { useUpdateShop } from "@/hooks";
+import { shopUIServices } from "@/lib/utils";
+import { ImageUtils } from "@/lib/utils/image.utils";
 import { ShopWithOwner } from "@/types/shop.types";
 
 import { ShopEditDialog } from "./shop-edit-dialog";
@@ -21,10 +21,10 @@ export function ShopEditFormContainer({
   const formFields = shopUIServices
     .createShopUpdateFormFields()
     .map((field) => {
-      if (field.name === "image" && shop.imageKey) {
+      if (field.name === "image" && shop.image_key) {
         return {
           ...field,
-          previewUrl: ImageUtils.getImageUrl(shop.imageKey),
+          previewUrl: ImageUtils.getImageUrl(shop.image_key),
         };
       }
       return field;
@@ -32,7 +32,6 @@ export function ShopEditFormContainer({
 
   return (
     <ShopEditDialog
-      shop={shop}
       form={form}
       state={state}
       handlers={handlers}

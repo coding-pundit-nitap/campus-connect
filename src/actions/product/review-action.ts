@@ -1,7 +1,9 @@
 "use server";
 
-import { InternalServerError, UnauthenticatedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils-functions/auth.utils";
+import { unauthorized } from "next/navigation";
+
+import { InternalServerError } from "@/lib/custom-error";
+import { authUtils } from "@/lib/utils/auth.utils";
 import reviewService from "@/services/review.service";
 import { createSuccessResponse } from "@/types";
 
@@ -19,7 +21,7 @@ export const createReviewAction = async ({
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      throw new UnauthenticatedError("User not authenticated");
+      return unauthorized();
     }
 
     const review = await reviewService.createReview(

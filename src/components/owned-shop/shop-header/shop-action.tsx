@@ -3,9 +3,8 @@ import React from "react";
 import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { Button } from "@/components/ui/button";
-import { useCategorySearch } from "@/hooks";
-import { useCreateProductForm } from "@/hooks/useProductForm";
-import { productUIServices } from "@/lib/utils-functions";
+import { useCategorySearch, useCreateProductForm } from "@/hooks";
+import { productUIServices } from "@/lib/utils";
 import { ButtonConfig } from "@/types";
 
 export function ShopAction() {

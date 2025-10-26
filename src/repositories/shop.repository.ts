@@ -10,18 +10,23 @@ type ShopFindOptions = Omit<Prisma.ShopFindUniqueArgs, "where">;
 
 class ShopRepository {
   async findByOwnerId(owner_id: string): Promise<Shop | null>;
-  async findByOwnerId<T extends ShopFindOptions>(
+  async findByOwnerId<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
     owner_id: string,
     options: T
-  ): Promise<Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | null>;
-  async findByOwnerId<T extends ShopFindOptions>(
+  ): Promise<Prisma.ShopGetPayload<T> | null>;
+  async findByOwnerId<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
     owner_id: string,
     options?: T
-  ): Promise<
-    Prisma.ShopGetPayload<{ where: { owner_id: string } } & T> | Shop | null
-  > {
-    const query = { where: { owner_id }, ...(options ?? {}) };
-    return prisma.shop.findUnique(query);
+  ): Promise<Prisma.ShopGetPayload<T> | Shop | null> {
+    const query = {
+      where: {
+        user: {
+          id: owner_id,
+        },
+      },
+      ...(options ?? {}),
+    };
+    return prisma.shop.findFirst(query);
   }
 
   async create(data: Prisma.ShopCreateInput): Promise<Shop> {

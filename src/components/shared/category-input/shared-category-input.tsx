@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { useSearchInput } from "@/hooks/useSearch";
+import { useSearchInput } from "@/hooks/ui/useSearch";
 
 import { SharedSearchBar } from "../shared-search-bar";
 

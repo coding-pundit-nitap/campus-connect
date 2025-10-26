@@ -1,7 +1,7 @@
 import { Order, OrderStatus, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
-import { orderWithDetailsInclude } from "@/lib/utils-functions/order.utils";
+import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
 
 type OrderFindOptions = Omit<Prisma.OrderFindUniqueArgs, "where">;

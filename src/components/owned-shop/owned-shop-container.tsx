@@ -6,7 +6,7 @@ import {
   NoMatchFilter,
   ProductFiltersContainer,
 } from "@/components/shared/shared-product-filters";
-import { useSharedInfiniteProducts } from "@/hooks/useSharedInfiniteProducts";
+import { useSharedInfiniteProducts } from "@/hooks";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
 import {

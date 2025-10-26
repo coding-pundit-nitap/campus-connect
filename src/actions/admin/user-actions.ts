@@ -30,7 +30,7 @@ export async function getAllUsersAction(options: {
       role: Role;
       phone: string | null;
       image: string | null;
-      created_at: Date;
+      createdAt: Date;
     }>
   >
 > {
@@ -56,7 +56,7 @@ export async function getAllUsersAction(options: {
       take: limit + 1,
       skip: options.cursor ? 1 : 0,
       cursor: options.cursor ? { id: options.cursor } : undefined,
-      orderBy: { created_at: "desc" },
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         name: true,
@@ -64,7 +64,7 @@ export async function getAllUsersAction(options: {
         role: true,
         phone: true,
         image: true,
-        created_at: true,
+        createdAt: true,
       },
     });
 
@@ -179,20 +179,25 @@ export async function getUserStatsAction(): Promise<
     totalAdmins: number;
     totalRegularUsers: number;
     recentUsers: number;
+    activeUsers: number;
+    inactiveUsers: number;
   }>
 > {
   try {
     await verifyAdmin();
 
-    const [totalUsers, totalAdmins, recentUsers] = await Promise.all([
-      userRepository.count({}),
-      userRepository.count({ role: Role.ADMIN }),
-      userRepository.count({
-        created_at: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
-        },
-      }),
-    ]);
+    const [totalUsers, totalAdmins, recentUsers, activeUsers, inactiveUsers] =
+      await Promise.all([
+        userRepository.count({}),
+        userRepository.count({ role: Role.ADMIN }),
+        userRepository.count({
+          createdAt: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+          },
+        }),
+        userRepository.count({ sessions: { some: {} } }),
+        userRepository.count({ sessions: { none: {} } }),
+      ]);
 
     return createSuccessResponse(
       {
@@ -200,6 +205,8 @@ export async function getUserStatsAction(): Promise<
         totalAdmins,
         totalRegularUsers: totalUsers - totalAdmins,
         recentUsers,
+        activeUsers,
+        inactiveUsers,
       },
       "User statistics retrieved successfully"
     );
@@ -209,5 +216,35 @@ export async function getUserStatsAction(): Promise<
       throw error;
     }
     throw new InternalServerError("Failed to retrieve user statistics.");
+  }
+}
+
+export async function forceSignOutUserAction(
+  targetUserId: string
+): Promise<ActionResponse<null>> {
+  try {
+    await verifyAdmin();
+
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    await userRepository.deleteAllSessions(targetUserId);
+
+    return createSuccessResponse(
+      null,
+      `Successfully signed out user ${targetUser.email} from all devices`
+    );
+  } catch (error) {
+    console.error("FORCE SIGN OUT USER ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to sign out user.");
   }
 }

@@ -1,5 +1,5 @@
 import notificationEmitter from "@/lib/notification-emitter";
-import { authUtils } from "@/lib/utils-functions/auth.utils";
+import { authUtils } from "@/lib/utils/auth.utils";
 export const runtime = "nodejs";
 export async function GET() {
   const user_id = await authUtils.getUserId();

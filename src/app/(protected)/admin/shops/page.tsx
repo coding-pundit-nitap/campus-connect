@@ -1,9 +1,7 @@
 import { SellerVerificationStatus } from "@prisma/client";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { getAllShopsAction } from "@/actions/admin";
-import { auth } from "@/auth";
 import { ShopsTable } from "@/components/admin/shops/shops-table";
 
 export const metadata: Metadata = {
@@ -21,12 +19,6 @@ export default async function AdminShopsPage({
     verification_status?: string;
   }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
-
   const { cursor, search, is_active, verification_status } = await searchParams;
 
   let shops = null;

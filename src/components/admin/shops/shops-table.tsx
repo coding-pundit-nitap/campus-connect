@@ -4,22 +4,14 @@ import { SellerVerificationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { ActionConfirmationDialog } from "@/components/shared/action-confirmation-dialog";
+import { ClientDate } from "@/components/shared/client-date";
 import { ShopActionsDropdown } from "@/components/shared/shop-actions-dropdown";
 import {
   ShopStatusBadge,
   VerificationBadge,
 } from "@/components/shared/shop-badges";
 import { ShopFilterBar } from "@/components/shared/shop-filter-bar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -31,11 +23,11 @@ import {
 } from "@/components/ui/table";
 import {
   useActivateShop,
+  useAdminShopFilters,
   useDeactivateShop,
   useDeleteShop,
   useUpdateShopVerification,
-} from "@/hooks/tanstack/useShopAdmin";
-import { useAdminShopFilters } from "@/hooks/useAdminShopFilters";
+} from "@/hooks";
 import { CursorPaginatedResponse } from "@/types/response.types";
 
 interface ShopsTableProps {
@@ -47,7 +39,7 @@ interface ShopsTableProps {
     is_active: boolean;
     verification_status: SellerVerificationStatus;
     created_at: Date;
-    owner: {
+    user: {
       id: string;
       name: string;
       email: string;
@@ -175,9 +167,9 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                   <TableCell className="font-medium">{shop.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm">{shop.owner.name}</span>
+                      <span className="text-sm">{shop.user.name}</span>
                       <span className="text-xs text-muted-foreground">
-                        {shop.owner.email}
+                        {shop.user.email}
                       </span>
                     </div>
                   </TableCell>
@@ -189,7 +181,7 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                     <VerificationBadge status={shop.verification_status} />
                   </TableCell>
                   <TableCell>
-                    {new Date(shop.created_at).toLocaleDateString()}
+                    <ClientDate date={shop.created_at} format="datetime" />
                   </TableCell>
                   <TableCell className="text-right">
                     <ShopActionsDropdown
@@ -239,7 +231,7 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
         </div>
       )}
 
-      <AlertDialog
+      <ActionConfirmationDialog
         open={actionDialog.open}
         onOpenChange={(open) =>
           !open &&
@@ -250,47 +242,41 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
             action: null,
           })
         }
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {actionDialog.action === "activate" && "Activate Shop"}
-              {actionDialog.action === "deactivate" && "Deactivate Shop"}
-              {actionDialog.action === "delete" && "Delete Shop"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {actionDialog.action === "activate" &&
-                `Are you sure you want to activate "${actionDialog.shopName}"? The shop will become visible to users.`}
-              {actionDialog.action === "deactivate" &&
-                `Are you sure you want to deactivate "${actionDialog.shopName}"? The shop will be hidden from users.`}
-              {actionDialog.action === "delete" &&
-                `Are you sure you want to delete "${actionDialog.shopName}"? This action cannot be undone. All products and orders will be preserved but the shop will be removed.`}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (actionDialog.action === "activate") {
-                  handleActivate(actionDialog.shopId);
-                } else if (actionDialog.action === "deactivate") {
-                  handleDeactivate(actionDialog.shopId);
-                } else if (actionDialog.action === "delete") {
-                  handleDelete(actionDialog.shopId);
-                }
-              }}
-              disabled={isPending}
-              className={
-                actionDialog.action === "delete"
-                  ? "bg-destructive hover:bg-destructive/90"
-                  : ""
-              }
-            >
-              {isPending ? "Processing..." : "Confirm"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        action={actionDialog.action}
+        itemName={actionDialog.shopName}
+        isLoading={isPending}
+        onConfirm={() => {
+          if (actionDialog.action === "activate") {
+            handleActivate(actionDialog.shopId);
+          } else if (actionDialog.action === "deactivate") {
+            handleDeactivate(actionDialog.shopId);
+          } else if (actionDialog.action === "delete") {
+            handleDelete(actionDialog.shopId);
+          }
+        }}
+        messages={{
+          activate: {
+            title: "Activate Shop",
+            description:
+              "Are you sure you want to activate this item? The shop will become visible to users.",
+          },
+          deactivate: {
+            title: "Deactivate Shop",
+            description:
+              "Are you sure you want to deactivate this item? The shop will be hidden from users.",
+          },
+          delete: {
+            title: "Delete Shop",
+            description:
+              "Are you sure you want to delete this item? This action cannot be undone. All products and orders will be preserved but the shop will be removed.",
+          },
+        }}
+        confirmButtonClassName={
+          actionDialog.action === "delete"
+            ? "bg-destructive hover:bg-destructive/90"
+            : ""
+        }
+      />
     </div>
   );
 }

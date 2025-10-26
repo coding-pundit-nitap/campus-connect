@@ -31,14 +31,14 @@ export async function GET(request: NextRequest) {
         title: shop.name,
         subtitle: shop.location,
         type: "shop" as const,
-        imageKey: shop.imageKey,
+        image_key: shop.image_key,
       })),
       ...products.map((product) => ({
         id: product.id,
         title: product.name,
         subtitle: product.shop.name,
         type: "product" as const,
-        imageKey: product.imageKey,
+        image_key: product.image_key,
         shop_id: product.shop.id,
       })),
     ];

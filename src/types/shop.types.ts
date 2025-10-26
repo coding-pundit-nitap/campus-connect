@@ -1,7 +1,7 @@
 import { Shop } from "@prisma/client";
 
 export interface ShopWithOwner extends Shop {
-  owner: {
+  user: {
     name: string;
     email: string;
   };

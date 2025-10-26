@@ -19,10 +19,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  useOrderFilters,
   useUpdateOrderStatus,
   useUpdatePaymentStatus,
-} from "@/hooks/tanstack/useOrders";
-import { useOrderFilters } from "@/hooks/useOrderFilters";
+} from "@/hooks";
 import { SerializedOrderWithDetails } from "@/types";
 import { CursorPaginatedResponse } from "@/types/response.types";
 

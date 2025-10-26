@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/card";
 import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
-import { ImageUtils } from "@/lib/utils-functions/image.utils";
+import { ImageUtils } from "@/lib/utils/image.utils";
 
 type Props = {
   shop: ShopWithOwnerDetails;
@@ -29,7 +29,7 @@ export function ShopCard({ shop, priority }: Props) {
         <div className="relative aspect-4/3 overflow-hidden">
           <Image
             fill
-            src={ImageUtils.getImageUrl(shop.imageKey)}
+            src={ImageUtils.getImageUrl(shop.image_key)}
             alt={shop.name}
             priority={priority}
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -76,7 +76,7 @@ export function ShopCard({ shop, priority }: Props) {
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <User className="mr-2 h-4 w-4 text-primary" />
-              <span className="line-clamp-1">By {shop.owner.name}</span>
+              <span className="line-clamp-1">By {shop.user.name}</span>
             </div>
           </CardContent>
 

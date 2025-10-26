@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { shopRepository } from "@/repositories";
 import {
   createErrorResponse,
@@ -15,9 +15,18 @@ export async function GET(_request: NextRequest) {
         status: 401,
       });
     }
-    const shop = await shopRepository.findByOwnerId(user_id, {
-      include: { owner: { select: { name: true, email: true } } },
+    const shopWithUser = await shopRepository.findByOwnerId(user_id, {
+      include: { user: { select: { name: true, email: true } } },
     });
+
+    if (!shopWithUser) {
+      return NextResponse.json(createSuccessResponse(null, "Shop not found"), {
+        status: 200,
+      });
+    }
+
+    const { user, ...shopData } = shopWithUser;
+    const shop = { ...shopData, user: user[0] };
 
     const successResponse = createSuccessResponse(
       shop,

@@ -5,11 +5,9 @@ import { UseFormReturn } from "react-hook-form";
 import SharedDialog from "@/components/shared/shared-dialog";
 import { SharedForm } from "@/components/shared/shared-form";
 import { ButtonConfig, FormFieldConfig } from "@/types";
-import { ShopWithOwner } from "@/types/shop.types";
 import { ShopActionFormData } from "@/validations";
 
 interface ShopEditDialogProps {
-  shop: ShopWithOwner;
   form: UseFormReturn<ShopActionFormData>;
   state: {
     isLoading: boolean;

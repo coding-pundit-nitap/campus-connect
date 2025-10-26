@@ -35,7 +35,7 @@ export async function getAllShopsAction(options: {
       is_active: boolean;
       verification_status: SellerVerificationStatus;
       created_at: Date;
-      owner: {
+      user: {
         id: string;
         name: string;
         email: string;
@@ -72,7 +72,7 @@ export async function getAllShopsAction(options: {
       cursor: options.cursor ? { id: options.cursor } : undefined,
       orderBy: { created_at: "desc" },
       include: {
-        owner: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -96,7 +96,7 @@ export async function getAllShopsAction(options: {
           is_active: shop.is_active,
           verification_status: shop.verification_status,
           created_at: shop.created_at,
-          owner: shop.owner,
+          user: shop.user!,
         })),
         nextCursor,
         hasMore,
@@ -118,7 +118,9 @@ export async function activateShopAction(
   try {
     await verifyAdmin();
 
-    const shop = await shopRepository.findById(shopId);
+    const shop = await shopRepository.findById(shopId, {
+      include: { user: { select: { id: true } } },
+    });
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
@@ -131,7 +133,7 @@ export async function activateShopAction(
       is_active: true,
     });
 
-    await notificationService.publishNotification(shop.owner_id, {
+    await notificationService.publishNotification(shop.user!.id, {
       title: "Shop Activated",
       message: `Your shop "${shop.name}" has been activated by an admin.`,
       type: "SUCCESS",
@@ -165,7 +167,9 @@ export async function deactivateShopAction(
   try {
     await verifyAdmin();
 
-    const shop = await shopRepository.findById(shopId);
+    const shop = await shopRepository.findById(shopId, {
+      include: { user: { select: { id: true } } },
+    });
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
@@ -178,7 +182,7 @@ export async function deactivateShopAction(
       is_active: false,
     });
 
-    await notificationService.publishNotification(shop.owner_id, {
+    await notificationService.publishNotification(shop.user!.id, {
       title: "Shop Deactivated",
       message: `Your shop "${shop.name}" has been deactivated by an admin.`,
       type: "WARNING",
@@ -214,18 +218,16 @@ export async function deleteShopAction(
     await verifyAdmin();
 
     const shop = await shopRepository.findById(shopId, {
-      include: {
-        owner: true,
-      },
+      include: { user: { select: { id: true } } },
     });
 
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
 
-    if (shop.imageKey) {
+    if (shop.image_key) {
       try {
-        await fileUploadService.deleteFile(shop.imageKey);
+        await fileUploadService.deleteFile(shop.image_key);
       } catch (error) {
         console.error("Error deleting shop image:", error);
       }
@@ -233,7 +235,7 @@ export async function deleteShopAction(
 
     await shopRepository.delete(shopId);
 
-    await notificationService.publishNotification(shop.owner_id, {
+    await notificationService.publishNotification(shop.user!.id, {
       title: "Shop Deleted",
       message: `Your shop "${shop.name}" has been deleted by an admin.`,
       type: "ERROR",
@@ -273,7 +275,9 @@ export async function updateShopVerificationAction(
   try {
     await verifyAdmin();
 
-    const shop = await shopRepository.findById(shopId);
+    const shop = await shopRepository.findById(shopId, {
+      include: { user: { select: { id: true } } },
+    });
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
@@ -290,7 +294,7 @@ export async function updateShopVerificationAction(
       REJECTED: "verification has been rejected",
     };
 
-    await notificationService.publishNotification(shop.owner_id, {
+    await notificationService.publishNotification(shop.user!.id, {
       title: "Shop Verification Status Updated",
       message: `Your shop "${shop.name}" ${statusMessages[status]}.`,
       type:

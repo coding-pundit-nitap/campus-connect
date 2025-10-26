@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   getOrderStatusInfo,
   getPaymentStatusInfo,
-} from "@/lib/utils-functions/order.utils";
+} from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 type Props = {

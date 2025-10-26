@@ -1,13 +1,14 @@
+import { headers } from "next/headers";
 import React from "react";
 
-import { getCachedSession } from "@/lib/session";
+import { auth } from "@/auth";
 
 import LoginIndicator from "./login-indicator";
 
 export default async function AuthWrapper({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await getCachedSession();
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session?.user.id) {
     return <LoginIndicator />;
   }

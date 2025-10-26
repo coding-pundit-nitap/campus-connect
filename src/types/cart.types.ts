@@ -20,6 +20,8 @@ export interface ShopCart {
   totalItems: number;
   items: CartItemData[];
   shop_name: string;
+  qr_image_key: string;
+  upi_id: string;
 }
 
 export interface CartSummary {
@@ -39,7 +41,7 @@ export interface CartDrawerState {
 export type SerializedFullCart = Cart & {
   items: (CartItem & {
     product: SerializedProduct & {
-      shop?: { name: string; id: string };
+      shop?: { name: string; id: string; qr_image_key: string; upi_id: string };
       category: Category | null;
     };
   })[];
@@ -49,7 +51,7 @@ export type SerializedCartItem = SerializedFullCart["items"][number];
 export type FullCart = Cart & {
   items: (CartItem & {
     product: Product & {
-      shop: { name: string; id: string };
+      shop: { name: string; id: string; qr_image_key: string; upi_id: string };
       category: Category | null;
     };
   })[];

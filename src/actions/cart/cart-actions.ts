@@ -1,7 +1,7 @@
 "use server";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { serializeFullCart } from "@/lib/utils-functions";
-import authUtils from "@/lib/utils-functions/auth.utils";
+import { serializeFullCart } from "@/lib/utils";
+import authUtils from "@/lib/utils/auth.utils";
 import { cartRepository } from "@/repositories";
 import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
 

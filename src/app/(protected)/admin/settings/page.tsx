@@ -1,12 +1,11 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import {
   getOrderStatsAction,
   getShopStatsAction,
   getUserStatsAction,
 } from "@/actions/admin";
-import { auth } from "@/auth";
+import { User } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -15,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import authUtils from "@/lib/utils/auth.utils";
 
 export const metadata: Metadata = {
   title: "Settings | Admin Dashboard",
@@ -22,11 +22,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminSettingsPage() {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
+  const user: User = await authUtils.getUserData();
 
   let systemStats = null;
   try {
@@ -120,11 +116,11 @@ export default async function AdminSettingsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Name</p>
-              <p className="font-medium">{session.user.name}</p>
+              <p className="font-medium">{user.name}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Email</p>
-              <p className="font-medium">{session.user.email}</p>
+              <p className="font-medium">{user.email}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Role</p>
@@ -134,7 +130,7 @@ export default async function AdminSettingsPage() {
               <p className="text-sm font-medium text-muted-foreground">
                 User ID
               </p>
-              <p className="font-mono text-xs">{session.user.id}</p>
+              <p className="font-mono text-xs">{user.id}</p>
             </div>
           </div>
         </CardContent>

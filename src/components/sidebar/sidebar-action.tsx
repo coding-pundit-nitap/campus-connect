@@ -1,17 +1,16 @@
 "use client";
 import { LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
-import React from "react";
 
 import { Button } from "@/components/ui/button";
+import { authClient, useSession } from "@/lib/auth-client";
 
 export default function SidebarAction() {
   const router = useRouter();
   const { data: session } = useSession();
   const handleAuthAction = async () => {
     if (session?.user?.id) {
-      await signOut({ callbackUrl: "/" });
+      await authClient.signOut({ query: { redirect: "/" } });
     } else {
       router.push("/login");
     }
