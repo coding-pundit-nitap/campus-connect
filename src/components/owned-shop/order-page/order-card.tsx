@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { getOrderStatusInfo } from "@/lib/utils-functions/order.utils";
+import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 type Props = {

@@ -1,9 +1,7 @@
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { getAllOrdersAction } from "@/actions/admin";
-import { auth } from "@/auth";
 import { OrdersTable } from "@/components/admin/orders/orders-table";
 
 export const metadata: Metadata = {
@@ -21,12 +19,6 @@ export default async function AdminOrdersPage({
     payment_status?: string;
   }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
-
   const { cursor, search, order_status, payment_status } = await searchParams;
 
   let orders = null;

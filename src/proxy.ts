@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-import { NextAuthRequest } from "next-auth";
+import { getCookieCache } from "better-auth/cookies";
+import { NextRequest, NextResponse } from "next/server";
 
-import { auth as middleware } from "@/auth";
 import {
   adminRoutes,
   apiAuthPrefix,
@@ -10,12 +9,13 @@ import {
   publicRoutes,
 } from "@/rbac";
 
-export const proxy = middleware(async (req: NextAuthRequest) => {
+export const proxy = async (req: NextRequest) => {
   try {
+    const session = await getCookieCache(req);
     const { nextUrl } = req;
     const path = nextUrl.pathname;
-    const isLoggedIn = !!req.auth;
-    const userRole = req.auth?.user?.role;
+    const isLoggedIn = !!session?.user;
+    const userRole = session?.user?.user?.role;
     const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
     const isPublicRoute = publicRoutes.some((p) => path.startsWith(p));
     const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
@@ -64,7 +64,7 @@ export const proxy = middleware(async (req: NextAuthRequest) => {
     const errorResponse = NextResponse.next();
     return errorResponse;
   }
-});
+};
 
 // Export matcher config for Next.js middleware
 export const config = {

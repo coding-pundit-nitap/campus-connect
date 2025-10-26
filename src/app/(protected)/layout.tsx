@@ -1,18 +1,18 @@
-import { redirect } from "next/navigation";
+import { unauthorized } from "next/navigation";
 import { ReactNode } from "react";
 
-import { auth } from "@/auth";
 import ProLayoutContainer from "@/components/wrapper/pro-layout-continer";
+import authUtils from "@/lib/utils/auth.utils";
 
 export default async function AdminLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
+  try {
+    await authUtils.isAdmin();
+  } catch {
+    unauthorized();
   }
 
   return <ProLayoutContainer>{children}</ProLayoutContainer>;

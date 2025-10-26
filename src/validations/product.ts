@@ -11,7 +11,7 @@ const priceSchema = z.number().positive("Price must be a positive number");
 
 const stockQuantitySchema = z.number().int().min(0, "Stock cannot be negative");
 
-const imageKeySchema = z.string().min(1, "An image is required.");
+const image_keySchema = z.string().min(1, "An image is required.");
 
 const discountSchema = z
   .number()
@@ -33,7 +33,7 @@ export const productSchema = z.object({
   description: descriptionSchema,
   price: priceSchema,
   stock_quantity: stockQuantitySchema,
-  imageKey: imageKeySchema,
+  image_key: image_keySchema,
   discount: discountSchema,
   category: categorySchema,
 });
@@ -45,7 +45,7 @@ export const productUpdateSchema = z.object({
   description: descriptionSchema,
   price: priceSchema,
   stock_quantity: stockQuantitySchema,
-  imageKey: imageKeySchema,
+  image_key: image_keySchema,
   discount: discountSchema,
   category: categoryOptionalSchema,
 });
@@ -54,13 +54,13 @@ export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>;
 
 export const productActionSchema = productSchema.extend({
   image: z.instanceof(File, { message: "Invalid file" }),
-  imageKey: z.string().min(1, "An image is required.").optional(),
+  image_key: z.string().min(1, "An image is required.").optional(),
 });
 export type ProductActionFormData = z.infer<typeof productActionSchema>;
 
 export const productUpdateActionSchema = productUpdateSchema.extend({
   image: z.instanceof(File, { message: "Invalid file" }),
-  imageKey: z.string().min(1, "An image is required.").optional(),
+  image_key: z.string().min(1, "An image is required.").optional(),
 });
 export type ProductUpdateActionFormData = z.infer<
   typeof productUpdateActionSchema

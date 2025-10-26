@@ -1,8 +1,9 @@
 "use server";
 
-import { AuthError } from "next-auth";
+import { BetterAuthError } from "better-auth";
+import { headers } from "next/headers";
 
-import { signIn } from "@/auth";
+import { auth } from "@/auth";
 import { handleActionError } from "@/lib/auth";
 import { AuthResponse, createAuthResponse } from "@/types/response.types";
 import { LoginFormData, loginSchema } from "@/validations/auth";
@@ -15,22 +16,19 @@ export const loginAction = async (
     if (!parsedData.success) {
       return createAuthResponse(false, parsedData.error.message);
     }
-    await signIn("credentials", { ...parsedData.data, redirect: false });
+    await auth.api.signInEmail({
+      body: {
+        email: parsedData.data.email,
+        password: parsedData.data.password,
+      },
+      headers: await headers(),
+    });
     return createAuthResponse(true, "Login successful");
   } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return createAuthResponse(false, "Invalid credentials");
-        case "AccessDenied":
-          return createAuthResponse(
-            false,
-            "Access denied. Please verify your email first."
-          );
-        default:
-          return createAuthResponse(false, "An authentication error occurred");
-      }
+    if (error instanceof BetterAuthError) {
+      return createAuthResponse(false, error.message);
     }
+
     const errorMessage = handleActionError(error, "Sign in failed");
     return createAuthResponse(false, errorMessage);
   }

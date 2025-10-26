@@ -2,7 +2,7 @@ import { Package, Star } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 
-import { ImageUtils } from "@/lib/utils-functions";
+import { ImageUtils } from "@/lib/utils";
 import { SerializedOrderItemWithProduct } from "@/types";
 
 import SharedDialog from "../shared/shared-dialog";
@@ -19,9 +19,9 @@ export default function Review({ item }: Props) {
     <Card className="py-4 w-fit">
       <CardContent className="flex flex-col lg:flex-row gap-6 items-start">
         <div className="relative h-20 w-20 lg:h-24 lg:w-24 overflow-hidden shrink-0">
-          {item.product.imageKey ? (
+          {item.product.image_key ? (
             <Image
-              src={ImageUtils.getImageUrl(item.product.imageKey)}
+              src={ImageUtils.getImageUrl(item.product.image_key)}
               alt={item.product.name}
               fill
               className="object-cover"

@@ -2,12 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Mail, Pencil, Phone, User as UserIcon, X } from "lucide-react";
-import { User } from "next-auth";
-import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { User } from "@/auth";
 import { SharedCard } from "@/components/shared/shared-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useUpdateUser } from "@/hooks/tanstack/useUser";
+import { useUpdateUser } from "@/hooks/queries/useUser";
+import { authClient } from "@/lib/auth-client";
 import { updateUserSchema } from "@/validations/user.validation";
 
 import UserAvatar from "../sidebar/user-avatar";
@@ -31,7 +31,6 @@ interface ProfileCardProps {
 
 const ProfileCard = ({ user }: ProfileCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const { update } = useSession();
 
   const form = useForm<z.infer<typeof updateUserSchema>>({
     resolver: zodResolver(updateUserSchema),
@@ -54,7 +53,7 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
     updateUserMutation(values, {
       onSuccess: async () => {
         setIsEditing(false);
-        await update({ phone: values.phone, name: values.name });
+        await authClient.updateUser({ phone: values.phone, name: values.name });
         form.reset();
       },
     });

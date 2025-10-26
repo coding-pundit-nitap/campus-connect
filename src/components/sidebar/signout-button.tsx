@@ -1,18 +1,17 @@
 "use client";
 import { LogIn } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
-import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { authClient, useSession } from "@/lib/auth-client";
 
 export default function SignOutButton() {
   const router = useRouter();
   const { data: session } = useSession();
   const handleAuthAction = async () => {
     if (session?.user?.id) {
-      await signOut({ callbackUrl: "/" });
+      await authClient.signOut({ query: { redirect: "/" } });
     } else {
       router.push("/login");
     }
@@ -20,7 +19,7 @@ export default function SignOutButton() {
   return (
     <div className="mt-auto space-y-4 p-4">
       <Separator />
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-sm text-muted-foreground text-center">
           Sign in to access all features
         </p>

@@ -1,6 +1,6 @@
 "use client";
 import { useUpsertCartItem } from "@/hooks";
-import { cartUIService } from "@/lib/utils-functions";
+import { cartUIService } from "@/lib/utils";
 import { CartItemData } from "@/types/cart.types";
 
 import { CartItem } from "./cart-item";

@@ -1,9 +1,7 @@
 import { Role } from "@prisma/client";
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { getAllUsersAction } from "@/actions/admin";
-import { auth } from "@/auth";
 import { UsersTable } from "@/components/admin/users/users-table";
 
 export const metadata: Metadata = {
@@ -16,12 +14,6 @@ export default async function AdminUsersPage({
 }: {
   searchParams: Promise<{ cursor?: string; search?: string; role?: string }>;
 }) {
-  const session = await auth();
-
-  if (!session?.user || session.user.role !== "ADMIN") {
-    redirect("/?error=unauthorized");
-  }
-
   const { cursor, search, role } = await searchParams;
 
   let users = null;

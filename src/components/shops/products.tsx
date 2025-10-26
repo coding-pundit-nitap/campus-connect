@@ -1,4 +1,4 @@
-import { getProductStates } from "@/lib/utils-functions";
+import { getProductStates } from "@/lib/utils";
 import productService from "@/services/product.service";
 
 import { ProductsContainer } from "./products-container";

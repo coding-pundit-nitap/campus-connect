@@ -1,7 +1,7 @@
 import Image from "next/image";
 import React from "react";
 
-import { ImageUtils } from "@/lib/utils-functions";
+import { ImageUtils } from "@/lib/utils";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductCardHeaderProps {
@@ -20,7 +20,7 @@ export function ProductCardHeader({
       className={`relative overflow-hidden ${isMobileList ? "h-full" : "aspect-square"}`}
     >
       <Image
-        src={ImageUtils.getImageUrl(product.imageKey)}
+        src={ImageUtils.getImageUrl(product.image_key)}
         alt={product.name}
         fill
         className="object-contain transition-transform duration-300 ease-in-out group-hover:scale-105"

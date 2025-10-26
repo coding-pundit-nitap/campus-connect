@@ -3,7 +3,7 @@ export interface SearchResult {
   title: string;
   subtitle: string;
   type: "shop" | "product" | "category";
-  imageKey: string | null;
+  image_key: string | null;
   shop_id?: string;
 }
 

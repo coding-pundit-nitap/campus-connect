@@ -1,6 +1,6 @@
 import React from "react";
 
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import OwnedIndividualShopPage from "@/page-components/owner-shop/owned-individual-shop-page";
 
 export default async function Page() {

@@ -69,6 +69,10 @@ class UserRepository {
   async count<T extends Prisma.UserWhereInput>(where: T): Promise<number> {
     return prisma.user.count({ where });
   }
+
+  async deleteAllSessions(userId: string): Promise<void> {
+    await prisma.session.deleteMany({ where: { userId } });
+  }
 }
 
 export const userRepository = new UserRepository();

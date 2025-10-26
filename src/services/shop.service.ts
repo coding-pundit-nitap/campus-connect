@@ -13,7 +13,7 @@ class ShopService {
 
     const newShop = await shopRepository.create({
       ...data,
-      owner: { connect: { id: user_id } },
+      user: { connect: { id: user_id } },
     });
 
     const admins = await userRepository.findAdmins({ select: { id: true } });

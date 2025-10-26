@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils-functions/auth.utils";
+import authUtils from "@/lib/utils/auth.utils";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
-} from "@/lib/utils-functions/order.utils";
+} from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,

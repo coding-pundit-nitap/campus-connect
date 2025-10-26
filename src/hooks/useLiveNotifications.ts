@@ -2,10 +2,10 @@
 
 import { BroadcastNotification, Notification } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
 import { NotificationSummaryType } from "@/services/api/notification-api.service";
 
@@ -18,7 +18,7 @@ export function useLiveNotifications() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (session.status !== "authenticated") {
+    if (!session.data) {
       return;
     }
 
@@ -87,5 +87,5 @@ export function useLiveNotifications() {
     return () => {
       eventSource.close();
     };
-  }, [queryClient, session.status]);
+  }, [queryClient, session.data]);
 }

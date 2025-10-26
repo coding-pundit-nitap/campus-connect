@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useBroadcastForm } from "@/hooks/useBroadcastForm";
+import { useBroadcastForm } from "@/hooks/ui/useBroadcastForm";
 import { ButtonConfig, FormFieldConfig } from "@/types";
 import { BroadcastFormData } from "@/validations";
 

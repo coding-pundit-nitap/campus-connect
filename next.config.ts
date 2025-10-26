@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "5mb",
     },
+    authInterrupts: true,
   },
   typedRoutes: true,
   output: isProduction ? "standalone" : undefined,

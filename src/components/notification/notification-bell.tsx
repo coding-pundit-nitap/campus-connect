@@ -7,11 +7,11 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import {
+  useLiveNotifications,
   useMarkNotificationsAsRead,
   useNotificationSummary,
-} from "@/hooks/tanstack/useNotifications";
-import { useLiveNotifications } from "@/hooks/useLiveNotifications";
-import { cn } from "@/lib/utils";
+} from "@/hooks";
+import { cn } from "@/lib/cn";
 
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Badge } from "../ui/badge";

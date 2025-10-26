@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import SharedQuantityControl from "@/components/shared/shared-quantity-control";
 import { Button } from "@/components/ui/button";
-import { useAddToCart } from "@/hooks/tanstack";
+import { useAddToCart } from "@/hooks/queries";
 
 type ProductActionsProps = {
   productId: string;
