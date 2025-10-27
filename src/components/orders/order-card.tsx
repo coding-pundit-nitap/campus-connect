@@ -3,6 +3,7 @@ import { Separator } from "@/components/ui/separator";
 import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
+import { ClientDate } from "../shared/client-date";
 import OrderCardFooter from "./order-card-footer";
 
 type Props = {
@@ -52,10 +53,10 @@ export default function OrderCard({ order }: Props) {
                 Order #{order.display_id}
               </p>
               <h3 className="truncate font-semibold text-lg">
-                {order.shop.name}
+                {order.items[0].product.shop?.name}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {new Date(order.created_at).toLocaleString()}
+                <ClientDate date={order.created_at} format="datetime" />
               </p>
             </div>
             <div className="text-left md:text-right">

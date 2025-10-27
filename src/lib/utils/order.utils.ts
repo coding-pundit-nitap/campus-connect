@@ -86,13 +86,14 @@ export const orderWithDetailsInclude = {
             select: {
               id: true,
               name: true,
+              qr_image_key: true,
+              upi_id: true,
             },
           },
         },
       },
     },
   },
-  shop: true,
   delivery_address: true,
   user: {
     select: {
@@ -108,16 +109,13 @@ export const serializeOrderWithDetails = (
 ): SerializedOrderWithDetails => {
   return {
     ...serializeOrder(order),
-    shop: {
-      ...serializeShop(order.shop),
-    },
     items: order.items.map((item) => ({
       ...serializeOrderItem(item),
       product: serializeProduct(item.product),
     })),
     user: {
-      name: order.user.name || "Unknown",
-      phone: order.user.phone || "Unknown",
+      name: order.user?.name || "Unknown",
+      phone: order.user?.phone || "Unknown",
     },
   };
 };

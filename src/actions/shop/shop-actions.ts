@@ -20,8 +20,16 @@ export async function createShopAction(formData: ShopActionFormData) {
     if (!parsedData.success) {
       throw new BadRequestError(parsedData.error.message);
     }
-    const { name, description, location, opening, closing, image, qr_image } =
-      parsedData.data;
+    const {
+      name,
+      description,
+      location,
+      opening,
+      closing,
+      image,
+      qr_image,
+      upi_id,
+    } = parsedData.data;
     let image_key = "";
     if (image) {
       const imageFile = image;
@@ -52,6 +60,7 @@ export async function createShopAction(formData: ShopActionFormData) {
       opening,
       image_key,
       qr_image_key,
+      upi_id,
       user: { connect: { id: user_id } },
     });
 

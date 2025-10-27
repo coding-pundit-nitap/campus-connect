@@ -123,8 +123,8 @@ class OrderService {
       const shop = await shopRepository.findById(shop_id, {
         include: { user: { select: { id: true } } },
       });
-      if (shop) {
-        await notificationService.publishNotification(shop.user[0].id, {
+      if (shop && shop.user) {
+        await notificationService.publishNotification(shop.user.id, {
           title: "New Order Received",
           message: `You have received a new order with ID: ${order.display_id}`,
           action_url: `/owner-shops/orders/${order.id}`,

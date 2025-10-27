@@ -19,10 +19,11 @@ export function useLinkShop() {
       name: "",
       description: "",
       location: "",
-      opening: "09:00",
-      closing: "17:00",
+      opening: "07:00",
+      closing: "20:00",
       image: undefined,
       qr_image: undefined,
+      upi_id: "",
     },
   });
 
@@ -44,7 +45,7 @@ export function useLinkShop() {
           },
         });
       } catch {
-        // TODO: Loggind
+        // TODO: Logging
         form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
