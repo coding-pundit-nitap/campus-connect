@@ -1,4 +1,5 @@
-import { Calendar, Package, User } from "lucide-react";
+import { PaymentMethod } from "@prisma/client";
+import { Calendar, Hash, Package, User } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -35,15 +36,15 @@ export default function OrderCard({
       ref={lastElementRef}
       className={`transition-shadow hover:shadow-md ${isSelected ? "border-primary bg-primary/5" : ""}`}
     >
-      <CardContent className="flex  gap-4 p-4">
+      <CardContent className="flex justify-between gap-4 p-4">
         <Checkbox
           checked={isSelected}
           onChange={(e) => onSelectionChange(order.id, e.target.checked)}
           aria-label={`Select order ${order.display_id}`}
         />
 
-        <div className="flex flex-col md:flex-row items-center w-full justify-between">
-          <div className="md:flex-1 flex flex-col text-sm">
+        <div className="flex flex-col md:flex-row items-start gap-2 md:items-center w-full justify-between">
+          <div className="flex flex-col text-sm">
             <div className="flex flex-col">
               <span className="font-bold text-base">#{order.display_id}</span>
               <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -63,8 +64,24 @@ export default function OrderCard({
               </span>
             </div>
           </div>
-
-          <div className="flex flex-col items-end gap-2 text-right">
+          {order.payment_method === PaymentMethod.ONLINE && (
+            <div className={`flex items-start gap-3`}>
+              <div className="text-muted-foreground mt-1">
+                <Hash size={18} />
+              </div>
+              <div className={`flex flex-col w-full`}>
+                <span className="text-sm text-muted-foreground">
+                  UPI Transaction ID
+                </span>
+                <span className={`font-medium`}>
+                  <code className="text-xs bg-muted px-2 py-1 rounded">
+                    {order.upi_transaction_id}
+                  </code>
+                </span>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col items-start gap-2">
             <div
               className={`flex items-center gap-1.5 text-xs font-semibold ${statusInfo.colorClassName}`}
             >

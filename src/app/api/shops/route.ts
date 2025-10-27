@@ -26,7 +26,12 @@ export async function GET(_request: NextRequest) {
     }
 
     const { user, ...shopData } = shopWithUser;
-    const shop = { ...shopData, user: user[0] };
+    const shop = {
+      ...shopData,
+      user: user
+        ? { name: user.name, email: user.email }
+        : { name: "Unknown", email: "Unknown" },
+    };
 
     const successResponse = createSuccessResponse(
       shop,

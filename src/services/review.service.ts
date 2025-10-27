@@ -21,8 +21,8 @@ class ReviewService {
     const product = await productRepository.findById(product_id, {
       include: { shop: { include: { user: { select: { id: true } } } } },
     });
-    if (product && product.shop) {
-      await notificationService.publishNotification(product.shop.user[0].id, {
+    if (product && product.shop && product.shop.user) {
+      await notificationService.publishNotification(product.shop.user.id, {
         title: "New Review on Your Product",
         message: `Your product ${product.name} has received a new review.`,
         action_url: `/product/${product.id}`,

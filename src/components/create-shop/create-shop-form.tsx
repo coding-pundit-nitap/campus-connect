@@ -190,6 +190,23 @@ export function CreateShopForm() {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="upi_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Enter Your UPI ID</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="text"
+                          placeholder="Enter the UPI ID"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
           )}

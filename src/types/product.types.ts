@@ -8,11 +8,11 @@ export type SerializedProduct = Omit<
   discount: number | null;
   category?: Category | null;
   rating: number;
-  shop: { name: string; id: string };
+  shop: { name: string; id: string } | null;
 };
 
 export type SerializedProductDetail = SerializedProduct & {
-  shop: { name: string; id: string };
+  shop: { name: string; id: string } | null;
 };
 
 export type ProductDataDetails = {

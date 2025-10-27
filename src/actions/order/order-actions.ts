@@ -11,7 +11,7 @@ import {
 import orderRepository from "@/repositories/order.repository";
 import notificationService from "@/services/notification.service";
 import orderService from "@/services/order.service";
-import { OrderWithDetails, SerializedOrderWithDetails } from "@/types";
+import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -32,15 +32,10 @@ export async function getOrdersAction(options: {
       limit: options.limit || 10,
     };
 
-    const {
-      orders,
-      totalPages,
-      currentPage,
-    }: { orders: OrderWithDetails[]; totalPages: number; currentPage: number } =
-      await orderService.getOrders({
-        ...queryOptions,
-        userId,
-      });
+    const { orders, totalPages, currentPage } = await orderService.getOrders({
+      ...queryOptions,
+      userId,
+    });
 
     return createSuccessResponse(
       {
@@ -119,12 +114,14 @@ export async function updateOrderStatusAction({
     }
 
     const updatedOrder = await orderRepository.updateStatus(order_id, status);
-    await notificationService.publishNotification(order.user_id, {
-      title: "Order Status Updated",
-      message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
-      action_url: `/orders/${order_id}`,
-      type: "INFO",
-    });
+    if (order.user_id) {
+      await notificationService.publishNotification(order.user_id, {
+        title: "Order Status Updated",
+        message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
+        action_url: `/orders/${order_id}`,
+        type: "INFO",
+      });
+    }
 
     return createSuccessResponse(
       { ...updatedOrder, total_price: Number(updatedOrder.total_price) },
@@ -230,13 +227,15 @@ export async function batchUpdateOrderStatusAction({
     await orderRepository.batchUpdateStatus(orderIds, status);
 
     Promise.all(
-      orders.map((order) =>
-        notificationService.publishNotification(order.user_id, {
-          title: "Order Status Updated",
-          message: `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`,
-          action_url: `/orders/${order.id}`,
-          type: "INFO",
-        })
+      orders.map(
+        (order) =>
+          order.user_id &&
+          notificationService.publishNotification(order.user_id, {
+            title: "Order Status Updated",
+            message: `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`,
+            action_url: `/orders/${order.id}`,
+            type: "INFO",
+          })
       )
     );
 

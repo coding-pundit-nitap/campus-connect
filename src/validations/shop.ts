@@ -37,6 +37,7 @@ export const shopSchema = z.object({
   closing: closingSchema,
   image_key: image_keySchema,
   qr_image_key: qr_image_keySchema,
+  upi_id: z.string(),
 });
 
 export type ShopFormData = z.infer<typeof shopSchema>;

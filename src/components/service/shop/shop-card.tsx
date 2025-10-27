@@ -76,7 +76,9 @@ export function ShopCard({ shop, priority }: Props) {
             </div>
             <div className="flex items-center text-sm text-muted-foreground">
               <User className="mr-2 h-4 w-4 text-primary" />
-              <span className="line-clamp-1">By {shop.user.name}</span>
+              <span className="line-clamp-1">
+                By {shop.user ? shop.user.name : "Unknown"}
+              </span>
             </div>
           </CardContent>
 

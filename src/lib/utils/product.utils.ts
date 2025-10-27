@@ -109,7 +109,7 @@ export const createDefaultFilterState = (): FilterState => ({
 
 export const serializeProduct = (
   product: Product & { category?: Category | null } & {
-    shop: { id: string; name: string };
+    shop: { id: string; name: string } | null;
   }
 ): SerializedProduct => ({
   ...product,
