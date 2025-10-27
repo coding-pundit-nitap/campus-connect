@@ -2,7 +2,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { changePaswordAction } from "@/actions/authentication/change-password";
 import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
 import { userAPIService } from "@/services/api";
@@ -42,18 +41,6 @@ export function useUpdateUser() {
     },
     onError: (error) => {
       toast.error("Failed to update profile: " + error.message);
-    },
-  });
-}
-
-export function useChangePassword() {
-  return useMutation({
-    mutationFn: changePaswordAction,
-    onSuccess: () => {
-      toast.success("Password updated successfully");
-    },
-    onError: (error) => {
-      toast.error("Failed to update password: " + error.message);
     },
   });
 }

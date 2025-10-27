@@ -124,7 +124,9 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm">{order.shop.name}</span>
+                    <span className="text-sm">
+                      {order.items[0].product.shop?.name}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <span className="font-medium">₹{order.total_price}</span>

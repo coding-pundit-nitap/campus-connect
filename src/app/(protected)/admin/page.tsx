@@ -11,7 +11,8 @@ import Link from "next/link";
 
 import { getDashboardAnalyticsAction } from "@/actions/admin";
 import { SharedCard } from "@/components/shared/shared-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard | Campus Connect",

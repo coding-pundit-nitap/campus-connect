@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { hashPassword } from "@/lib/auth";
 import userRepository from "@/repositories/user.repository";
 import {
   createErrorResponse,
@@ -16,7 +15,7 @@ export async function POST(request: NextRequest) {
       const errorResponse = createErrorResponse("Invalid input data");
       return NextResponse.json(errorResponse, { status: 400 });
     }
-    const { name, email, password } = parsedData.data;
+    const { name, email } = parsedData.data;
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       const errorResponse = createErrorResponse(
@@ -25,13 +24,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 409 });
     }
 
-    const hash_password = await hashPassword(password);
-
     const user = await userRepository.create({
       data: {
         name,
         email,
-        hash_password,
       },
       select: {
         id: true,

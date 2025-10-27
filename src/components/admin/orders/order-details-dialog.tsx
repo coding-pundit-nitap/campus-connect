@@ -146,8 +146,7 @@ export function OrderDetailsDialog({
               Shop Information
             </h3>
             <div className="text-sm">
-              <p className="font-medium">{order.shop.name}</p>
-              <p className="text-muted-foreground">{order.shop.location}</p>
+              <p className="font-medium">{order.items[0].product.shop?.name}</p>
             </div>
           </div>
 

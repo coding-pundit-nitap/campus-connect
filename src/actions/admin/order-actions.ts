@@ -141,18 +141,20 @@ export async function updateOrderStatusAction(
       CANCELLED: "has been cancelled",
     };
 
-    await notificationService.publishNotification(order.user_id, {
-      title: "Order Status Updated",
-      message: `Your order #${order.display_id} ${statusMessages[orderStatus]}.`,
-      type:
-        orderStatus === "COMPLETED"
-          ? "SUCCESS"
-          : orderStatus === "CANCELLED"
-            ? "ERROR"
-            : "INFO",
-      category: "ORDER",
-      action_url: `/orders/${order.id}`,
-    });
+    if (order.user_id) {
+      await notificationService.publishNotification(order.user_id, {
+        title: "Order Status Updated",
+        message: `Your order #${order.display_id} ${statusMessages[orderStatus]}.`,
+        type:
+          orderStatus === "COMPLETED"
+            ? "SUCCESS"
+            : orderStatus === "CANCELLED"
+              ? "ERROR"
+              : "INFO",
+        category: "ORDER",
+        action_url: `/orders/${order.id}`,
+      });
+    }
 
     return createSuccessResponse(
       {
@@ -202,18 +204,20 @@ export async function updatePaymentStatusAction(
       payment_status: paymentStatus,
     });
 
-    await notificationService.publishNotification(order.user_id, {
-      title: "Payment Status Updated",
-      message: `Payment status for order #${order.display_id} has been updated to ${paymentStatus}.`,
-      type:
-        paymentStatus === "COMPLETED"
-          ? "SUCCESS"
-          : paymentStatus === "FAILED"
-            ? "ERROR"
-            : "INFO",
-      category: "ORDER",
-      action_url: `/orders/${order.id}`,
-    });
+    if (order.user_id) {
+      await notificationService.publishNotification(order.user_id, {
+        title: "Payment Status Updated",
+        message: `Payment status for order #${order.display_id} has been updated to ${paymentStatus}.`,
+        type:
+          paymentStatus === "COMPLETED"
+            ? "SUCCESS"
+            : paymentStatus === "FAILED"
+              ? "ERROR"
+              : "INFO",
+        category: "ORDER",
+        action_url: `/orders/${order.id}`,
+      });
+    }
 
     return createSuccessResponse(
       {

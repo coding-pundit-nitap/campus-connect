@@ -27,13 +27,13 @@ export function formatShopData(shop: ShopWithOwner): ShopWithOwner & {
   openingFormatted: string;
   closingFormatted: string;
 } {
-  const ownerName = shop.user.name || "Unknown Owner";
+  const ownerName = shop.user ? shop.user.name : "Unknown Owner";
 
   return {
     ...shop,
     user: {
       name: ownerName,
-      email: shop.user.email,
+      email: shop.user ? shop.user.email : "Unknown Email",
     },
     openingFormatted: formatTime(shop.opening),
     closingFormatted: formatTime(shop.closing),

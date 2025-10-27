@@ -9,16 +9,22 @@ import {
 
 import { SerializedProduct } from "./product.types";
 export type OrderWithDetails = Order & {
-  shop: Shop;
   items: (OrderItem & {
     product: Product & { category?: Category | null } & {
-      shop: { id: string; name: string };
+      shop: {
+        id: string;
+        name: string;
+        qr_image_key: string;
+        upi_id: string;
+      } | null;
     };
   })[];
   user: {
-    name: string | null;
+    name: string;
+    id: string;
+    email: string;
     phone: string | null;
-  };
+  } | null;
 };
 
 export type CreateOrderPayload = {
@@ -60,7 +66,6 @@ export type SerializedOrderItemWithProduct = SerializedOrderItem & {
 };
 
 export type SerializedOrderWithDetails = SerializedOrder & {
-  shop: SerializedShop;
   items: SerializedOrderItemWithProduct[];
   user: {
     name: string;

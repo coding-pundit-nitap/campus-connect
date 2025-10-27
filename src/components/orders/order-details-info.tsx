@@ -29,7 +29,7 @@ const InfoRow = ({
 
 export default function OrderDetailsInfo({ order }: Props) {
   const {
-    shop,
+    items,
     delivery_address_snapshot,
     requested_delivery_time,
     estimated_delivery_time,
@@ -46,7 +46,7 @@ export default function OrderDetailsInfo({ order }: Props) {
         </CardHeader>
         <CardContent className="space-y-4">
           <InfoRow Icon={Store} label="Restaurant">
-            {shop.name}
+            {items[0].product.shop?.name || "Unknown"}
           </InfoRow>
           <InfoRow Icon={MapPin} label="Delivery Address">
             {delivery_address_snapshot}
