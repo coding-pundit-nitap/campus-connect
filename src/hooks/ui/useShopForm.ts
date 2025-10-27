@@ -1,5 +1,6 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,6 +13,8 @@ import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export function useLinkShop() {
   const { mutate: linkShop, isPending, error } = useShopLink();
+
+  const router = useRouter();
 
   const form = useForm<ShopActionFormData>({
     resolver: zodResolver(shopActionSchema),
@@ -40,6 +43,7 @@ export function useLinkShop() {
           onSuccess: async (result) => {
             if (result.success) {
               await authClient.updateUser({ shop_id: result.data.id });
+              router.push(`/owner-shops`);
               form.reset();
             }
           },
@@ -73,6 +77,8 @@ type UpdateShopProps = {
 export function useUpdateShop({ shop }: UpdateShopProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const router = useRouter();
+
   const { mutate: updateShop, isPending, error } = useShopUpdate();
 
   const form = useForm<ShopActionFormData>({
@@ -103,12 +109,13 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
           onSuccess: (result) => {
             if (result.success) {
               setIsDialogOpen(false);
+              router.refresh();
               form.reset();
             }
           },
         });
       } catch {
-        // TODO: Loggind
+        // TODO: Logging
         form.setError("image_key", {
           type: "manual",
           message: "Shop update failed. Please try again.",
