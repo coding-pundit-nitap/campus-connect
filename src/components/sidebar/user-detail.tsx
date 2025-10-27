@@ -34,7 +34,18 @@ export default function UserDetail({ user }: Props) {
   return (
     <div className="flex-1 min-w-0">
       <div className="flex items-center space-x-2">
-        <p className="text-sm font-medium truncate">{user.name || "User"}</p>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="truncate">
+              <p className="text-sm font-medium truncate">
+                {user.name || "User"}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{user.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
@@ -51,10 +62,19 @@ export default function UserDetail({ user }: Props) {
       </div>
 
       {user.email && (
-        <div className="flex items-center space-x-1 mt-1">
-          <Mail className="h-3 w-3 text-muted-foreground" />
-          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger className="truncate flex items-center space-x-1 mt-1">
+              <Mail className="h-3 w-3 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground truncate">
+                {user.email}
+              </p>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{user.email}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );
