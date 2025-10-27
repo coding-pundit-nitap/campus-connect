@@ -26,7 +26,18 @@ export function CreateShopForm() {
   const { form, handlers, state } = useLinkShop();
   const { isSubmitting } = state;
 
-  const router = useRouter();
+  const stepFieldNames = {
+    1: ["name", "description"] as const,
+    2: ["location", "opening", "closing"] as const,
+    3: ["image"] as const,
+    4: ["qr_image", "upi_id"] as const,
+  };
+
+  const nextStep = async () => {
+    const fieldNames = stepFieldNames[step as keyof typeof stepFieldNames];
+    const isValid = await form.trigger(fieldNames);
+    if (isValid) setStep((s) => s + 1);
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -69,7 +80,7 @@ export function CreateShopForm() {
                         />
                       </FormControl>
                       <FormDescription>
-                        A brief description of your shop.
+                        {String(field.value || "").length}/{500} characters
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -218,21 +229,12 @@ export function CreateShopForm() {
               </Button>
             )}
             {step < 4 && (
-              <Button
-                type="button"
-                onClick={() => setStep(step + 1)}
-                className="ml-auto"
-              >
+              <Button type="button" onClick={nextStep} className="ml-auto">
                 Next
               </Button>
             )}
             {step === 4 && (
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                onClick={() => router.push("/owner-shops")}
-                className="ml-auto"
-              >
+              <Button type="submit" disabled={isSubmitting} className="ml-auto">
                 {isSubmitting ? "Submitting..." : "Submit"}
               </Button>
             )}

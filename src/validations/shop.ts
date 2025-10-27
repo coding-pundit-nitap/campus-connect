@@ -3,29 +3,34 @@ import { z } from "zod";
 const nameSchema = z
   .string()
   .min(1, "Shop name is required")
-  .min(3, "Shop name must be at least 3 characters");
+  .min(3, "Shop name must be at least 3 characters")
+  .max(50, "Shop name is too long");
 
 const descriptionSchema = z
   .string()
   .min(1, "Description is required")
-  .min(10, "Description is too short");
+  .min(10, "Description is too short")
+  .max(500, "Description is too long");
 
 const locationSchema = z
   .string()
   .min(1, "Location is required")
-  .min(3, "Location must be at least 3 characters");
+  .min(3, "Location must be at least 3 characters")
+  .max(100, "Location is too long");
 
 const image_keySchema = z.string().min(1, "An image is required.");
 
 const openingSchema = z
   .string()
   .min(1, "Opening hours are required")
-  .min(5, "Opening hours format is invalid");
+  .min(5, "Opening hours format is invalid")
+  .max(5, "Opening hours format is invalid");
 
 const closingSchema = z
   .string()
   .min(1, "Closing hours are required")
-  .min(5, "Closing hours format is invalid");
+  .min(5, "Closing hours format is invalid")
+  .max(5, "Closing hours format is invalid");
 
 const qr_image_keySchema = z.string().min(1, "An QR code image is required.");
 
