@@ -173,7 +173,7 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost/api
+        - NEXT_PUBLIC_API_URL=/api
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
         - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
     container_name: campus_connect_app_prod
