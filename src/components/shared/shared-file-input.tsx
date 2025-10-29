@@ -1,3 +1,4 @@
+"use client";
 import { Image as ImageIcon, Upload } from "lucide-react";
 import Image from "next/image";
 import React, { useCallback, useEffect, useState } from "react";

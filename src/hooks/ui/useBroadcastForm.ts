@@ -1,3 +1,4 @@
+"use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NotificationCategory, NotificationType } from "@prisma/client";
 import { useForm } from "react-hook-form";

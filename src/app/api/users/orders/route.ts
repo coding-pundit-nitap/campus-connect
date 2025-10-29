@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 import authUtils from "@/lib/utils/auth.utils";
 import orderRepository from "@/repositories/order.repository";
@@ -7,7 +7,7 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export async function GET(_request: NextRequest) {
+export async function GET() {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
