@@ -95,6 +95,14 @@ class ShopUIServices {
         maxSize: 5,
         required: false,
       },
+      {
+        name: "qr_image",
+        label: "QR Code Image",
+        type: "file",
+        accept: "image/*",
+        maxSize: 5,
+        required: false,
+      },
     ];
   };
 

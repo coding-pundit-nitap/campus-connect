@@ -1,7 +1,7 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -75,10 +75,7 @@ type UpdateShopProps = {
 };
 
 export function useUpdateShop({ shop }: UpdateShopProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
   const router = useRouter();
-
   const { mutate: updateShop, isPending, error } = useShopUpdate();
 
   const form = useForm<ShopActionFormData>({
@@ -93,44 +90,37 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
       image: undefined,
       qr_image: undefined,
       qr_image_key: shop.qr_image_key || undefined,
+      upi_id: shop.upi_id || undefined,
     },
   });
 
   const state: FormState = {
     isLoading: isPending,
-    error: error?.message || null,
+    error: error ? error.message : null,
     isSubmitting: form.formState.isSubmitting,
   };
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
-      try {
-        updateShop(data, {
-          onSuccess: (result) => {
-            if (result.success) {
-              setIsDialogOpen(false);
-              router.refresh();
-              form.reset();
-            }
-          },
-        });
-      } catch {
-        // TODO: Logging
-        form.setError("image_key", {
-          type: "manual",
-          message: "Shop update failed. Please try again.",
-        });
-      }
+      updateShop(data, {
+        onSuccess: (result) => {
+          if (result.success) {
+            toast.success("Shop updated successfully!");
+            router.push("/owner-shops");
+          } else {
+            toast.error(result.details || "An unknown error occurred.");
+          }
+        },
+        onError: (err) => {
+          toast.error((err as Error).message || "Failed to update shop.");
+        },
+      });
     }),
-    openDialog: () => setIsDialogOpen(true),
-    closeDialog: () => setIsDialogOpen(false),
   };
 
   return {
     form,
     state,
     handlers,
-    isDialogOpen,
-    setIsDialogOpen,
   };
 }

@@ -78,7 +78,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
+      select: { id: true, image_key: true, qr_image_key: true }, // Select old keys for deletion
     });
     if (!context || !context.id) {
       throw new UnauthorizedError("User is not authorized to update a shop");
@@ -93,28 +93,44 @@ export async function updateShopAction(formData: ShopActionFormData) {
 
     const values = parsedData.data;
     await categoryServices.cleanupEmptyCategories(shop_id);
-    let image_key = "";
-    if (values.image) {
-      const imageFile = values.image;
+
+    const { image, qr_image, ...rest } = values;
+
+    const updateData: Omit<ShopActionFormData, "image" | "qr_image"> = {
+      ...rest,
+    };
+
+    if (image) {
+      const imageFile = image;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      image_key = await fileUploadService.upload(
+      updateData.image_key = await fileUploadService.upload(
         imageFile.name,
         imageFile.type,
         imageFile.size,
         buffer
       );
+
+      if (context.image_key) {
+        await fileUploadService.deleteFile(context.image_key);
+      }
     }
 
-    if (image_key && values.image_key) {
-      await fileUploadService.deleteFile(values.image_key);
+    if (qr_image) {
+      const qrImageFile = qr_image;
+      const buffer = Buffer.from(await qrImageFile.arrayBuffer());
+      updateData.qr_image_key = await fileUploadService.upload(
+        qrImageFile.name,
+        qrImageFile.type,
+        qrImageFile.size,
+        buffer
+      );
+
+      if (context.qr_image_key) {
+        await fileUploadService.deleteFile(context.qr_image_key);
+      }
     }
 
-    const { image, ...rest } = values;
-    void image;
-    const updatedShop = await shopRepository.update(shop_id, {
-      ...rest,
-      image_key,
-    });
+    const updatedShop = await shopRepository.update(shop_id, updateData);
 
     await notificationService.publishNotification(user_id, {
       title: "Shop Updated Successfully",
@@ -123,7 +139,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
       type: "INFO",
     });
 
-    return createSuccessResponse("Shop updated successfully!");
+    return createSuccessResponse(updatedShop, "Shop updated successfully!");
   } catch (error) {
     console.error("UPDATE SHOP ERROR:", error);
     throw new InternalServerError("Failed to update shop.");
