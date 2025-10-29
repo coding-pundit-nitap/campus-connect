@@ -1,8 +1,7 @@
-import { Clock, Eye, ListOrdered, MapPin, Store } from "lucide-react";
+import { Clock, Edit, Eye, ListOrdered, MapPin, Store } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 
-import { ShopEditFormContainer } from "@/components/owned-shop/shop-edit";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,11 @@ export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
                 <statusInfo.Icon className="mr-1.5 h-3.5 w-3.5" />
                 {statusInfo.label}
               </Badge>
-              <ShopEditFormContainer shop={shop} />
+              <Button asChild variant="outline" size="icon">
+                <Link href="/owner-shops/edit">
+                  <Edit className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           </div>
           <CardDescription className="mt-1">{shop.description}</CardDescription>
@@ -79,7 +82,7 @@ export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
           </Button>
           <div className="flex flex-col md:flex-row gap-2">
             <Button asChild variant="outline">
-              <Link href={`/owner-shops/shop`} target="_blank">
+              <Link href={`/owner-shops/products`} target="_blank">
                 <Eye className="mr-2 h-4 w-4" />
                 Manage Products
               </Link>

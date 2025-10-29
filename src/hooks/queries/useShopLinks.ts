@@ -34,10 +34,6 @@ export function useShopUpdate() {
       queryClient.invalidateQueries({
         queryKey: queryKeys.shops.all,
       });
-      toast.success("Shop updated successfully!");
-    },
-    onError: () => {
-      toast.error("Failed to update shop.");
     },
   });
 }
