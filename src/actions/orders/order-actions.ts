@@ -14,8 +14,8 @@ import {
 } from "@/lib/utils/order.utils";
 import { getOrderUrl } from "@/lib/utils/url.utils";
 import orderRepository from "@/repositories/order.repository";
-import { notificationService } from "@/services/notification/notification.service";
-import { orderService } from "@/services/order/order.service";
+import { notificationService } from "@/services/notification";
+import { orderService } from "@/services/order";
 import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,

@@ -1,1 +1,1 @@
-export * from "./notification-api.service";
+export * from "./notification.service";

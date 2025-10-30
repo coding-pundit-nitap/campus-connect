@@ -1,1 +1,1 @@
-export * from "./order-api.service";
+export * from "./order.service";

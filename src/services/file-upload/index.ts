@@ -1,1 +1,1 @@
-export * from "./file-upload-api.service";
+export * from "./file-upload.service";

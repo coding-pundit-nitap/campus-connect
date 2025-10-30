@@ -1,7 +1,7 @@
 import { CheckoutHeader, OrderSummary } from "@/components/checkout";
 import { PaymentForm } from "@/components/checkout/payment-form";
 import { SharedCard } from "@/components/shared/shared-card";
-import { cartService } from "@/services/cart/cart.service";
+import { cartService } from "@/services/cart";
 
 export default async function PaymentPageComponent({
   cart_id,

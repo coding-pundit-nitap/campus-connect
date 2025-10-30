@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { authUtils } from "@/lib/utils/auth.utils.server";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
+import { authUtils } from "@/lib/utils/auth.utils";
+import { fileUploadService } from "@/services/file-upload";
 import {
   createErrorResponse,
   createSuccessResponse,

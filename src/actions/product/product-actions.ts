@@ -9,8 +9,7 @@ import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
-import { notificationService } from "@/services/notification/notification.service";
+import { fileUploadService } from "@/services/file-upload";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {

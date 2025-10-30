@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationService } from "@/services/notification/notification.service";
+import { authUtils } from "@/lib/utils/auth.utils";
+import { notificationService } from "@/services/notification";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
 export async function GET() {
