@@ -2,7 +2,7 @@ export * from "./useAdminShopFilters";
 export * from "./useAdminUserFilters";
 export * from "./useBroadcastForm";
 export * from "./useCartDrawer";
-export * from "./useCategories";
+export * from "./useCategorySearch";
 export * from "./useIndividualShop";
 export * from "./useLoginForm";
 export * from "./useOrderFilters";
