@@ -1,7 +1,6 @@
 export * from "./useAddress";
 export * from "./useBroadcast";
 export * from "./useCarts";
-export * from "./useProductCategoriesSearch";
 export * from "./useImageUpload";
 export * from "./useInfiniteProducts";
 export * from "./useInfiniteReviews";
@@ -9,6 +8,7 @@ export * from "./useInfiniteShops";
 export * from "./useNotificationHistory";
 export * from "./useNotifications";
 export * from "./useOrders";
+export * from "./useProductCategoriesSearch";
 export * from "./useReview";
 export * from "./useSearchQuery";
 export * from "./useSharedInfiniteProducts";
