@@ -1,4 +1,4 @@
-import { productAPIService } from "@/services/api";
+import { productAPIService } from "@/services/product";
 import { SerializedProduct } from "@/types/product.types";
 
 import ProductsList from "./products-list";

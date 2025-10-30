@@ -11,7 +11,7 @@ import {
 import { useProductFilters } from "@/hooks/ui/useProductFilters";
 import { queryKeys } from "@/lib/query-keys";
 import { getProductStates } from "@/lib/utils";
-import { productAPIService } from "@/services/api/product-api.service";
+import { productAPIService } from "@/services/product";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
 type Props = {

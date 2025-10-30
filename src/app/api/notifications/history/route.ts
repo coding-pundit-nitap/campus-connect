@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils";
-import { notificationService } from "@/services/notification.service";
+import { notificationService } from "@/services/notification";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
 export async function GET(request: NextRequest) {
