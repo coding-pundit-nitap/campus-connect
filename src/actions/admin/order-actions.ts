@@ -13,7 +13,7 @@ import {
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
-import notificationService from "@/services/notification.service";
+import { notificationService } from "@/services/notification";
 import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,

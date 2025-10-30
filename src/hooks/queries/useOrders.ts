@@ -16,7 +16,7 @@ import {
 import {
   createOrderAction,
   getOrdersAction,
-} from "@/actions/order/order-actions";
+} from "@/actions/orders/order-actions";
 import { queryKeys } from "@/lib/query-keys";
 import { createSuccessResponse, SerializedOrderWithDetails } from "@/types";
 
