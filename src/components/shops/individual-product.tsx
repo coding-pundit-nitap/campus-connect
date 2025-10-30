@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { serializeProduct } from "@/lib/utils";
 import reviewRepository from "@/repositories/reviews.repository";
-import productService from "@/services/product.service";
+import { productService } from "@/services/product";
 import { ReviewWithUser } from "@/types/review.type";
 
 import ProductActions from "./product-actions";

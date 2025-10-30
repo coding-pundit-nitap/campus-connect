@@ -3,7 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
-import reviewApiService from "@/services/api/review-api.service";
+import { reviewApiService } from "@/services/review";
 import { ReviewWithUser } from "@/types/review.type";
 
 type Props = {
