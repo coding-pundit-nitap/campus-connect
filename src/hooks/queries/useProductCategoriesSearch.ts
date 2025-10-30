@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import { categoryAPIService } from "@/services/api";
+import { categoryAPIService } from "@/services/category";
 
 export function useProductCategoriesSearch(query: string) {
   return useQuery({
