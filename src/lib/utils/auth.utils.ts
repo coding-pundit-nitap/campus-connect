@@ -1,6 +1,6 @@
 import { Role } from "@prisma/client";
 import { headers } from "next/headers";
-import { unauthorized } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { auth, User } from "@/auth";
 
@@ -33,11 +33,11 @@ class AuthUtils implements IAuthUtils {
   }
 
   unAuthenticated(): never {
-    return unauthorized();
+    return redirect("/login");
   }
 
   unAuthorized(): never {
-    return unauthorized();
+    return redirect("/");
   }
 
   async isSeller(): Promise<boolean> {
