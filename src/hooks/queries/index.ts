@@ -1,6 +1,7 @@
 export * from "./useAddress";
 export * from "./useBroadcast";
 export * from "./useCarts";
+export * from "./useProductCategoriesSearch";
 export * from "./useImageUpload";
 export * from "./useInfiniteProducts";
 export * from "./useInfiniteReviews";
