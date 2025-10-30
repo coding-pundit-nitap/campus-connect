@@ -13,7 +13,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
-import { getShopOrderByIdAction } from "@/actions/order/order-actions";
+import { getShopOrderByIdAction } from "@/actions/orders/order-actions";
 import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

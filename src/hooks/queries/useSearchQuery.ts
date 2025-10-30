@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
 
 import { queryKeys } from "@/lib/query-keys";
-import { searchAPIService } from "@/services/api";
+import { searchAPIService } from "@/services/search";
 
 export const useSearchQuery = (query: string) => {
   return useQuery({

@@ -9,8 +9,8 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import shopRepository from "@/repositories/shop.repository";
-import fileUploadService from "@/services/file-upload.service";
-import notificationService from "@/services/notification.service";
+import { fileUploadService } from "@/services/file-upload";
+import { notificationService } from "@/services/notification";
 import {
   ActionResponse,
   createSuccessResponse,

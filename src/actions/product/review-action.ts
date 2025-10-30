@@ -4,7 +4,7 @@ import { unauthorized } from "next/navigation";
 
 import { InternalServerError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils";
-import reviewService from "@/services/review.service";
+import { reviewService } from "@/services/review";
 import { createSuccessResponse } from "@/types";
 
 export const createReviewAction = async ({

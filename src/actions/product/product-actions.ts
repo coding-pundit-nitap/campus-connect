@@ -8,7 +8,7 @@ import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
-import fileUploadService from "@/services/file-upload.service";
+import { fileUploadService } from "@/services/file-upload";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {

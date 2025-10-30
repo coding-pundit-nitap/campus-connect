@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import { NotificationSummaryType } from "@/services/api/notification-api.service";
+import { NotificationSummaryType } from "@/services/notification";
 
 interface NotificationEvent {
   data: string;

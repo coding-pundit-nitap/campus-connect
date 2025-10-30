@@ -6,7 +6,7 @@ import React, { useMemo, useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
-import { batchUpdateOrderStatusAction } from "@/actions/order/order-actions";
+import { batchUpdateOrderStatusAction } from "@/actions/orders/order-actions";
 import { DateRangePicker } from "@/components/shared/date-range-picker";
 import { SharedSearchBar } from "@/components/shared/shared-search-bar";
 import {

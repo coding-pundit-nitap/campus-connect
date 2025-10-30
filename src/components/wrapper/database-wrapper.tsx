@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useDatabaseStatus } from "@/hooks";
-import healthCheckAPIService from "@/services/api/healthcheck-api.service";
+import { healthCheckAPIService } from "@/services/healthcheck";
 
 interface DatabaseWrapperProps {
   children: React.ReactNode;

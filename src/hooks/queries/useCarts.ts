@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { upsertCartItem } from "@/actions";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import { cartAPIService } from "@/services/api";
+import { cartAPIService } from "@/services/cart";
 import { SerializedFullCart } from "@/types";
 
 export function useUpsertCartItem() {

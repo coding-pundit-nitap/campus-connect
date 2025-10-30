@@ -10,7 +10,7 @@ import {
 } from "@/lib/custom-error";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import userRepository from "@/repositories/user.repository";
-import notificationService from "@/services/notification.service";
+import { notificationService } from "@/services/notification";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";

@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
-import healthCheckAPIService from "@/services/api/healthcheck-api.service";
+import { healthCheckAPIService } from "@/services/healthcheck";
 
 export const useDatabase = ({ refetchInterval = 300000 } = {}) => {
   return useQuery({

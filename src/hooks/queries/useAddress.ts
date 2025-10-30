@@ -8,7 +8,7 @@ import {
   getUserAddressesAction,
   setDefaultAddressAction,
   updateAddressAction,
-} from "@/actions/user-address/user-address-actions";
+} from "@/actions/user-addresses/user-address-actions";
 import { queryKeys } from "@/lib/query-keys";
 
 export function useUserAddresses() {

@@ -2,7 +2,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { fileUploadAPIService } from "@/services/api";
+import { fileUploadAPIService } from "@/services/file-upload";
 
 export const useImageUpload = () => {
   return useMutation({

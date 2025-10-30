@@ -15,7 +15,8 @@ import {
 } from "@/actions";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import { productAPIService, shopAPIService } from "@/services/api";
+import { productAPIService } from "@/services/product";
+import { shopAPIService } from "@/services/shop";
 import { ProductUpdateFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {

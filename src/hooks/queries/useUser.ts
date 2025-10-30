@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { updateUser } from "@/actions/user";
 import { queryKeys } from "@/lib/query-keys";
-import { userAPIService } from "@/services/api";
+import { userAPIService } from "@/services/user";
 
 export function useRegisterUser() {
   const queryClient = useQueryClient();

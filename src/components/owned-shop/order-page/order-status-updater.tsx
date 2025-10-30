@@ -4,7 +4,7 @@ import { OrderStatus } from "@prisma/client";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
-import { updateOrderStatusAction } from "@/actions/order/order-actions";
+import { updateOrderStatusAction } from "@/actions/orders/order-actions";
 import {
   Select,
   SelectContent,
