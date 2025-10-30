@@ -1,9 +1,6 @@
-// Client-safe placeholder for auth utilities.
-// The real server-side implementation lives in `auth.utils.server.ts`.
-// Importing server-only APIs like `next/headers` or `next/navigation` from
-// client code causes build errors. This module intentionally does not
-// depend on Next server APIs — it throws helpful errors if used in the wrong
-// runtime so developers can pick the correct API (server or client).
+import { Role } from "@prisma/client";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const authUtils = {
   async getUserData() {
@@ -17,25 +14,40 @@ export const authUtils = {
     return false;
   },
   async getUserId() {
-    throw new Error(
-      "authUtils.getUserId is server-only. Use server actions or client session hooks to access user id."
-    );
-  },
-  unAuthenticated() {
-    throw new Error("authUtils.unAuthenticated is server-only.");
-  },
-  unAuthorized() {
-    throw new Error("authUtils.unAuthorized is server-only.");
-  },
-  async isSeller() {
-    return false;
-  },
-  async getOwnedShopId() {
-    throw new Error("authUtils.getOwnedShopId is server-only.");
-  },
-  async isAdmin() {
-    return false;
-  },
-};
+    const user = await this.getUserData();
+    if (!user || !user.id) {
+      this.unAuthenticated();
+    }
+    return user.id;
+  }
+
+  unAuthenticated(): never {
+    return redirect("/login");
+  }
+
+  unAuthorized(): never {
+    return redirect("/");
+  }
+
+  async isSeller(): Promise<boolean> {
+    const user = await this.getUserData();
+    return !!user.shop_id;
+  }
+
+  async getOwnedShopId(): Promise<string> {
+    const user = await this.getUserData();
+    if (!user || !user.shop_id) {
+      this.unAuthorized();
+    }
+    return user.shop_id;
+  }
+
+  async isAdmin(): Promise<boolean> {
+    const user = await this.getUserData();
+    return user.role === Role.ADMIN;
+  }
+}
+
+export const authUtils = new AuthUtils();
 
 export default authUtils;

@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 import { ReactNode } from "react";
 
-import PubLayoutContainer from "@/components/wrapper/pub-layout-container";
-import { authUtils } from "@/lib/utils/auth.utils.server";
+import PriLayoutContainer from "@/components/wrapper/pri-layout-container";
+import { authUtils } from "@/lib/utils/auth.utils";
 
 export default async function PrivateLayout({
   children,
@@ -15,5 +15,5 @@ export default async function PrivateLayout({
     redirect("/login");
   }
 
-  return <PubLayoutContainer>{children}</PubLayoutContainer>;
+  return <PriLayoutContainer>{children}</PriLayoutContainer>;
 }
