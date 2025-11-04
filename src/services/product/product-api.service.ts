@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { ServerProductData } from "@/services/product";
+import { ServerProductData } from "@/services/product/product.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse } from "@/types/response.types";
 
