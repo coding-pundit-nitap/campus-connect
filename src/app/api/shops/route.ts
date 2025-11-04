@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
 import {
   createErrorResponse,
