@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import z from "zod";
 
-import authUtils from "@/lib/utils/auth.utils";
-import { notificationService } from "@/services/notification";
+import authUtils from "@/lib/utils/auth.utils.server";
+import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
 const markAsReadSchema = z.object({

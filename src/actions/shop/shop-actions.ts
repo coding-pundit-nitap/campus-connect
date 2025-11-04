@@ -7,9 +7,9 @@ import {
 } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 import shopRepository from "@/repositories/shop.repository";
-import { categoryServices } from "@/services/category";
-import { fileUploadService } from "@/services/file-upload";
-import { notificationService } from "@/services/notification";
+import { categoryServices } from "@/services/category/category.service";
+import { fileUploadService } from "@/services/file-upload/file-upload.service";
+import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
