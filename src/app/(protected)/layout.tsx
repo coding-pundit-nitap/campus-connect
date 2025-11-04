@@ -2,7 +2,7 @@ import { unauthorized } from "next/navigation";
 import { ReactNode } from "react";
 
 import ProLayoutContainer from "@/components/wrapper/pro-layout-continer";
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils/auth.utils.server";
 
 export default async function AdminLayout({
   children,
