@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils/auth.utils.server";
 
 export const metadata: Metadata = {
   title: "Settings | Admin Dashboard",
