@@ -1,7 +1,7 @@
 "use server";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { authUtils } from "@/lib/utils/auth.utils";
+import { authUtils } from "@/lib/utils/auth.utils.server";
 import { userAddressRepository } from "@/repositories";
 import { createSuccessResponse } from "@/types/response.types";
 
