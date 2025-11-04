@@ -54,7 +54,7 @@ const eslintConfig = defineConfig([
       "src/repositories/**/*.{ts,tsx}",
       "src/services/**/*.{ts,tsx}",
       "src/proxy.ts",
-      "prisma/**/*.ts"
+      "prisma/**/*.ts",
     ],
     rules: {
       "no-console": "off",
