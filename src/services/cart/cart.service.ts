@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { NotFoundError } from "@/lib/custom-error";
 import { cartUIService, serializeFullCart } from "@/lib/utils";
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils/auth.utils.server";
 import { cartRepository, productRepository } from "@/repositories";
 import { FullCart } from "@/types";
 

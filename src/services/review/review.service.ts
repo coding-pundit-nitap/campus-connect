@@ -1,8 +1,7 @@
 import { ReviewFormData } from "@/components/orders/review-form";
 import productRepository from "@/repositories/product.repository";
 import reviewRepository from "@/repositories/reviews.repository";
-
-import { notificationService } from "./notification.service";
+import { notificationService } from "@/services/notification/notification.service";
 
 class ReviewService {
   async createReview(

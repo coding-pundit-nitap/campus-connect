@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import authUtils from "@/lib/utils/auth.utils";
+import authUtils from "@/lib/utils/auth.utils.server";
 import { serializeFullCarts } from "@/lib/utils/product.utils";
-import { cartService } from "@/services/cart";
+import { cartService } from "@/services/cart/cart.service";
 import {
   createErrorResponse,
   createSuccessResponse,

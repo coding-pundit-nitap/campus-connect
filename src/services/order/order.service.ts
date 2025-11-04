@@ -9,8 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
 import { shopRepository } from "@/repositories/shop.repository";
-
-import { notificationService } from "./notification.service";
+import { notificationService } from "@/services/notification/notification.service";
 
 type GetOrdersOptions = {
   page?: number;

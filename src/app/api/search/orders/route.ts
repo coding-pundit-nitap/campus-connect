@@ -1,7 +1,7 @@
 import { OrderStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
-import { authUtils } from "@/lib/utils/auth.utils";
+import { authUtils } from "@/lib/utils/auth.utils.server";
 import { serializeOrderWithDetails } from "@/lib/utils/order.utils";
 import { orderRepository } from "@/repositories";
 import { createErrorResponse, createSuccessResponse } from "@/types";

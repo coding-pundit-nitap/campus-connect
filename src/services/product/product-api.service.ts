@@ -1,8 +1,7 @@
 import axiosInstance from "@/lib/axios";
+import { ServerProductData } from "@/services/product";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse } from "@/types/response.types";
-
-import { ServerProductData } from "../product.service";
 
 interface PaginatedProductsResponse {
   data: SerializedProduct[];
