@@ -3,7 +3,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 
 import { queryKeys } from "@/lib/query-keys";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
-import { shopAPIService } from "@/services/api/shop-api.service";
+import { shopAPIService } from "@/services/shop";
 type Props = {
   initialData: ShopWithOwnerDetails[];
   initialNextCursor: string | null;

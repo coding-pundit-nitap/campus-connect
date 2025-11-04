@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
 import { queryKeys } from "@/lib/query-keys";
-import { productAPIService } from "@/services/api";
+import { productAPIService } from "@/services/product";
 import { SerializedProduct } from "@/types/product.types";
 
 import { useAddToCart } from ".";

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
-import productService from "@/services/product.service";
+import { productService } from "@/services/product";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
 
