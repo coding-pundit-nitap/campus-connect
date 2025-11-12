@@ -54,6 +54,7 @@
 **/LICENSE*
 **/CHANGELOG*
 
+**/compose*
 **/compose.y*ml
 **/Dockerfile*
 **/.dockerignore

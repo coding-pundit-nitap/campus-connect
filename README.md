@@ -105,6 +105,7 @@ Before you begin, ensure you have the following installed:
     ```
 
 3.  **Build and start the services:**
+    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment.
 
     ```bash
     pnpm docker:dev:up
@@ -196,14 +197,17 @@ campus-connect/
 ├── prisma/               # Database schema and migrations
 ├── scripts/              # Maintenance scripts (workers, cleanup, sync)
 ├── src/
-│   ├── app/              # Next.js App Router pages and API routes
-│   ├── components/       # Reusable React components
-│   ├── lib/              # Utilities (db, redis, elasticsearch, logger)
-│   ├── repositories/     # Data access layer
-│   ├── services/         # Business logic layer
-│   └── types/            # TypeScript definitions
-├── compose.yml           # Docker services orchestration
-└── Dockerfile            # Multi-stage Docker build
+│   ├── app/              \# Next.js App Router pages and API routes
+│   ├── components/       \# Reusable React components
+│   ├── lib/              \# Utility functions and libraries (db, auth)
+│   ├── types/            \# TypeScript type definitions
+│   └── ...
+├── .env.example          \# Example for common infrastructure variables
+├── .env.local.example    \# Example for development app variables
+├── .env.production.example \# Example for production app variables
+├── compose.yml    \# Docker services orchestration
+├── Dockerfile            \# Multi-stage Docker build for the app
+└── package.json          \# Project dependencies and scripts
 ```
 
 ## 🔐 Authentication
