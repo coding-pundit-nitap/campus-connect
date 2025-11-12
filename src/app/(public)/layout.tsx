@@ -1,4 +1,4 @@
-import { PubLayoutContainer } from "@/components/wrapper/layout-container";
+import { PubLayoutContainer } from "@/components/wrapper/pub-layout-container";
 
 export default function PublicLayout({
   children,
