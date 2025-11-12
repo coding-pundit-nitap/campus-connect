@@ -13,7 +13,7 @@ This guide provides step-by-step instructions for configuring SSL certificates u
 
 ```
 campus-connect/
-├── docker-compose.yml
+├── compose.yml
 ├── nginx/
 │   └── nginx.conf
 └── certbot/
@@ -154,7 +154,7 @@ server {
 
 ## Docker Compose Configuration
 
-Ensure your `docker-compose.yml` includes certbot service:
+Ensure your `compose.yml` includes certbot service:
 
 ```yaml
 services:
