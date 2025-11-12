@@ -102,7 +102,7 @@ This project is designed to be run with Docker. The following steps will get you
     ```
 
 3.  **Build and start the services:**
-    This single command will build the necessary Docker images and start all the services defined in `docker-compose.yml` for the development environment.
+    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment.
 
     ```bash
     pnpm docker:dev:up
@@ -226,7 +226,7 @@ campus-connect/
 ├── .env.example          \# Example for common infrastructure variables
 ├── .env.local.example    \# Example for development app variables
 ├── .env.production.example \# Example for production app variables
-├── docker-compose.yml    \# Docker services orchestration
+├── compose.yml    \# Docker services orchestration
 ├── Dockerfile            \# Multi-stage Docker build for the app
 └── package.json          \# Project dependencies and scripts
 ```
