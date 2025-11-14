@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table";
 import {
   useAdminUserFilters,
+  useDeleteUser,
   useDemoteUser,
   useForceSignOutUser,
   usePromoteUser,
@@ -55,15 +56,16 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
     open: boolean;
     userId: string;
     userEmail: string;
-    action: "promote" | "demote" | "signout" | null;
+    action: "promote" | "demote" | "signout" | "delete" | null;
   }>({ open: false, userId: "", userEmail: "", action: null });
 
   const { mutate: promoteUser, isPending: isPromoting } = usePromoteUser();
   const { mutate: demoteUser, isPending: isDemoting } = useDemoteUser();
   const { mutate: forceSignOutUser, isPending: isSigningOut } =
     useForceSignOutUser();
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser();
 
-  const isPending = isPromoting || isDemoting || isSigningOut;
+  const isPending = isPromoting || isDemoting || isSigningOut || isDeleting;
 
   const handleLoadMore = () => {
     const params = new URLSearchParams(searchParams);
@@ -80,6 +82,8 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
       demoteUser(actionDialog.userId);
     } else if (actionDialog.action === "signout") {
       forceSignOutUser(actionDialog.userId);
+    } else if (actionDialog.action === "delete") {
+      deleteUser(actionDialog.userId);
     }
     setActionDialog({ open: false, userId: "", userEmail: "", action: null });
   };
@@ -155,6 +159,14 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
                           action: "signout",
                         })
                       }
+                      onDelete={() =>
+                        setActionDialog({
+                          open: true,
+                          userId: user.id,
+                          userEmail: user.email,
+                          action: "delete",
+                        })
+                      }
                       disabled={isPending}
                     />
                   </TableCell>
@@ -190,12 +202,20 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
             <AlertDialogTitle>
               {actionDialog.action === "promote"
                 ? "Promote to Admin"
-                : "Remove Admin Privileges"}
+                : actionDialog.action === "demote"
+                  ? "Remove Admin Privileges"
+                  : actionDialog.action === "signout"
+                    ? "Force Sign Out"
+                    : "Delete User"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {actionDialog.action === "promote"
                 ? `Are you sure you want to promote ${actionDialog.userEmail} to admin? They will have full access to the admin panel.`
-                : `Are you sure you want to remove admin privileges from ${actionDialog.userEmail}? They will lose access to the admin panel.`}
+                : actionDialog.action === "demote"
+                  ? `Are you sure you want to remove admin privileges from ${actionDialog.userEmail}? They will lose access to the admin panel.`
+                  : actionDialog.action === "signout"
+                    ? `Are you sure you want to sign out ${actionDialog.userEmail} from all devices? They will need to log in again.`
+                    : `Are you sure you want to delete ${actionDialog.userEmail}? This action cannot be undone. The user will be permanently removed along with all their data (except orders). Note: Users who own a shop cannot be deleted.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -203,6 +223,11 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
             <AlertDialogAction
               onClick={handleConfirmAction}
               disabled={isPending}
+              className={
+                actionDialog.action === "delete"
+                  ? "bg-destructive hover:bg-destructive/90"
+                  : ""
+              }
             >
               {isPending ? "Processing..." : "Confirm"}
             </AlertDialogAction>

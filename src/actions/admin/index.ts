@@ -9,6 +9,7 @@ export {
   updateOrderStatusAction,
   updatePaymentStatusAction,
 } from "./order-actions";
+export { deleteProductAction, getAllProductsAction } from "./products-actions";
 export {
   activateShopAction,
   deactivateShopAction,
@@ -18,6 +19,7 @@ export {
   updateShopVerificationAction,
 } from "./shop-actions";
 export {
+  deleteUserAction,
   forceSignOutUserAction,
   getAllUsersAction,
   getUserStatsAction,

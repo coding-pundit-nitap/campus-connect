@@ -1,4 +1,12 @@
-import { Bell, Home, Settings, ShoppingBag, Store, Users } from "lucide-react";
+import {
+  Bell,
+  Home,
+  Package,
+  Settings,
+  ShoppingBag,
+  Store,
+  Users,
+} from "lucide-react";
 
 import { NavigationItem } from "@/components/shared/shared-sidebar";
 
@@ -44,6 +52,12 @@ class NavigationUIService {
         title: "Shops",
         url: "/admin/shops",
         icon: Store,
+      },
+      {
+        id: "products",
+        title: "Products",
+        url: "/admin/products",
+        icon: Package,
       },
       {
         id: "orders",

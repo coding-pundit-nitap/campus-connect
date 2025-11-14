@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
+  deleteUserAction,
   forceSignOutUserAction,
   makeUserAdminAction,
   removeUserAdminAction,
@@ -69,6 +70,27 @@ export function useForceSignOutUser() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to sign out user");
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await deleteUserAction(userId);
+      if (!response.success) {
+        throw new Error(response.details);
+      }
+      return response;
+    },
+    onSuccess: (data) => {
+      toast.success(data.details);
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to delete user");
     },
   });
 }

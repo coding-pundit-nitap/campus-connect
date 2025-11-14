@@ -9,6 +9,7 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import shopRepository from "@/repositories/shop.repository";
+import userRepository from "@/repositories/user.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
 import {
@@ -231,6 +232,12 @@ export async function deleteShopAction(
       } catch (error) {
         console.error("Error deleting shop image:", error);
       }
+    }
+
+    if (shop.user?.id) {
+      await userRepository.update(shop.user.id, {
+        owned_shop: { disconnect: true },
+      });
     }
 
     await shopRepository.delete(shopId);
