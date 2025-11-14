@@ -11,6 +11,7 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import shopRepository from "@/repositories/shop.repository";
+import userRepository from "@/repositories/user.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
 import {

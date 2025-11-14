@@ -267,9 +267,7 @@ export async function deleteUserAction(
 ): Promise<ActionResponse<{ id: string; email: string }>> {
   try {
     const currentUserId = await verifyAdmin();
-    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
-      throw new BadRequestError("Invalid user ID");
-    }
+
     if (currentUserId === targetUserId) {
       throw new ForbiddenError("You cannot delete your own account");
     }
