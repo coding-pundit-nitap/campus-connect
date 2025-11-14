@@ -188,6 +188,7 @@ services:
     expose:
       - "3000"
     env_file:
+      - .env
       - .env.production
     environment:
       - TZ=UTC
