@@ -34,7 +34,7 @@
     "docker:prod:logs-app": "docker compose logs -f app-prod",
     "docker:prod:logs-nginx": "docker compose logs -f nginx-prod",
     "docker:db:logs": "docker compose logs -f db",
-    "docker:db:psql": "docker exec -it campus_connect_db psql -U myuser -d campus_connect",
+    "docker:db:psql": "docker exec -it campus_connect_db psql -U connect -d campus_connect",
     "redis:cli": "docker exec -it campus_connect_redis redis-cli",
     "redis:info": "docker exec campus_connect_redis redis-cli info",
     "redis:memory": "docker exec campus_connect_redis redis-cli info memory",
