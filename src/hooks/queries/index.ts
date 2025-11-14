@@ -8,6 +8,7 @@ export * from "./useInfiniteShops";
 export * from "./useNotificationHistory";
 export * from "./useNotifications";
 export * from "./useOrders";
+export * from "./useProductAdmin";
 export * from "./useProductCategoriesSearch";
 export * from "./useReview";
 export * from "./useSearchQuery";

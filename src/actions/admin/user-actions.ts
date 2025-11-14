@@ -248,3 +248,55 @@ export async function forceSignOutUserAction(
     throw new InternalServerError("Failed to sign out user.");
   }
 }
+
+export async function deleteUserAction(
+  targetUserId: string
+): Promise<ActionResponse<{ id: string; email: string }>> {
+  try {
+    const currentUserId = await verifyAdmin();
+
+    if (currentUserId === targetUserId) {
+      throw new ForbiddenError("You cannot delete your own account");
+    }
+
+    const targetUser = await userRepository.findById(targetUserId, {
+      include: {
+        owned_shop: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    // Check if user owns a shop - cannot delete user who owns a shop
+    if (targetUser.owned_shop) {
+      throw new ForbiddenError(
+        `Cannot delete user. User owns shop "${targetUser.owned_shop.name}". Please delete or transfer the shop first.`
+      );
+    }
+
+    // Delete the user (will cascade delete sessions, accounts, carts, orders, etc.)
+    const deletedUser = await userRepository.delete(targetUserId);
+
+    return createSuccessResponse(
+      {
+        id: deletedUser.id,
+        email: deletedUser.email,
+      },
+      `Successfully deleted user ${deletedUser.email}`
+    );
+  } catch (error) {
+    console.error("DELETE USER ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to delete user.");
+  }
+}
