@@ -8,10 +8,17 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  baseURL: process.env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: true,
   },
   trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL as string],
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60,
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID as string,
@@ -39,6 +46,10 @@ export const auth = betterAuth({
         fieldName: "phone",
       },
     },
+  },
+  defaultCookieAttributes: {
+    sameSite: "none",
+    secure: true,
   },
 });
 export type Session = typeof auth.$Infer.Session;
