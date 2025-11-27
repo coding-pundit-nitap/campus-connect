@@ -24,9 +24,7 @@ export function useLiveNotifications() {
 
     const eventSource = new EventSource("/api/notifications/stream");
 
-    eventSource.onopen = () => {
-      // TODO: Logging
-    };
+    eventSource.onopen = () => {};
 
     const handleNewNotification = (event: NotificationEvent): void => {
       try {
@@ -74,9 +72,7 @@ export function useLiveNotifications() {
             };
           }
         );
-      } catch {
-        // TODO: Loggind
-      }
+      } catch {}
     };
     eventSource.addEventListener("new_notification", handleNewNotification);
     eventSource.addEventListener("new_broadcast", handleNewNotification);
