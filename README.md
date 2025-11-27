@@ -1,6 +1,6 @@
 # 🎓 Campus Connect
 
-A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, Elasticsearch, MinIO, and BullMQ.
+A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, MinIO, and GlitchTip.
 
 ## 📋 Table of Contents
 
@@ -36,13 +36,10 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - 📱 **Responsive Design**: Mobile-first UI for a seamless experience on any device.
 - 🔐 **Secure Authentication**: Robust user authentication powered by Better Auth.
 - 📊 **Order Tracking**: Real-time order status updates for buyers and sellers.
-- 🔔 **Real-time Notifications**: SSE-based notifications with Redis Pub/Sub.
-- 🔍 **Full-text Search**: Elasticsearch-powered search with PostgreSQL fallback.
-- 💾 **Object Storage**: Integrated with MinIO for scalable file storage.
-- ⚡ **Redis Caching**: Utilizes Redis for message queuing.
-- 📝 **Structured Logging**: Production-grade logging with Pino.
-- 🛡️ **Rate Limiting**: Nginx-based rate limiting for API protection.
-- 🐳 **Fully Containerized**: Production-ready Docker setup.
+- 💾 **Object Storage**: Integrated with MinIO for scalable file storage (e.g., product images).
+- ⚡ **Redis Caching**: Utilizes Redis for improved performance and session management.
+- 🐞 **Error Tracking**: Self-hosted GlitchTip (Sentry-compatible) for monitoring application errors.
+- 🐳 **Fully Containerized**: Production-ready Docker setup for development and deployment.
 
 ## 🛠️ Technology Stack
 
@@ -53,25 +50,23 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - **[TypeScript](https://www.typescriptlang.org/)** - For type safety.
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - A utility-first CSS framework.
 - **[Shadcn/ui](https://ui.shadcn.com/)** - For accessible and reusable UI components.
-- **[TanStack Query](https://tanstack.com/query)** - For server state management.
+- **[TanStack Query](https://tanstack.com/query)** - For server state management and data fetching.
 - **[Zod](https://zod.dev/)** - For schema validation.
 
 ### Backend
 
-- **[Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)** - Server-side logic.
+- **[Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)** - For server-side logic.
 - **[Prisma 7](https://www.prisma.io/)** - Next-generation Node.js and TypeScript ORM.
 - **[Better Auth](https://better-auth.com/)** - For handling authentication.
-- **[BullMQ](https://docs.bullmq.io/)** - For background job processing.
-- **[Pino](https://getpino.io/)** - For structured logging.
 
 ### Infrastructure
 
-- **[Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)** - Containerization.
-- **[Nginx](https://www.nginx.com/)** - Reverse proxy with rate limiting.
-- **[PostgreSQL 17](https://www.postgresql.org/)** - Primary relational database.
-- **[Redis](https://redis.io/)** - Cache, Pub/Sub, and job queues.
-- **[Elasticsearch 9](https://www.elastic.co/)** - Full-text search engine.
-- **[MinIO](https://min.io/)** - S3-compatible object storage.
+- **[Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)** - For containerization and orchestration.
+- **[Nginx](https://www.nginx.com/)** - As a reverse proxy and web server.
+- **[PostgreSQL](https://www.postgresql.org/)** - As the primary relational database.
+- **[Redis](https://redis.io/)** - As an in-memory cache and data store.
+- **[MinIO](https://min.io/)** - As an S3-compatible object storage server.
+- **[GlitchTip](https://glitchtip.com/)** - Open source error tracking (Sentry compatible).
 
 ### Development Tools
 
@@ -105,7 +100,7 @@ Before you begin, ensure you have the following installed:
     ```
 
 3.  **Build and start the services:**
-    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment.
+    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment (including GlitchTip).
 
     ```bash
     pnpm docker:dev:up
@@ -115,7 +110,9 @@ Before you begin, ensure you have the following installed:
     - **🌐 Main Application**: [http://localhost](http://localhost)
     - **🗄️ MinIO Console**: [http://localhost:9001](http://localhost:9001)
     - **📀 Prisma Studio**: [http://localhost:5555](http://localhost:5555)
-    - **🔍 Elasticsearch**: [http://localhost:9200](http://localhost:9200)
+    <!-- - **🐞 GlitchTip**: [http://localhost:8080](http://localhost:8080) (or configured port) -->
+
+That's it! The entire stack, including the database, object storage, cache, error tracking, and the Next.js app with hot-reloading, is now running.
 
 ## ⚙️ Configuration
 
@@ -193,38 +190,27 @@ pnpm docker:prod:up -d
 
 ```
 campus-connect/
-├── nginx/                # Nginx configuration (rate limiting, proxying)
+├── nginx/                # Nginx configuration files
 ├── prisma/               # Database schema and migrations
-├── scripts/              # Maintenance scripts (workers, cleanup, sync)
+├── public/               # Static assets
+├── scripts/              # Shell scripts (e.g., entrypoint for Docker)
 ├── src/
-│   ├── app/              \# Next.js App Router pages and API routes
-│   ├── components/       \# Reusable React components
-│   ├── lib/              \# Utility functions and libraries (db, auth)
-│   ├── types/            \# TypeScript type definitions
+│   ├── app/              # Next.js App Router pages and API routes
+│   ├── components/       # Reusable React components
+│   ├── lib/              # Utility functions and libraries (db, auth)
+│   ├── types/            # TypeScript type definitions
 │   └── ...
-├── .env.example          \# Example for common infrastructure variables
-├── .env.local.example    \# Example for development app variables
-├── .env.production.example \# Example for production app variables
-├── compose.yml    \# Docker services orchestration
-├── Dockerfile            \# Multi-stage Docker build for the app
-└── package.json          \# Project dependencies and scripts
+├── .env.example          # Example for common infrastructure variables
+├── .env.local.example    # Example for development app variables
+├── .env.production.example # Example for production app variables
+├── compose.yml           # Docker services orchestration
+├── Dockerfile            # Multi-stage Docker build for the app
+└── package.json          # Project dependencies and scripts
 ```
 
 ## 🔐 Authentication
 
-Authentication is handled by **Better Auth** with:
-
-- Email/password authentication
-- Google OAuth support
-- Role-based access control (USER, ADMIN)
-- Session management with secure cookies
-
-## 🔔 Background Workers
-
-The application uses BullMQ for background processing:
-
-- **Notification Worker**: Processes and delivers notifications via Redis Pub/Sub
-- **Search Worker**: Syncs data changes to Elasticsearch indices
+Authentication is handled by **Better Auth**. The configuration supports standard credential-based logins and can be easily extended to include OAuth providers like Google or GitHub.
 
 ## 🤝 Contributing
 
