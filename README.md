@@ -1,6 +1,6 @@
 # 🎓 Campus Connect
 
-A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, and MinIO.
+A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, MinIO, and GlitchTip.
 
 ## 📋 Table of Contents
 
@@ -23,7 +23,7 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - **Browse Products**: Explore various products available within the campus community.
 - **Manage Shops**: Create and manage their own shops to sell products.
 - **Shopping Cart**: Add products to a cart and manage orders.
-- **User Authentication**: Secure login/registration system with NextAuth.
+- **User Authentication**: Secure login/registration system with Better Auth.
 - **Order Management**: Track orders from placement to completion.
 - **Seller Dashboard**: Comprehensive seller tools and verification system.
 
@@ -33,28 +33,30 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - 🏪 **Multi-Vendor Support**: Enables multiple shops and sellers.
 - 🛍️ **Shopping Cart**: Persistent cart with shop-specific organization.
 - 📱 **Responsive Design**: Mobile-first UI for a seamless experience on any device.
-- 🔐 **Secure Authentication**: Robust user authentication powered by NextAuth.js.
+- 🔐 **Secure Authentication**: Robust user authentication powered by Better Auth.
 - 📊 **Order Tracking**: Real-time order status updates for buyers and sellers.
 - 💾 **Object Storage**: Integrated with MinIO for scalable file storage (e.g., product images).
 - ⚡ **Redis Caching**: Utilizes Redis for improved performance and session management.
+- 🐞 **Error Tracking**: Self-hosted GlitchTip (Sentry-compatible) for monitoring application errors.
 - 🐳 **Fully Containerized**: Production-ready Docker setup for development and deployment.
 
 ## 🛠️ Technology Stack
 
 ### Frontend
 
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router.
+- **[Next.js 16](https://nextjs.org/)** - React framework with App Router.
+- **[React 19](https://react.dev/)** - The library for web and native user interfaces.
 - **[TypeScript](https://www.typescriptlang.org/)** - For type safety.
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - A utility-first CSS framework.
-- **[Shadcn/ui](https://ui.shadcn.com/)** & **[Radix UI](https://www.radix-ui.com/)** - For accessible and reusable UI components.
+- **[Shadcn/ui](https://ui.shadcn.com/)** - For accessible and reusable UI components.
 - **[TanStack Query](https://tanstack.com/query)** - For server state management and data fetching.
 - **[Zod](https://zod.dev/)** - For schema validation.
 
 ### Backend
 
 - **[Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)** - For server-side logic.
-- **[Prisma](https://www.prisma.io/)** - Next-generation Node.js and TypeScript ORM.
-- **[NextAuth.js](https://next-auth.js.org/)** - For handling authentication.
+- **[Prisma 7](https://www.prisma.io/)** - Next-generation Node.js and TypeScript ORM.
+- **[Better Auth](https://better-auth.com/)** - For handling authentication.
 
 ### Infrastructure
 
@@ -63,6 +65,7 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - **[PostgreSQL](https://www.postgresql.org/)** - As the primary relational database.
 - **[Redis](https://redis.io/)** - As an in-memory cache and data store.
 - **[MinIO](https://min.io/)** - As an S3-compatible object storage server.
+- **[GlitchTip](https://glitchtip.com/)** - Open source error tracking (Sentry compatible).
 
 ### Development Tools
 
@@ -86,7 +89,7 @@ This project is designed to be run with Docker. The following steps will get you
 1.  **Clone the repository:**
 
     ```bash
-    git clone [https://github.com/connects-campus/campus-connect.git](https://github.com/connects-campus/campus-connect.git)
+    git clone https://github.com/coding-pundit-nitap/campus-connect.git
     cd campus-connect
     ```
 
@@ -102,7 +105,7 @@ This project is designed to be run with Docker. The following steps will get you
     ```
 
 3.  **Build and start the services:**
-    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment.
+    This single command will build the necessary Docker images and start all the services defined in `compose.yml` for the development environment (including GlitchTip).
 
     ```bash
     pnpm docker:dev:up
@@ -115,8 +118,9 @@ This project is designed to be run with Docker. The following steps will get you
     - **🌐 Main Application**: [http://localhost](http://localhost)
     - **🗄️ MinIO Console**: [http://localhost:9001](http://localhost:9001) (Use credentials from `.env`)
     - **📀 Prisma Studio**: [http://localhost:5555](http://localhost:5555)
+    <!-- - **🐞 GlitchTip**: [http://localhost:8080](http://localhost:8080) (or configured port) -->
 
-That's it! The entire stack, including the database, object storage, cache, and the Next.js app with hot-reloading, is now running.
+That's it! The entire stack, including the database, object storage, cache, error tracking, and the Next.js app with hot-reloading, is now running.
 
 ## ⚙️ Configuration
 
@@ -211,29 +215,28 @@ All scripts are defined in `package.json` and can be run with `pnpm <script-name
 ## 📁 Project Structure
 
 ```
-
 campus-connect/
-├── nginx/                \# Nginx configuration files
-├── prisma/               \# Database schema and migrations
-├── public/               \# Static assets
-├── scripts/              \# Shell scripts (e.g., entrypoint for Docker)
+├── nginx/                # Nginx configuration files
+├── prisma/               # Database schema and migrations
+├── public/               # Static assets
+├── scripts/              # Shell scripts (e.g., entrypoint for Docker)
 ├── src/
-│   ├── app/              \# Next.js App Router pages and API routes
-│   ├── components/       \# Reusable React components
-│   ├── lib/              \# Utility functions and libraries (db, auth)
-│   ├── types/            \# TypeScript type definitions
+│   ├── app/              # Next.js App Router pages and API routes
+│   ├── components/       # Reusable React components
+│   ├── lib/              # Utility functions and libraries (db, auth)
+│   ├── types/            # TypeScript type definitions
 │   └── ...
-├── .env.example          \# Example for common infrastructure variables
-├── .env.local.example    \# Example for development app variables
-├── .env.production.example \# Example for production app variables
-├── compose.yml    \# Docker services orchestration
-├── Dockerfile            \# Multi-stage Docker build for the app
-└── package.json          \# Project dependencies and scripts
+├── .env.example          # Example for common infrastructure variables
+├── .env.local.example    # Example for development app variables
+├── .env.production.example # Example for production app variables
+├── compose.yml           # Docker services orchestration
+├── Dockerfile            # Multi-stage Docker build for the app
+└── package.json          # Project dependencies and scripts
 ```
 
 ## 🔐 Authentication
 
-Authentication is handled by **NextAuth.js** using a JWT session strategy. The configuration supports standard credential-based logins and can be easily extended to include OAuth providers like Google or GitHub.
+Authentication is handled by **Better Auth**. The configuration supports standard credential-based logins and can be easily extended to include OAuth providers like Google or GitHub.
 
 ## 🤝 Contributing
 
