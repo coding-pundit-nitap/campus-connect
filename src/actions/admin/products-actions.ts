@@ -1,8 +1,10 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
+import z from "zod";
 
 import {
+  BadRequestError,
   ForbiddenError,
   InternalServerError,
   NotFoundError,
@@ -16,15 +18,16 @@ import {
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
+import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
 
-export async function getAllProductsAction(options: {
-  limit?: number;
-  cursor?: string;
-  search?: string;
-  shop_id?: string;
-}): Promise<
+const getAllProductsSchema = searchSchema.extend({
+  shop_id: z.string().optional(),
+});
+export async function getAllProductsAction(
+  options: z.infer<typeof getAllProductsSchema>
+): Promise<
   ActionResponse<
     CursorPaginatedResponse<{
       id: string;
@@ -41,26 +44,29 @@ export async function getAllProductsAction(options: {
 > {
   try {
     await verifyAdmin();
-
-    const limit = options.limit || 20;
+    const parsedData = getAllProductsSchema.safeParse(options);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid options");
+    }
+    const { limit, cursor, search, shop_id } = parsedData.data;
     const where: Prisma.ProductWhereInput = {};
 
-    if (options.search) {
+    if (search) {
       where.OR = [
-        { name: { contains: options.search, mode: "insensitive" } },
-        { description: { contains: options.search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
       ];
     }
 
-    if (options.shop_id) {
-      where.shop_id = options.shop_id;
+    if (shop_id) {
+      where.shop_id = shop_id;
     }
 
     const products = await productRepository.findMany({
       where,
       take: limit + 1,
-      skip: options.cursor ? 1 : 0,
-      cursor: options.cursor ? { id: options.cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
       orderBy: { created_at: "desc" },
       select: {
         id: true,
@@ -107,6 +113,9 @@ export async function deleteProductAction(
   try {
     await verifyAdmin();
 
+    if (typeof productId !== "string" || productId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const product = await productRepository.findById(productId, {
       include: {
         shop: {
