@@ -38,6 +38,8 @@ const nextConfig: NextConfig = {
     formats: ["image/webp"],
     minimumCacheTTL: 60,
   },
+  reactCompiler: true,
+  cacheComponents: true,
 };
 
 export default nextConfig;

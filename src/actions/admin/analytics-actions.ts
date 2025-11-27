@@ -45,6 +45,7 @@ export async function getDashboardAnalyticsAction(): Promise<
   try {
     await verifyAdmin();
 
+    // get all stats for admin dashboard
     const [userStatsResponse, shopStatsResponse, orderStatsResponse] =
       await Promise.all([
         getUserStatsAction(),
