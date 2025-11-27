@@ -5,14 +5,13 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
+import { SharedCard } from "@/components/shared/shared-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateOrder } from "@/hooks";
 import { ImageUtils } from "@/lib/utils";
-
-import { SharedCard } from "../shared/shared-card";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 
 interface PaymentFormProps {
   cart_id: string;
@@ -67,9 +66,16 @@ export function PaymentForm({
       return;
     }
 
-    if (paymentMethod === PaymentMethod.ONLINE && !upiTransactionId) {
-      toast.error("Please enter UPI transaction ID");
-      return;
+    if (paymentMethod === PaymentMethod.ONLINE) {
+      if (!upiTransactionId) {
+        toast.error("Please enter UPI transaction ID");
+        return;
+      }
+      const upiRegex = /^\d{12}$/;
+      if (!upiRegex.test(upiTransactionId)) {
+        toast.error("Invalid UPI Transaction ID. It must be 12 digits.");
+        return;
+      }
     }
 
     createOrder(

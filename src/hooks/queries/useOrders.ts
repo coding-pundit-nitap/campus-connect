@@ -1,5 +1,4 @@
 "use client";
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 import {
   useInfiniteQuery,
   useMutation,
@@ -10,7 +9,7 @@ import { useMemo } from "react";
 import { toast } from "sonner";
 
 import {
-  updateOrderStatusAction,
+  updateOrderStatusAdminAction,
   updatePaymentStatusAction,
 } from "@/actions/admin";
 import {
@@ -101,21 +100,7 @@ export function useUpdateOrderStatus() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async ({
-      orderId,
-      status,
-    }: {
-      orderId: string;
-      status: OrderStatus;
-    }) => {
-      const response = await updateOrderStatusAction(orderId, status);
-
-      if (!response.success) {
-        throw new Error(response.details);
-      }
-
-      return response;
-    },
+    mutationFn: updateOrderStatusAdminAction,
     onSuccess: (response) => {
       toast.success(response.details);
       router.refresh();
@@ -130,21 +115,7 @@ export function useUpdatePaymentStatus() {
   const router = useRouter();
 
   return useMutation({
-    mutationFn: async ({
-      orderId,
-      status,
-    }: {
-      orderId: string;
-      status: PaymentStatus;
-    }) => {
-      const response = await updatePaymentStatusAction(orderId, status);
-
-      if (!response.success) {
-        throw new Error(response.details);
-      }
-
-      return response;
-    },
+    mutationFn: updatePaymentStatusAction,
     onSuccess: (response) => {
       toast.success(response.details);
       router.refresh();
