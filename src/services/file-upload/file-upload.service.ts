@@ -53,7 +53,7 @@ const DANGEROUS_EXTENSIONS = [
 ];
 
 class FileUploadService {
-  // Client for SERVER -> MINIO communication (e.g., delete)
+  // Client for SERVER -> MINIO communication
   private internalS3Client = new S3Client({
     endpoint: process.env.MINIO_ENDPOINT!,
     region: process.env.AWS_REGION!,

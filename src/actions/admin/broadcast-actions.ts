@@ -1,6 +1,7 @@
 "use server";
 
 import { NotificationCategory, NotificationType } from "@prisma/client";
+import z from "zod";
 
 import {
   BadRequestError,
@@ -14,13 +15,24 @@ import { notificationService } from "@/services/notification/notification.servic
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
-export async function sendBroadcastNotificationAction(data: {
-  title: string;
-  message: string;
-  type?: NotificationType;
-  category?: NotificationCategory;
-  action_url?: string;
-}): Promise<
+
+const sendBroadcastNotificationSchema = z.object({
+  title: z
+    .string()
+    .min(1, { error: "Title is required" })
+    .max(200, { error: "Title must be less than 200 characters" }),
+  message: z
+    .string()
+    .min(1, { error: "Message is required" })
+    .max(1000, { error: "Message must be less than 1000 characters" }),
+  type: z.enum(NotificationType).optional(),
+  category: z.enum(NotificationCategory).optional(),
+  action_url: z.string().optional(),
+});
+
+export async function sendBroadcastNotificationAction(
+  data: z.infer<typeof sendBroadcastNotificationSchema>
+): Promise<
   ActionResponse<{
     id: string;
     title: string;
@@ -30,22 +42,13 @@ export async function sendBroadcastNotificationAction(data: {
   try {
     await verifyAdmin();
 
-    if (!data.title || data.title.trim().length === 0) {
-      throw new BadRequestError("Title is required");
+    const parsedData = sendBroadcastNotificationSchema.safeParse(data);
+
+    if (!parsedData.success) {
+      throw new BadRequestError(parsedData.error.message);
     }
 
-    if (!data.message || data.message.trim().length === 0) {
-      throw new BadRequestError("Message is required");
-    }
-
-    if (data.title.length > 200) {
-      throw new BadRequestError("Title must be less than 200 characters");
-    }
-
-    if (data.message.length > 1000) {
-      throw new BadRequestError("Message must be less than 1000 characters");
-    }
-
+    // send broadcast notification
     const broadcast = await notificationService.broadcastNotification({
       title: data.title,
       message: data.message,
@@ -88,6 +91,7 @@ export async function getBroadcastStatsAction(): Promise<
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // get Stats Data
     const [totalUsers, totalBroadcasts, recentBroadcasts] = await Promise.all([
       userRepository.count({}),
       broadcastRepository.getCount({}),

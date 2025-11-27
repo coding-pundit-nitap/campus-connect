@@ -5,6 +5,9 @@ export const paginatedSchema = z.object({
   limit: z.coerce.number().int().positive().default(10),
   cursor: z.cuid().optional(),
 });
+export const searchSchema = paginatedSchema.extend({
+  search: z.string().optional(),
+});
 
 export const broadcastFormSchema = z.object({
   title: z

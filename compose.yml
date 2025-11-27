@@ -112,7 +112,7 @@ services:
       target: dev
     container_name: campus_connect_prisma_studio
     restart: unless-stopped
-    command: pnpm prisma studio --port 5555
+    command: pnpm prisma studio --port 5555 --browser none
     depends_on:
       db:
         condition: service_healthy

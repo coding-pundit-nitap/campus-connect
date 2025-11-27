@@ -1,8 +1,10 @@
 "use server";
 
 import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
+import z from "zod";
 
 import {
+  BadRequestError,
   ForbiddenError,
   InternalServerError,
   NotFoundError,
@@ -20,52 +22,60 @@ import {
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
+import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
 
-export async function getAllOrdersAction(options: {
-  limit?: number;
-  cursor?: string;
-  search?: string;
-  order_status?: OrderStatus;
-  payment_status?: PaymentStatus;
-  shop_id?: string;
-}): Promise<
+const getAllOrderSchema = searchSchema.extend({
+  order_status: z.enum(OrderStatus).optional(),
+  payment_status: z.enum(PaymentStatus).optional(),
+  shop_id: z.string().optional(),
+});
+
+export async function getAllOrdersAction(
+  options: z.infer<typeof getAllOrderSchema>
+): Promise<
   ActionResponse<CursorPaginatedResponse<SerializedOrderWithDetails>>
 > {
   try {
     await verifyAdmin();
 
-    const limit = options.limit || 20;
+    const parsedData = getAllOrderSchema.safeParse(options);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid options");
+    }
+    const { limit, cursor, search, order_status, payment_status, shop_id } =
+      parsedData.data;
+
     const where: Prisma.OrderWhereInput | undefined = {};
 
-    if (options.search) {
+    if (search) {
       where.OR = [
-        { display_id: { contains: options.search, mode: "insensitive" } },
-        { user: { name: { contains: options.search, mode: "insensitive" } } },
+        { display_id: { contains: search, mode: "insensitive" } },
+        { user: { name: { contains: search, mode: "insensitive" } } },
         {
-          user: { email: { contains: options.search, mode: "insensitive" } },
+          user: { email: { contains: search, mode: "insensitive" } },
         },
       ];
     }
 
-    if (options.order_status) {
-      where.order_status = options.order_status;
+    if (order_status) {
+      where.order_status = order_status;
     }
 
-    if (options.payment_status) {
-      where.payment_status = options.payment_status;
+    if (payment_status) {
+      where.payment_status = payment_status;
     }
 
-    if (options.shop_id) {
-      where.shop_id = options.shop_id;
+    if (shop_id) {
+      where.shop_id = shop_id;
     }
 
     const orders = await orderRepository.findMany({
       where,
       take: limit + 1,
-      skip: options.cursor ? 1 : 0,
-      cursor: options.cursor ? { id: options.cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
       orderBy: { created_at: "desc" },
       include: orderWithDetailsInclude,
     });
@@ -91,10 +101,14 @@ export async function getAllOrdersAction(options: {
   }
 }
 
-export async function updateOrderStatusAction(
-  orderId: string,
-  orderStatus: OrderStatus,
-  estimatedDeliveryTime?: Date
+const updateOrderSchema = z.object({
+  order_id: z.string(),
+  order_status: z.enum(OrderStatus),
+  estimated_delivery_time: z.date().optional(),
+});
+
+export async function updateOrderStatusAdminAction(
+  data: z.infer<typeof updateOrderSchema>
 ): Promise<
   ActionResponse<{
     id: string;
@@ -105,7 +119,13 @@ export async function updateOrderStatusAction(
   try {
     await verifyAdmin();
 
-    const order = await orderRepository.findById(orderId, {
+    const parsedData = updateOrderSchema.safeParse(data);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid Input.");
+    }
+    const { order_id, order_status, estimated_delivery_time } = parsedData.data;
+
+    const order = await orderRepository.findById(order_id, {
       include: {
         user: true,
         shop: true,
@@ -121,16 +141,19 @@ export async function updateOrderStatusAction(
       estimated_delivery_time?: Date;
       actual_delivery_time?: Date;
     } = {
-      order_status: orderStatus,
+      order_status,
     };
 
-    if (orderStatus === OrderStatus.OUT_FOR_DELIVERY && estimatedDeliveryTime) {
-      updateData.estimated_delivery_time = estimatedDeliveryTime;
-    } else if (orderStatus === OrderStatus.COMPLETED) {
+    if (
+      order_status === OrderStatus.OUT_FOR_DELIVERY &&
+      estimated_delivery_time
+    ) {
+      updateData.estimated_delivery_time = estimated_delivery_time;
+    } else if (order_status === OrderStatus.COMPLETED) {
       updateData.actual_delivery_time = new Date();
     }
 
-    const updatedOrder = await orderRepository.update(orderId, updateData);
+    const updatedOrder = await orderRepository.update(order_id, updateData);
 
     const statusMessages: Record<OrderStatus, string> = {
       NEW: "has been received",
@@ -144,11 +167,11 @@ export async function updateOrderStatusAction(
     if (order.user_id) {
       await notificationService.publishNotification(order.user_id, {
         title: "Order Status Updated",
-        message: `Your order #${order.display_id} ${statusMessages[orderStatus]}.`,
+        message: `Your order #${order.display_id} ${statusMessages[order_status]}.`,
         type:
-          orderStatus === "COMPLETED"
+          order_status === "COMPLETED"
             ? "SUCCESS"
-            : orderStatus === "CANCELLED"
+            : order_status === "CANCELLED"
               ? "ERROR"
               : "INFO",
         category: "ORDER",
@@ -162,7 +185,7 @@ export async function updateOrderStatusAction(
         display_id: updatedOrder.display_id,
         order_status: updatedOrder.order_status,
       },
-      `Successfully updated order #${updatedOrder.display_id} status to ${orderStatus}`
+      `Successfully updated order #${updatedOrder.display_id} status to ${order_status}`
     );
   } catch (error) {
     console.error("UPDATE ORDER STATUS ERROR:", error);
@@ -177,9 +200,13 @@ export async function updateOrderStatusAction(
   }
 }
 
+const updatePaymentStatusSchema = z.object({
+  order_id: z.string().min(1, { error: "order_id is required." }),
+  payment_status: z.enum(PaymentStatus),
+});
+
 export async function updatePaymentStatusAction(
-  orderId: string,
-  paymentStatus: PaymentStatus
+  data: z.infer<typeof updatePaymentStatusSchema>
 ): Promise<
   ActionResponse<{
     id: string;
@@ -189,8 +216,12 @@ export async function updatePaymentStatusAction(
 > {
   try {
     await verifyAdmin();
-
-    const order = await orderRepository.findById(orderId, {
+    const parsedData = updatePaymentStatusSchema.safeParse(data);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid Input.");
+    }
+    const { order_id, payment_status } = parsedData.data;
+    const order = await orderRepository.findById(order_id, {
       include: {
         user: true,
       },
@@ -200,18 +231,18 @@ export async function updatePaymentStatusAction(
       throw new NotFoundError("Order not found");
     }
 
-    const updatedOrder = await orderRepository.update(orderId, {
-      payment_status: paymentStatus,
+    const updatedOrder = await orderRepository.update(order_id, {
+      payment_status,
     });
 
     if (order.user_id) {
       await notificationService.publishNotification(order.user_id, {
         title: "Payment Status Updated",
-        message: `Payment status for order #${order.display_id} has been updated to ${paymentStatus}.`,
+        message: `Payment status for order #${order.display_id} has been updated to ${payment_status}.`,
         type:
-          paymentStatus === "COMPLETED"
+          payment_status === "COMPLETED"
             ? "SUCCESS"
-            : paymentStatus === "FAILED"
+            : payment_status === "FAILED"
               ? "ERROR"
               : "INFO",
         category: "ORDER",

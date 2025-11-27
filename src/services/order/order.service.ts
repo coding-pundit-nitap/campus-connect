@@ -81,11 +81,12 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        const discountedPrice =
-          Number(item.product.price) -
-          (Number(item.product.price) * Number(item.product.discount)) / 100;
+        const price = Number(item.product.price) * 100;
+        const discount = Number(item.product.discount) || 0;
+        const discountedPrice = Math.round(price - (price * discount) / 100);
         totalPrice += discountedPrice * item.quantity;
       }
+      totalPrice = totalPrice / 100;
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
       const order = await tx.order.create({
@@ -111,12 +112,21 @@ class OrderService {
         },
       });
       await Promise.all(
-        cart.items.map((item) =>
-          tx.product.update({
-            where: { id: item.product_id },
+        cart.items.map(async (item) => {
+          const result = await tx.product.updateMany({
+            where: {
+              id: item.product_id,
+              stock_quantity: { gte: item.quantity },
+            },
             data: { stock_quantity: { decrement: item.quantity } },
-          })
-        )
+          });
+
+          if (result.count === 0) {
+            throw new ValidationError(
+              `Insufficient stock for: ${item.product.name}`
+            );
+          }
+        })
       );
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
       const shop = await shopRepository.findById(shop_id, {

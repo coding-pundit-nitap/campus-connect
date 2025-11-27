@@ -6,7 +6,7 @@ export {
 export {
   getAllOrdersAction,
   getOrderStatsAction,
-  updateOrderStatusAction,
+  updateOrderStatusAdminAction,
   updatePaymentStatusAction,
 } from "./order-actions";
 export { deleteProductAction, getAllProductsAction } from "./products-actions";

@@ -1,7 +1,11 @@
 "use server";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
-import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  InternalServerError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
@@ -69,6 +73,17 @@ export async function createOrderAction({
     if (!user_id) {
       throw new UnauthorizedError("Unauthorized: Please log in.");
     }
+
+    if (requested_delivery_time) {
+      const deliveryTime = new Date(requested_delivery_time);
+      const now = new Date();
+      if (isNaN(deliveryTime.getTime())) {
+        throw new ValidationError("Invalid delivery time.");
+      }
+      if (deliveryTime < now) {
+        throw new ValidationError("Delivery time cannot be in the past.");
+      }
+    }
     const pg_payment_id =
       payment_method === "ONLINE"
         ? `txn_${new Date().getTime()}`
@@ -105,11 +120,32 @@ export async function updateOrderStatusAction({
     const shop_id = await authUtils.getOwnedShopId();
 
     const order = await orderRepository.getOrderById(order_id, {
-      select: { shop_id: true, user_id: true, display_id: true },
+      select: {
+        shop_id: true,
+        user_id: true,
+        display_id: true,
+        order_status: true,
+      },
     });
     if (!order || order.shop_id !== shop_id) {
       throw new UnauthorizedError(
         "Unauthorized: Order does not belong to your shop."
+      );
+    }
+
+    const validTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
+      NEW: ["PREPARING", "CANCELLED"],
+      PREPARING: ["READY_FOR_PICKUP", "CANCELLED"],
+      READY_FOR_PICKUP: ["OUT_FOR_DELIVERY", "COMPLETED", "CANCELLED"],
+      OUT_FOR_DELIVERY: ["COMPLETED", "CANCELLED"],
+      COMPLETED: [],
+      CANCELLED: [],
+    };
+
+    const allowedStatuses = validTransitions[order.order_status] || [];
+    if (!allowedStatuses.includes(status)) {
+      throw new ValidationError(
+        `Invalid status transition from ${order.order_status} to ${status}`
       );
     }
 

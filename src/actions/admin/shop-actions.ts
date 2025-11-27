@@ -1,8 +1,10 @@
 "use server";
 
 import { Prisma, SellerVerificationStatus } from "@prisma/client";
+import z from "zod";
 
 import {
+  BadRequestError,
   ForbiddenError,
   InternalServerError,
   NotFoundError,
@@ -17,16 +19,18 @@ import {
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
+import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
 
-export async function getAllShopsAction(options: {
-  limit?: number;
-  cursor?: string;
-  search?: string;
-  is_active?: boolean;
-  verification_status?: SellerVerificationStatus;
-}): Promise<
+const getAllShopsSchema = searchSchema.extend({
+  is_active: z.boolean().optional(),
+  verification_status: z.enum(SellerVerificationStatus).optional(),
+});
+
+export async function getAllShopsAction(
+  options: z.infer<typeof getAllShopsSchema>
+): Promise<
   ActionResponse<
     CursorPaginatedResponse<{
       id: string;
@@ -46,31 +50,35 @@ export async function getAllShopsAction(options: {
 > {
   try {
     await verifyAdmin();
-
-    const limit = options.limit || 20;
+    const parsedData = getAllShopsSchema.safeParse(options);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid options");
+    }
+    const { limit, cursor, search, is_active, verification_status } =
+      parsedData.data;
     const where: Prisma.ShopWhereInput | undefined = {};
 
-    if (options.search) {
+    if (search) {
       where.OR = [
-        { name: { contains: options.search, mode: "insensitive" } },
-        { description: { contains: options.search, mode: "insensitive" } },
-        { location: { contains: options.search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { location: { contains: search, mode: "insensitive" } },
       ];
     }
 
-    if (options.is_active !== undefined) {
-      where.is_active = options.is_active;
+    if (is_active !== undefined) {
+      where.is_active = is_active;
     }
 
-    if (options.verification_status) {
-      where.verification_status = options.verification_status;
+    if (verification_status) {
+      where.verification_status = verification_status;
     }
 
     const shops = await shopRepository.findMany({
       where,
       take: limit + 1,
-      skip: options.cursor ? 1 : 0,
-      cursor: options.cursor ? { id: options.cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
       orderBy: { created_at: "desc" },
       include: {
         user: {
@@ -118,7 +126,9 @@ export async function activateShopAction(
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
   try {
     await verifyAdmin();
-
+    if (typeof shopId !== "string" || shopId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
@@ -167,7 +177,9 @@ export async function deactivateShopAction(
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
   try {
     await verifyAdmin();
-
+    if (typeof shopId !== "string" || shopId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
@@ -217,7 +229,9 @@ export async function deleteShopAction(
 ): Promise<ActionResponse<{ id: string; name: string }>> {
   try {
     await verifyAdmin();
-
+    if (typeof shopId !== "string" || shopId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
@@ -281,7 +295,15 @@ export async function updateShopVerificationAction(
 > {
   try {
     await verifyAdmin();
-
+    if (
+      typeof shopId !== "string" ||
+      shopId.trim() === "" ||
+      !status ||
+      status.trim() === "" ||
+      !Object.values(SellerVerificationStatus).includes(status)
+    ) {
+      throw new BadRequestError("Invalid product ID");
+    }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });

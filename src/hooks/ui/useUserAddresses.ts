@@ -28,9 +28,7 @@ export function useUserAddressManager() {
   const handleSetDefault = async (addressId: string) => {
     try {
       await setDefaultMutation.mutateAsync(addressId);
-    } catch {
-      // TODO: Loggind
-    }
+    } catch {}
   };
 
   const handleDelete = async (address: UserAddress) => {
@@ -50,9 +48,7 @@ export function useUserAddressManager() {
         if (selectedAddressId === address.id) {
           setSelectedAddressId(null);
         }
-      } catch {
-        // TODO: Logging
-      }
+      } catch {}
     }
   };
 

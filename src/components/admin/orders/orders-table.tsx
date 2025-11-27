@@ -150,10 +150,16 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                     <OrderActionsDropdown
                       onViewDetails={() => handleViewDetails(order)}
                       onUpdateOrderStatus={(status) =>
-                        updateOrderStatus({ orderId: order.id, status })
+                        updateOrderStatus({
+                          order_id: order.id,
+                          order_status: status,
+                        })
                       }
                       onUpdatePaymentStatus={(status) =>
-                        updatePaymentStatus({ orderId: order.id, status })
+                        updatePaymentStatus({
+                          order_id: order.id,
+                          payment_status: status,
+                        })
                       }
                       disabled={isPending}
                     />

@@ -42,14 +42,17 @@ export default function OrderPage() {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
     debouncedSetQuery(newSearchTerm);
+    setSelectedOrders([]);
   };
 
   const handleStatusChange = (status?: OrderStatus) => {
     setFilters((prev) => ({ ...prev, status }));
+    setSelectedOrders([]);
   };
 
   const handleDateChange = (dateRange?: DateRange) => {
     setFilters((prev) => ({ ...prev, dateRange }));
+    setSelectedOrders([]);
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
