@@ -42,25 +42,16 @@ export default function OrderPage() {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
     debouncedSetQuery(newSearchTerm);
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
     setSelectedOrders([]);
   };
 
   const handleStatusChange = (status?: OrderStatus) => {
     setFilters((prev) => ({ ...prev, status }));
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
     setSelectedOrders([]);
   };
 
   const handleDateChange = (dateRange?: DateRange) => {
     setFilters((prev) => ({ ...prev, dateRange }));
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
     setSelectedOrders([]);
   };
 

@@ -105,12 +105,12 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        const price = Number(item.product.price);
+        const price = Number(item.product.price) * 100;
         const discount = Number(item.product.discount) || 0;
-        const discountedPrice = price - (price * discount) / 100;
+        const discountedPrice = Math.round(price - (price * discount) / 100);
         totalPrice += discountedPrice * item.quantity;
       }
-
+      totalPrice = totalPrice / 100;
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
       const display_id = await this.generateDisplayId(tx);

@@ -1,5 +1,6 @@
 "use server";
 
+import { NotificationCategory, NotificationType } from "@prisma/client";
 import z from "zod";
 
 import {
@@ -18,12 +19,12 @@ import { verifyAdmin } from "../authentication/admin";
 const sendBroadcastNotificationSchema = z.object({
   title: z
     .string()
-    .min(1, "Title is required")
-    .max(200, "Title must be less than 200 characters"),
+    .min(1, { error: "Title is required" })
+    .max(200, { error: "Title must be less than 200 characters" }),
   message: z
     .string()
-    .min(1, "Message is required")
-    .max(1000, "Message must be less than 1000 characters"),
+    .min(1, { error: "Message is required" })
+    .max(1000, { error: "Message must be less than 1000 characters" }),
   type: z.enum(NotificationType).optional(),
   category: z.enum(NotificationCategory).optional(),
   action_url: z.string().optional(),
@@ -48,7 +49,7 @@ export async function sendBroadcastNotificationAction(
     }
 
     // send broadcast notification
-    const broadcastData = {
+    const broadcast = await notificationService.broadcastNotification({
       title: data.title,
       message: data.message,
       type: data.type || NotificationType.INFO,

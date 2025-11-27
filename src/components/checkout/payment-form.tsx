@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateOrder } from "@/hooks";
 import { ImageUtils } from "@/lib/utils";
-import { PaymentMethod } from "@/types/prisma.types";
 
 interface PaymentFormProps {
   cart_id: string;
@@ -71,11 +70,9 @@ export function PaymentForm({
         toast.error("Please enter UPI transaction ID");
         return;
       }
-      const upiRegex = /^[A-Za-z0-9]{10,}$/;
+      const upiRegex = /^\d{12}$/;
       if (!upiRegex.test(upiTransactionId)) {
-        toast.error(
-          "Invalid UPI Transaction ID. Must be at least 10 alphanumeric characters."
-        );
+        toast.error("Invalid UPI Transaction ID. It must be 12 digits.");
         return;
       }
     }

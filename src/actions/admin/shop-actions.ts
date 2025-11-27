@@ -127,7 +127,7 @@ export async function activateShopAction(
   try {
     await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
+      throw new BadRequestError("Invalid product ID");
     }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
@@ -178,7 +178,7 @@ export async function deactivateShopAction(
   try {
     await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
+      throw new BadRequestError("Invalid product ID");
     }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
@@ -230,7 +230,7 @@ export async function deleteShopAction(
   try {
     await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
+      throw new BadRequestError("Invalid product ID");
     }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
@@ -302,7 +302,7 @@ export async function updateShopVerificationAction(
       status.trim() === "" ||
       !Object.values(SellerVerificationStatus).includes(status)
     ) {
-      throw new BadRequestError("Invalid shop ID");
+      throw new BadRequestError("Invalid product ID");
     }
     const shop = await shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },

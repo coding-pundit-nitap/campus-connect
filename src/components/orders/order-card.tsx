@@ -12,13 +12,6 @@ type Props = {
 
 export default function OrderCard({ order }: Props) {
   const statusInfo = getOrderStatusInfo(order.order_status);
-
-  if (order.items.length === 0) {
-    console.error(
-      `[OrderCard] Data integrity issue: Order ${order.id} (display: #${order.display_id}) has no items`
-    );
-  }
-
   const subtotal = order.items.reduce((acc, item) => {
     const price = Number(item.price);
     const discount = Number(item.product.discount || 0);
@@ -62,11 +55,9 @@ export default function OrderCard({ order }: Props) {
                 Order #{order.display_id}
               </p>
               <h3 className="truncate font-semibold text-lg">
-                {shopName || (
-                  <span className="text-destructive">
-                    ⚠️ Error: No items in order
-                  </span>
-                )}
+                {order.items.length > 0
+                  ? order.items[0].product.shop?.name
+                  : "Unknown Shop"}
               </h3>
               <p className="text-xs text-muted-foreground">
                 <ClientDate date={order.created_at} format="datetime" />

@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
   reactCompiler: true,
+  cacheComponents: true,
 };
 
 export default nextConfig;

@@ -1,7 +1,11 @@
 "use server";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
-import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  InternalServerError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,

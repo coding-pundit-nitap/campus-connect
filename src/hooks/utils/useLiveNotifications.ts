@@ -24,8 +24,11 @@ export function useLiveNotifications() {
 
   const isAuthenticated = !!session.data;
 
-  const handleNewNotification = useCallback(
-    (event: NotificationEvent): void => {
+    const eventSource = new EventSource("/api/notifications/stream");
+
+    eventSource.onopen = () => {};
+
+    const handleNewNotification = (event: NotificationEvent): void => {
       try {
         const newNotification: Notification | BroadcastNotification =
           JSON.parse(event.data);
@@ -72,55 +75,6 @@ export function useLiveNotifications() {
           }
         );
       } catch {}
-    },
-    [queryClient]
-  );
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
-    const connect = () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-
-      const eventSource = new EventSource("/api/notifications/stream");
-      eventSourceRef.current = eventSource;
-
-      eventSource.onopen = () => {
-        retryCountRef.current = 0;
-      };
-
-      eventSource.addEventListener("new_notification", handleNewNotification);
-      eventSource.addEventListener("new_broadcast", handleNewNotification);
-
-      eventSource.onerror = () => {
-        eventSource.close();
-        eventSourceRef.current = null;
-
-        const delay = Math.min(
-          INITIAL_RETRY_DELAY * Math.pow(2, retryCountRef.current),
-          MAX_RETRY_DELAY
-        );
-        retryCountRef.current += 1;
-
-        retryTimeoutRef.current = setTimeout(connect, delay);
-      };
-    };
-
-    connect();
-
-    return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
-        retryTimeoutRef.current = null;
-      }
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
     };
   }, [isAuthenticated, handleNewNotification]);
 }

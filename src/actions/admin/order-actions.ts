@@ -201,7 +201,7 @@ export async function updateOrderStatusAdminAction(
 }
 
 const updatePaymentStatusSchema = z.object({
-  order_id: z.string().min(1, "Order ID is required"),
+  order_id: z.string().min(1, { error: "order_id is required." }),
   payment_status: z.enum(PaymentStatus),
 });
 
