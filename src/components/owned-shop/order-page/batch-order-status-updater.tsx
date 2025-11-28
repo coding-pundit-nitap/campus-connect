@@ -1,6 +1,5 @@
 "use client";
 
-import { OrderStatus } from "@prisma/client";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderStatus } from "@/types/prisma.types";
 
 type BatchOrderStatusUpdaterProps = {
   onUpdate: (status: OrderStatus) => void;

@@ -1,9 +1,9 @@
 "use client";
 
-import { UserAddress } from "@prisma/client";
 import React from "react";
 
 import { useUserAddressManager } from "@/hooks";
+import { UserAddress } from "@/types/prisma.types";
 
 import { UserAddressList } from "./user-address-list";
 

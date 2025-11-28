@@ -1,4 +1,3 @@
-import { OrderStatus } from "@prisma/client";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import React from "react";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ImageUtils } from "@/lib/utils";
 import { SerializedOrderItemWithProduct } from "@/types";
+import { OrderStatus } from "@/types/prisma.types";
 
 import SharedDialog from "../shared/shared-dialog";
 import ReviewForm from "./review-form";
