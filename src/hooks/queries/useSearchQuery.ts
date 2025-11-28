@@ -1,10 +1,10 @@
 "use client";
-import { OrderStatus } from "@prisma/client";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { DateRange } from "react-day-picker";
 
 import { queryKeys } from "@/lib/query-keys";
 import { searchAPIService } from "@/services/search";
+import { OrderStatus } from "@/types/prisma.types";
 
 export const useSearchQuery = (query: string) => {
   return useQuery({

@@ -1,6 +1,5 @@
 "use client";
 
-import { OrderStatus } from "@prisma/client";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -12,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderStatus } from "@/types/prisma.types";
 
 type OrderStatusUpdaterProps = {
   orderId: string;

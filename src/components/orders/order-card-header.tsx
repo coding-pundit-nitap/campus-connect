@@ -1,8 +1,8 @@
-import { OrderStatus } from "@prisma/client";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { OrderStatus } from "@/types/prisma.types";
 
 type Props = {
   orderId: string;

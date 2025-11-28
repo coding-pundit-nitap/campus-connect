@@ -1,6 +1,5 @@
 "use client";
 
-import { SellerVerificationStatus } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -28,6 +27,7 @@ import {
   useDeleteShop,
   useUpdateShopVerification,
 } from "@/hooks";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 import { CursorPaginatedResponse } from "@/types/response.types";
 
 interface ShopsTableProps {
@@ -211,7 +211,7 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                         })
                       }
                       onUpdateVerification={(status) =>
-                        updateVerification({ shopId: shop.id, status })
+                        updateVerification({ shopId: shop.id, status: status })
                       }
                       disabled={isPending}
                     />
