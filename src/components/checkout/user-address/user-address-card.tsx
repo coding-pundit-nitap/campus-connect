@@ -1,12 +1,12 @@
 "use client";
 
-import { UserAddress } from "@prisma/client";
 import { Check, Trash2 } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { UserAddress } from "@/types/prisma.types";
 
 interface UserAddressCardProps {
   address: UserAddress;

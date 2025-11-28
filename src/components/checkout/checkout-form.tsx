@@ -1,6 +1,5 @@
 "use client";
 
-import { UserAddress as UserAddressType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +8,7 @@ import { UserAddress } from "@/components/checkout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateTimePicker } from "@/components/ui/date-time-picker";
+import { UserAddress as UserAddressType } from "@/types/prisma.types";
 interface CheckoutFormProps {
   cart_id: string;
   total: number;

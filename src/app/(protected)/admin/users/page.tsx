@@ -1,8 +1,8 @@
-import { Role } from "@prisma/client";
 import { Metadata } from "next";
 
 import { getAllUsersAction } from "@/actions/admin";
 import { UsersTable } from "@/components/admin/users/users-table";
+import { Role } from "@/types/prisma.types";
 
 export const metadata: Metadata = {
   title: "User Management | Admin Dashboard",
@@ -25,6 +25,17 @@ export default async function AdminUsersPage({
       search,
       role: role as Role | undefined,
       limit: 20,
+    }).then((res) => {
+      return {
+        ...res,
+        data: {
+          ...res.data,
+          data: res.data.data.map((user) => ({
+            ...user,
+            role: user.role as Role,
+          })),
+        },
+      };
     });
 
     if (response.success) {

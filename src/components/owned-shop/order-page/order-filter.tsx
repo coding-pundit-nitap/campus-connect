@@ -1,5 +1,3 @@
-import { OrderStatus } from "@prisma/client";
-
 import {
   Select,
   SelectContent,
@@ -7,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderStatus } from "@/types/prisma.types";
 
 type Props = {
   selectedStatus?: OrderStatus;

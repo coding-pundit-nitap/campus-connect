@@ -5,6 +5,8 @@ import { productService } from "@/services/product/product.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

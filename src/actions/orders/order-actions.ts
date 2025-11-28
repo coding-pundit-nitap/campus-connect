@@ -12,6 +12,7 @@ import {
   serializeOrder,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
+import { getOrderUrl } from "@/lib/utils/url.utils";
 import orderRepository from "@/repositories/order.repository";
 import { notificationService } from "@/services/notification/notification.service";
 import { orderService } from "@/services/order/order.service";
@@ -86,8 +87,8 @@ export async function createOrderAction({
     }
     const pg_payment_id =
       payment_method === "ONLINE"
-        ? `txn_${new Date().getTime()}`
-        : `offline_${new Date().getTime()}_${Math.random().toString(36).substr(2, 9)}`;
+        ? `txn_${crypto.randomUUID()}`
+        : `offline_${crypto.randomUUID()}`;
 
     const order = await orderService.createOrderFromCart(
       user_id,
@@ -154,7 +155,7 @@ export async function updateOrderStatusAction({
       await notificationService.publishNotification(order.user_id, {
         title: "Order Status Updated",
         message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
-        action_url: `/orders/${order_id}`,
+        action_url: getOrderUrl(order_id),
         type: "INFO",
       });
     }
@@ -269,7 +270,7 @@ export async function batchUpdateOrderStatusAction({
           notificationService.publishNotification(order.user_id, {
             title: "Order Status Updated",
             message: `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`,
-            action_url: `/orders/${order.id}`,
+            action_url: getOrderUrl(order.id),
             type: "INFO",
           })
       )

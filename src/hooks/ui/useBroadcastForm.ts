@@ -1,9 +1,9 @@
 "use client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NotificationCategory, NotificationType } from "@prisma/client";
 import { useForm } from "react-hook-form";
 
 import { useSendBroadcast } from "@/hooks/queries/useBroadcast";
+import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { BroadcastFormData, broadcastFormSchema } from "@/validations";
 
 export function useBroadcastForm() {

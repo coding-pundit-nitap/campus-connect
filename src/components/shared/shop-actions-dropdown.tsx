@@ -1,7 +1,7 @@
-import { SellerVerificationStatus } from "@prisma/client";
 import { CheckCircle, Shield, Trash2, XCircle } from "lucide-react";
 
 import { ActionsDropdown } from "@/components/shared/actions-dropdown";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 interface ShopActionsDropdownProps {
   isActive: boolean;

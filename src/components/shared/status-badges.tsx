@@ -1,6 +1,5 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
-
 import { Badge } from "@/components/ui/badge";
+import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 
 interface OrderStatusBadgeProps {
   status: OrderStatus;

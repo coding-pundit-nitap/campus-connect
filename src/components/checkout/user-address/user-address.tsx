@@ -1,6 +1,5 @@
 "use client";
 
-import { UserAddress as UserAddressType } from "@prisma/client";
 import React from "react";
 
 import {
@@ -8,6 +7,7 @@ import {
   UserAddressList,
 } from "@/components/checkout/user-address";
 import { useUserAddressManager } from "@/hooks";
+import { UserAddress as UserAddressType } from "@/types/prisma.types";
 
 interface UserAddressProps {
   selectedAddressId?: string | null;

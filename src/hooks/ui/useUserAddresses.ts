@@ -1,9 +1,9 @@
 "use client";
-import { UserAddress } from "@prisma/client";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { userAddressUIService } from "@/lib/utils";
+import { UserAddress } from "@/types/prisma.types";
 
 import {
   useDeleteAddress,

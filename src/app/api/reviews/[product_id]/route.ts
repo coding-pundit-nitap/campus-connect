@@ -5,6 +5,8 @@ import reviewRepository from "@/repositories/reviews.repository";
 import { createSuccessResponse } from "@/types";
 import { ReviewWithUser } from "@/types/review.type";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ product_id: string }> }

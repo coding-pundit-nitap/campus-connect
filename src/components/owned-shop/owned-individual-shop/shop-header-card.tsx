@@ -17,13 +17,16 @@ import { Separator } from "@/components/ui/separator";
 import { getVerificationStatusInfo } from "@/lib/shop.utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
 import { ShopWithOwner } from "@/types";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 interface ShopHeaderCardProps {
   shop: ShopWithOwner;
 }
 
 export function ShopHeaderCard({ shop }: ShopHeaderCardProps) {
-  const statusInfo = getVerificationStatusInfo(shop.verification_status);
+  const statusInfo = getVerificationStatusInfo(
+    shop.verification_status as SellerVerificationStatus
+  );
   const shopImageUrl = shop.image_key
     ? ImageUtils.getImageUrl(shop.image_key)
     : undefined;

@@ -1,6 +1,5 @@
-import { SellerVerificationStatus } from "@prisma/client";
-
 import { Badge } from "@/components/ui/badge";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 interface ShopStatusBadgeProps {
   isActive: boolean;

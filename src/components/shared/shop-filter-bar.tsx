@@ -1,5 +1,3 @@
-import { SellerVerificationStatus } from "@prisma/client";
-
 import { SharedSearchInput } from "@/components/shared/shared-search-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 interface ShopFilterBarProps {
   search: string;

@@ -1,11 +1,11 @@
 "use client";
 
-import { Role } from "@prisma/client";
 import { ArrowRight, Store } from "lucide-react";
 import Link from "next/link";
 
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";
+import { Role } from "@/types/prisma.types";
 
 import { Button } from "../ui/button";
 import ShopOwnerBadge from "./shop-owner-badge";

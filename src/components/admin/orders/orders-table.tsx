@@ -24,6 +24,7 @@ import {
   useUpdatePaymentStatus,
 } from "@/hooks";
 import { SerializedOrderWithDetails } from "@/types";
+import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 import { CursorPaginatedResponse } from "@/types/response.types";
 
 import { OrderDetailsDialog } from "./order-details-dialog";
@@ -132,11 +133,13 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                     <span className="font-medium">₹{order.total_price}</span>
                   </TableCell>
                   <TableCell>
-                    <OrderStatusBadge status={order.order_status} />
+                    <OrderStatusBadge
+                      status={order.order_status as OrderStatus}
+                    />
                   </TableCell>
                   <TableCell>
                     <PaymentStatusBadge
-                      status={order.payment_status}
+                      status={order.payment_status as PaymentStatus}
                       paymentMethod={order.payment_method}
                       showMethod
                     />

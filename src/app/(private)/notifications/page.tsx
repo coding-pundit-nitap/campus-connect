@@ -1,6 +1,5 @@
 "use client";
 
-import { NotificationType } from "@prisma/client";
 import {
   Bell,
   Info,
@@ -21,6 +20,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useInfiniteScroll, useNotificationHistory } from "@/hooks";
 import { cn } from "@/lib/cn";
+import { NotificationType } from "@/types/prisma.types";
 
 const notificationConfig = {
   INFO: {
@@ -139,7 +139,7 @@ export default function NotificationHistoryPage() {
 
         {notifications.map((notification, index) => {
           const { Icon, iconColor, bgColor } = getNotificationConfig(
-            notification.type
+            notification.type as NotificationType
           );
           const isLastElement = index === notifications.length - 1;
 

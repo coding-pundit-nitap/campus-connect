@@ -1,5 +1,4 @@
 "use client";
-import { SellerVerificationStatus } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -10,6 +9,7 @@ import {
   deleteShopAction,
   updateShopVerificationAction,
 } from "@/actions/admin";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 export function useActivateShop() {
   const router = useRouter();

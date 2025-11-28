@@ -2,6 +2,7 @@ import React from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { SerializedOrderWithDetails } from "@/types";
+import { OrderStatus } from "@/types/prisma.types";
 
 import OrderDetailsActions from "./order-details-actions";
 import OrderDetailsHeader from "./order-details-header";
@@ -22,7 +23,7 @@ export default function OrderDetailsCard({ order }: Props) {
         <OrderDetailsInfo order={order} />
         <OrderDetailsItems
           items={order.items}
-          orderStatus={order.order_status}
+          orderStatus={order.order_status as OrderStatus}
         />
       </div>
 

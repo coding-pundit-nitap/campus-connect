@@ -1,5 +1,6 @@
-import { NotificationCategory, NotificationType } from "@prisma/client";
 import { z } from "zod";
+
+import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 
 export const paginatedSchema = z.object({
   limit: z.coerce.number().int().positive().default(10),
@@ -20,8 +21,8 @@ export const broadcastFormSchema = z.object({
     .min(1, "Message is required")
     .max(1000, "Message must be less than 1000 characters")
     .trim(),
-  type: z.nativeEnum(NotificationType),
-  category: z.nativeEnum(NotificationCategory),
+  type: z.enum(NotificationType),
+  category: z.enum(NotificationCategory),
   action_url: z.string().optional(),
 });
 

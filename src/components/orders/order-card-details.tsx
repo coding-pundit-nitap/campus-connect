@@ -1,6 +1,7 @@
-import { OrderStatus } from "@prisma/client";
 import { Clock } from "lucide-react";
 import React from "react";
+
+import { OrderStatus } from "@/types/prisma.types";
 
 type Props = {
   shopName: string;

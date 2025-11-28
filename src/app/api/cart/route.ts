@@ -8,6 +8,8 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const user_id = await authUtils.getUserId();

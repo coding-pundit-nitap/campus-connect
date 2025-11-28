@@ -34,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ImageUtils } from "@/lib/utils";
+import { OrderStatus } from "@/types/prisma.types";
 
 type Props = {
   params: Promise<{ order_id: string }>;
@@ -189,7 +190,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
             <CardContent>
               <OrderStatusUpdater
                 orderId={order.id}
-                currentStatus={order.order_status}
+                currentStatus={order.order_status as OrderStatus}
               />
             </CardContent>
           </Card>

@@ -1,6 +1,5 @@
 import notificationEmitter from "@/lib/notification-emitter";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-export const runtime = "nodejs";
 export async function GET() {
   const user_id = await authUtils.getUserId();
   const channels = [`user:${user_id}:notifications`, `broadcast:notifications`];

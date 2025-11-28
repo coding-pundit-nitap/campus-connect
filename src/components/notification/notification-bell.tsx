@@ -1,6 +1,5 @@
 "use client";
 
-import { NotificationType } from "@prisma/client";
 import { Bell, Info, ShieldAlert, ShieldX, ThumbsUp } from "lucide-react";
 import { Route } from "next";
 import Link from "next/link";
@@ -12,6 +11,7 @@ import {
   useNotificationSummary,
 } from "@/hooks";
 import { cn } from "@/lib/cn";
+import { NotificationType } from "@/types/prisma.types";
 
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import { Badge } from "../ui/badge";

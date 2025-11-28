@@ -4,11 +4,13 @@ import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
+import { notificationService } from "@/services/notification/notification.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
@@ -189,8 +191,37 @@ export async function deleteProductAction(
     }
 
     const productToDelete = await productRepository.findById(product_id, {
-      select: { category_id: true, shop_id: true },
+      select: { category_id: true, shop_id: true, name: true },
     });
+
+    if (!productToDelete) {
+      throw new InternalServerError("Product not found");
+    }
+
+    // Find all users who have this product in their cart
+    const cartItems = await prisma.cartItem.findMany({
+      where: { product_id },
+      include: {
+        cart: {
+          select: { user_id: true },
+        },
+      },
+    });
+
+    // Notify users before deletion
+    const uniqueUserIds = Array.from(
+      new Set(cartItems.map((item) => item.cart.user_id))
+    );
+
+    await Promise.all(
+      uniqueUserIds.map((userId) =>
+        notificationService.publishNotification(userId, {
+          title: "Item Removed from Cart",
+          message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
+          type: "WARNING",
+        })
+      )
+    );
 
     await productRepository.delete(product_id);
 

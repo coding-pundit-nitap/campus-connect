@@ -1,6 +1,5 @@
 "use client";
 
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 import {
   Calendar,
   CreditCard,
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { SerializedOrderWithDetails } from "@/types";
+import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 
 interface OrderDetailsDialogProps {
   order: SerializedOrderWithDetails;
@@ -103,7 +103,7 @@ export function OrderDetailsDialog({
                 <Package className="h-4 w-4" />
                 Order Status
               </div>
-              {getOrderStatusBadge(order.order_status)}
+              {getOrderStatusBadge(order.order_status as OrderStatus)}
             </div>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ export function OrderDetailsDialog({
                 Payment Status
               </div>
               <div className="flex flex-col gap-1">
-                {getPaymentStatusBadge(order.payment_status)}
+                {getPaymentStatusBadge(order.payment_status as PaymentStatus)}
                 <span className="text-xs text-muted-foreground">
                   Method: {order.payment_method}
                 </span>

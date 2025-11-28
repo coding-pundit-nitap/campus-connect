@@ -1,6 +1,5 @@
 "use client";
 
-import { BroadcastNotification, Notification } from "@prisma/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -8,6 +7,7 @@ import { toast } from "sonner";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
 import { NotificationSummaryType } from "@/services/notification";
+import { BroadcastNotification, Notification } from "@/types/prisma.types";
 
 interface NotificationEvent {
   data: string;

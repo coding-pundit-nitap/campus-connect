@@ -1,5 +1,3 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
-
 import { SharedSearchInput } from "@/components/shared/shared-search-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 
 interface OrderFilterBarProps {
   search: string;

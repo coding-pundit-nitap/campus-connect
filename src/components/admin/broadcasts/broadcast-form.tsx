@@ -1,6 +1,5 @@
 "use client";
 
-import { NotificationCategory, NotificationType } from "@prisma/client";
 import { Bell } from "lucide-react";
 
 import { SharedForm } from "@/components/shared/shared-form";
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { useBroadcastForm } from "@/hooks/ui/useBroadcastForm";
 import { ButtonConfig, FormFieldConfig } from "@/types";
+import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { BroadcastFormData } from "@/validations";
 
 export function BroadcastForm() {
