@@ -1,4 +1,3 @@
-import { SellerVerificationStatus } from "@prisma/client";
 import {
   BadgeCheck,
   Clock,
@@ -7,6 +6,8 @@ import {
   ShieldAlert,
   ShieldX,
 } from "lucide-react";
+
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 interface StatusInfo {
   label: string;

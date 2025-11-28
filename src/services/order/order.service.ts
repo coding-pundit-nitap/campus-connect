@@ -7,6 +7,7 @@ import {
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
+import { getShopOrderUrl } from "@/lib/utils/url.utils";
 import orderRepository from "@/repositories/order.repository";
 import { shopRepository } from "@/repositories/shop.repository";
 import { notificationService } from "@/services/notification/notification.service";
@@ -136,7 +137,7 @@ class OrderService {
         await notificationService.publishNotification(shop.user.id, {
           title: "New Order Received",
           message: `You have received a new order with ID: ${order.display_id}`,
-          action_url: `/owner-shops/orders/${order.id}`,
+          action_url: getShopOrderUrl(order.id),
           type: "INFO",
         });
       }

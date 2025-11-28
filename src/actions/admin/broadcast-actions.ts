@@ -1,6 +1,5 @@
 "use server";
 
-import { NotificationCategory, NotificationType } from "@prisma/client";
 import z from "zod";
 
 import {
@@ -12,6 +11,7 @@ import {
 import broadcastRepository from "@/repositories/broadcast.repository";
 import userRepository from "@/repositories/user.repository";
 import { notificationService } from "@/services/notification/notification.service";
+import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
