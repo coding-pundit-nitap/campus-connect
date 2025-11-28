@@ -87,8 +87,8 @@ export async function createOrderAction({
     }
     const pg_payment_id =
       payment_method === "ONLINE"
-        ? `txn_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
-        : `offline_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
+        ? `txn_${crypto.randomUUID()}`
+        : `offline_${crypto.randomUUID()}`;
 
     const order = await orderService.createOrderFromCart(
       user_id,
@@ -152,16 +152,12 @@ export async function updateOrderStatusAction({
 
     const updatedOrder = await orderRepository.updateStatus(order_id, status);
     if (order.user_id) {
-      try {
-        await notificationService.publishNotification(order.user_id, {
-          title: "Order Status Updated",
-          message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
-          action_url: getOrderUrl(order_id),
-          type: "INFO",
-        });
-      } catch (error) {
-        console.error("Failed to send status update notification:", error);
-      }
+      await notificationService.publishNotification(order.user_id, {
+        title: "Order Status Updated",
+        message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
+        action_url: getOrderUrl(order_id),
+        type: "INFO",
+      });
     }
 
     return createSuccessResponse(

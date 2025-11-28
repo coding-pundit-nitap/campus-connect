@@ -4,6 +4,7 @@ import { DateRange } from "react-day-picker";
 
 import { queryKeys } from "@/lib/query-keys";
 import { searchAPIService } from "@/services/search";
+import { OrderStatus } from "@/types/prisma.types";
 
 export const useSearchQuery = (query: string) => {
   return useQuery({

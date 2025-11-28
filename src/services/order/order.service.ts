@@ -163,16 +163,12 @@ class OrderService {
       });
 
       if (shop && shop.user) {
-        try {
-          await notificationService.publishNotification(shop.user.id, {
-            title: "New Order Received",
-            message: `You have received a new order with ID: ${order.display_id}`,
-            action_url: getShopOrderUrl(order.id),
-            type: "INFO",
-          });
-        } catch (error) {
-          console.error("Failed to send shop notification:", error);
-        }
+        await notificationService.publishNotification(shop.user.id, {
+          title: "New Order Received",
+          message: `You have received a new order with ID: ${order.display_id}`,
+          action_url: getShopOrderUrl(order.id),
+          type: "INFO",
+        });
       }
 
       return order;

@@ -54,11 +54,11 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_MINIO_ENDPOINT
 ARG NEXT_PUBLIC_MINIO_BUCKET
-ARG DATABASE_URL="postgresql://connect:invalidpassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true"
+ARG DIRECT_URL="postgresql://connect:mypassword@db:5432/campus_connect"
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
 ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
-ENV DATABASE_URL=$DATABASE_URL
+ENV DIRECT_URL=$DIRECT_URL
 
 # Build the application.
 RUN pnpm prisma generate

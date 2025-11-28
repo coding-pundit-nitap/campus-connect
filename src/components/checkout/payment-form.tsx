@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateOrder } from "@/hooks";
 import { ImageUtils } from "@/lib/utils";
+import { PaymentMethod } from "@/types/prisma.types";
 
 interface PaymentFormProps {
   cart_id: string;

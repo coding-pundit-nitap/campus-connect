@@ -10,6 +10,7 @@ import authUtils from "@/lib/utils/auth.utils.server";
 import { categoryRepository, shopRepository } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
+import { notificationService } from "@/services/notification/notification.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
@@ -212,17 +213,13 @@ export async function deleteProductAction(
       new Set(cartItems.map((item) => item.cart.user_id))
     );
 
-    await Promise.allSettled(
+    await Promise.all(
       uniqueUserIds.map((userId) =>
-        notificationService
-          .publishNotification(userId, {
-            title: "Item Removed from Cart",
-            message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
-            type: "WARNING",
-          })
-          .catch((err) =>
-            console.error(`Failed to notify user ${userId}:`, err)
-          )
+        notificationService.publishNotification(userId, {
+          title: "Item Removed from Cart",
+          message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
+          type: "WARNING",
+        })
       )
     );
 
