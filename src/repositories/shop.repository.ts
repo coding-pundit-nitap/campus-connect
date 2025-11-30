@@ -1,5 +1,6 @@
 import { Prisma, Shop } from "@prisma/client";
 
+import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
 
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;
@@ -30,15 +31,54 @@ class ShopRepository {
   }
 
   async create(data: Prisma.ShopCreateInput): Promise<Shop> {
-    return prisma.shop.create({ data });
+    const shop = await prisma.shop.create({ data });
+
+    await elasticClient.index({
+      index: INDICES.SHOPS,
+      id: shop.id,
+      document: {
+        id: shop.id,
+        name: shop.name,
+        description: shop.description,
+        location: shop.location,
+        is_active: shop.is_active,
+      },
+    });
+
+    return shop;
   }
 
   async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
-    return prisma.shop.update({ where: { id: shop_id }, data });
+    const shop = await prisma.shop.update({ where: { id: shop_id }, data });
+
+    await elasticClient
+      .update({
+        index: INDICES.SHOPS,
+        id: shop_id,
+        doc: {
+          name: shop.name,
+          description: shop.description,
+          location: shop.location,
+          is_active: shop.is_active,
+          image_key: shop.image_key,
+        },
+      })
+      .catch((err) => console.error("ES Update Error", err));
+
+    return shop;
   }
 
   async delete(shop_id: string): Promise<Shop> {
-    return prisma.shop.delete({ where: { id: shop_id } });
+    const shop = await prisma.shop.delete({ where: { id: shop_id } });
+
+    await elasticClient
+      .delete({
+        index: INDICES.SHOPS,
+        id: shop_id,
+      })
+      .catch((err) => console.error("ES Delete Error", err));
+
+    return shop;
   }
 
   async findById(shop_id: string): Promise<Shop | null>;
@@ -68,35 +108,54 @@ class ShopRepository {
   }
 
   async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
-    return prisma.shop.findMany({
-      where: {
-        OR: [
-          {
-            name: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
+    try {
+      const result = await elasticClient.search<Shop>({
+        index: INDICES.SHOPS,
+        size: limit,
+        _source: false,
+        query: {
+          bool: {
+            must: [
+              { term: { is_active: true } },
+              {
+                multi_match: {
+                  query: searchTerm,
+                  fields: ["name^3", "description", "location"],
+                  fuzziness: "AUTO",
+                },
+              },
+            ],
           },
-          {
-            description: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-          {
-            location: {
-              contains: searchTerm,
-              mode: "insensitive",
-            },
-          },
-        ],
-        is_active: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-      take: limit,
-    });
+        },
+      });
+      const hits = result.hits.hits;
+      if (hits.length === 0) return [];
+
+      const ids = hits.map((h) => h._id || "");
+
+      const shops = await prisma.shop.findMany({
+        where: { id: { in: ids }, is_active: true },
+      });
+
+      const shopMap = new Map(shops.map((s) => [s.id, s]));
+
+      return hits
+        .map((hit) => shopMap.get(hit._id || ""))
+        .filter((s): s is Shop => s !== undefined);
+    } catch (error) {
+      console.error("Elasticsearch failed, falling back to database", error);
+      return prisma.shop.findMany({
+        where: {
+          OR: [
+            { name: { contains: searchTerm, mode: "insensitive" } },
+            { description: { contains: searchTerm, mode: "insensitive" } },
+            { location: { contains: searchTerm, mode: "insensitive" } },
+          ],
+          is_active: true,
+        },
+        take: limit,
+      });
+    }
   }
 
   async findMany<T extends Prisma.ShopFindManyArgs>(
