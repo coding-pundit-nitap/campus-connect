@@ -32,6 +32,12 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # ----------------------------------------------------------------------------
   # Development Services (profile: dev)
@@ -172,6 +178,7 @@ services:
       - WATCHPACK_POLLING=false
       - TZ=UTC
       - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis:6379
     networks:
       - campus_connect_net
     healthcheck:
@@ -183,34 +190,6 @@ services:
     profiles:
       - dev
     logging: *default-logging
-
-  # Worker for Development (Mounts code locally)
-  worker-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
-    container_name: campus_connect_worker_dev
-    command: npx tsx scripts/start-worker.ts
-    volumes:
-      - .:/app
-      - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/root/.local/share/pnpm/store
-    environment:
-      - REDIS_HOST=redis
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - DATABASE_URL=${DATABASE_URL}
-    depends_on:
-      - redis
-      - elasticsearch
-      - installer-dev
-      - migrator-dev
-    networks:
-      - campus_connect_net
-    profiles:
-      - dev
-    logging: *default-logging
-    <<: *dev-resources
 
   # Prisma Studio for database debugging in development
   prisma-studio:
@@ -462,6 +441,7 @@ services:
     profiles:
       - dev
       - prod
+    logging: *default-logging
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
@@ -470,7 +450,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
     expose:
       - "9200"
     volumes:
@@ -485,6 +465,7 @@ services:
     profiles:
       - dev
       - prod
+    logging: *default-logging
 
   kibana:
     image: docker.elastic.co/kibana/kibana:9.2.1
@@ -493,6 +474,8 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
       - xpack.security.enabled=false
+      - TELEMETRY_ENABLED=false
+      - ELASTICSEARCH_REQUESTTIMEOUT=60000
     expose:
       - "5601"
     depends_on:
@@ -502,6 +485,32 @@ services:
       - campus_connect_net
     profiles:
       - dev
+    logging: *default-logging
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: campus_connect_worker
+    command: npx tsx scripts/start-worker.ts
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    environment:
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=${DIRECT_URL}
+    depends_on:
+      - redis
+      - elasticsearch
+    networks:
+      - campus_connect_net
+    profiles:
+      - dev
+      - prod
+    logging: *default-logging
 # ----------------------------------------------------------------------------
 # Networks and Volumes
 # ----------------------------------------------------------------------------

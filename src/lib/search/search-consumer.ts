@@ -64,32 +64,15 @@ const workerHandler = async (job: Job<SearchJobData>) => {
         break;
       }
 
-      // --- USERS ---
-      case "INDEX_USER": {
-        await elasticClient.index({
-          index: INDICES.USERS,
-          id: job.data.payload.id,
-          document: job.data.payload,
-        });
-        break;
-      }
-      case "DELETE_USER": {
-        await elasticClient.delete({
-          index: INDICES.USERS,
-          id: job.data.payload.id,
-        });
-        break;
-      }
-
       default:
-        console.warn(`[Job ${job.id}] Unknown job type: ${job.data.type}`);
+        console.warn(`[Job ${job.id}] Unknown job type: ${job.data}`);
     }
 
     const duration = Date.now() - start;
     console.log(`[Job ${job.id}] Completed in ${duration}ms`);
   } catch (error) {
     console.error(`[Job ${job.id}] Failed:`, error);
-    throw error;
+    throw error; // Throwing triggers the BullMQ retry mechanism
   }
 };
 

@@ -90,10 +90,9 @@ class OrderRepository {
       include: { user: true },
     });
 
-    await elasticClient.index({
-      index: INDICES.ORDERS,
-      id: order.id,
-      document: {
+    await searchQueue.add("index-order", {
+      type: "INDEX_ORDER",
+      payload: {
         id: order.id,
         shop_id: order.shop_id,
         display_id: order.display_id,
@@ -121,10 +120,12 @@ class OrderRepository {
       },
     });
 
-    await elasticClient.update({
-      index: INDICES.ORDERS,
-      id: order_id,
-      doc: { status: order_status },
+    await searchQueue.add("update-order", {
+      type: "INDEX_ORDER",
+      payload: {
+        id: order.id,
+        status: order_status,
+      },
     });
     return order;
   }
