@@ -2,6 +2,7 @@ import { Prisma, Shop } from "@prisma/client";
 
 import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
+import { searchQueue } from "@/lib/search/search-producer";
 
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;
 
@@ -33,10 +34,9 @@ class ShopRepository {
   async create(data: Prisma.ShopCreateInput): Promise<Shop> {
     const shop = await prisma.shop.create({ data });
 
-    await elasticClient.index({
-      index: INDICES.SHOPS,
-      id: shop.id,
-      document: {
+    await searchQueue.add("index-shop", {
+      type: "INDEX_SHOP",
+      payload: {
         id: shop.id,
         name: shop.name,
         description: shop.description,
@@ -51,19 +51,17 @@ class ShopRepository {
   async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
     const shop = await prisma.shop.update({ where: { id: shop_id }, data });
 
-    await elasticClient
-      .update({
-        index: INDICES.SHOPS,
-        id: shop_id,
-        doc: {
-          name: shop.name,
-          description: shop.description,
-          location: shop.location,
-          is_active: shop.is_active,
-          image_key: shop.image_key,
-        },
-      })
-      .catch((err) => console.error("ES Update Error", err));
+    await searchQueue.add("update-shop", {
+      type: "INDEX_SHOP",
+      payload: {
+        id: shop.id,
+        name: shop.name,
+        description: shop.description,
+        location: shop.location,
+        is_active: shop.is_active,
+        image_key: shop.image_key,
+      },
+    });
 
     return shop;
   }
@@ -71,12 +69,12 @@ class ShopRepository {
   async delete(shop_id: string): Promise<Shop> {
     const shop = await prisma.shop.delete({ where: { id: shop_id } });
 
-    await elasticClient
-      .delete({
-        index: INDICES.SHOPS,
+    await searchQueue.add("delete-shop", {
+      type: "DELETE_SHOP",
+      payload: {
         id: shop_id,
-      })
-      .catch((err) => console.error("ES Delete Error", err));
+      },
+    });
 
     return shop;
   }
