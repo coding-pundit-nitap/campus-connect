@@ -6,7 +6,15 @@ x-nginx-common: &nginx-common
   networks:
     - campus_connect_net
   healthcheck:
-    test: ["CMD", "wget", "--quiet", "--spider", "--fail", "http://localhost:8080/nginx-health"]
+    test:
+      [
+        "CMD",
+        "wget",
+        "--quiet",
+        "--spider",
+        "--fail",
+        "http://localhost:8080/nginx-health",
+      ]
     interval: 10s
     timeout: 5s
     retries: 3
@@ -28,6 +36,8 @@ services:
       - "80:80"
       - "5555:5555" # Prisma Studio
       - "8080:8080" # Health check
+      - "5601:5601"
+      - "9200:9200"
       - "9000:9000" # MinIO API
       - "9001:9001" # MinIO Console
     volumes:
@@ -93,6 +103,7 @@ services:
       - CHOKIDAR_USEPOLLING=true
       - NEXT_TELEMETRY_DISABLED=1
       - TZ=UTC
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
     networks:
       - campus_connect_net
     healthcheck:
@@ -174,6 +185,7 @@ services:
         - NEXT_PUBLIC_API_URL=/api
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
         - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+        - ELASTICSEARCH_URL=http://elasticsearch:9200
     container_name: campus_connect_app_prod
     restart: always
     depends_on:
@@ -200,11 +212,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "512M"
     profiles:
       - prod
 
@@ -292,6 +299,46 @@ services:
     profiles:
       - dev
       - prod
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
+    container_name: campus_connect_elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    expose:
+      - "9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - campus_connect_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    profiles:
+      - dev
+      - prod
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.2.1
+    container_name: campus_connect_kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+    expose:
+      - "5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - campus_connect_net
+    profiles:
+      - dev
 # ----------------------------------------------------------------------------
 # Networks and Volumes
 # ----------------------------------------------------------------------------
@@ -310,3 +357,4 @@ volumes:
   node_modules_volume:
   next_cache_volume:
   pnpm_store_volume:
+  elasticsearch_data:

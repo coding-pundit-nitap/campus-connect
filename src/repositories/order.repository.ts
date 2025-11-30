@@ -1,5 +1,6 @@
 import { Order, OrderStatus, Prisma } from "@prisma/client";
 
+import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
@@ -83,7 +84,25 @@ class OrderRepository {
     tx?: Prisma.TransactionClient
   ): Promise<Order> {
     const db = tx || prisma;
-    return db.order.create({ data });
+    const order = await db.order.create({
+      data,
+      include: { user: true },
+    });
+
+    await elasticClient.index({
+      index: INDICES.ORDERS,
+      id: order.id,
+      document: {
+        id: order.id,
+        shop_id: order.shop_id,
+        display_id: order.display_id,
+        user_email: order.user?.email,
+        delivery_address: order.delivery_address_snapshot,
+        status: order.order_status,
+        created_at: order.created_at,
+      },
+    });
+    return order;
   }
 
   async updateStatus(
@@ -92,7 +111,7 @@ class OrderRepository {
     assigned_to?: string,
     actual_delivery_time?: Date
   ): Promise<Order> {
-    return prisma.order.update({
+    const order = await prisma.order.update({
       where: { id: order_id },
       data: {
         order_status,
@@ -100,6 +119,13 @@ class OrderRepository {
         actual_delivery_time,
       },
     });
+
+    await elasticClient.update({
+      index: INDICES.ORDERS,
+      id: order_id,
+      doc: { status: order_status },
+    });
+    return order;
   }
 
   async batchUpdateStatus(
@@ -111,8 +137,100 @@ class OrderRepository {
       data: { order_status },
     });
   }
-
   async getPaginatedShopOrders({
+    shop_id,
+    limit = 10,
+    cursor,
+    searchTerm,
+    orderStatus,
+    dateRange,
+  }: GetPaginatedOrdersOptions): Promise<{
+    orders: OrderWithDetails[];
+    nextCursor?: string;
+  }> {
+    if (!searchTerm) {
+      return this.getPaginatedShopOrdersFromDB({
+        shop_id,
+        limit,
+        cursor,
+        orderStatus,
+        dateRange,
+      });
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mustQuery: any[] = [{ term: { shop_id } }];
+      if (orderStatus) mustQuery.push({ term: { status: orderStatus } });
+      if (dateRange) {
+        mustQuery.push({
+          range: { created_at: { gte: dateRange.from, lte: dateRange.to } },
+        });
+      }
+
+      mustQuery.push({
+        multi_match: {
+          query: searchTerm,
+          fields: ["display_id", "delivery_address", "user_email"],
+          type: "phrase_prefix",
+        },
+      });
+
+      let searchAfter: string[] | undefined;
+      if (cursor) {
+        try {
+          searchAfter = JSON.parse(
+            Buffer.from(cursor, "base64").toString("utf-8")
+          );
+        } catch {
+          // If cursor is invalid/corrupted, start from page 1 safely
+        }
+      }
+
+      const result = await elasticClient.search({
+        index: INDICES.ORDERS,
+        size: limit,
+        query: { bool: { must: mustQuery } },
+        track_total_hits: false,
+        _source: false,
+        sort: [{ created_at: "desc" }, { id: "desc" }],
+        search_after: searchAfter,
+      });
+
+      const hits = result.hits.hits;
+      if (hits.length === 0) return { orders: [] };
+
+      const ids = hits.map((h) => h._id as string);
+      const orders = await prisma.order.findMany({
+        where: { id: { in: ids } },
+        include: orderWithDetailsInclude,
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      });
+
+      let nextCursor: string | undefined;
+      const lastHit = hits[hits.length - 1];
+
+      if (hits.length === limit && lastHit?.sort) {
+        nextCursor = Buffer.from(JSON.stringify(lastHit.sort)).toString(
+          "base64"
+        );
+      }
+
+      return { orders, nextCursor };
+    } catch (error) {
+      console.error("Search failed, falling back to DB", error);
+      return this.getPaginatedShopOrdersFromDB({
+        shop_id,
+        limit,
+        cursor,
+        searchTerm,
+        orderStatus,
+        dateRange,
+      });
+    }
+  }
+
+  async getPaginatedShopOrdersFromDB({
     shop_id,
     limit = 10,
     cursor,
