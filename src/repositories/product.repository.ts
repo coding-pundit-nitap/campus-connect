@@ -2,6 +2,7 @@ import { Prisma, Product } from "@prisma/client";
 
 import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
+import { searchQueue } from "@/lib/search/search-producer";
 
 export type CreateProductDto = Prisma.ProductCreateInput;
 
@@ -45,10 +46,9 @@ class ProductRepository {
       include: { category: true, shop: { select: { id: true, name: true } } },
     });
 
-    await elasticClient.index({
-      index: INDICES.PRODUCTS,
-      id: product.id,
-      document: {
+    await searchQueue.add("index-product", {
+      type: "INDEX_PRODUCT",
+      payload: {
         id: product.id,
         name: product.name,
         description: product.description,
@@ -78,11 +78,11 @@ class ProductRepository {
         },
       },
     });
-    await elasticClient
-      .update({
-        index: INDICES.PRODUCTS,
-        id: product_id,
-        doc: {
+    await searchQueue
+      .add("update-product", {
+        type: "INDEX_PRODUCT",
+        payload: {
+          id: product.id,
           name: product.name,
           description: product.description,
           shop_id: product.shop_id,
@@ -106,12 +106,12 @@ class ProductRepository {
       ...data,
     });
 
-    await elasticClient
-      .delete({
-        index: INDICES.PRODUCTS,
+    await searchQueue.add("delete-product", {
+      type: "DELETE_PRODUCT",
+      payload: {
         id: product_id,
-      })
-      .catch((err) => console.error("ES Delete Error", err));
+      },
+    });
 
     return product;
   }
