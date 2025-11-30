@@ -34,9 +34,10 @@ class ShopRepository {
   async create(data: Prisma.ShopCreateInput): Promise<Shop> {
     const shop = await prisma.shop.create({ data });
 
-    await searchQueue.add("index-shop", {
-      type: "INDEX_SHOP",
-      payload: {
+    await elasticClient.index({
+      index: INDICES.SHOPS,
+      id: shop.id,
+      document: {
         id: shop.id,
         name: shop.name,
         description: shop.description,
@@ -51,17 +52,19 @@ class ShopRepository {
   async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
     const shop = await prisma.shop.update({ where: { id: shop_id }, data });
 
-    await searchQueue.add("update-shop", {
-      type: "INDEX_SHOP",
-      payload: {
-        id: shop.id,
-        name: shop.name,
-        description: shop.description,
-        location: shop.location,
-        is_active: shop.is_active,
-        image_key: shop.image_key,
-      },
-    });
+    await elasticClient
+      .update({
+        index: INDICES.SHOPS,
+        id: shop_id,
+        doc: {
+          name: shop.name,
+          description: shop.description,
+          location: shop.location,
+          is_active: shop.is_active,
+          image_key: shop.image_key,
+        },
+      })
+      .catch((err) => console.error("ES Update Error", err));
 
     return shop;
   }
@@ -69,12 +72,12 @@ class ShopRepository {
   async delete(shop_id: string): Promise<Shop> {
     const shop = await prisma.shop.delete({ where: { id: shop_id } });
 
-    await searchQueue.add("delete-shop", {
-      type: "DELETE_SHOP",
-      payload: {
+    await elasticClient
+      .delete({
+        index: INDICES.SHOPS,
         id: shop_id,
-      },
-    });
+      })
+      .catch((err) => console.error("ES Delete Error", err));
 
     return shop;
   }
@@ -110,8 +113,6 @@ class ShopRepository {
       const result = await elasticClient.search<Shop>({
         index: INDICES.SHOPS,
         size: limit,
-        // Only fetch document IDs from Elasticsearch, then retrieve full data from PostgreSQL
-        // This ensures data consistency and allows us to use Prisma for data access
         _source: false,
         query: {
           bool: {

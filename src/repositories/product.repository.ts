@@ -46,9 +46,10 @@ class ProductRepository {
       include: { category: true, shop: { select: { id: true, name: true } } },
     });
 
-    await searchQueue.add("index-product", {
-      type: "INDEX_PRODUCT",
-      payload: {
+    await elasticClient.index({
+      index: INDICES.PRODUCTS,
+      id: product.id,
+      document: {
         id: product.id,
         name: product.name,
         description: product.description,
@@ -57,6 +58,7 @@ class ProductRepository {
         category_name: product.category?.name,
         price: product.price,
         image_key: product.image_key,
+        is_active: true,
       },
     });
 
@@ -77,11 +79,11 @@ class ProductRepository {
         },
       },
     });
-    await searchQueue
-      .add("update-product", {
-        type: "INDEX_PRODUCT",
-        payload: {
-          id: product.id,
+    await elasticClient
+      .update({
+        index: INDICES.PRODUCTS,
+        id: product_id,
+        doc: {
           name: product.name,
           description: product.description,
           shop_id: product.shop_id,
@@ -105,12 +107,12 @@ class ProductRepository {
       ...data,
     });
 
-    await searchQueue.add("delete-product", {
-      type: "DELETE_PRODUCT",
-      payload: {
+    await elasticClient
+      .delete({
+        index: INDICES.PRODUCTS,
         id: product_id,
-      },
-    });
+      })
+      .catch((err) => console.error("ES Delete Error", err));
 
     return product;
   }
