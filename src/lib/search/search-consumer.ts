@@ -72,7 +72,7 @@ const workerHandler = async (job: Job<SearchJobData>) => {
     console.log(`[Job ${job.id}] Completed in ${duration}ms`);
   } catch (error) {
     console.error(`[Job ${job.id}] Failed:`, error);
-    throw error; // Throwing triggers the BullMQ retry mechanism
+    throw error;
   }
 };
 
