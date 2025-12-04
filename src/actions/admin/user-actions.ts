@@ -102,7 +102,7 @@ export async function makeUserAdminAction(
   try {
     await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
-      throw new BadRequestError("Invalid product ID");
+      throw new BadRequestError("Invalid user ID");
     }
     const targetUser = await userRepository.findById(targetUserId);
     if (!targetUser) {
@@ -144,7 +144,7 @@ export async function removeUserAdminAction(
   try {
     const currentUserId = await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
-      throw new BadRequestError("Invalid product ID");
+      throw new BadRequestError("Invalid user ID");
     }
     if (currentUserId === targetUserId) {
       throw new ForbiddenError("You cannot remove your own admin privileges");
@@ -236,7 +236,7 @@ export async function forceSignOutUserAction(
   try {
     await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
-      throw new BadRequestError("Invalid product ID");
+      throw new BadRequestError("Invalid user ID");
     }
     const targetUser = await userRepository.findById(targetUserId);
     if (!targetUser) {
@@ -268,7 +268,7 @@ export async function deleteUserAction(
   try {
     const currentUserId = await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
-      throw new BadRequestError("Invalid product ID");
+      throw new BadRequestError("Invalid user ID");
     }
     if (currentUserId === targetUserId) {
       throw new ForbiddenError("You cannot delete your own account");

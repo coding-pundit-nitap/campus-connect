@@ -71,9 +71,11 @@ export function PaymentForm({
         toast.error("Please enter UPI transaction ID");
         return;
       }
-      const upiRegex = /^\d{12}$/;
+      const upiRegex = /^[A-Za-z0-9]{10,}$/;
       if (!upiRegex.test(upiTransactionId)) {
-        toast.error("Invalid UPI Transaction ID. It must be 12 digits.");
+        toast.error(
+          "Invalid UPI Transaction ID. Must be at least 10 alphanumeric characters."
+        );
         return;
       }
     }
@@ -170,7 +172,8 @@ export function PaymentForm({
                 disabled={isPending}
               />
               <p className="text-xs text-muted-foreground">
-                Enter the 12-digit transaction ID from your payment app
+                Enter the transaction ID from your payment app (alphanumeric,
+                min 10 characters)
               </p>
             </div>
           </div>

@@ -7,5 +7,8 @@ set -e
 echo "✅ Entrypoint script started."
 
 echo "🚀 Starting Next.js application..."
+
+# migration is handled by a separate container, so we skip it here
+
 # Execute the main container command (the one specified in CMD of the Dockerfile)
 exec "$@"

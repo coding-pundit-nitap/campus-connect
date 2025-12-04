@@ -65,7 +65,7 @@ const workerHandler = async (job: Job<SearchJobData>) => {
       }
 
       default:
-        console.warn(`[Job ${job.id}] Unknown job type: ${job.data}`);
+        console.warn(`[Job ${job.id}] Unknown job type: ${job.data.type}`);
     }
 
     const duration = Date.now() - start;
