@@ -1,7 +1,8 @@
 "use client";
 
-import { UserAddress } from "@prisma/client";
 import React from "react";
+
+import { UserAddress } from "@/types/prisma.types";
 
 interface SelectedAddressDisplayProps {
   selectedAddress: UserAddress;

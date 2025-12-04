@@ -1,9 +1,9 @@
+import { ClientDate } from "@/components/shared/client-date";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
-import { ClientDate } from "../shared/client-date";
 import OrderCardFooter from "./order-card-footer";
 
 type Props = {
@@ -13,11 +13,10 @@ type Props = {
 export default function OrderCard({ order }: Props) {
   const statusInfo = getOrderStatusInfo(order.order_status);
   const subtotal = order.items.reduce((acc, item) => {
-    return (
-      acc +
-      (item.price - (item.price * (item.product.discount || 0)) / 100) *
-        item.quantity
-    );
+    const price = Number(item.price);
+    const discount = Number(item.product.discount || 0);
+    const discountedPrice = price - (price * discount) / 100;
+    return acc + discountedPrice * item.quantity;
   }, 0);
 
   return (
@@ -53,7 +52,9 @@ export default function OrderCard({ order }: Props) {
                 Order #{order.display_id}
               </p>
               <h3 className="truncate font-semibold text-lg">
-                {order.items[0].product.shop?.name}
+                {order.items.length > 0
+                  ? order.items[0].product.shop?.name
+                  : "Unknown Shop"}
               </h3>
               <p className="text-xs text-muted-foreground">
                 <ClientDate date={order.created_at} format="datetime" />

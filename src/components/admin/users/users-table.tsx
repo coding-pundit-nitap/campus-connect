@@ -1,6 +1,5 @@
 "use client";
 
-import { Role } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -34,6 +33,7 @@ import {
   useForceSignOutUser,
   usePromoteUser,
 } from "@/hooks";
+import { Role } from "@/types/prisma.types";
 import { CursorPaginatedResponse } from "@/types/response.types";
 
 interface UsersTableProps {
