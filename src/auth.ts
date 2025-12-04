@@ -1,6 +1,7 @@
-import { Role } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+
+import { Role } from "@/types/prisma.types";
 
 import { prisma } from "./lib/prisma";
 

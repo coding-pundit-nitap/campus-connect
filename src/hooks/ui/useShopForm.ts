@@ -49,7 +49,6 @@ export function useLinkShop() {
           },
         });
       } catch {
-        // TODO: Logging
         form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",

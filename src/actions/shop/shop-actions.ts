@@ -38,7 +38,10 @@ export async function createShopAction(formData: ShopActionFormData) {
         imageFile.name,
         imageFile.type,
         imageFile.size,
-        buffer
+        buffer,
+        {
+          prefix: "shop-images",
+        }
       );
     }
     let qr_image_key = "";
@@ -49,7 +52,10 @@ export async function createShopAction(formData: ShopActionFormData) {
         qrImageFile.name,
         qrImageFile.type,
         qrImageFile.size,
-        buffer
+        buffer,
+        {
+          prefix: "shop-qr-images",
+        }
       );
     }
     const newShop = await shopRepository.create({
@@ -78,7 +84,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true, image_key: true, qr_image_key: true }, // Select old keys for deletion
+      select: { id: true, image_key: true, qr_image_key: true },
     });
     if (!context || !context.id) {
       throw new UnauthorizedError("User is not authorized to update a shop");
@@ -107,7 +113,8 @@ export async function updateShopAction(formData: ShopActionFormData) {
         imageFile.name,
         imageFile.type,
         imageFile.size,
-        buffer
+        buffer,
+        { prefix: "shop-images" }
       );
 
       if (context.image_key) {
@@ -122,7 +129,8 @@ export async function updateShopAction(formData: ShopActionFormData) {
         qrImageFile.name,
         qrImageFile.type,
         qrImageFile.size,
-        buffer
+        buffer,
+        { prefix: "shop-qr-images" }
       );
 
       if (context.qr_image_key) {
@@ -150,7 +158,11 @@ export async function deleteShopAction() {
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
+      select: {
+        id: true,
+        image_key: true,
+        qr_image_key: true,
+      },
     });
     if (!context || !context.id) {
       throw new UnauthorizedError("User is not authorized to delete a shop");
@@ -160,6 +172,12 @@ export async function deleteShopAction() {
 
     await shopRepository.delete(shop_id);
 
+    if (context.image_key) {
+      await fileUploadService.deleteFile(context.image_key);
+    }
+    if (context.qr_image_key) {
+      await fileUploadService.deleteFile(context.qr_image_key);
+    }
     return createSuccessResponse(null, "Shop deleted successfully");
   } catch (error) {
     console.error("DELETE SHOP ERROR:", error);

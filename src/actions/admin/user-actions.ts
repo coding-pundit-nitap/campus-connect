@@ -1,8 +1,10 @@
 "use server";
 
 import { Prisma, Role } from "@prisma/client";
+import z from "zod";
 
 import {
+  BadRequestError,
   ForbiddenError,
   InternalServerError,
   NotFoundError,
@@ -14,14 +16,16 @@ import {
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
+import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
-export async function getAllUsersAction(options: {
-  limit?: number;
-  cursor?: string;
-  search?: string;
-  role?: Role;
-}): Promise<
+
+const getAllUsersSchema = searchSchema.extend({
+  role: z.enum(Role).optional(),
+});
+export async function getAllUsersAction(
+  options: z.infer<typeof getAllUsersSchema>
+): Promise<
   ActionResponse<
     CursorPaginatedResponse<{
       id: string;
@@ -36,26 +40,29 @@ export async function getAllUsersAction(options: {
 > {
   try {
     await verifyAdmin();
-
-    const limit = options.limit || 20;
+    const parsedData = getAllUsersSchema.safeParse(options);
+    if (!parsedData.success) {
+      throw new BadRequestError("Invalid options");
+    }
+    const { limit, cursor, search, role } = parsedData.data;
     const where: Prisma.UserWhereInput | undefined = {};
 
-    if (options.search) {
+    if (search) {
       where.OR = [
-        { name: { contains: options.search, mode: "insensitive" } },
-        { email: { contains: options.search, mode: "insensitive" } },
+        { name: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
       ];
     }
 
-    if (options.role) {
-      where.role = options.role;
+    if (role) {
+      where.role = role;
     }
 
     const users = await userRepository.findMany({
       where,
       take: limit + 1,
-      skip: options.cursor ? 1 : 0,
-      cursor: options.cursor ? { id: options.cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -94,7 +101,9 @@ export async function makeUserAdminAction(
 ): Promise<ActionResponse<{ id: string; email: string; role: Role }>> {
   try {
     await verifyAdmin();
-
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const targetUser = await userRepository.findById(targetUserId);
     if (!targetUser) {
       throw new NotFoundError("User not found");
@@ -134,7 +143,9 @@ export async function removeUserAdminAction(
 ): Promise<ActionResponse<{ id: string; email: string; role: Role }>> {
   try {
     const currentUserId = await verifyAdmin();
-
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     if (currentUserId === targetUserId) {
       throw new ForbiddenError("You cannot remove your own admin privileges");
     }
@@ -224,7 +235,9 @@ export async function forceSignOutUserAction(
 ): Promise<ActionResponse<null>> {
   try {
     await verifyAdmin();
-
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     const targetUser = await userRepository.findById(targetUserId);
     if (!targetUser) {
       throw new NotFoundError("User not found");
@@ -254,7 +267,9 @@ export async function deleteUserAction(
 ): Promise<ActionResponse<{ id: string; email: string }>> {
   try {
     const currentUserId = await verifyAdmin();
-
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid product ID");
+    }
     if (currentUserId === targetUserId) {
       throw new ForbiddenError("You cannot delete your own account");
     }

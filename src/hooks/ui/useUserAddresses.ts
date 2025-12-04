@@ -1,9 +1,9 @@
 "use client";
-import { UserAddress } from "@prisma/client";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { userAddressUIService } from "@/lib/utils";
+import { UserAddress } from "@/types/prisma.types";
 
 import {
   useDeleteAddress,
@@ -28,9 +28,7 @@ export function useUserAddressManager() {
   const handleSetDefault = async (addressId: string) => {
     try {
       await setDefaultMutation.mutateAsync(addressId);
-    } catch {
-      // TODO: Loggind
-    }
+    } catch {}
   };
 
   const handleDelete = async (address: UserAddress) => {
@@ -50,9 +48,7 @@ export function useUserAddressManager() {
         if (selectedAddressId === address.id) {
           setSelectedAddressId(null);
         }
-      } catch {
-        // TODO: Logging
-      }
+      } catch {}
     }
   };
 

@@ -1,12 +1,6 @@
-import {
-  Category,
-  Order,
-  OrderItem,
-  PaymentMethod,
-  Product,
-  Shop,
-} from "@prisma/client";
+import { Category, Order, OrderItem, Product, Shop } from "@prisma/client";
 
+import { PaymentMethod } from "./prisma.types";
 import { SerializedProduct } from "./product.types";
 export type OrderWithDetails = Order & {
   items: (OrderItem & {

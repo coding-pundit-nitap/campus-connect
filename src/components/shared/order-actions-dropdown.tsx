@@ -1,4 +1,3 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { CreditCard, Eye, MoreVertical, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 
 interface OrderActionsDropdownProps {
   onViewDetails: () => void;

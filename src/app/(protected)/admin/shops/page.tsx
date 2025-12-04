@@ -1,8 +1,8 @@
-import { SellerVerificationStatus } from "@prisma/client";
 import { Metadata } from "next";
 
 import { getAllShopsAction } from "@/actions/admin";
 import { ShopsTable } from "@/components/admin/shops/shops-table";
+import { SellerVerificationStatus } from "@/types/prisma.types";
 
 export const metadata: Metadata = {
   title: "Shop Management | Admin Dashboard",
@@ -34,6 +34,18 @@ export default async function AdminShopsPage({
         | SellerVerificationStatus
         | undefined,
       limit: 20,
+    }).then((response) => {
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          data: response.data.data.map((shop) => ({
+            ...shop,
+            verification_status:
+              shop.verification_status as SellerVerificationStatus,
+          })),
+        },
+      };
     });
 
     if (response.success) {

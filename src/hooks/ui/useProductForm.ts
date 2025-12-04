@@ -73,7 +73,6 @@ export function useUpdateProductForm({ product }: Props) {
           },
         });
       } catch {
-        // TODO: Loggind
         form.setError("image", {
           type: "manual",
           message: "Image upload failed. Please try again.",
@@ -125,7 +124,6 @@ export function useCreateProductForm() {
       try {
         await createProduct(data);
       } catch {
-        // TODO: Loggind
         form.setError("image_key", {
           type: "manual",
           message: "Image upload failed. Please try again.",

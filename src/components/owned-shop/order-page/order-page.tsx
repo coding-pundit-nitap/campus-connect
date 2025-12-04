@@ -1,6 +1,5 @@
 "use client";
 
-import { OrderStatus } from "@prisma/client";
 import { debounce } from "lodash";
 import React, { useMemo, useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
@@ -18,6 +17,7 @@ import {
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useInfiniteScroll, useOrderSearchQuery } from "@/hooks";
+import { OrderStatus } from "@/types/prisma.types";
 
 import { BatchOrderStatusUpdater } from "./batch-order-status-updater";
 import OrderCard from "./order-card";
@@ -42,14 +42,17 @@ export default function OrderPage() {
     const newSearchTerm = e.target.value;
     setSearchTerm(newSearchTerm);
     debouncedSetQuery(newSearchTerm);
+    setSelectedOrders([]);
   };
 
   const handleStatusChange = (status?: OrderStatus) => {
     setFilters((prev) => ({ ...prev, status }));
+    setSelectedOrders([]);
   };
 
   const handleDateChange = (dateRange?: DateRange) => {
     setFilters((prev) => ({ ...prev, dateRange }));
+    setSelectedOrders([]);
   };
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =

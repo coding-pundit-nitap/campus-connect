@@ -14,6 +14,12 @@ x-nginx-common: &nginx-common
     minio:
       condition: service_healthy
 
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # ----------------------------------------------------------------------------
   # Development Services (profile: dev)
@@ -28,6 +34,8 @@ services:
       - "80:80"
       - "5555:5555" # Prisma Studio
       - "8080:8080" # Health check
+      - "5601:5601"
+      - "9200:9200"
       - "9000:9000" # MinIO API
       - "9001:9001" # MinIO Console
     volumes:
@@ -57,6 +65,19 @@ services:
       - pnpm_store_volume:/app/.pnpm-store
     profiles:
       - dev
+
+  installer-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: campus_connect_installer_prod
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    profiles:
+      - prod
 
   # The main Next.js application for development
   app-dev:
@@ -90,9 +111,10 @@ services:
       - .env.local
     environment:
       - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
       - NEXT_TELEMETRY_DISABLED=1
       - TZ=UTC
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - REDIS_URL=redis://redis:6379
     networks:
       - campus_connect_net
     healthcheck:
@@ -103,6 +125,33 @@ services:
       start_period: 60s
     profiles:
       - dev
+    logging: *default-logging
+
+  # Worker for Development (Mounts code locally)
+  worker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: campus_connect_worker_dev
+    command: npx tsx scripts/start-worker.ts
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    environment:
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - elasticsearch
+      - installer-dev
+    networks:
+      - campus_connect_net
+    profiles:
+      - dev
+    logging: *default-logging
 
   # Prisma Studio for database debugging in development
   prisma-studio:
@@ -112,7 +161,7 @@ services:
       target: dev
     container_name: campus_connect_prisma_studio
     restart: unless-stopped
-    command: pnpm prisma studio --port 5555
+    command: pnpm prisma studio --port 5555 --browser none
     depends_on:
       db:
         condition: service_healthy
@@ -138,6 +187,7 @@ services:
       start_period: 30s
     profiles:
       - dev
+    logging: *default-logging
 
   # ----------------------------------------------------------------------------
   # Production Services (profile: prod)
@@ -164,6 +214,28 @@ services:
     profiles:
       - prod
 
+  # Database Migrator (Runs Prisma CLI from Builder image, then exits)
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: campus_connect_migrator
+    restart: on-failure:5
+    command: npx prisma migrate deploy
+    env_file:
+      - .env
+      - .env.production
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - campus_connect_net
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - prod
+
   # The main Next.js application for production
   app-prod:
     build:
@@ -174,6 +246,7 @@ services:
         - NEXT_PUBLIC_API_URL=/api
         - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
         - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+        - ELASTICSEARCH_URL=http://elasticsearch:9200
     container_name: campus_connect_app_prod
     restart: always
     depends_on:
@@ -184,6 +257,8 @@ services:
       redis:
         condition: service_healthy
       create-buckets:
+        condition: service_completed_successfully
+      migrator:
         condition: service_completed_successfully
     expose:
       - "3000"
@@ -200,13 +275,35 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "512M"
     profiles:
       - prod
+
+  # Worker for Production
+  worker-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: campus_connect_worker_prod
+    restart: always
+    command: npx tsx scripts/start-worker.ts
+    env_file:
+      - .env
+      - .env.production
+    environment:
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - elasticsearch
+      - db
+      - migrator
+    networks:
+      - campus_connect_net
+    profiles:
+      - prod
+    logging: *default-logging
 
   # ----------------------------------------------------------------------------
   # Common Infrastructure Services (used by dev and prod)
@@ -232,6 +329,7 @@ services:
       retries: 5
     networks:
       - campus_connect_net
+    logging: *default-logging
 
   # MinIO S3-compatible object storage
   minio:
@@ -292,6 +390,55 @@ services:
     profiles:
       - dev
       - prod
+    logging: *default-logging
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.1
+    container_name: campus_connect_elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - logger.level=warn
+      - logger.org.elasticsearch.xpack.gpu=error
+      - logger.org.elasticsearch.entitlement.runtime.policy=error
+    expose:
+      - "9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - campus_connect_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    profiles:
+      - dev
+      - prod
+    logging: *default-logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.2.1
+    container_name: campus_connect_kibana
+    restart: always
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - xpack.security.enabled=false
+      - TELEMETRY_ENABLED=false
+      - ELASTICSEARCH_REQUESTTIMEOUT=60000
+    expose:
+      - "5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - campus_connect_net
+    profiles:
+      - dev
+    logging: *default-logging
+
 # ----------------------------------------------------------------------------
 # Networks and Volumes
 # ----------------------------------------------------------------------------
@@ -310,3 +457,4 @@ volumes:
   node_modules_volume:
   next_cache_volume:
   pnpm_store_volume:
+  elasticsearch_data:

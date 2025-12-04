@@ -1,4 +1,3 @@
-import { PaymentMethod } from "@prisma/client";
 import { Calendar, Hash, Package, User } from "lucide-react";
 import Link from "next/link";
 
@@ -7,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
+import { PaymentMethod } from "@/types/prisma.types";
 
 type Props = {
   order: SerializedOrderWithDetails;
