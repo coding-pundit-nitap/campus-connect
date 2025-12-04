@@ -54,11 +54,11 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_MINIO_ENDPOINT
 ARG NEXT_PUBLIC_MINIO_BUCKET
-ARG DIRECT_URL="postgresql://connect:mypassword@db:5432/campus_connect"
+ARG DATABASE_URL="postgresql://connect:mypassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true"
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
 ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
-ENV DIRECT_URL=$DIRECT_URL
+ENV DATABASE_URL=$DATABASE_URL
 
 # Build the application.
 RUN pnpm prisma generate
@@ -94,8 +94,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 # 3. Copy Scripts & Configs
 COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 COPY --chown=nextjs:nodejs ./scripts/start-worker.ts ./scripts/start-worker.ts
-COPY --chown=nextjs:nodejs ./scripts/cleanup-orphaned-files.ts ./scripts/cleanup-orphaned-files.ts
-COPY --chown=nextjs:nodejs ./scripts/sync-search.ts ./scripts/sync-search.ts
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
