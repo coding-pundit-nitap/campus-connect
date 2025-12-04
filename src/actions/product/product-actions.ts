@@ -213,13 +213,17 @@ export async function deleteProductAction(
       new Set(cartItems.map((item) => item.cart.user_id))
     );
 
-    await Promise.all(
+    await Promise.allSettled(
       uniqueUserIds.map((userId) =>
-        notificationService.publishNotification(userId, {
-          title: "Item Removed from Cart",
-          message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
-          type: "WARNING",
-        })
+        notificationService
+          .publishNotification(userId, {
+            title: "Item Removed from Cart",
+            message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
+            type: "WARNING",
+          })
+          .catch((err) =>
+            console.error(`Failed to notify user ${userId}:`, err)
+          )
       )
     );
 

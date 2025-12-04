@@ -87,7 +87,16 @@ class OrderRepository {
     const db = tx || prisma;
     const order = await db.order.create({
       data,
-      include: { user: true },
+    });
+
+    if (!order.user_id) {
+      throw new Error("Order must have a user_id to be indexed.");
+    }
+
+    // Fetch user email separately to ensure it's available in transactions
+    const user = await db.user.findUnique({
+      where: { id: order.user_id },
+      select: { email: true },
     });
 
     await searchQueue.add("index-order", {
@@ -96,7 +105,7 @@ class OrderRepository {
         id: order.id,
         shop_id: order.shop_id,
         display_id: order.display_id,
-        user_email: order.user?.email,
+        user_email: user?.email,
         delivery_address: order.delivery_address_snapshot,
         status: order.order_status,
         created_at: order.created_at,
@@ -121,10 +130,10 @@ class OrderRepository {
     });
 
     await searchQueue.add("update-order", {
-      type: "INDEX_ORDER",
+      type: "UPDATE_ORDER_STATUS",
       payload: {
         id: order.id,
-        status: order_status,
+        status: order.order_status,
       },
     });
     return order;

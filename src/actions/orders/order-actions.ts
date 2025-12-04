@@ -87,8 +87,8 @@ export async function createOrderAction({
     }
     const pg_payment_id =
       payment_method === "ONLINE"
-        ? `txn_${crypto.randomUUID()}`
-        : `offline_${crypto.randomUUID()}`;
+        ? `txn_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
+        : `offline_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`;
 
     const order = await orderService.createOrderFromCart(
       user_id,

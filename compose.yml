@@ -471,8 +471,8 @@ services:
     restart: always
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - xpack.security.enabled=true
+      - "ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE:-2g} -Xmx${ES_HEAP_SIZE:-2g}"
       - logger.level=warn
       - logger.org.elasticsearch.xpack.gpu=error
       - logger.org.elasticsearch.entitlement.runtime.policy=error
