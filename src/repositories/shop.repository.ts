@@ -110,6 +110,8 @@ class ShopRepository {
       const result = await elasticClient.search<Shop>({
         index: INDICES.SHOPS,
         size: limit,
+        // Only fetch document IDs from Elasticsearch, then retrieve full data from PostgreSQL
+        // This ensures data consistency and allows us to use Prisma for data access
         _source: false,
         query: {
           bool: {
