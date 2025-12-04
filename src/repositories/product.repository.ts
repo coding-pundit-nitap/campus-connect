@@ -57,7 +57,6 @@ class ProductRepository {
         category_name: product.category?.name,
         price: product.price,
         image_key: product.image_key,
-        is_active: true,
       },
     });
 
