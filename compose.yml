@@ -6,15 +6,7 @@ x-nginx-common: &nginx-common
   networks:
     - campus_connect_net
   healthcheck:
-    test:
-      [
-        "CMD",
-        "wget",
-        "--quiet",
-        "--spider",
-        "--fail",
-        "http://localhost:8080/nginx-health",
-      ]
+    test: ["CMD", "wget", "--quiet", "--spider", "--fail", "http://localhost:8080/nginx-health"]
     interval: 10s
     timeout: 5s
     retries: 3
@@ -74,6 +66,19 @@ services:
     profiles:
       - dev
 
+  installer-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: campus_connect_installer_prod
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    profiles:
+      - prod
+
   # The main Next.js application for development
   app-dev:
     build:
@@ -118,6 +123,32 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    profiles:
+      - dev
+    logging: *default-logging
+
+  # Worker for Development (Mounts code locally)
+  worker-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: campus_connect_worker_dev
+    command: npx tsx scripts/start-worker.ts
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/app/.pnpm-store
+    environment:
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - elasticsearch
+      - installer-dev
+    networks:
+      - campus_connect_net
     profiles:
       - dev
     logging: *default-logging
@@ -183,6 +214,28 @@ services:
     profiles:
       - prod
 
+  # Database Migrator (Runs Prisma CLI from Builder image, then exits)
+  migrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: campus_connect_migrator
+    restart: on-failure:5
+    command: npx prisma migrate deploy
+    env_file:
+      - .env
+      - .env.production
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    networks:
+      - campus_connect_net
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - prod
+
   # The main Next.js application for production
   app-prod:
     build:
@@ -205,6 +258,8 @@ services:
         condition: service_healthy
       create-buckets:
         condition: service_completed_successfully
+      migrator:
+        condition: service_completed_successfully
     expose:
       - "3000"
     env_file:
@@ -222,6 +277,33 @@ services:
       start_period: 60s
     profiles:
       - prod
+
+  # Worker for Production
+  worker-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: campus_connect_worker_prod
+    restart: always
+    command: npx tsx scripts/start-worker.ts
+    env_file:
+      - .env
+      - .env.production
+    environment:
+      - REDIS_HOST=redis
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - redis
+      - elasticsearch
+      - db
+      - migrator
+    networks:
+      - campus_connect_net
+    profiles:
+      - prod
+    logging: *default-logging
 
   # ----------------------------------------------------------------------------
   # Common Infrastructure Services (used by dev and prod)
@@ -318,6 +400,9 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - logger.level=warn
+      - logger.org.elasticsearch.xpack.gpu=error
+      - logger.org.elasticsearch.entitlement.runtime.policy=error
     expose:
       - "9200"
     volumes:
@@ -354,30 +439,6 @@ services:
       - dev
     logging: *default-logging
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
-    container_name: campus_connect_worker
-    command: npx tsx scripts/start-worker.ts
-    volumes:
-      - .:/app
-      - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/app/.pnpm-store
-    environment:
-      - REDIS_HOST=redis
-      - ELASTICSEARCH_URL=http://elasticsearch:9200
-      - DATABASE_URL=${DIRECT_URL}
-    depends_on:
-      - redis
-      - elasticsearch
-    networks:
-      - campus_connect_net
-    profiles:
-      - dev
-      - prod
-    logging: *default-logging
 # ----------------------------------------------------------------------------
 # Networks and Volumes
 # ----------------------------------------------------------------------------

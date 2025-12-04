@@ -16,26 +16,30 @@ RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
     && corepack enable \
     && corepack prepare pnpm@latest --activate
 
-
 # ==============================================================================
-# ---- Dependencies Stage ----
+# ---- Dependencies Stage (Install ALL deps) ----
 # ==============================================================================
 # This stage installs all dependencies (prod and dev).
 FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
+# ==============================================================================
+# ---- Production Dependencies Stage (Prune for Runner) ----
+# ==============================================================================
+FROM base AS prod-deps
+COPY --from=deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm prune --prod --ignore-scripts
 
 # ==============================================================================
 # ---- Development Stage ----
 # ==============================================================================
-# This is a minimal image for development. Code is mounted via volumes.
 FROM base AS dev
-# No extra commands needed, inherits from base.
-
+# Code mounted via volumes in Compose
 
 # ==============================================================================
-# ---- Builder Stage ----
+# ---- Builder Stage (Build App + Keep DevTools for Migrator) ----
 # ==============================================================================
 # This stage builds the Next.js application for production.
 FROM base AS builder
@@ -50,18 +54,15 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_MINIO_ENDPOINT
 ARG NEXT_PUBLIC_MINIO_BUCKET
-ARG DIRECT_URL="postgresql://connect:mypassword@db:5432/campus_connect"
+ARG DATABASE_URL="postgresql://connect:mypassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true"
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
 ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
-ENV DIRECT_URL=$DIRECT_URL
+ENV DATABASE_URL=$DATABASE_URL
 
 # Build the application.
 RUN pnpm prisma generate
 RUN pnpm build
-# Remove development dependencies to reduce image size.
-RUN pnpm prune --prod --ignore-scripts
-
 
 # ==============================================================================
 # ---- Runner Stage ----
@@ -80,23 +81,29 @@ RUN addgroup --system --gid 1001 nodejs && \
 RUN mkdir -p /home/nextjs/.cache/node/corepack && \
     chown -R nextjs:nodejs /home/nextjs/.cache
 
-# Copy built assets from the 'builder' stage with correct ownership.
+# 1. Copy Pruned Node Modules (from prod-deps stage)
+COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+
+# 2. Copy App Build (from builder stage)
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# 3. Copy Scripts & Configs
 COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
+COPY --chown=nextjs:nodejs ./scripts/start-worker.ts ./scripts/start-worker.ts
+COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
+COPY --from=builder --chown=nextjs:nodejs /app/src ./src
 
-# 1. Set a secure baseline for all files.
+# Permissions
 RUN chmod -R u=rwX,go=rX /app
-
-# 2. Add execute permissions ONLY where necessary.
 RUN chmod 555 /app/scripts/entrypoint.sh && \
     chmod +x /app/node_modules/.bin/* && \
     find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
 
-# Switch to the non-root user.
 USER nextjs
 EXPOSE 3000
 
