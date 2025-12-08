@@ -44,3 +44,4 @@ next-env.d.ts
 
 !/*.example
 src/app/api/debug/*
+.pnpm-store
