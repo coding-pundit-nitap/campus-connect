@@ -58,11 +58,15 @@ services:
       dockerfile: Dockerfile
       target: dev
     container_name: campus_connect_installer_dev
-    command: pnpm install --frozen-lockfile --ignore-scripts
+    command: >
+      /bin/sh -c "
+        pnpm install --frozen-lockfile --ignore-scripts && 
+        pnpm prisma generate
+      "
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/app/.pnpm-store
+      - pnpm_store_volume:/root/.local/share/pnpm/store
     profiles:
       - dev
 
@@ -75,9 +79,38 @@ services:
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/app/.pnpm-store
+      - pnpm_store_volume:/root/.local/share/pnpm/store
     profiles:
       - prod
+
+  # ----------------------------------------------------------------------------
+  # MIGRATOR: DEVELOPMENT
+  # ----------------------------------------------------------------------------
+  migrator-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: campus_connect_migrator_dev
+    restart: "no"
+    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
+    env_file:
+      - .env.local
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=development
+    networks:
+      - campus_connect_net
+    depends_on:
+      db:
+        condition: service_healthy
+      installer-dev:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+      - node_modules_volume:/app/node_modules
+    profiles:
+      - dev
 
   # The main Next.js application for development
   app-dev:
@@ -100,11 +133,13 @@ services:
         condition: service_completed_successfully
       installer-dev:
         condition: service_completed_successfully
+      migrator-dev:
+        condition: service_completed_successfully
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
       - next_cache_volume:/app/.next
-      - pnpm_store_volume:/app/.pnpm-store
+      - pnpm_store_volume:/root/.local/share/pnpm/store
     expose:
       - "3000"
     env_file:
@@ -138,7 +173,7 @@ services:
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/app/.pnpm-store
+      - pnpm_store_volume:/root/.local/share/pnpm/store
     environment:
       - REDIS_HOST=redis
       - ELASTICSEARCH_URL=http://elasticsearch:9200
@@ -147,6 +182,7 @@ services:
       - redis
       - elasticsearch
       - installer-dev
+      - migrator-dev
     networks:
       - campus_connect_net
     profiles:
@@ -166,6 +202,8 @@ services:
       db:
         condition: service_healthy
       installer-dev:
+        condition: service_completed_successfully
+      migrator-dev:
         condition: service_completed_successfully
     volumes:
       - .:/app
@@ -214,20 +252,23 @@ services:
     profiles:
       - prod
 
-  # Database Migrator (Runs Prisma CLI from Builder image, then exits)
-  migrator:
+  # ----------------------------------------------------------------------------
+  # MIGRATOR: PRODUCTION
+  # ----------------------------------------------------------------------------
+  migrator-prod:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder
-    container_name: campus_connect_migrator
+      target: dev 
+    container_name: campus_connect_migrator_prod
     restart: on-failure:5
-    command: npx prisma migrate deploy
+    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
     env_file:
       - .env
       - .env.production
     environment:
       - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=production
     networks:
       - campus_connect_net
     depends_on:
@@ -258,7 +299,7 @@ services:
         condition: service_healthy
       create-buckets:
         condition: service_completed_successfully
-      migrator:
+      migrator-prod:
         condition: service_completed_successfully
     expose:
       - "3000"
@@ -295,10 +336,14 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - redis
-      - elasticsearch
-      - db
-      - migrator
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      migrator-prod:
+        condition: service_completed_successfully
     networks:
       - campus_connect_net
     profiles:
@@ -398,7 +443,7 @@ services:
     restart: always
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=true
+      - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms${ES_HEAP_SIZE:-2g} -Xmx${ES_HEAP_SIZE:-2g}"
       - logger.level=warn
       - logger.org.elasticsearch.xpack.gpu=error
@@ -418,30 +463,6 @@ services:
       - dev
       - prod
     logging: *default-logging
-
-  kibana:
-    image: docker.elastic.co/kibana/kibana:9.2.1
-    container_name: campus_connect_kibana
-    restart: always
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - xpack.security.enabled=false
-      - TELEMETRY_ENABLED=false
-      - ELASTICSEARCH_REQUESTTIMEOUT=60000
-    expose:
-      - "5601"
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
-    networks:
-      - campus_connect_net
-    profiles:
-      - dev
-    logging: *default-logging
-
-# ----------------------------------------------------------------------------
-# Networks and Volumes
-# ----------------------------------------------------------------------------
 
 networks:
   campus_connect_net:
