@@ -276,7 +276,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: dev 
+      target: builder 
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
     command: npx prisma migrate deploy --schema=./prisma/schema.prisma
@@ -291,6 +291,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      installer-prod:
+        condition: service_completed_successfully
     profiles:
       - prod
 
