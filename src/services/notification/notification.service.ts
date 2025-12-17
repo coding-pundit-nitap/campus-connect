@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
+import { notificationQueue } from "@/lib/notification/notification-producer";
 import { prisma } from "@/lib/prisma";
-import { redisPublisher } from "@/lib/redis";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import { notificationRepository } from "@/repositories/notification.repository";
 
@@ -10,33 +10,24 @@ class NotificationService {
     user_id: string,
     data: Prisma.NotificationCreateWithoutUserInput
   ) {
-    const newNotification = await prisma.$transaction(async (tx) => {
-      const createdNotification = await tx.notification.create({
-        data: {
-          ...data,
-          user: { connect: { id: user_id } },
-        },
-      });
-
-      return createdNotification;
+    await notificationQueue.add("send-notification", {
+      type: "SEND_NOTIFICATION",
+      payload: {
+        type: "SEND_NOTIFICATION",
+        user_id,
+        data,
+      },
     });
-
-    const channel = `user:${user_id}:notifications`;
-    await redisPublisher.publish(channel, JSON.stringify(newNotification));
-    return newNotification;
   }
 
   async broadcastNotification(data: Prisma.BroadcastNotificationCreateInput) {
-    const newBroadcast = await prisma.$transaction(async (tx) => {
-      const createdBroadcast = await tx.broadcastNotification.create({ data });
-
-      return createdBroadcast;
+    await notificationQueue.add("broadcast-notification", {
+      type: "BROADCAST_NOTIFICATION",
+      payload: {
+        type: "BROADCAST_NOTIFICATION",
+        data,
+      },
     });
-
-    const channel = `broadcast:notifications`;
-    await redisPublisher.publish(channel, JSON.stringify(newBroadcast));
-
-    return newBroadcast;
   }
 
   async getUserNotifications(user_id: string, limit = 20, cursor?: string) {

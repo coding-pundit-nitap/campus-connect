@@ -49,21 +49,23 @@ export async function sendBroadcastNotificationAction(
     }
 
     // send broadcast notification
-    const broadcast = await notificationService.broadcastNotification({
+    const broadcastData = {
       title: data.title,
       message: data.message,
       type: data.type || NotificationType.INFO,
       category: data.category || NotificationCategory.ANNOUNCEMENT,
       action_url: data.action_url,
-    });
+    };
+
+    await notificationService.broadcastNotification(broadcastData);
 
     return createSuccessResponse(
       {
-        id: broadcast.id,
-        title: broadcast.title,
-        message: broadcast.message,
+        id: `broadcast-${Date.now()}`,
+        title: broadcastData.title,
+        message: broadcastData.message,
       },
-      "Broadcast notification sent successfully"
+      "Broadcast notification queued successfully"
     );
   } catch (error) {
     console.error("SEND BROADCAST NOTIFICATION ERROR:", error);
