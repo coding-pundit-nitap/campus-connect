@@ -11,7 +11,7 @@ export const SHOP_MAPPING = {
     verification_status: { type: "keyword" },
     created_at: { type: "date" },
   },
-} as const;
+};
 
 export const PRODUCT_MAPPING = {
   properties: {
@@ -27,7 +27,7 @@ export const PRODUCT_MAPPING = {
     image_key: { type: "keyword" },
     created_at: { type: "date" },
   },
-} as const;
+};
 
 export const ORDER_MAPPING = {
   properties: {
@@ -40,7 +40,7 @@ export const ORDER_MAPPING = {
     total_price: { type: "double" },
     created_at: { type: "date" },
   },
-} as const;
+};
 
 export const USER_MAPPING = {
   properties: {
@@ -51,4 +51,4 @@ export const USER_MAPPING = {
     shop_id: { type: "keyword" },
     created_at: { type: "date" },
   },
-} as const;
+};
