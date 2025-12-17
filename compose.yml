@@ -13,6 +13,10 @@ x-nginx-common: &nginx-common
   depends_on:
     minio:
       condition: service_healthy
+x-dev-resources: &dev-resources
+  mem_limit: 512m
+  cpus: "0.50"
+
 
 x-logging: &default-logging
   driver: "json-file"
@@ -28,6 +32,8 @@ services:
   # Nginx reverse proxy for development
   nginx-dev:
     <<: *nginx-common
+    mem_limit: 128m
+    cpus: "0.20"
     container_name: campus_connect_nginx_dev
     restart: unless-stopped
     ports:
@@ -63,6 +69,8 @@ services:
         pnpm install --frozen-lockfile --ignore-scripts && 
         pnpm prisma generate
       "
+    mem_limit: 512m
+    cpus: "0.50"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -106,6 +114,8 @@ services:
         condition: service_healthy
       installer-dev:
         condition: service_completed_successfully
+    mem_limit: 512m
+    cpus: "0.50"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -135,6 +145,8 @@ services:
         condition: service_completed_successfully
       migrator-dev:
         condition: service_completed_successfully
+    mem_limit: 3g
+    cpus: "2.0"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -147,6 +159,9 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
+      - TURBOPACK=1
+      - CHOKIDAR_USEPOLLING=false
+      - WATCHPACK_POLLING=false
       - TZ=UTC
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - REDIS_URL=redis://redis:6379
@@ -188,6 +203,7 @@ services:
     profiles:
       - dev
     logging: *default-logging
+    <<: *dev-resources
 
   # Prisma Studio for database debugging in development
   prisma-studio:
@@ -215,6 +231,8 @@ services:
     environment:
       - NODE_ENV=development
       - TZ=UTC
+    mem_limit: 256m
+    cpus: "0.30"
     networks:
       - campus_connect_net
     healthcheck:
@@ -358,7 +376,7 @@ services:
 
   # PostgreSQL database
   db:
-    image: postgres:17-alpine
+    image: postgres:18.1-alpine
     container_name: campus_connect_db
     restart: always
     env_file:
