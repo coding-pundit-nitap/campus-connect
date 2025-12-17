@@ -70,8 +70,6 @@ export function logError(
 
 export const loggers = {
   api: createLogger({ component: "api" }),
-  redis: createLogger({ component: "redis" }),
-  action: createLogger({ component: "action" }),
   auth: createLogger({ component: "auth" }),
   order: createLogger({ component: "order" }),
   search: createLogger({ component: "search" }),

@@ -49,7 +49,7 @@ export async function sendBroadcastNotificationAction(
     }
 
     // send broadcast notification
-    const broadcast = await notificationService.broadcastNotification({
+    const broadcastData = {
       title: data.title,
       message: data.message,
       type: data.type || NotificationType.INFO,

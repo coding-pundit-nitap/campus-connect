@@ -110,6 +110,7 @@ class OrderService {
         const discountedPrice = price - (price * discount) / 100;
         totalPrice += discountedPrice * item.quantity;
       }
+
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
       const display_id = await this.generateDisplayId(tx);

@@ -1,6 +1,57 @@
 import { loggers } from "@/lib/logger";
 import notificationEmitter from "@/lib/notification-emitter";
+import { redisPublisher } from "@/lib/redis";
 import { authUtils } from "@/lib/utils/auth.utils.server";
+
+const MAX_SSE_CONNECTIONS_PER_USER = 3;
+const SSE_CONNECTION_TTL = 300;
+
+async function trackConnection(userId: string): Promise<{
+  allowed: boolean;
+  connectionId: string;
+}> {
+  const connectionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const key = `sse:connections:${userId}`;
+
+  try {
+    await redisPublisher.zadd(key, Date.now(), connectionId);
+
+    const staleThreshold = Date.now() - SSE_CONNECTION_TTL * 1000;
+    await redisPublisher.zremrangebyscore(key, 0, staleThreshold);
+
+    const count = await redisPublisher.zcard(key);
+
+    if (count > MAX_SSE_CONNECTIONS_PER_USER) {
+      await redisPublisher.zrem(key, connectionId);
+      return { allowed: false, connectionId };
+    }
+    await redisPublisher.expire(key, SSE_CONNECTION_TTL);
+
+    return { allowed: true, connectionId };
+  } catch (error) {
+    loggers.notification.error(
+      { err: error },
+      "Failed to track SSE connection"
+    );
+    return { allowed: true, connectionId };
+  }
+}
+
+async function untrackConnection(
+  userId: string,
+  connectionId: string
+): Promise<void> {
+  try {
+    const key = `sse:connections:${userId}`;
+    await redisPublisher.zrem(key, connectionId);
+  } catch (error) {
+    loggers.notification.error(
+      { err: error },
+      "Failed to untrack SSE connection"
+    );
+  }
+}
+
 export async function GET() {
   const user_id = await authUtils.getUserId();
 
@@ -74,25 +125,17 @@ export async function GET() {
     },
 
     async cancel() {
-      try {
-        loggers.notification.info(
-          { user_id },
-          "Client disconnected. Cleaning up."
-        );
-      } catch {
-        // Worker may have exited, ignore logging errors
-      }
+      loggers.notification.info(
+        { user_id },
+        "Client disconnected. Cleaning up."
+      );
       clearInterval(heartbeatInterval);
 
       listeners.forEach(({ channel, handler }) => {
         notificationEmitter.unsubscribe(channel, handler);
       });
 
-      try {
-        await untrackConnection(user_id, connectionId);
-      } catch {
-        // Worker may have exited, ignore cleanup errors
-      }
+      await untrackConnection(user_id, connectionId);
     },
   });
 
