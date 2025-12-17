@@ -152,12 +152,16 @@ export async function updateOrderStatusAction({
 
     const updatedOrder = await orderRepository.updateStatus(order_id, status);
     if (order.user_id) {
-      await notificationService.publishNotification(order.user_id, {
-        title: "Order Status Updated",
-        message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
-        action_url: getOrderUrl(order_id),
-        type: "INFO",
-      });
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "Order Status Updated",
+          message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
+          action_url: getOrderUrl(order_id),
+          type: "INFO",
+        });
+      } catch (error) {
+        console.error("Failed to send status update notification:", error);
+      }
     }
 
     return createSuccessResponse(
@@ -263,7 +267,7 @@ export async function batchUpdateOrderStatusAction({
 
     await orderRepository.batchUpdateStatus(orderIds, status);
 
-    Promise.all(
+    Promise.allSettled(
       orders.map(
         (order) =>
           order.user_id &&
