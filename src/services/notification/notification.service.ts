@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { notificationQueue } from "@/lib/notification/notification-producer";
+import { prisma } from "@/lib/prisma";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import { notificationRepository } from "@/repositories/notification.repository";
 

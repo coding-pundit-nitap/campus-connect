@@ -1,4 +1,5 @@
-import { Job, Worker } from "bullmq";
+import { Prisma } from "@prisma/client";
+import { Job,Worker } from "bullmq";
 
 import { prisma } from "@/lib/prisma";
 import { redisPublisher } from "@/lib/redis";
