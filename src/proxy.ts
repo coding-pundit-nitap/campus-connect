@@ -21,10 +21,10 @@ export const proxy = async (req: NextRequest) => {
       path === "/" || publicRoutes.some((p) => path.startsWith(p));
     const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
     const isAdminRoute = adminRoutes.some((p) => path.startsWith(p));
-
+    const isApiRoute = path.startsWith("/api/");
     let response: NextResponse;
 
-    if (isApiAuthRoute || isPublicRoute) {
+    if (isApiAuthRoute || isPublicRoute || isApiRoute) {
       // Always allow access to API auth routes and public routes
       response = NextResponse.next();
     } else if (isAuthRoute && isLoggedIn) {
