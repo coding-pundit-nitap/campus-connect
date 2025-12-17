@@ -3,7 +3,7 @@
  * Defines route access patterns and authentication requirements for the campus-connect application
  */
 
-export const publicRoutes: string[] = ["/", "/help"];
+export const publicRoutes: string[] = ["/help", "/shops", "/product"];
 
 // Routes related to authentication (login, register, error pages).
 // These routes redirect logged-in users to the default redirect path.
