@@ -110,11 +110,6 @@ class CategoryRepository {
         },
       },
     });
-
-    console.log(
-      `Deleted ${emptyCategories.length} empty categories:`,
-      emptyCategories.map((cat) => cat.name)
-    );
     return categoryIds;
   }
 
@@ -134,9 +129,6 @@ class CategoryRepository {
 
     if (category._count.products === 0) {
       await this.delete(category_id);
-      console.log(
-        `Deleted empty category: ${category.name} (ID: ${category_id})`
-      );
       return true;
     }
 
