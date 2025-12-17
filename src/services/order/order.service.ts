@@ -1,4 +1,4 @@
-import { PaymentMethod } from "@prisma/client";
+import { PaymentMethod, Prisma } from "@prisma/client";
 
 import {
   NotFoundError,
@@ -19,6 +19,16 @@ type GetOrdersOptions = {
 };
 
 class OrderService {
+  private async generateDisplayId(
+    tx: Prisma.TransactionClient
+  ): Promise<string> {
+    const counter = await tx.globalCounter.update({
+      where: { id: "GLOBAL" },
+      data: { order_count: { increment: 1 } },
+    });
+    return `NITAP-${counter.order_count.toString().padStart(6, "0")}`;
+  }
+
   async getOrders(options: GetOrdersOptions) {
     const { page = 1, limit = 10, userId } = options;
     const skip = (page - 1) * limit;
@@ -43,6 +53,7 @@ class OrderService {
       currentPage: page,
     };
   }
+
   async createOrderFromCart(
     user_id: string,
     shop_id: string,
@@ -75,9 +86,21 @@ class OrderService {
         throw new UnauthorizedError("Address does not belong to user.");
       }
 
+      const productIds = cart.items.map((item) => item.product_id);
+      await tx.$executeRaw`
+        SELECT id FROM "Product" 
+        WHERE id = ANY(${productIds}::text[])
+        FOR UPDATE
+      `;
+
       let totalPrice = 0;
       for (const item of cart.items) {
-        if (item.product.stock_quantity < item.quantity) {
+        const product = await tx.product.findUnique({
+          where: { id: item.product_id },
+          select: { stock_quantity: true, name: true },
+        });
+
+        if (!product || product.stock_quantity < item.quantity) {
           throw new ValidationError(
             `Insufficient stock for: ${item.product.name}`
           );
@@ -87,11 +110,14 @@ class OrderService {
         const discountedPrice = price - (price * discount) / 100;
         totalPrice += discountedPrice * item.quantity;
       }
+
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
+
+      const display_id = await this.generateDisplayId(tx);
 
       const order = await tx.order.create({
         data: {
-          display_id: `NITAP-${Date.now().toString().slice(-6)}`,
+          display_id,
           user_id: user_id,
           shop_id: shop_id,
           total_price: totalPrice,
@@ -111,6 +137,7 @@ class OrderService {
           },
         },
       });
+
       await Promise.all(
         cart.items.map(async (item) => {
           const result = await tx.product.updateMany({
@@ -128,10 +155,13 @@ class OrderService {
           }
         })
       );
+
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
+
       const shop = await shopRepository.findById(shop_id, {
         include: { user: { select: { id: true } } },
       });
+
       if (shop && shop.user) {
         try {
           await notificationService.publishNotification(shop.user.id, {
