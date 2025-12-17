@@ -15,9 +15,10 @@ export const proxy = async (req: NextRequest) => {
     const { nextUrl } = req;
     const path = nextUrl.pathname;
     const isLoggedIn = !!session?.user;
-    const userRole = session?.user?.user?.role;
+    const userRole = session?.user?.role;
     const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
-    const isPublicRoute = publicRoutes.some((p) => path.startsWith(p));
+    const isPublicRoute =
+      path === "/" || publicRoutes.some((p) => path.startsWith(p));
     const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
     const isAdminRoute = adminRoutes.some((p) => path.startsWith(p));
 

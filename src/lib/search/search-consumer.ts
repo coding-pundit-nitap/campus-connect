@@ -64,6 +64,23 @@ const workerHandler = async (job: Job<SearchJobData>) => {
         break;
       }
 
+      // --- USERS ---
+      case "INDEX_USER": {
+        await elasticClient.index({
+          index: INDICES.USERS,
+          id: job.data.payload.id,
+          document: job.data.payload,
+        });
+        break;
+      }
+      case "DELETE_USER": {
+        await elasticClient.delete({
+          index: INDICES.USERS,
+          id: job.data.payload.id,
+        });
+        break;
+      }
+
       default:
         console.warn(`[Job ${job.id}] Unknown job type: ${job.data.type}`);
     }
