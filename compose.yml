@@ -24,12 +24,6 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "3"
 
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-
 services:
   # ----------------------------------------------------------------------------
   # Development Services (profile: dev)
@@ -75,6 +69,8 @@ services:
         pnpm install --frozen-lockfile --ignore-scripts && 
         pnpm prisma generate
       "
+    mem_limit: 512m
+    cpus: "0.50"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -118,6 +114,8 @@ services:
         condition: service_healthy
       installer-dev:
         condition: service_completed_successfully
+    mem_limit: 512m
+    cpus: "0.50"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -147,6 +145,8 @@ services:
         condition: service_completed_successfully
       migrator-dev:
         condition: service_completed_successfully
+    mem_limit: 3g
+    cpus: "2.0"
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -203,6 +203,7 @@ services:
     profiles:
       - dev
     logging: *default-logging
+    <<: *dev-resources
 
   # Prisma Studio for database debugging in development
   prisma-studio:
