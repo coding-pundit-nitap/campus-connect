@@ -53,6 +53,13 @@
     "docker:prune": "docker system prune -af --volumes",
     "docker:images": "docker images",
     "docker:ps": "docker ps -a",
+    "docker:cleanup:orphaned-files": "docker compose exec app-dev pnpm tsx scripts/cleanup-orphaned-files.ts",
+    "docker:cleanup:orphaned-files:dry": "docker compose exec app-dev pnpm tsx scripts/cleanup-orphaned-files.ts --dry-run",
+    "docker:cleanup:orphaned-files:prod": "docker compose exec worker-prod npx tsx scripts/cleanup-orphaned-files.ts",
+    "docker:sync-search": "docker compose exec app-dev pnpm tsx scripts/sync-search.ts",
+    "docker:sync-search:prod": "docker compose exec worker-prod npx tsx scripts/sync-search.ts",
+    "cleanup:orphaned-files": "tsx scripts/cleanup-orphaned-files.ts",
+    "cleanup:orphaned-files:dry": "tsx scripts/cleanup-orphaned-files.ts --dry-run",
     "prepare": "husky"
   },
   "dependencies": {
@@ -121,6 +128,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "lodash": "^4.17.21",
+    "pino-pretty": "^13.1.3",
     "prettier": "^3.7.4",
     "prisma": "^7.1.0",
     "tailwindcss": "^4.1.18",

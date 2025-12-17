@@ -94,6 +94,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 # 3. Copy Scripts & Configs
 COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
 COPY --chown=nextjs:nodejs ./scripts/start-worker.ts ./scripts/start-worker.ts
+COPY --chown=nextjs:nodejs ./scripts/cleanup-orphaned-files.ts ./scripts/cleanup-orphaned-files.ts
+COPY --chown=nextjs:nodejs ./scripts/sync-search.ts ./scripts/sync-search.ts
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nextjs:nodejs /app/src ./src
