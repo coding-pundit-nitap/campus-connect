@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { useSession } from "@/lib/auth-client";
@@ -13,20 +13,20 @@ interface NotificationEvent {
   data: string;
 }
 
+const MAX_RETRY_DELAY = 30000;
+const INITIAL_RETRY_DELAY = 1000;
+
 export function useLiveNotifications() {
   const session = useSession();
   const queryClient = useQueryClient();
+  const eventSourceRef = useRef<EventSource | null>(null);
+  const retryCountRef = useRef(0);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    if (!session.data) {
-      return;
-    }
+  const isAuthenticated = !!session.data;
 
-    const eventSource = new EventSource("/api/notifications/stream");
-
-    eventSource.onopen = () => {};
-
-    const handleNewNotification = (event: NotificationEvent): void => {
+  const handleNewNotification = useCallback(
+    (event: NotificationEvent): void => {
       try {
         const newNotification: Notification | BroadcastNotification =
           JSON.parse(event.data);
@@ -73,15 +73,55 @@ export function useLiveNotifications() {
           }
         );
       } catch {}
-    };
-    eventSource.addEventListener("new_notification", handleNewNotification);
-    eventSource.addEventListener("new_broadcast", handleNewNotification);
+    },
+    [queryClient]
+  );
 
-    eventSource.onerror = () => {
-      eventSource.close();
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    const connect = () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+
+      const eventSource = new EventSource("/api/notifications/stream");
+      eventSourceRef.current = eventSource;
+
+      eventSource.onopen = () => {
+        retryCountRef.current = 0;
+      };
+
+      eventSource.addEventListener("new_notification", handleNewNotification);
+      eventSource.addEventListener("new_broadcast", handleNewNotification);
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        eventSourceRef.current = null;
+
+        const delay = Math.min(
+          INITIAL_RETRY_DELAY * Math.pow(2, retryCountRef.current),
+          MAX_RETRY_DELAY
+        );
+        retryCountRef.current += 1;
+
+        retryTimeoutRef.current = setTimeout(connect, delay);
+      };
     };
+
+    connect();
+
     return () => {
-      eventSource.close();
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
     };
-  }, [queryClient, session.data]);
+  }, [isAuthenticated, handleNewNotification]);
 }

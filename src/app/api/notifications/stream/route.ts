@@ -125,17 +125,25 @@ export async function GET() {
     },
 
     async cancel() {
-      loggers.notification.info(
-        { user_id },
-        "Client disconnected. Cleaning up."
-      );
+      try {
+        loggers.notification.info(
+          { user_id },
+          "Client disconnected. Cleaning up."
+        );
+      } catch {
+        // Worker may have exited, ignore logging errors
+      }
       clearInterval(heartbeatInterval);
 
       listeners.forEach(({ channel, handler }) => {
         notificationEmitter.unsubscribe(channel, handler);
       });
 
-      await untrackConnection(user_id, connectionId);
+      try {
+        await untrackConnection(user_id, connectionId);
+      } catch {
+        // Worker may have exited, ignore cleanup errors
+      }
     },
   });
 
