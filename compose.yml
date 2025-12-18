@@ -69,8 +69,8 @@ services:
         pnpm install --frozen-lockfile --ignore-scripts && 
         pnpm prisma generate
       "
-    mem_limit: 512m
-    cpus: "0.50"
+    environment:
+      - CI=true
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
