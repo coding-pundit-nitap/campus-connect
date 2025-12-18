@@ -10,6 +10,14 @@ class OrderAPIService {
       );
     return response.data.data;
   }
+
+  async dounloadInvoice(order_id: string): Promise<Blob> {
+    const url = `orders/${order_id}/pdf`;
+    const response = await axiosInstance.get<Blob>(url, {
+      responseType: "blob",
+    });
+    return response.data;
+  }
 }
 
 export const orderAPIService = new OrderAPIService();

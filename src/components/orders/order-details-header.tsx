@@ -1,3 +1,4 @@
+import { DownloadPDFButton } from "@/components/orders/download-pdf-button";
 import { Badge } from "@/components/ui/badge";
 import {
   getOrderStatusInfo,
@@ -54,6 +55,7 @@ export default function OrderDetailsHeader({ order }: Props) {
           <paymentStatusInfo.Icon className="h-3.5 w-3.5" />
           Payment {paymentStatusInfo.label}
         </Badge>
+        <DownloadPDFButton order_id={order.id} display_id={order.display_id} />
       </div>
     </div>
   );
