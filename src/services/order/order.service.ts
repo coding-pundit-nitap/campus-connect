@@ -5,6 +5,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { loggers } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
@@ -93,7 +94,7 @@ class OrderService {
         FOR UPDATE
       `;
 
-      let totalPrice = 0;
+      let totalPricePaise = 0;
       for (const item of cart.items) {
         const product = await tx.product.findUnique({
           where: { id: item.product_id },
@@ -105,11 +106,13 @@ class OrderService {
             `Insufficient stock for: ${item.product.name}`
           );
         }
-        const price = Number(item.product.price);
-        const discount = Number(item.product.discount) || 0;
-        const discountedPrice = price - (price * discount) / 100;
-        totalPrice += discountedPrice * item.quantity;
+        const pricePaise = Math.round(Number(item.product.price) * 100);
+        const discountPercent = Number(item.product.discount) || 0;
+        const discountPaise = Math.round((pricePaise * discountPercent) / 100);
+        const discountedPricePaise = pricePaise - discountPaise;
+        totalPricePaise += discountedPricePaise * item.quantity;
       }
+      const totalPrice = Math.round(totalPricePaise) / 100;
 
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
@@ -171,7 +174,15 @@ class OrderService {
             type: "INFO",
           });
         } catch (error) {
-          console.error("Failed to send shop notification:", error);
+          loggers.order.warn(
+            {
+              err: error,
+              orderId: order.id,
+              shopId: shop_id,
+              shopOwnerId: shop.user.id,
+            },
+            "Failed to send new order notification to shop owner. Order was created successfully but shop owner may not have been notified."
+          );
         }
       }
 

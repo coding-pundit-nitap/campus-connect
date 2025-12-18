@@ -4,10 +4,13 @@ import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { categoryRepository, shopRepository } from "@/repositories";
+import {
+  cartRepository,
+  categoryRepository,
+  shopRepository,
+} from "@/repositories";
 import productRepository from "@/repositories/product.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
@@ -23,6 +26,8 @@ import {
 export async function createProductAction(
   formData: ProductActionFormData
 ): Promise<ActionResponse<SerializedProduct>> {
+  let uploadedImageKey: string | null = null;
+
   try {
     const user_id = await authUtils.getUserId();
     const context = await shopRepository.findByOwnerId(user_id, {
@@ -53,6 +58,7 @@ export async function createProductAction(
         imageFile.size,
         buffer
       );
+      uploadedImageKey = image_key;
     }
     const productData = {
       image_key,
@@ -82,6 +88,17 @@ export async function createProductAction(
       "Product created successfully"
     );
   } catch (error) {
+    if (uploadedImageKey) {
+      try {
+        await fileUploadService.deleteFile(uploadedImageKey);
+      } catch (cleanupError) {
+        console.error(
+          `Failed to cleanup file ${uploadedImageKey} after product creation failure:`,
+          cleanupError
+        );
+      }
+    }
+
     console.error("CREATE PRODUCT ERROR:", error);
     throw new InternalServerError("Failed to create product.");
   }
@@ -198,20 +215,9 @@ export async function deleteProductAction(
       throw new InternalServerError("Product not found");
     }
 
-    // Find all users who have this product in their cart
-    const cartItems = await prisma.cartItem.findMany({
-      where: { product_id },
-      include: {
-        cart: {
-          select: { user_id: true },
-        },
-      },
-    });
-
-    // Notify users before deletion
-    const uniqueUserIds = Array.from(
-      new Set(cartItems.map((item) => item.cart.user_id))
-    );
+    // Get users who have this product in their cart (via repository)
+    const uniqueUserIds =
+      await cartRepository.getUserIdsByProductInCart(product_id);
 
     await Promise.allSettled(
       uniqueUserIds.map((userId) =>

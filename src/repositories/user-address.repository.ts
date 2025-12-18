@@ -78,6 +78,10 @@ class UserAddressRepository {
     return prisma.userAddress.update(query);
   }
 
+  async findById(id: string): Promise<UserAddress | null> {
+    return prisma.userAddress.findUnique({ where: { id } });
+  }
+
   async delete(id: string): Promise<UserAddress>;
   async delete<T extends UserAddressDeleteOptions>(
     id: string,
@@ -91,6 +95,103 @@ class UserAddressRepository {
   > {
     const query = { where: { id }, ...(options ?? {}) };
     return prisma.userAddress.delete(query);
+  }
+  async deleteByIdAndUserId(
+    id: string,
+    user_id: string
+  ): Promise<UserAddress | null> {
+    const address = await prisma.userAddress.findUnique({
+      where: { id },
+    });
+
+    if (!address || address.user_id !== user_id) {
+      return null;
+    }
+
+    return prisma.userAddress.delete({ where: { id } });
+  }
+
+  async setDefault(user_id: string, address_id: string): Promise<UserAddress> {
+    return prisma.$transaction(async (tx) => {
+      await tx.userAddress.updateMany({
+        where: {
+          user_id: user_id,
+          is_default: true,
+        },
+        data: { is_default: false },
+      });
+
+      return tx.userAddress.update({
+        where: { id: address_id },
+        data: { is_default: true },
+      });
+    });
+  }
+
+  async createWithDefault(
+    data: CreateAddressDto,
+    user_id: string
+  ): Promise<UserAddress> {
+    const { user, ...restData } = data as CreateAddressDto & {
+      is_default?: boolean;
+    };
+    const isDefault = restData.is_default ?? false;
+
+    if (!isDefault) {
+      return prisma.userAddress.create({ data });
+    }
+
+    return prisma.$transaction(async (tx) => {
+      await tx.userAddress.updateMany({
+        where: {
+          user_id,
+          is_default: true,
+        },
+        data: { is_default: false },
+      });
+
+      return tx.userAddress.create({ data });
+    });
+  }
+
+  async updateWithDefault(
+    id: string,
+    user_id: string,
+    data: UpdateAddressDto
+  ): Promise<UserAddress | null> {
+    const existingAddress = await prisma.userAddress.findUnique({
+      where: { id },
+      select: { user_id: true },
+    });
+
+    if (!existingAddress || existingAddress.user_id !== user_id) {
+      return null;
+    }
+
+    const setAsDefault = data.is_default === true;
+
+    if (!setAsDefault) {
+      return prisma.userAddress.update({
+        where: { id },
+        data,
+      });
+    }
+
+    return prisma.$transaction(async (tx) => {
+      await tx.userAddress.updateMany({
+        where: {
+          user_id,
+          is_default: true,
+          id: { not: id },
+        },
+        data: { is_default: false },
+      });
+
+      return tx.userAddress.update({
+        where: { id },
+        data,
+      });
+    });
   }
 }
 

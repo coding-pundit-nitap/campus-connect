@@ -93,7 +93,6 @@ class OrderRepository {
       throw new Error("Order must have a user_id to be indexed.");
     }
 
-    // Fetch user email separately to ensure it's available in transactions
     const user = await db.user.findUnique({
       where: { id: order.user_id },
       select: { email: true },
@@ -143,10 +142,24 @@ class OrderRepository {
     order_ids: string[],
     order_status: OrderStatus
   ): Promise<Prisma.BatchPayload> {
-    return prisma.order.updateMany({
+    const result = await prisma.order.updateMany({
       where: { id: { in: order_ids } },
       data: { order_status },
     });
+
+    await Promise.all(
+      order_ids.map((id) =>
+        searchQueue.add("update-order-batch", {
+          type: "UPDATE_ORDER_STATUS",
+          payload: {
+            id,
+            status: order_status,
+          },
+        })
+      )
+    );
+
+    return result;
   }
   async getPaginatedShopOrders({
     shop_id,

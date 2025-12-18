@@ -1,10 +1,12 @@
+import {
+  MAX_SSE_CONNECTIONS_PER_USER,
+  SSE_CONNECTION_TTL,
+  SSE_HEARTBEAT_INTERVAL,
+} from "@/config/constants";
 import { loggers } from "@/lib/logger";
 import notificationEmitter from "@/lib/notification-emitter";
 import { redisPublisher } from "@/lib/redis";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-
-const MAX_SSE_CONNECTIONS_PER_USER = 3;
-const SSE_CONNECTION_TTL = 300;
 
 async function trackConnection(userId: string): Promise<{
   allowed: boolean;
@@ -94,10 +96,14 @@ export async function GET() {
 
           controller.enqueue(encoder.encode(sseData));
         } catch (error) {
-          loggers.notification.error(
-            { err: error },
-            "SSE message handler error"
-          );
+          try {
+            loggers.notification.error(
+              { err: error },
+              "SSE message handler error"
+            );
+          } catch {
+            // Worker may have exited
+          }
         }
       };
 
@@ -113,12 +119,16 @@ export async function GET() {
           const key = `sse:connections:${user_id}`;
           await redisPublisher.zadd(key, Date.now(), connectionId);
         } catch (error) {
-          loggers.notification.error(
-            { err: error },
-            "Failed to refresh SSE connection TTL"
-          );
+          try {
+            loggers.notification.error(
+              { err: error },
+              "Failed to refresh SSE connection TTL"
+            );
+          } catch {
+            // Worker may have exited
+          }
         }
-      }, 15000);
+      }, SSE_HEARTBEAT_INTERVAL);
 
       const connectedEventPayload = `event: connected\ndata: ${JSON.stringify({ message: "Connection established" })}\n\n`;
       controller.enqueue(encoder.encode(connectedEventPayload));
