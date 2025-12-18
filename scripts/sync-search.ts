@@ -113,7 +113,7 @@ async function syncOrders() {
   if (orders.length === 0) return;
 
   const operations = orders.flatMap((order) => {
-    if (!order.user_id) return []; // Skip orders without user
+    if (!order.user_id) return [];
     return [
       { index: { _index: INDICES.ORDERS, _id: order.id } },
       {

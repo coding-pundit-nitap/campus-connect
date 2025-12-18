@@ -5,7 +5,6 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
-import { loggers } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
@@ -176,15 +175,7 @@ class OrderService {
             type: "INFO",
           });
         } catch (error) {
-          loggers.order.warn(
-            {
-              err: error,
-              orderId: order.id,
-              shopId: shop_id,
-              shopOwnerId: shop.user.id,
-            },
-            "Failed to send new order notification to shop owner. Order was created successfully but shop owner may not have been notified."
-          );
+          console.error("Notification Error:", error);
         }
       }
 

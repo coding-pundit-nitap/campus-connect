@@ -3,7 +3,6 @@ import {
   SSE_CONNECTION_TTL,
   SSE_HEARTBEAT_INTERVAL,
 } from "@/config/constants";
-import { loggers } from "@/lib/logger";
 import notificationEmitter from "@/lib/notification-emitter";
 import { redisPublisher } from "@/lib/redis";
 import { authUtils } from "@/lib/utils/auth.utils.server";
@@ -31,10 +30,7 @@ async function trackConnection(userId: string): Promise<{
 
     return { allowed: true, connectionId };
   } catch (error) {
-    loggers.notification.error(
-      { err: error },
-      "Failed to track SSE connection"
-    );
+    console.error("Failed to track SSE connection:", error);
     return { allowed: true, connectionId };
   }
 }
@@ -47,10 +43,7 @@ async function untrackConnection(
     const key = `sse:connections:${userId}`;
     await redisPublisher.zrem(key, connectionId);
   } catch (error) {
-    loggers.notification.error(
-      { err: error },
-      "Failed to untrack SSE connection"
-    );
+    console.error("Failed to untrack SSE connection:", error);
   }
 }
 
@@ -96,14 +89,7 @@ export async function GET() {
 
           controller.enqueue(encoder.encode(sseData));
         } catch (error) {
-          try {
-            loggers.notification.error(
-              { err: error },
-              "SSE message handler error"
-            );
-          } catch {
-            // Worker may have exited
-          }
+          console.error("SSE message handler error:", error);
         }
       };
 
@@ -119,14 +105,7 @@ export async function GET() {
           const key = `sse:connections:${user_id}`;
           await redisPublisher.zadd(key, Date.now(), connectionId);
         } catch (error) {
-          try {
-            loggers.notification.error(
-              { err: error },
-              "Failed to refresh SSE connection TTL"
-            );
-          } catch {
-            // Worker may have exited
-          }
+          console.error("Failed to refresh SSE connection TTL", error);
         }
       }, SSE_HEARTBEAT_INTERVAL);
 
@@ -135,14 +114,6 @@ export async function GET() {
     },
 
     async cancel() {
-      try {
-        loggers.notification.info(
-          { user_id },
-          "Client disconnected. Cleaning up."
-        );
-      } catch {
-        // Worker may have exited, ignore logging errors
-      }
       clearInterval(heartbeatInterval);
 
       listeners.forEach(({ channel, handler }) => {
