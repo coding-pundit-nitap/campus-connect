@@ -1,6 +1,6 @@
 # 🎓 Campus Connect
 
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/VaibhavH17/Campus-Connect)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/coding-pundit-nitap/campus-connect)
 
 A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, Elasticsearch, MinIO, and BullMQ.
 
