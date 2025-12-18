@@ -7,7 +7,6 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
-import { loggers } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
@@ -178,10 +177,7 @@ export async function updateOrderStatusAction({
           type: "INFO",
         });
       } catch (error) {
-        loggers.order.warn(
-          { err: error, orderId: order_id, userId: order.user_id },
-          "Failed to send status update notification"
-        );
+        console.error("Notification Error:", error);
       }
     }
 

@@ -101,10 +101,7 @@ class ProductRepository {
 
     return product;
   }
-  async delete(
-    product_id: string,
-    data?: Omit<Prisma.ProductDeleteArgs, "where">
-  ): Promise<Product> {
+  async delete(product_id: string): Promise<Product> {
     const product = await prisma.product.update({
       where: { id: product_id },
       data: { deleted_at: new Date() },

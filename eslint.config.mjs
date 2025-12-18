@@ -14,6 +14,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "**/*.generated.ts",
+    "node_modules/**",
   ]),
   {
     plugins: {

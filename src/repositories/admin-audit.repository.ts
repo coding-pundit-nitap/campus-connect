@@ -1,5 +1,3 @@
-"use server";
-
 import { AdminAction, Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";

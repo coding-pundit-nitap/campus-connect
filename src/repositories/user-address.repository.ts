@@ -132,10 +132,10 @@ class UserAddressRepository {
     data: CreateAddressDto,
     user_id: string
   ): Promise<UserAddress> {
-    const { user, ...restData } = data as CreateAddressDto & {
+    const { is_default = false } = data as CreateAddressDto & {
       is_default?: boolean;
     };
-    const isDefault = restData.is_default ?? false;
+    const isDefault = is_default;
 
     if (!isDefault) {
       return prisma.userAddress.create({ data });
