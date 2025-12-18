@@ -1,0 +1,33 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build-prod-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image (runner target)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          target: runner
+          push: false
+          tags: campus-connect:${{ github.sha }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=/api
+            NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
+            NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
