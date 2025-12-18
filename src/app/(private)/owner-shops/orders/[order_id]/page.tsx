@@ -269,6 +269,13 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                     </code>
                   </DetailItem>
                 )}
+              {order.customer_notes && (
+                <DetailItem icon={<User size={18} />} label="Customer Notes">
+                  <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md italic">
+                    "{order.customer_notes}"
+                  </div>
+                </DetailItem>
+              )}
             </CardContent>
             <Separator />
             <CardContent className="p-6">

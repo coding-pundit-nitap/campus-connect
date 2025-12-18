@@ -17,6 +17,7 @@ import {
   getOrdersAction,
 } from "@/actions/orders/order-actions";
 import { queryKeys } from "@/lib/query-keys";
+import { orderAPIService } from "@/services";
 import { createSuccessResponse, SerializedOrderWithDetails } from "@/types";
 
 export type UseOrdersProps = {
@@ -122,6 +123,37 @@ export function useUpdatePaymentStatus() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update payment status");
+    },
+  });
+}
+
+export function useDownloadOrderPDF() {
+  return useMutation({
+    mutationFn: async ({
+      order_id,
+      display_id,
+    }: {
+      order_id: string;
+      display_id: string;
+    }) => {
+      const blob = await orderAPIService.dounloadInvoice(order_id);
+
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `order-${display_id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      return { display_id };
+    },
+    onSuccess: ({ display_id }) => {
+      toast.success(`Order receipt ${display_id} downloaded`);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to download PDF");
     },
   });
 }

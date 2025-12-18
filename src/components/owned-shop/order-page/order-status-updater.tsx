@@ -46,7 +46,7 @@ export function OrderStatusUpdater({
         onValueChange={(value) => handleStatusChange(value as OrderStatus)}
         disabled={isPending}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-45">
           <SelectValue placeholder="Change status" />
         </SelectTrigger>
         <SelectContent>
