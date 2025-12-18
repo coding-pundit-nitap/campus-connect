@@ -1,11 +1,13 @@
 "use server";
 import { OrderStatus, PaymentMethod } from "@prisma/client";
 
+import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
 import {
   InternalServerError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { loggers } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
@@ -134,17 +136,11 @@ export async function updateOrderStatusAction({
       );
     }
 
-    const validTransitions: Partial<Record<OrderStatus, OrderStatus[]>> = {
-      NEW: ["PREPARING", "CANCELLED"],
-      PREPARING: ["READY_FOR_PICKUP", "CANCELLED"],
-      READY_FOR_PICKUP: ["OUT_FOR_DELIVERY", "COMPLETED", "CANCELLED"],
-      OUT_FOR_DELIVERY: ["COMPLETED", "CANCELLED"],
-      COMPLETED: [],
-      CANCELLED: [],
-    };
-
-    const allowedStatuses = validTransitions[order.order_status] || [];
-    if (!allowedStatuses.includes(status)) {
+    const allowedStatuses =
+      VALID_ORDER_TRANSITIONS[
+        order.order_status as keyof typeof VALID_ORDER_TRANSITIONS
+      ] || [];
+    if (!allowedStatuses.includes(status as never)) {
       throw new ValidationError(
         `Invalid status transition from ${order.order_status} to ${status}`
       );
@@ -160,7 +156,10 @@ export async function updateOrderStatusAction({
           type: "INFO",
         });
       } catch (error) {
-        console.error("Failed to send status update notification:", error);
+        loggers.order.warn(
+          { err: error, orderId: order_id, userId: order.user_id },
+          "Failed to send status update notification"
+        );
       }
     }
 
@@ -254,18 +253,46 @@ export async function batchUpdateOrderStatusAction({
     }
 
     const orders = await orderRepository.getOrdersByIds(orderIds, {
-      select: { id: true, shop_id: true, user_id: true, display_id: true },
+      select: {
+        id: true,
+        shop_id: true,
+        user_id: true,
+        display_id: true,
+        order_status: true,
+      },
     });
 
+    const invalidTransitions: string[] = [];
     for (const order of orders) {
       if (order.shop_id !== shop_id) {
         throw new UnauthorizedError(
           `Unauthorized: Order ${order.display_id} does not belong to your shop.`
         );
       }
+
+      const allowedStatuses =
+        VALID_ORDER_TRANSITIONS[
+          order.order_status as keyof typeof VALID_ORDER_TRANSITIONS
+        ] || [];
+      if (!allowedStatuses.includes(status as never)) {
+        invalidTransitions.push(
+          `${order.display_id}: ${order.order_status} → ${status}`
+        );
+      }
     }
 
-    await orderRepository.batchUpdateStatus(orderIds, status);
+    if (invalidTransitions.length > 0) {
+      throw new ValidationError(
+        `Invalid status transitions: ${invalidTransitions.join(", ")}`
+      );
+    }
+
+    const ordersToUpdate = orders.filter((o) => o.order_status !== status);
+    const idsToUpdate = ordersToUpdate.map((o) => o.id);
+
+    if (idsToUpdate.length > 0) {
+      await orderRepository.batchUpdateStatus(idsToUpdate, status);
+    }
 
     Promise.allSettled(
       orders.map(

@@ -25,7 +25,10 @@ export async function PATCH(request: NextRequest) {
     const { notificationIds, broadcastIds } = validation.data;
 
     if (notificationIds && notificationIds.length > 0) {
-      await notificationService.markNotificationsAsRead(notificationIds);
+      await notificationService.markNotificationsAsRead(
+        user_id,
+        notificationIds
+      );
     }
 
     if (broadcastIds && broadcastIds.length > 0) {

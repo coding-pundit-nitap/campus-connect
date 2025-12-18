@@ -10,8 +10,8 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import shopRepository from "@/repositories/shop.repository";
-import userRepository from "@/repositories/user.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
 import {
@@ -240,28 +240,48 @@ export async function deleteShopAction(
       throw new NotFoundError("Shop not found");
     }
 
+    const fileDeletionPromises: Promise<void>[] = [];
     if (shop.image_key) {
-      try {
-        await fileUploadService.deleteFile(shop.image_key);
-      } catch (error) {
-        console.error("Error deleting shop image:", error);
-      }
+      fileDeletionPromises.push(
+        fileUploadService.deleteFile(shop.image_key).catch((err) => {
+          console.error(`Error deleting shop image ${shop.image_key}:`, err);
+        })
+      );
     }
+    if (shop.qr_image_key) {
+      fileDeletionPromises.push(
+        fileUploadService.deleteFile(shop.qr_image_key).catch((err) => {
+          console.error(
+            `Error deleting shop QR image ${shop.qr_image_key}:`,
+            err
+          );
+        })
+      );
+    }
+    await Promise.all(fileDeletionPromises);
+
+    await prisma.$transaction(async (tx) => {
+      if (shop.user?.id) {
+        await tx.user.update({
+          where: { id: shop.user.id },
+          data: { owned_shop: { disconnect: true } },
+        });
+      }
+      await tx.shop.delete({ where: { id: shopId } });
+    });
 
     if (shop.user?.id) {
-      await userRepository.update(shop.user.id, {
-        owned_shop: { disconnect: true },
-      });
+      try {
+        await notificationService.publishNotification(shop.user.id, {
+          title: "Shop Deleted",
+          message: `Your shop "${shop.name}" has been deleted by an admin.`,
+          type: "ERROR",
+          category: "SYSTEM",
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send shop deletion notification:", notifyErr);
+      }
     }
-
-    await shopRepository.delete(shopId);
-
-    await notificationService.publishNotification(shop.user!.id, {
-      title: "Shop Deleted",
-      message: `Your shop "${shop.name}" has been deleted by an admin.`,
-      type: "ERROR",
-      category: "SYSTEM",
-    });
 
     return createSuccessResponse(
       {
@@ -383,7 +403,7 @@ export async function getShopStatsAction(): Promise<
       shopRepository.count({ verification_status: "PENDING" }),
       shopRepository.count({
         created_at: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         },
       }),
     ]);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { MAX_PAGE_SIZE } from "@/config/constants";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
@@ -10,9 +11,10 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const cursor = searchParams.get("cursor") || undefined;
-    const limit = searchParams.get("limit")
+    const requestedLimit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!, 10)
       : 20;
+    const limit = Math.min(Math.max(1, requestedLimit), MAX_PAGE_SIZE);
 
     const paginatedNotifications =
       await notificationService.getUserNotifications(user_id, limit, cursor);
@@ -34,7 +36,10 @@ export async function PATCH(request: NextRequest) {
       await request.json();
 
     if (notification_ids && notification_ids.length > 0) {
-      await notificationService.markNotificationsAsRead(notification_ids);
+      await notificationService.markNotificationsAsRead(
+        user_id,
+        notification_ids
+      );
     }
 
     if (broadcast_notification_ids && broadcast_notification_ids.length > 0) {

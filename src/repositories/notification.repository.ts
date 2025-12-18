@@ -34,11 +34,13 @@ class NotificationRepository {
     return { notifications, nextCursor };
   }
   async getUnreadNotificationsByUserId(
-    user_id: string
+    user_id: string,
+    limit = 100
   ): Promise<Notification[]> {
     return await prisma.notification.findMany({
       where: { user_id, read: false },
       orderBy: { created_at: "desc" },
+      take: limit,
     });
   }
 
@@ -61,13 +63,17 @@ class NotificationRepository {
     return await prisma.notification.deleteMany({ where: { user_id } });
   }
 
-  async markManyAsRead(notification_ids: string[]): Promise<{ count: number }> {
+  async markManyAsRead(
+    user_id: string,
+    notification_ids: string[]
+  ): Promise<{ count: number }> {
     if (notification_ids.length === 0) {
       return { count: 0 };
     }
     return await prisma.notification.updateMany({
       where: {
         id: { in: notification_ids },
+        user_id,
       },
       data: { read: true },
     });

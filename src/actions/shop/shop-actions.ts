@@ -14,6 +14,8 @@ import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export async function createShopAction(formData: ShopActionFormData) {
+  const uploadedFiles: string[] = [];
+
   try {
     const user_id = await authUtils.getUserId();
     const parsedData = shopActionSchema.safeParse(formData);
@@ -30,6 +32,7 @@ export async function createShopAction(formData: ShopActionFormData) {
       qr_image,
       upi_id,
     } = parsedData.data;
+
     let image_key = "";
     if (image) {
       const imageFile = image;
@@ -43,7 +46,9 @@ export async function createShopAction(formData: ShopActionFormData) {
           prefix: "shop-images",
         }
       );
+      uploadedFiles.push(image_key);
     }
+
     let qr_image_key = "";
     if (qr_image) {
       const qrImageFile = qr_image;
@@ -57,7 +62,9 @@ export async function createShopAction(formData: ShopActionFormData) {
           prefix: "shop-qr-images",
         }
       );
+      uploadedFiles.push(qr_image_key);
     }
+
     const newShop = await shopRepository.create({
       closing,
       description,
@@ -75,6 +82,17 @@ export async function createShopAction(formData: ShopActionFormData) {
       "Shop created successfully! Please log out and back in to access the seller dashboard."
     );
   } catch (error) {
+    for (const fileKey of uploadedFiles) {
+      try {
+        await fileUploadService.deleteFile(fileKey);
+      } catch (cleanupError) {
+        console.error(
+          `Failed to cleanup file ${fileKey} after shop creation failure:`,
+          cleanupError
+        );
+      }
+    }
+
     console.error("CREATE SHOP ERROR:", error);
     throw new InternalServerError("Failed to create shop.");
   }
@@ -170,14 +188,31 @@ export async function deleteShopAction() {
 
     const shop_id = context.id;
 
-    await shopRepository.delete(shop_id);
-
+    const fileDeletionPromises: Promise<void>[] = [];
     if (context.image_key) {
-      await fileUploadService.deleteFile(context.image_key);
+      fileDeletionPromises.push(
+        fileUploadService.deleteFile(context.image_key).catch((err) => {
+          console.error(
+            `Failed to delete shop image ${context.image_key}:`,
+            err
+          );
+        })
+      );
     }
     if (context.qr_image_key) {
-      await fileUploadService.deleteFile(context.qr_image_key);
+      fileDeletionPromises.push(
+        fileUploadService.deleteFile(context.qr_image_key).catch((err) => {
+          console.error(
+            `Failed to delete shop QR image ${context.qr_image_key}:`,
+            err
+          );
+        })
+      );
     }
+    await Promise.all(fileDeletionPromises);
+
+    await shopRepository.delete(shop_id);
+
     return createSuccessResponse(null, "Shop deleted successfully");
   } catch (error) {
     console.error("DELETE SHOP ERROR:", error);

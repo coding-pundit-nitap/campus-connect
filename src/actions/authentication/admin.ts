@@ -3,18 +3,17 @@ import { Role } from "@prisma/client";
 
 import { ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import userRepository from "@/repositories/user.repository";
 
 export async function verifyAdmin(): Promise<string> {
-  const userId = await authUtils.getUserId();
-  if (!userId) {
+  const user = await authUtils.getUserData();
+
+  if (!user || !user.id) {
     throw new UnauthorizedError("Unauthorized: Please log in.");
   }
 
-  const user = await userRepository.findById(userId);
-  if (!user || user.role !== Role.ADMIN) {
+  if (user.role !== Role.ADMIN) {
     throw new ForbiddenError("Access denied: Admin privileges required.");
   }
 
-  return userId;
+  return user.id;
 }

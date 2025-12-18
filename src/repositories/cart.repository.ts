@@ -107,6 +107,18 @@ class CartRepository {
       where: { cart_id, product_id },
     });
   }
+  async getUserIdsByProductInCart(product_id: string): Promise<string[]> {
+    const cartItems = await prisma.cartItem.findMany({
+      where: { product_id },
+      include: {
+        cart: {
+          select: { user_id: true },
+        },
+      },
+    });
+
+    return Array.from(new Set(cartItems.map((item) => item.cart.user_id)));
+  }
 }
 
 export const cartRepository = new CartRepository();

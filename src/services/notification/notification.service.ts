@@ -47,8 +47,11 @@ class NotificationService {
     });
   }
 
-  async markNotificationsAsRead(notification_ids: string[]): Promise<void> {
-    await notificationRepository.markManyAsRead(notification_ids);
+  async markNotificationsAsRead(
+    user_id: string,
+    notification_ids: string[]
+  ): Promise<void> {
+    await notificationRepository.markManyAsRead(user_id, notification_ids);
   }
 
   async markBroadcastsAsRead(

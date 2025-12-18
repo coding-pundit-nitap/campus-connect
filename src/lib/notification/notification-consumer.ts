@@ -1,5 +1,6 @@
 import { Job, Worker } from "bullmq";
 
+import { loggers } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { redisPublisher } from "@/lib/redis";
 import { redisConnection } from "@/lib/redis-connection";
@@ -9,10 +10,15 @@ import {
   NotificationJobData,
 } from "./notification-producer";
 
+const logger = loggers.notification;
+
 export const notificationWorker = new Worker<NotificationJobData>(
   NOTIFICATION_QUEUE_NAME,
   async (job: Job<NotificationJobData>) => {
-    console.log(`Processing notification job ${job.id}: ${job.data.type}`);
+    logger.debug(
+      { jobId: job.id, type: job.data.type },
+      "Processing notification job"
+    );
 
     try {
       if (
@@ -30,7 +36,10 @@ export const notificationWorker = new Worker<NotificationJobData>(
 
         const channel = `user:${user_id}:notifications`;
         await redisPublisher.publish(channel, JSON.stringify(newNotification));
-        console.log(`Notification sent to user ${user_id}`);
+        logger.info(
+          { userId: user_id, notificationId: newNotification.id },
+          "Notification sent to user"
+        );
       } else if (
         job.data.type === "BROADCAST_NOTIFICATION" &&
         job.data.payload.type === "BROADCAST_NOTIFICATION"
@@ -43,10 +52,16 @@ export const notificationWorker = new Worker<NotificationJobData>(
 
         const channel = `broadcast:notifications`;
         await redisPublisher.publish(channel, JSON.stringify(newBroadcast));
-        console.log(`Broadcast notification sent: ${newBroadcast.title}`);
+        logger.info(
+          { broadcastId: newBroadcast.id, title: newBroadcast.title },
+          "Broadcast notification sent"
+        );
       }
     } catch (error) {
-      console.error(`Failed to process notification job ${job.id}:`, error);
+      logger.error(
+        { err: error, jobId: job.id },
+        "Failed to process notification job"
+      );
       throw error;
     }
   },
@@ -57,9 +72,9 @@ export const notificationWorker = new Worker<NotificationJobData>(
 );
 
 notificationWorker.on("completed", (job) => {
-  console.log(`Notification job ${job.id} completed`);
+  logger.debug({ jobId: job.id }, "Notification job completed");
 });
 
 notificationWorker.on("failed", (job, err) => {
-  console.error(`Notification job ${job?.id} failed: ${err.message}`);
+  logger.error({ err, jobId: job?.id }, "Notification job failed");
 });
