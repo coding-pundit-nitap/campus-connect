@@ -16,6 +16,7 @@ import {
 } from "@/lib/utils/order.utils";
 import { getOrderUrl } from "@/lib/utils/url.utils";
 import orderRepository from "@/repositories/order.repository";
+import { shopRepository } from "@/repositories/shop.repository";
 import { notificationService } from "@/services/notification/notification.service";
 import { orderService } from "@/services/order/order.service";
 import { SerializedOrderWithDetails } from "@/types";
@@ -24,6 +25,7 @@ import {
   createSuccessResponse,
   PaginatedResponse,
 } from "@/types/response.types";
+import { validateDeliveryTime } from "@/validations/order.validation";
 
 export async function getOrdersAction(options: {
   page?: number;
@@ -64,12 +66,14 @@ export async function createOrderAction({
   delivery_address_id,
   requested_delivery_time,
   upi_transaction_id,
+  customer_notes,
 }: {
   shop_id: string;
   payment_method: PaymentMethod;
   delivery_address_id: string;
   requested_delivery_time?: Date;
   upi_transaction_id?: string;
+  customer_notes?: string;
 }) {
   try {
     const user_id = await authUtils.getUserId();
@@ -77,16 +81,30 @@ export async function createOrderAction({
       throw new UnauthorizedError("Unauthorized: Please log in.");
     }
 
+    const shop = await shopRepository.findById(shop_id);
+    if (!shop) {
+      throw new ValidationError("Shop not found or no longer available.");
+    }
+    if (!shop.is_active) {
+      throw new ValidationError("Shop is currently not accepting orders.");
+    }
+
     if (requested_delivery_time) {
       const deliveryTime = new Date(requested_delivery_time);
-      const now = new Date();
       if (isNaN(deliveryTime.getTime())) {
         throw new ValidationError("Invalid delivery time.");
       }
-      if (deliveryTime < now) {
-        throw new ValidationError("Delivery time cannot be in the past.");
+
+      const validationError = validateDeliveryTime(
+        deliveryTime,
+        shop.opening,
+        shop.closing
+      );
+      if (validationError) {
+        throw new ValidationError(validationError);
       }
     }
+
     const pg_payment_id =
       payment_method === "ONLINE"
         ? `txn_${Date.now()}_${crypto.randomUUID().slice(0, 8)}`
@@ -99,7 +117,8 @@ export async function createOrderAction({
       delivery_address_id,
       pg_payment_id,
       requested_delivery_time,
-      upi_transaction_id
+      upi_transaction_id,
+      customer_notes
     );
 
     return createSuccessResponse(
@@ -108,6 +127,9 @@ export async function createOrderAction({
     );
   } catch (error) {
     console.error("CREATE ORDER ERROR:", error);
+    if (error instanceof ValidationError) {
+      throw error;
+    }
     throw new InternalServerError("Failed to create order.");
   }
 }

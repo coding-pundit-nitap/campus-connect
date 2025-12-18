@@ -1,6 +1,6 @@
 "use server";
 
-import { Prisma, Role } from "@prisma/client";
+import { Prisma, Role, UserStatus } from "@prisma/client";
 import z from "zod";
 
 import {
@@ -10,7 +10,9 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { adminAuditRepository } from "@/repositories/admin-audit.repository";
 import userRepository from "@/repositories/user.repository";
+import { notificationService } from "@/services/notification/notification.service";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -100,7 +102,7 @@ export async function makeUserAdminAction(
   targetUserId: string
 ): Promise<ActionResponse<{ id: string; email: string; role: Role }>> {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
       throw new BadRequestError("Invalid user ID");
     }
@@ -115,6 +117,14 @@ export async function makeUserAdminAction(
 
     const updatedUser = await userRepository.update(targetUserId, {
       role: Role.ADMIN,
+    });
+
+    await adminAuditRepository.create({
+      admin_id,
+      action: "USER_MAKE_ADMIN",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email },
     });
 
     return createSuccessResponse(
@@ -161,6 +171,14 @@ export async function removeUserAdminAction(
 
     const updatedUser = await userRepository.update(targetUserId, {
       role: Role.USER,
+    });
+
+    await adminAuditRepository.create({
+      admin_id: currentUserId,
+      action: "USER_REMOVE_ADMIN",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email },
     });
 
     return createSuccessResponse(
@@ -234,7 +252,7 @@ export async function forceSignOutUserAction(
   targetUserId: string
 ): Promise<ActionResponse<null>> {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
       throw new BadRequestError("Invalid user ID");
     }
@@ -244,6 +262,14 @@ export async function forceSignOutUserAction(
     }
 
     await userRepository.deleteAllSessions(targetUserId);
+
+    await adminAuditRepository.create({
+      admin_id,
+      action: "USER_FORCE_SIGNOUT",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email },
+    });
 
     return createSuccessResponse(
       null,
@@ -296,6 +322,14 @@ export async function deleteUserAction(
     // Delete the user (will cascade delete sessions, accounts, carts, orders, etc.)
     const deletedUser = await userRepository.delete(targetUserId);
 
+    await adminAuditRepository.create({
+      admin_id: currentUserId,
+      action: "USER_DELETE",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email },
+    });
+
     return createSuccessResponse(
       {
         id: deletedUser.id,
@@ -313,5 +347,134 @@ export async function deleteUserAction(
       throw error;
     }
     throw new InternalServerError("Failed to delete user.");
+  }
+}
+
+export async function suspendUserAction(
+  targetUserId: string,
+  reason: string
+): Promise<ActionResponse<{ id: string; email: string; status: UserStatus }>> {
+  try {
+    const admin_id = await verifyAdmin();
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid user ID");
+    }
+    if (admin_id === targetUserId) {
+      throw new ForbiddenError("You cannot suspend your own account");
+    }
+
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    if (targetUser.status === "SUSPENDED" || targetUser.status === "BANNED") {
+      throw new ForbiddenError(
+        `User is already ${targetUser.status.toLowerCase()}`
+      );
+    }
+
+    const updatedUser = await userRepository.update(targetUserId, {
+      status: "SUSPENDED",
+      suspended_at: new Date(),
+      suspended_reason: reason,
+    });
+
+    // Force sign out the user
+    await userRepository.deleteAllSessions(targetUserId);
+
+    await adminAuditRepository.create({
+      admin_id,
+      action: "USER_SUSPEND",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email, reason },
+    });
+
+    await notificationService.publishNotification(targetUserId, {
+      title: "Account Suspended",
+      message: `Your account has been suspended. Reason: ${reason}`,
+      type: "ERROR",
+      category: "SYSTEM",
+    });
+
+    return createSuccessResponse(
+      {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        status: updatedUser.status,
+      },
+      `Successfully suspended user ${updatedUser.email}`
+    );
+  } catch (error) {
+    console.error("SUSPEND USER ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to suspend user.");
+  }
+}
+
+export async function unsuspendUserAction(
+  targetUserId: string
+): Promise<ActionResponse<{ id: string; email: string; status: UserStatus }>> {
+  try {
+    const admin_id = await verifyAdmin();
+    if (typeof targetUserId !== "string" || targetUserId.trim() === "") {
+      throw new BadRequestError("Invalid user ID");
+    }
+
+    const targetUser = await userRepository.findById(targetUserId);
+    if (!targetUser) {
+      throw new NotFoundError("User not found");
+    }
+
+    if (targetUser.status === "ACTIVE") {
+      throw new ForbiddenError("User is already active");
+    }
+
+    const updatedUser = await userRepository.update(targetUserId, {
+      status: "ACTIVE",
+      suspended_at: null,
+      suspended_reason: null,
+    });
+
+    await adminAuditRepository.create({
+      admin_id,
+      action: "USER_UNSUSPEND",
+      target_type: "USER",
+      target_id: targetUserId,
+      details: { email: targetUser.email },
+    });
+
+    await notificationService.publishNotification(targetUserId, {
+      title: "Account Restored",
+      message: "Your account has been restored and is now active.",
+      type: "SUCCESS",
+      category: "SYSTEM",
+    });
+
+    return createSuccessResponse(
+      {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        status: updatedUser.status,
+      },
+      `Successfully unsuspended user ${updatedUser.email}`
+    );
+  } catch (error) {
+    console.error("UNSUSPEND USER ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof NotFoundError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to unsuspend user.");
   }
 }

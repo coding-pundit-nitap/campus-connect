@@ -84,6 +84,38 @@ class NotificationRepository {
       where: { user_id, read: false },
     });
   }
+  async markAllAsRead(user_id: string): Promise<{ count: number }> {
+    return await prisma.notification.updateMany({
+      where: { user_id, read: false },
+      data: { read: true },
+    });
+  }
+
+  async getNotificationsByCategory(
+    user_id: string,
+    category: string,
+    { limit = 20, cursor }: { limit?: number; cursor?: string }
+  ): Promise<{ notifications: Notification[]; nextCursor?: string }> {
+    const take = limit + 1;
+    const notifications = await prisma.notification.findMany({
+      where: {
+        user_id,
+        category: category as Prisma.EnumNotificationCategoryFilter,
+      },
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      take,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+    });
+
+    let nextCursor: string | undefined = undefined;
+    if (notifications.length > limit) {
+      const nextItem = notifications.pop();
+      nextCursor = nextItem!.id;
+    }
+
+    return { notifications, nextCursor };
+  }
 }
 
 export const notificationRepository = new NotificationRepository();

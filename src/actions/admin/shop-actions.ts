@@ -11,6 +11,7 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { adminAuditRepository } from "@/repositories/admin-audit.repository";
 import shopRepository from "@/repositories/shop.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
@@ -125,7 +126,7 @@ export async function activateShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
@@ -151,6 +152,15 @@ export async function activateShopAction(
       category: "SYSTEM",
       action_url: "/owner-shops",
     });
+
+    await adminAuditRepository.create({
+      admin_id,
+      action: "SHOP_ACTIVATE",
+      target_type: "SHOP",
+      target_id: shopId,
+      details: { shop_name: shop.name },
+    });
+
     return createSuccessResponse(
       {
         id: updatedShop.id,
@@ -176,7 +186,7 @@ export async function deactivateShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
@@ -191,6 +201,35 @@ export async function deactivateShopAction(
       throw new ForbiddenError("Shop is already inactive");
     }
 
+    const affectedCarts = await prisma.cart.findMany({
+      where: { shop_id: shopId },
+      include: {
+        items: true,
+        user: { select: { id: true, email: true } },
+      },
+    });
+
+    const affectedUserIds: string[] = [];
+    for (const cart of affectedCarts) {
+      if (cart.items.length > 0) {
+        affectedUserIds.push(cart.user.id);
+        await prisma.cartItem.deleteMany({
+          where: { cart_id: cart.id },
+        });
+      }
+    }
+
+    await Promise.allSettled(
+      affectedUserIds.map((userId) =>
+        notificationService.publishNotification(userId, {
+          title: "Cart Items Removed",
+          message: `Items from "${shop.name}" have been removed from your cart as the shop has been deactivated.`,
+          type: "WARNING",
+          category: "SYSTEM",
+        })
+      )
+    );
+
     const updatedShop = await shopRepository.update(shopId, {
       is_active: false,
     });
@@ -203,13 +242,21 @@ export async function deactivateShopAction(
       action_url: "/owner-shops",
     });
 
+    await adminAuditRepository.create({
+      admin_id,
+      action: "SHOP_DEACTIVATE",
+      target_type: "SHOP",
+      target_id: shopId,
+      details: { shop_name: shop.name, affected_users: affectedUserIds.length },
+    });
+
     return createSuccessResponse(
       {
         id: updatedShop.id,
         name: updatedShop.name,
         is_active: updatedShop.is_active,
       },
-      `Successfully deactivated shop "${updatedShop.name}"`
+      `Successfully deactivated shop "${updatedShop.name}". ${affectedUserIds.length} user carts were cleared.`
     );
   } catch (error) {
     console.error("DEACTIVATE SHOP ERROR:", error);
@@ -228,7 +275,7 @@ export async function deleteShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string }>> {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
@@ -283,6 +330,14 @@ export async function deleteShopAction(
       }
     }
 
+    await adminAuditRepository.create({
+      admin_id,
+      action: "SHOP_DELETE",
+      target_type: "SHOP",
+      target_id: shop.id,
+      details: { shop_name: shop.name, owner_id: shop.user?.id },
+    });
+
     return createSuccessResponse(
       {
         id: shop.id,
@@ -314,7 +369,7 @@ export async function updateShopVerificationAction(
   }>
 > {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
     if (
       typeof shopId !== "string" ||
       shopId.trim() === "" ||
@@ -354,6 +409,23 @@ export async function updateShopVerificationAction(
             : "INFO",
       category: "SYSTEM",
       action_url: "/owner-shops",
+    });
+
+    await adminAuditRepository.create({
+      admin_id,
+      action:
+        status === "VERIFIED"
+          ? "SHOP_VERIFY"
+          : status === "REJECTED"
+            ? "SHOP_REJECT"
+            : "SHOP_VERIFY",
+      target_type: "SHOP",
+      target_id: shopId,
+      details: {
+        shop_name: shop.name,
+        new_status: status,
+        old_status: shop.verification_status,
+      },
     });
 
     return createSuccessResponse(

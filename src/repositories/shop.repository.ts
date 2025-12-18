@@ -25,6 +25,7 @@ class ShopRepository {
         user: {
           id: owner_id,
         },
+        deleted_at: null,
       },
       ...(options ?? {}),
     };
@@ -66,7 +67,32 @@ class ShopRepository {
     return shop;
   }
 
+  /**
+   * Soft delete - sets deleted_at timestamp instead of actually deleting.
+   * Shop data is preserved for historical purposes.
+   */
   async delete(shop_id: string): Promise<Shop> {
+    const shop = await prisma.shop.update({
+      where: { id: shop_id },
+      data: { deleted_at: new Date(), is_active: false },
+    });
+
+    // Remove from search index
+    await searchQueue.add("delete-shop", {
+      type: "DELETE_SHOP",
+      payload: {
+        id: shop_id,
+      },
+    });
+
+    return shop;
+  }
+
+  /**
+   * Hard delete - permanently removes the shop from the database.
+   * Use only for cleanup/maintenance purposes.
+   */
+  async hardDelete(shop_id: string): Promise<Shop> {
     const shop = await prisma.shop.delete({ where: { id: shop_id } });
 
     await searchQueue.add("delete-shop", {
@@ -90,8 +116,11 @@ class ShopRepository {
   ): Promise<
     Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop | null
   > {
-    const query = { where: { id: shop_id }, ...(options ?? {}) };
-    return prisma.shop.findUnique(query);
+    const query = {
+      where: { id: shop_id, deleted_at: null },
+      ...(options ?? {}),
+    };
+    return prisma.shop.findFirst(query);
   }
 
   async getShops(): Promise<Shop[]>;
@@ -134,7 +163,7 @@ class ShopRepository {
       const ids = hits.map((h) => h._id || "");
 
       const shops = await prisma.shop.findMany({
-        where: { id: { in: ids }, is_active: true },
+        where: { id: { in: ids }, is_active: true, deleted_at: null },
       });
 
       const shopMap = new Map(shops.map((s) => [s.id, s]));
@@ -152,6 +181,7 @@ class ShopRepository {
             { location: { contains: searchTerm, mode: "insensitive" } },
           ],
           is_active: true,
+          deleted_at: null,
         },
         take: limit,
       });

@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
-import { Role } from "@/types/prisma.types";
+import { Role, UserStatus } from "@/types/prisma.types";
 
 import { prisma } from "./lib/prisma";
 
@@ -27,7 +27,27 @@ export const auth = betterAuth({
       prompt: "select_account",
     },
   },
-
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          const user = await prisma.user.findUnique({
+            where: { id: session.userId },
+            select: { status: true },
+          });
+          if (user?.status === UserStatus.SUSPENDED) {
+            throw new Error(
+              "Your account has been suspended. Please contact support."
+            );
+          }
+          if (user?.status === UserStatus.BANNED) {
+            throw new Error("Your account has been banned.");
+          }
+          return { data: session };
+        },
+      },
+    },
+  },
   user: {
     additionalFields: {
       role: {
@@ -45,6 +65,13 @@ export const auth = betterAuth({
       phone: {
         type: "string",
         fieldName: "phone",
+      },
+      status: {
+        type: Object.values(UserStatus),
+        defaultValue: UserStatus.ACTIVE,
+        required: true,
+        input: false,
+        fieldName: "status",
       },
     },
   },
