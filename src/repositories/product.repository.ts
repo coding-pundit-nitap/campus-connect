@@ -24,8 +24,11 @@ class ProductRepository {
   ): Promise<
     Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product | null
   > {
-    const query = { where: { id: product_id }, ...(data ?? {}) };
-    return prisma.product.findUnique(query);
+    const query = {
+      where: { id: product_id, deleted_at: null },
+      ...(data ?? {}),
+    };
+    return prisma.product.findFirst(query);
   }
 
   async findManyByShopId(shop_id: string): Promise<Product[]>;
@@ -37,7 +40,10 @@ class ProductRepository {
     shop_id: string,
     data?: T
   ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
-    return prisma.product.findMany({ where: { shop_id }, ...data });
+    return prisma.product.findMany({
+      where: { shop_id, deleted_at: null },
+      ...data,
+    });
   }
 
   async create(data: CreateProductDto) {
@@ -95,8 +101,25 @@ class ProductRepository {
 
     return product;
   }
-
   async delete(
+    product_id: string,
+    data?: Omit<Prisma.ProductDeleteArgs, "where">
+  ): Promise<Product> {
+    const product = await prisma.product.update({
+      where: { id: product_id },
+      data: { deleted_at: new Date() },
+    });
+
+    await searchQueue.add("delete-product", {
+      type: "DELETE_PRODUCT",
+      payload: {
+        id: product_id,
+      },
+    });
+
+    return product;
+  }
+  async hardDelete(
     product_id: string,
     data?: Omit<Prisma.ProductDeleteArgs, "where">
   ): Promise<Product> {
@@ -157,7 +180,11 @@ class ProductRepository {
       const ids = hits.map((h) => h._id || "");
 
       const products = await prisma.product.findMany({
-        where: { id: { in: ids }, shop: { is_active: true } },
+        where: {
+          id: { in: ids },
+          shop: { is_active: true, deleted_at: null },
+          deleted_at: null,
+        },
         include: {
           shop: {
             select: {

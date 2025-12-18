@@ -62,7 +62,8 @@ class OrderService {
     delivery_address_id: string,
     pg_payment_id?: string,
     requested_delivery_time?: Date,
-    upi_transaction_id?: string
+    upi_transaction_id?: string,
+    customer_notes?: string
   ) {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -131,6 +132,7 @@ class OrderService {
           delivery_address_id,
           delivery_address_snapshot,
           requested_delivery_time,
+          customer_notes,
           items: {
             create: cart.items.map((item) => ({
               product_id: item.product_id,

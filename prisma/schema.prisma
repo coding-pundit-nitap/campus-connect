@@ -11,7 +11,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // ----------------------------------------
@@ -61,21 +61,46 @@ enum PaymentStatus {
   CANCELLED
 }
 
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum AdminAction {
+  SHOP_VERIFY
+  SHOP_REJECT
+  SHOP_ACTIVATE
+  SHOP_DEACTIVATE
+  SHOP_DELETE
+  USER_MAKE_ADMIN
+  USER_REMOVE_ADMIN
+  USER_SUSPEND
+  USER_UNSUSPEND
+  USER_DELETE
+  USER_FORCE_SIGNOUT
+  BROADCAST_CREATE
+  ORDER_STATUS_OVERRIDE
+}
+
 // ----------------------------------------
 // Auth Models (for NextAuth.js)
 // ----------------------------------------
 
 model User {
-  id            String   @id @default(cuid())
-  email         String
-  emailVerified Boolean  @default(false)
-  name          String
-  phone         String?
-  image         String?
-  role          Role     @default(USER)
-  shop_id       String?  @unique
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id               String     @id @default(cuid())
+  email            String
+  emailVerified    Boolean    @default(false)
+  name             String
+  phone            String?
+  image            String?
+  role             Role       @default(USER)
+  status           UserStatus @default(ACTIVE)
+  suspended_at     DateTime?
+  suspended_reason String?
+  shop_id          String?    @unique
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
   // Relations
   sessions                Session[]
@@ -87,9 +112,12 @@ model User {
   addresses               UserAddress[]
   notification            Notification[]
   broadcast_read_statuses BroadcastReadStatus[]
+  favorite_shops          FavoriteShop[]
+  stock_watches           StockWatch[]
 
   @@unique([email])
   @@index([role])
+  @@index([status])
   @@map("user")
 }
 
@@ -155,18 +183,21 @@ model Shop {
   is_active           Boolean                  @default(false)
   pg_seller_id        String?                  @unique
   verification_status SellerVerificationStatus @default(NOT_STARTED)
+  deleted_at          DateTime?
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
 
   // Relations
-  products   Product[]
-  orders     Order[]
-  payouts    Payout[]
-  carts      Cart[]
-  categories Category[]
-  user       User?      @relation("owned_shop")
+  products     Product[]
+  orders       Order[]
+  payouts      Payout[]
+  carts        Cart[]
+  categories   Category[]
+  user         User?          @relation("owned_shop")
+  favorited_by FavoriteShop[]
 
   @@index([verification_status])
+  @@index([deleted_at])
 }
 
 model Category {
@@ -182,29 +213,32 @@ model Category {
 }
 
 model Product {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   name           String
   description    String?
   price          Decimal
   discount       Decimal?
-  stock_quantity Int      @default(0)
-  rating_sum     Int      @default(0)
-  review_count   Int      @default(0)
+  stock_quantity Int       @default(0)
+  rating_sum     Int       @default(0)
+  review_count   Int       @default(0)
   image_key      String
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  deleted_at     DateTime?
+  created_at     DateTime  @default(now())
+  updated_at     DateTime  @updatedAt
 
   // Relations
-  shop_id     String
-  shop        Shop        @relation(fields: [shop_id], references: [id], onDelete: Cascade)
-  category_id String?
-  category    Category?   @relation(fields: [category_id], references: [id], onDelete: SetNull)
-  reviews     Review[]
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
+  shop_id       String
+  shop          Shop         @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  category_id   String?
+  category      Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  reviews       Review[]
+  cartItems     CartItem[]
+  orderItems    OrderItem[]
+  stock_watches StockWatch[]
 
   @@index([shop_id])
   @@index([category_id])
+  @@index([deleted_at])
 }
 
 // ----------------------------------------
@@ -297,7 +331,8 @@ model Order {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  assigned_to String?
+  assigned_to    String?
+  customer_notes String?
 
   // Relations
   user_id             String?
@@ -411,4 +446,53 @@ model BroadcastReadStatus {
 model GlobalCounter {
   id          String @id @default("GLOBAL")
   order_count Int    @default(1000)
+}
+
+// ----------------------------------------
+// Admin & System Models
+// ----------------------------------------
+
+model AdminAuditLog {
+  id          String      @id @default(cuid())
+  admin_id    String
+  action      AdminAction
+  target_type String
+  target_id   String
+  details     Json?
+  ip_address  String?
+  user_agent  String?
+  created_at  DateTime    @default(now())
+
+  @@index([admin_id])
+  @@index([target_type, target_id])
+  @@index([created_at])
+  @@map("admin_audit_log")
+}
+
+model FavoriteShop {
+  id         String   @id @default(cuid())
+  user_id    String
+  shop_id    String
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  shop Shop @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, shop_id])
+  @@index([user_id])
+  @@map("favorite_shop")
+}
+
+model StockWatch {
+  id         String   @id @default(cuid())
+  user_id    String
+  product_id String
+  created_at DateTime @default(now())
+
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, product_id])
+  @@index([user_id])
+  @@map("stock_watch")
 }
