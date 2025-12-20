@@ -16,8 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../ui/card";
-import ShopAction from "./owned-individual-shop/shop-action";
 import { ProductListContainer } from "./product-list";
+import { ShopAction } from "./shop-header/shop-action";
 import { ShopEmptyState } from "./shop-states/shop-empty-state";
 
 type Props = {
@@ -68,18 +68,10 @@ export function OwnedShopContainer({
     initialError,
   });
 
-  if (isEmptyState) {
-    return (
-      <div className="space-y-4">
-        <ShopEmptyState />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between mt-6">
           <div>
             <CardTitle>Product Management</CardTitle>
             <CardDescription>

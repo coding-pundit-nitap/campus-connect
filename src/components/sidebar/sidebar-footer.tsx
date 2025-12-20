@@ -2,6 +2,7 @@
 
 import { ArrowRight, Store } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useEffectEvent, useState } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";
@@ -16,6 +17,19 @@ import UserDetail from "./user-detail";
 
 export function SidebarFooter() {
   const { data: session } = useSession();
+  const [mounted, setMounted] = useState(false);
+
+  const setMountedTrue = useEffectEvent(() => {
+    setMounted(true);
+  });
+
+  useEffect(() => {
+    setMountedTrue();
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   if (!session?.user) {
     return <SignOutButton />;

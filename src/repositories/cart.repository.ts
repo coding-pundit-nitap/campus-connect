@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client";
-
+import { Prisma } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
@@ -11,7 +10,14 @@ export const fullCartInclude = {
         include: {
           category: true,
           shop: {
-            select: { id: true, name: true, qr_image_key: true, upi_id: true },
+            select: {
+              id: true,
+              name: true,
+              qr_image_key: true,
+              upi_id: true,
+              opening: true,
+              closing: true,
+            },
           },
         },
       },

@@ -27,6 +27,7 @@ class CartService {
     }
 
     const cart = cartUIService.transformToShopCart(serializeFullCart(fullCart));
+    const shopData = fullCart.items[0]?.product?.shop;
 
     return {
       cart,
@@ -34,6 +35,8 @@ class CartService {
       shop_id: cart.items[0].shop_id,
       qr_image_key: cart.qr_image_key,
       upi_id: cart.upi_id,
+      shop_opening: shopData?.opening,
+      shop_closing: shopData?.closing,
     };
   }
 

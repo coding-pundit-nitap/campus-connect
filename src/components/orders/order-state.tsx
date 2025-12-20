@@ -1,6 +1,9 @@
+import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
+
+import { EmptyState } from "../ui/empty-state";
 
 interface OrderWrapperProps {
   children: React.ReactNode;
@@ -40,8 +43,10 @@ export function OrderErrorState() {
 
 export function OrderEmptyState() {
   return (
-    <div className="flex items-center justify-center h-full min-h-48">
-      <p className="text-muted-foreground">Your order is empty</p>
-    </div>
+    <EmptyState
+      icon={<ShoppingCart className="h-10 w-10 text-muted-foreground" />}
+      title="No orders found"
+      description="You have no orders"
+    />
   );
 }

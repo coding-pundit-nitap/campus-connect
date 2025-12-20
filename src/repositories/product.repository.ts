@@ -1,5 +1,4 @@
-import { Prisma, Product } from "@prisma/client";
-
+import { Prisma, Product } from "@/../prisma/generated/client";
 import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
 import { searchQueue } from "@/lib/search/search-producer";

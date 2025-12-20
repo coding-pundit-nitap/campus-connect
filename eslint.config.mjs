@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "**/*.generated.ts",
     "node_modules/**",
+    "prisma/generated",
+    "dist/**"
   ]),
   {
     plugins: {
@@ -56,6 +58,7 @@ const eslintConfig = defineConfig([
       "src/services/**/*.{ts,tsx}",
       "src/proxy.ts",
       "prisma/**/*.ts",
+      "workers/**/*.{ts,tsx}",
     ],
     rules: {
       "no-console": "off",

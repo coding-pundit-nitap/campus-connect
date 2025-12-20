@@ -1,6 +1,6 @@
-import { OrderStatus } from "@prisma/client";
 import { DateRange } from "react-day-picker";
 
+import { OrderStatus } from "@/../prisma/generated/client";
 import axiosInstance from "@/lib/axios";
 import { SerializedOrderWithDetails } from "@/types";
 import { ActionResponse } from "@/types/response.types";
@@ -11,10 +11,11 @@ type FetchOrdersParams = {
   status?: OrderStatus;
   dateRange?: DateRange;
   pageParam: string | undefined;
+  signal?: AbortSignal;
 };
 
 class SearchAPIService {
-  async search(query: string): Promise<SearchResult[]> {
+  async search(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
     const url = `search`;
     const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
       url,
@@ -22,11 +23,15 @@ class SearchAPIService {
         params: {
           q: query,
         },
+        signal,
       }
     );
     return response.data.data;
   }
-  async searchProducts(query: string): Promise<SearchResult[]> {
+  async searchProducts(
+    query: string,
+    signal?: AbortSignal
+  ): Promise<SearchResult[]> {
     const url = `search/product`;
     const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
       url,
@@ -34,6 +39,7 @@ class SearchAPIService {
         params: {
           q: query,
         },
+        signal,
       }
     );
     return response.data.data;
@@ -44,6 +50,7 @@ class SearchAPIService {
     status,
     dateRange,
     pageParam,
+    signal,
   }: FetchOrdersParams): Promise<{
     orders: SerializedOrderWithDetails[];
     nextCursor?: string;
@@ -79,6 +86,7 @@ class SearchAPIService {
         to: dateRange?.to?.toISOString(),
         cursor: pageParam,
       },
+      signal,
     });
     return response.data.data;
   }

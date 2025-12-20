@@ -1,5 +1,4 @@
-import { PaymentMethod, Prisma } from "@prisma/client";
-
+import { PaymentMethod, Prisma } from "@/../prisma/generated/client";
 import {
   NotFoundError,
   UnauthorizedError,

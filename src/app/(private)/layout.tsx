@@ -12,7 +12,7 @@ export default async function PrivateLayout({
   try {
     await authUtils.isAuthenticated();
   } catch {
-    redirect("/login");
+    redirect("/");
   }
 
   return <PubLayoutContainer>{children}</PubLayoutContainer>;

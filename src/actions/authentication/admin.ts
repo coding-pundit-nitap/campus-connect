@@ -1,6 +1,5 @@
 "use server";
-import { Role } from "@prisma/client";
-
+import { Role } from "@/../prisma/generated/client";
 import { ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 

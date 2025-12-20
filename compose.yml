@@ -17,7 +17,6 @@ x-dev-resources: &dev-resources
   mem_limit: 512m
   cpus: "0.50"
 
-
 x-logging: &default-logging
   driver: "json-file"
   options:
@@ -77,19 +76,6 @@ services:
       - pnpm_store_volume:/root/.local/share/pnpm/store
     profiles:
       - dev
-
-  installer-prod:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: builder
-    container_name: campus_connect_installer_prod
-    volumes:
-      - .:/app
-      - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/root/.local/share/pnpm/store
-    profiles:
-      - prod
 
   # ----------------------------------------------------------------------------
   # MIGRATOR: DEVELOPMENT
@@ -184,7 +170,7 @@ services:
       dockerfile: Dockerfile
       target: dev
     container_name: campus_connect_worker_dev
-    command: npx tsx scripts/start-worker.ts
+    command: npx tsx workers/index.ts
     volumes:
       - .:/app
       - node_modules_volume:/app/node_modules
@@ -277,7 +263,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder 
+      target: migrator
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
     command: npx prisma migrate deploy --schema=./prisma/schema.prisma
@@ -292,8 +278,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      installer-prod:
-        condition: service_completed_successfully
     profiles:
       - prod
 
@@ -313,12 +297,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      minio:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      create-buckets:
-        condition: service_completed_successfully
       migrator-prod:
         condition: service_completed_successfully
     expose:
@@ -328,10 +306,11 @@ services:
       - .env.production
     environment:
       - TZ=UTC
+      - HOSTNAME=0.0.0.0
     networks:
       - campus_connect_net
     healthcheck:
-      test: ["CMD", "curl", "-I", "http://localhost:3000/api/health/status"]
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3000/api/health/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -344,10 +323,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
+      target: worker-runner
     container_name: campus_connect_worker_prod
     restart: always
-    command: npx tsx scripts/start-worker.ts
     env_file:
       - .env
       - .env.production

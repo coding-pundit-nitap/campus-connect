@@ -76,8 +76,14 @@ export const auth = betterAuth({
     },
   },
   defaultCookieAttributes: {
-    sameSite: "none",
-    secure: true,
+    sameSite:
+      process.env.NODE_ENV === "production" &&
+      process.env.BETTER_AUTH_URL?.startsWith("https")
+        ? "none"
+        : "lax",
+    secure:
+      process.env.NODE_ENV === "production" &&
+      process.env.BETTER_AUTH_URL?.startsWith("https"),
   },
 });
 export type Session = typeof auth.$Infer.Session;

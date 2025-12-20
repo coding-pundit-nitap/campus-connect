@@ -1,5 +1,4 @@
-import { Order } from "@prisma/client";
-
+import { Order } from "@/../prisma/generated/client";
 import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.types";
 

@@ -1,8 +1,8 @@
 "use server";
 
-import { Prisma, SellerVerificationStatus } from "@prisma/client";
 import z from "zod";
 
+import { Prisma, SellerVerificationStatus } from "@/../prisma/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

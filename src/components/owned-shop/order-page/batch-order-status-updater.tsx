@@ -15,7 +15,25 @@ import { OrderStatus } from "@/types/prisma.types";
 type BatchOrderStatusUpdaterProps = {
   onUpdate: (status: OrderStatus) => void;
   isUpdating: boolean;
+  selectedOrderStatuses?: OrderStatus[];
 };
+
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  NEW: "New",
+  PREPARING: "Preparing",
+  READY_FOR_PICKUP: "Ready for Pickup",
+  OUT_FOR_DELIVERY: "Out for Delivery",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
+const ACTIONABLE_STATUSES: OrderStatus[] = [
+  OrderStatus.PREPARING,
+  OrderStatus.READY_FOR_PICKUP,
+  OrderStatus.OUT_FOR_DELIVERY,
+  OrderStatus.COMPLETED,
+  OrderStatus.CANCELLED,
+];
 
 export function BatchOrderStatusUpdater({
   onUpdate,
@@ -24,7 +42,6 @@ export function BatchOrderStatusUpdater({
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | null>(
     null
   );
-  const allStatuses = Object.values(OrderStatus);
 
   const handleUpdate = () => {
     if (selectedStatus) {
@@ -42,9 +59,9 @@ export function BatchOrderStatusUpdater({
           <SelectValue placeholder="Select new status" />
         </SelectTrigger>
         <SelectContent>
-          {allStatuses.map((status) => (
+          {ACTIONABLE_STATUSES.map((status) => (
             <SelectItem key={status} value={status}>
-              {status}
+              {STATUS_LABELS[status]}
             </SelectItem>
           ))}
         </SelectContent>
@@ -52,6 +69,9 @@ export function BatchOrderStatusUpdater({
       <Button onClick={handleUpdate} disabled={!selectedStatus || isUpdating}>
         {isUpdating ? "Updating..." : "Apply to Selected"}
       </Button>
+      <p className="text-xs text-muted-foreground">
+        Note: Only orders with valid transitions will be updated
+      </p>
     </div>
   );
 }

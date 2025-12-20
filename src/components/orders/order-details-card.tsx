@@ -8,6 +8,7 @@ import OrderDetailsActions from "./order-details-actions";
 import OrderDetailsHeader from "./order-details-header";
 import OrderDetailsInfo from "./order-details-info";
 import OrderDetailsItems from "./order-details-items";
+import { OrderStatusTimeline } from "./order-status-timeline";
 
 type Props = {
   order: SerializedOrderWithDetails;
@@ -18,6 +19,8 @@ export default function OrderDetailsCard({ order }: Props) {
     <div className="mx-auto max-w-4xl space-y-6 rounded-lg border bg-card p-4 sm:p-6">
       <OrderDetailsHeader order={order} />
       <Separator />
+
+      <OrderStatusTimeline currentStatus={order.order_status as OrderStatus} />
 
       <div className="grid gap-6 md:grid-cols-2">
         <OrderDetailsInfo order={order} />

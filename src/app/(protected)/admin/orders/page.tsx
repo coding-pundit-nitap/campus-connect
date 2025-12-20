@@ -1,6 +1,6 @@
-import { OrderStatus, PaymentStatus } from "@prisma/client";
 import { Metadata } from "next";
 
+import { OrderStatus, PaymentStatus } from "@/../prisma/generated/client";
 import { getAllOrdersAction } from "@/actions/admin";
 import { OrdersTable } from "@/components/admin/orders/orders-table";
 
