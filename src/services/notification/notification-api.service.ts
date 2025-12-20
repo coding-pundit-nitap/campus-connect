@@ -1,6 +1,9 @@
-import { BroadcastNotification, Notification } from "@prisma/client";
 import { Route } from "next";
 
+import {
+  BroadcastNotification,
+  Notification,
+} from "@/../prisma/generated/client";
 import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types/response.types";
 

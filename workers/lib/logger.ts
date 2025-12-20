@@ -5,7 +5,7 @@ const isProduction = process.env.NODE_ENV === "production";
 const baseConfig = {
   level: process.env.LOG_LEVEL || (isProduction ? "info" : "debug"),
   base: {
-    service: "campus-connect",
+    service: "campus-connect-worker",
     env: process.env.NODE_ENV || "development",
   },
   timestamp: pino.stdTimeFunctions.isoTime,
@@ -45,39 +45,10 @@ export function createLogger(context: Record<string, unknown>): Logger {
   return logger.child(context);
 }
 
-export function logError(
-  loggerInstance: Logger,
-  error: unknown,
-  message: string,
-  extra?: Record<string, unknown>
-): void {
-  if (error instanceof Error) {
-    loggerInstance.error(
-      {
-        err: {
-          message: error.message,
-          name: error.name,
-          stack: error.stack,
-        },
-        ...extra,
-      },
-      message
-    );
-  } else {
-    loggerInstance.error({ err: error, ...extra }, message);
-  }
-}
-
 export const loggers = {
-  api: createLogger({ component: "api" }),
-  redis: createLogger({ component: "redis" }),
-  action: createLogger({ component: "action" }),
-  auth: createLogger({ component: "auth" }),
-  order: createLogger({ component: "order" }),
-  search: createLogger({ component: "search" }),
-  notification: createLogger({ component: "notification" }),
-  upload: createLogger({ component: "upload" }),
   worker: createLogger({ component: "worker" }),
+  notification: createLogger({ component: "notification" }),
+  search: createLogger({ component: "search" }),
   db: createLogger({ component: "database" }),
 };
 

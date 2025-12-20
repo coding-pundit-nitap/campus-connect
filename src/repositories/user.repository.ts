@@ -1,5 +1,4 @@
-import { Prisma, Role, User } from "@prisma/client";
-
+import { Prisma, Role, User } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
 import { searchQueue } from "@/lib/search/search-producer";
 

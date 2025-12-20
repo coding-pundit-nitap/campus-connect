@@ -1,5 +1,4 @@
-import { Prisma, UserAddress } from "@prisma/client";
-
+import { Prisma, UserAddress } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
 
 export type CreateAddressDto = Prisma.UserAddressCreateInput;

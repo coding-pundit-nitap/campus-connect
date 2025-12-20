@@ -52,8 +52,12 @@ export function isWithinShopHours(
     return true;
   }
 
-  const deliveryHour = deliveryTime.getHours();
-  const deliveryMinute = deliveryTime.getMinutes();
+  const IST_OFFSET_MINUTES = 330;
+  const deliveryTimeIST = new Date(
+    deliveryTime.getTime() + IST_OFFSET_MINUTES * 60 * 1000
+  );
+  const deliveryHour = deliveryTimeIST.getUTCHours();
+  const deliveryMinute = deliveryTimeIST.getUTCMinutes();
   const deliveryMinutes = deliveryHour * 60 + deliveryMinute;
 
   const openingMinutes = openingTime.hours * 60 + openingTime.minutes;

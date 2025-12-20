@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import { PrismaClient } from "./generated/client";
 
+const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding global counter...");
 

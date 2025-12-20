@@ -15,6 +15,7 @@ import {
 import {
   createOrderAction,
   getOrdersAction,
+  updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
 import { queryKeys } from "@/lib/query-keys";
 import { orderAPIService } from "@/services";
@@ -93,6 +94,23 @@ function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
+    },
+  });
+}
+
+export function useUpdateShopOrderStatus() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateOrderStatusAction,
+    onSuccess: (response) => {
+      toast.success(response.details);
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update order status");
     },
   });
 }

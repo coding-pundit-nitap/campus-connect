@@ -1,7 +1,7 @@
-import { Role } from "@prisma/client";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { Role } from "@/../prisma/generated/client";
 import { auth, User } from "@/auth";
 
 export interface IAuthUtils {

@@ -1,8 +1,8 @@
 "use server";
 
-import { Prisma, Role, UserStatus } from "@prisma/client";
 import z from "zod";
 
+import { Prisma, Role, UserStatus } from "@/../prisma/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

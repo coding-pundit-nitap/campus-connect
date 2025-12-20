@@ -1,4 +1,4 @@
-import { Category, Product } from "@prisma/client";
+import { Category, Product } from "@/../prisma/generated/client";
 
 export type SerializedProduct = Omit<
   Product,

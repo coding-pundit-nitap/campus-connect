@@ -17,20 +17,20 @@ RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
     && corepack prepare pnpm@latest --activate
 
 # ==============================================================================
-# ---- Dependencies Stage (Install ALL deps) ----
+# ---- Dependencies Stage ----
 # ==============================================================================
-# This stage installs all dependencies (prod and dev).
+# This stage installs all dependencies.
 FROM base AS deps
+WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile --ignore-scripts
 
-# ==============================================================================
-# ---- Production Dependencies Stage (Prune for Runner) ----
-# ==============================================================================
 FROM base AS prod-deps
-COPY --from=deps /app/node_modules ./node_modules
+WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm prune --prod --ignore-scripts
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # ==============================================================================
 # ---- Development Stage ----
@@ -39,16 +39,10 @@ FROM base AS dev
 # Code mounted via volumes in Compose
 
 # ==============================================================================
-# ---- Builder Stage (Build App + Keep DevTools for Migrator) ----
+# ---- Builder Stage ----
 # ==============================================================================
-# This stage builds the Next.js application for production.
-FROM base AS builder
+FROM base AS app-builder
 ENV NODE_ENV=production
-
-# Copy dependencies from the 'deps' stage.
-COPY --from=deps /app/node_modules ./node_modules
-# Copy the rest of the application source code.
-COPY . .
 
 # Accept build arguments for Next.js public environment variables.
 ARG NEXT_PUBLIC_API_URL
@@ -60,9 +54,28 @@ ENV NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT
 ENV NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET
 ENV DATABASE_URL=$DATABASE_URL
 
-# Build the application.
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY . .
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
 RUN pnpm prisma generate
 RUN pnpm build
+
+FROM base AS worker-builder
+ENV NODE_ENV=production
+
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY . .
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
+
+ARG DATABASE_URL="postgresql://connect:invalidpassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true"
+ENV DATABASE_URL=$DATABASE_URL
+
+RUN pnpm prisma generate
+RUN pnpm build:worker
 
 # ==============================================================================
 # ---- Runner Stage ----
@@ -71,7 +84,6 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create a non-root system user and group for security.
 RUN addgroup --system --gid 1001 nodejs && \
@@ -81,34 +93,50 @@ RUN addgroup --system --gid 1001 nodejs && \
 RUN mkdir -p /home/nextjs/.cache/node/corepack && \
     chown -R nextjs:nodejs /home/nextjs/.cache
 
-# 1. Copy Pruned Node Modules (from prod-deps stage)
-COPY --from=prod-deps --chown=nextjs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=app-builder /app/.next/standalone ./
+COPY --from=app-builder /app/public ./public
+COPY --from=app-builder /app/.next/static ./.next/static
 
-# 2. Copy App Build (from builder stage)
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
-
-# 3. Copy Scripts & Configs
-COPY --chown=nextjs:nodejs ./scripts/entrypoint.sh ./scripts/entrypoint.sh
-COPY --chown=nextjs:nodejs ./scripts/start-worker.ts ./scripts/start-worker.ts
-COPY --chown=nextjs:nodejs ./scripts/cleanup-orphaned-files.ts ./scripts/cleanup-orphaned-files.ts
-COPY --chown=nextjs:nodejs ./scripts/sync-search.ts ./scripts/sync-search.ts
-COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
-COPY --from=builder --chown=nextjs:nodejs /app/tsconfig.json ./tsconfig.json
-COPY --from=builder --chown=nextjs:nodejs /app/src ./src
+# Create .next/cache for image optimization with proper ownership
+RUN mkdir -p .next/cache && chown -R nextjs:nodejs .next/cache
 
 # Permissions
 RUN chmod -R u=rwX,go=rX /app
-RUN chmod 555 /app/scripts/entrypoint.sh && \
-    chmod +x /app/node_modules/.bin/* && \
-    find /app/node_modules/.prisma/client -name "query_engine-*" -exec chmod +x {} \;
 
 USER nextjs
 EXPOSE 3000
 
 # Use dumb-init to properly handle process signals and run the app.
-ENTRYPOINT ["dumb-init", "--", "./scripts/entrypoint.sh"]
-CMD ["node_modules/.bin/next", "start"]
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "server.js"]
+
+
+# ==============================================================================
+# ---- Worker Runner Stage ----
+# ==============================================================================
+FROM base AS worker-runner
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=worker-builder /app/dist ./dist
+
+USER node
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/workers/index.js"]
+
+FROM base AS migrator
+WORKDIR /app
+
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
+
+ARG DATABASE_URL="postgresql://connect:invalidpassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true"
+ENV DATABASE_URL=$DATABASE_URL
+
+RUN pnpm prisma generate
+
+CMD ["pnpm", "prisma", "migrate", "deploy"]

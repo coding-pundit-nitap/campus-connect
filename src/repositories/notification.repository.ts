@@ -1,5 +1,4 @@
-import { Notification, Prisma } from "@prisma/client";
-
+import { Notification, Prisma } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
 
 class NotificationRepository {

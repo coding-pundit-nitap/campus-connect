@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 
-import { serializeProduct } from "@/lib/utils";
+import { Prisma } from "@/../prisma/generated/client";
+import { serializeProduct } from "@/lib/utils/product.utils";
 import reviewRepository from "@/repositories/reviews.repository";
 import { productService } from "@/services/product/product.service";
 import { ReviewWithUser } from "@/types/review.type";

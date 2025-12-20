@@ -1,8 +1,12 @@
 "use server";
 
-import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
 import z from "zod";
 
+import {
+  OrderStatus,
+  PaymentStatus,
+  Prisma,
+} from "@/../prisma/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

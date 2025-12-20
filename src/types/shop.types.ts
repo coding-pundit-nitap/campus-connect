@@ -1,4 +1,4 @@
-import { Shop } from "@prisma/client";
+import { Shop } from "@/../prisma/generated/client";
 
 export interface ShopWithOwner extends Shop {
   user: {

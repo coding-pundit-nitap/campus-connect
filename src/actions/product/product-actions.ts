@@ -1,8 +1,8 @@
 "use server";
 
-import { Category } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 
+import { Category } from "@/../prisma/generated/client";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
