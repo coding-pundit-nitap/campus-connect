@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 
-import { categoryRepository } from "@/repositories";
-import { SearchResult } from "@/types";
+import { authUtils } from "@/lib/utils/auth.utils.server";
+import { esSearchService } from "@/services/search/es-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
-} from "@/types/response.types";
+  SearchResult,
+} from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +20,15 @@ export async function GET(request: Request) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const trimmedQuery = query.trim();
+    const shopId = await authUtils.getOwnedShopId();
 
-    const categories = await categoryRepository.searchCategory(trimmedQuery);
+    const esResponse = await esSearchService.searchCategories({
+      query: query.trim(),
+      shopId: shopId ?? undefined,
+      limit: 10,
+    });
 
-    const searchResults: SearchResult[] = categories.map((category) => ({
+    const searchResults: SearchResult[] = esResponse.hits.map((category) => ({
       id: category.id,
       title: category.name,
       image_key: "",

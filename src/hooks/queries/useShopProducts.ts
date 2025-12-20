@@ -9,6 +9,7 @@ import {
 import { toast } from "sonner";
 
 import {
+  bulkCreateProductsAction,
   createProductAction,
   deleteProductAction,
   updateProductAction,
@@ -137,6 +138,30 @@ export function useShopProductsDelete() {
     },
     onError: () => {
       toast.error("Failed to delete product. Please try again.");
+    },
+  });
+}
+
+export function useBulkProductsCreate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: bulkCreateProductsAction,
+    onSuccess: ({ data, success, details }) => {
+      if (success && data) {
+        toast.success(details || `Created ${data.created} products!`);
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.all,
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.shops.all,
+        });
+      }
+    },
+    onError: () => {
+      toast.error("Failed to create products. Please try again.");
     },
   });
 }

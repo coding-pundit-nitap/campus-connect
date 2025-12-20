@@ -10,7 +10,7 @@ import {
 } from "@/hooks/queries";
 import { useProductFilters } from "@/hooks/ui/useProductFilters";
 import { queryKeys } from "@/lib/query-keys";
-import { getProductStates } from "@/lib/utils";
+import { getProductStates, productUIServices } from "@/lib/utils";
 import { productAPIService } from "@/services/product";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
@@ -33,6 +33,22 @@ export const useSharedInfiniteProducts = ({
   initialError,
 }: Props) => {
   const router = useRouter();
+  const {
+    filters,
+    updateFilter,
+    clearFilters,
+    updateSearch,
+    updatePriceRange,
+    updateStockFilter,
+    updateSort,
+    clearSearchFilter,
+    clearPriceFilter,
+    clearStockFilter,
+  } = useProductFilters();
+
+  const hasActiveFilters = useMemo(() => {
+    return productUIServices.hasActiveFilters(filters);
+  }, [filters]);
 
   const {
     data,
@@ -43,13 +59,33 @@ export const useSharedInfiniteProducts = ({
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: queryKeys.products.byShop(shop_id),
+    queryKey: [
+      ...queryKeys.products.byShop(shop_id),
+      filters.sortBy,
+      filters.sortOrder,
+      filters.categoryId,
+      filters.search,
+      filters.inStock,
+    ],
     queryFn: ({ pageParam }) =>
-      productAPIService.fetchShopProducts({ shop_id, cursor: pageParam }),
+      productAPIService.fetchShopProducts({
+        shop_id,
+        cursor: pageParam,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+        categoryId: filters.categoryId ?? undefined,
+        search: filters.search,
+        inStock: filters.inStock ?? undefined,
+      }),
     initialPageParam: initialNextCursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData:
-      initialProducts.length > 0
+      initialProducts.length > 0 &&
+      !hasActiveFilters &&
+      filters.sortBy === "created_at" &&
+      filters.sortOrder === "desc" &&
+      !filters.categoryId &&
+      !filters.search
         ? {
             pages: [
               {
@@ -67,29 +103,10 @@ export const useSharedInfiniteProducts = ({
       return initialProducts;
     }
 
-    const serverData = data.pages[0]?.data ?? [];
-    const clientPages = data.pages.slice(1);
-    const clientProducts = clientPages.flatMap((page) => page.data);
-
-    return [...serverData, ...clientProducts];
+    return data.pages.flatMap((page) => page.data);
   }, [data, initialProducts]);
 
-  const {
-    filters,
-    filteredProducts,
-    hasActiveFilters,
-    updateFilter,
-    clearFilters,
-    updateSearch,
-    updatePriceRange,
-    updateStockFilter,
-    updateSort,
-    clearSearchFilter,
-    clearPriceFilter,
-    clearStockFilter,
-  } = useProductFilters(allProducts);
-
-  const displayProducts = hasActiveFilters ? filteredProducts : allProducts;
+  const displayProducts = allProducts;
 
   const productStates = useMemo(
     () =>

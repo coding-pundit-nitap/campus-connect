@@ -15,6 +15,7 @@ import { ReactNode } from "react";
 
 import { getShopOrderByIdAction } from "@/actions/orders/order-actions";
 import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
+import { BackButton } from "@/components/shared/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,6 +78,11 @@ export default async function ShopOrderDetailPage({ params }: Props) {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
+      <BackButton
+        href="/owner-shops/orders"
+        label="Back to Orders"
+        className="mb-4"
+      />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">

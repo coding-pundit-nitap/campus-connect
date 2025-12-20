@@ -9,7 +9,7 @@ import { OrderStatus } from "@/types/prisma.types";
 export const useSearchQuery = (query: string) => {
   return useQuery({
     queryKey: queryKeys.search.query(query),
-    queryFn: () => searchAPIService.search(query),
+    queryFn: ({ signal }) => searchAPIService.search(query, signal),
     enabled: !!query && query.trim().length > 0,
     staleTime: 1000 * 60 * 5,
   });
@@ -18,7 +18,7 @@ export const useSearchQuery = (query: string) => {
 export const useProductSearchQuery = (query: string) => {
   return useQuery({
     queryKey: queryKeys.search.products(query),
-    queryFn: () => searchAPIService.searchProducts(query),
+    queryFn: ({ signal }) => searchAPIService.searchProducts(query, signal),
     enabled: !!query && query.trim().length > 0,
     staleTime: 1000 * 60 * 5,
   });
@@ -30,12 +30,13 @@ export const useOrderSearchQuery = (
 ) => {
   return useInfiniteQuery({
     queryKey: queryKeys.search.orders(query, filters),
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam, signal }) =>
       searchAPIService.searchOrders({
         query,
         status: filters.status,
         dateRange: filters.dateRange,
         pageParam,
+        signal,
       }),
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (lastPage) => lastPage.nextCursor,

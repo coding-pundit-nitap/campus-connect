@@ -2,6 +2,7 @@ import { Job, Worker } from "bullmq";
 
 import { elasticClient, INDICES } from "../lib/elasticsearch";
 import { loggers } from "../lib/logger";
+import { prisma } from "../lib/prisma";
 import { redisConnection } from "../lib/redis-connection";
 import { SEARCH_QUEUE_NAME, SearchJobData } from "./types";
 
@@ -59,11 +60,62 @@ const workerHandler = async (job: Job<SearchJobData>) => {
         break;
       }
       case "UPDATE_ORDER_STATUS": {
-        await elasticClient.update({
-          index: INDICES.ORDERS,
-          id: job.data.payload.id,
-          doc: { status: job.data.payload.status },
-        });
+        try {
+          await elasticClient.update({
+            index: INDICES.ORDERS,
+            id: job.data.payload.id,
+            doc: { status: job.data.payload.status },
+          });
+        } catch (error) {
+          const isDocumentMissing =
+            (
+              error as unknown as {
+                meta: { body: { error: { type: string } } };
+              }
+            )?.meta?.body?.error?.type === "document_missing_exception" ||
+            (error as unknown as { message: string })?.message?.includes(
+              "document_missing_exception"
+            );
+
+          if (isDocumentMissing) {
+            logger.warn(
+              { jobId: job.id, orderId: job.data.payload.id },
+              "Document missing during update, fetching from DB and indexing..."
+            );
+            const order = await prisma.order.findUnique({
+              where: { id: job.data.payload.id },
+              include: { user: true },
+            });
+
+            if (order) {
+              await elasticClient.index({
+                index: INDICES.ORDERS,
+                id: order.id,
+                document: {
+                  id: order.id,
+                  shop_id: order.shop_id,
+                  display_id: order.display_id,
+                  user_email: order.user?.email,
+                  delivery_address: order.delivery_address_snapshot,
+                  status: order.order_status,
+                  created_at: order.created_at,
+                },
+              });
+              logger.info(
+                { jobId: job.id, orderId: order.id },
+                "Successfully indexed missing order"
+              );
+            } else {
+              logger.error(
+                { jobId: job.id, orderId: job.data.payload.id },
+                "Order not found in DB either"
+              );
+              throw error;
+            }
+          } else {
+            throw error;
+          }
+        }
         break;
       }
 
@@ -79,6 +131,23 @@ const workerHandler = async (job: Job<SearchJobData>) => {
       case "DELETE_USER": {
         await elasticClient.delete({
           index: INDICES.USERS,
+          id: job.data.payload.id,
+        });
+        break;
+      }
+
+      // --- CATEGORIES ---
+      case "INDEX_CATEGORY": {
+        await elasticClient.index({
+          index: INDICES.CATEGORIES,
+          id: job.data.payload.id,
+          document: job.data.payload,
+        });
+        break;
+      }
+      case "DELETE_CATEGORY": {
+        await elasticClient.delete({
+          index: INDICES.CATEGORIES,
           id: job.data.payload.id,
         });
         break;

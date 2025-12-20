@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { shopRepository } from "@/repositories";
-import { productService } from "@/services/product/product.service";
-import { SearchResult } from "@/types";
+import { esSearchService } from "@/services/search/es-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -20,33 +18,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const trimmedQuery = query.trim();
-
-    const [shops, products] = await Promise.all([
-      shopRepository.searchShops(trimmedQuery, 5),
-      productService.searchProducts(trimmedQuery, 5),
-    ]);
-
-    const searchResults: SearchResult[] = [
-      ...shops.map((shop) => ({
-        id: shop.id,
-        title: shop.name,
-        subtitle: shop.location,
-        type: "shop" as const,
-        image_key: shop.image_key,
-      })),
-      ...products.map((product) => ({
-        id: product.id,
-        title: product.name,
-        subtitle: product.shop.name,
-        type: "product" as const,
-        image_key: product.image_key,
-        shop_id: product.shop.id,
-      })),
-    ];
+    const results = await esSearchService.globalSearch(query.trim());
 
     const successResponse = createSuccessResponse(
-      searchResults,
+      results,
       "Search completed successfully"
     );
     return NextResponse.json(successResponse);

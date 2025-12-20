@@ -109,7 +109,6 @@ export function ProductCard({
 
   return (
     <div className="group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl">
-      {/* Mobile: Horizontal list layout */}
       <Link href={`/product/${product.id}`} className="flex md:hidden h-36">
         <div className="relative w-24 shrink-0 h-full">
           <ProductCardHeader
@@ -117,6 +116,27 @@ export function ProductCard({
             priority={priority}
             isMobileList
           />
+          <div className="absolute top-1 left-1 flex flex-col gap-1">
+            {isOutOfStock && (
+              <Badge
+                variant="secondary"
+                className="text-xs px-1.5 py-0.5 shadow-sm"
+              >
+                Out of Stock
+              </Badge>
+            )}
+            {hasLowStock && !isOutOfStock && (
+              <Badge
+                variant="secondary"
+                className="border-orange-200 text-orange-600 text-xs px-1.5 py-0.5 shadow-sm"
+              >
+                Low Stock
+              </Badge>
+            )}
+          </div>
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-white/60 dark:bg-black/60" />
+          )}
         </div>
         <div className="flex  md:flex-col h-full justify-between flex-1">
           <ProductCardDetails
@@ -130,7 +150,6 @@ export function ProductCard({
         </div>
       </Link>
 
-      {/* Desktop: Vertical card layout */}
       <div className="hidden md:block">
         <div className="relative">
           <ProductCardHeader product={product} priority={priority} />

@@ -8,12 +8,13 @@ import {
 } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
-export const useProductFilters = (products: SerializedProduct[]) => {
+export const useProductFilters = (products?: SerializedProduct[]) => {
   const [filters, setFilters] = useState<FilterState>(
     createDefaultFilterState()
   );
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     return productUIServices.applyAllFilters(products, filters);
   }, [products, filters]);
 

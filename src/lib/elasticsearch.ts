@@ -32,4 +32,5 @@ export const INDICES = {
   PRODUCTS: "products",
   ORDERS: "orders",
   USERS: "users",
+  CATEGORIES: "categories",
 };

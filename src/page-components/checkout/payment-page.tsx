@@ -13,7 +13,7 @@ export default async function PaymentPageComponent({
 
   return (
     <SharedCard
-      headerContent={<CheckoutHeader />}
+      headerContent={<CheckoutHeader currentStep="payment" />}
       contentClassName="grid lg:grid-cols-2 gap-8 px-0"
     >
       <PaymentForm

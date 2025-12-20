@@ -245,3 +245,85 @@ export async function deleteProductAction(
     throw new InternalServerError("Failed to delete product");
   }
 }
+
+export interface BulkProductInput {
+  name: string;
+  description?: string;
+  price: number;
+  stock_quantity: number;
+  discount?: number;
+  category?: string;
+}
+
+export interface BulkCreateResult {
+  created: number;
+  products: Array<{ id: string; name: string }>;
+}
+
+export async function bulkCreateProductsAction(
+  products: BulkProductInput[]
+): Promise<ActionResponse<BulkCreateResult>> {
+  try {
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
+      throw new UnauthorizedError("User is not authorized to create products");
+    }
+
+    const shop_id = context.id;
+
+    if (products.length === 0) {
+      throw new InternalServerError("No products provided");
+    }
+
+    if (products.length > 50) {
+      throw new InternalServerError("Maximum 50 products per batch");
+    }
+
+    const createdProducts: Array<{ id: string; name: string }> = [];
+
+    for (const productData of products) {
+      let category = null;
+      if (productData.category && productData.category.trim()) {
+        category = await categoryRepository.findOrCreate(
+          productData.category.trim(),
+          shop_id
+        );
+      }
+
+      const newProduct = await productRepository.create({
+        name: productData.name,
+        description: productData.description || "",
+        price: productData.price,
+        stock_quantity: productData.stock_quantity,
+        discount: productData.discount,
+        image_key: "placeholder",
+        shop: {
+          connect: { id: shop_id },
+        },
+        ...(category && {
+          category: {
+            connect: { id: category.id },
+          },
+        }),
+      });
+
+      createdProducts.push({ id: newProduct.id, name: newProduct.name });
+    }
+
+    revalidatePath(`/shop/${shop_id}`);
+
+    return createSuccessResponse(
+      {
+        created: createdProducts.length,
+        products: createdProducts,
+      },
+      `Successfully created ${createdProducts.length} products`
+    );
+  } catch (error) {
+    console.error("BULK CREATE PRODUCTS ERROR:", error);
+    throw new InternalServerError("Failed to create products");
+  }
+}

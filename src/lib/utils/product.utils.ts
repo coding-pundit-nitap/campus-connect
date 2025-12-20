@@ -56,7 +56,8 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductActionFormData>[] = [
   {
     name: "description",
     label: "Description",
-    type: "textarea",
+    type: "richtext",
+    placeholder: "Describe your product...",
     required: true,
   },
   { name: "price", label: "Price", type: "number", required: true },
@@ -84,11 +85,14 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductActionFormData>[] = [
   },
 ];
 
+export type SortBy = "name" | "price" | "created_at" | "rating";
+
 export interface FilterState {
   search: string;
   priceRange: { min: number; max: number };
   inStock: boolean | null;
-  sortBy: "name" | "price" | "created_at" | "rating";
+  categoryId: string | null;
+  sortBy: SortBy;
   sortOrder: "asc" | "desc";
 }
 
@@ -102,6 +106,7 @@ export const createDefaultFilterState = (): FilterState => ({
   search: "",
   priceRange: { min: 0, max: 100000 },
   inStock: null,
+  categoryId: null,
   sortBy: "created_at",
   sortOrder: "desc",
 });
@@ -221,7 +226,8 @@ export class ProductUIServices {
       filters.search ||
       filters.priceRange.min !== 0 ||
       filters.priceRange.max !== 100000 ||
-      filters.inStock !== null
+      filters.inStock !== null ||
+      filters.categoryId !== null
     );
   }
 
@@ -297,6 +303,8 @@ export class ProductUIServices {
       updatePriceRange: (min: number, max: number) =>
         updateFilter({ priceRange: { min, max } }),
       updateStockFilter: (inStock: boolean | null) => updateFilter({ inStock }),
+      updateCategoryFilter: (categoryId: string | null) =>
+        updateFilter({ categoryId }),
       updateSort: (
         sortBy: FilterState["sortBy"],
         sortOrder: FilterState["sortOrder"]
@@ -307,6 +315,7 @@ export class ProductUIServices {
           priceRange: { min: 0, max: 100000 },
         }),
       clearStockFilter: () => updateFilter({ inStock: null }),
+      clearCategoryFilter: () => updateFilter({ categoryId: null }),
     };
   }
 
@@ -327,8 +336,6 @@ export class ProductUIServices {
       },
       {} as Record<string, SerializedProduct[]>
     );
-
-    // Convert to array and sort categories alphabetically, with "Uncategorized" last
     return Object.entries(grouped)
       .map(([categoryName, products]) => ({ categoryName, products }))
       .sort((a, b) => {
