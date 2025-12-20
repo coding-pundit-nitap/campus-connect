@@ -114,9 +114,10 @@ export default function ProductDetails({
           </span>
         </div>
 
-        <p className="text-gray-600 text-sm leading-relaxed">
-          {product.description}
-        </p>
+        <div
+          className="mt-1 text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none"
+          dangerouslySetInnerHTML={{ __html: product.description }}
+        />
       </div>
     </div>
   );

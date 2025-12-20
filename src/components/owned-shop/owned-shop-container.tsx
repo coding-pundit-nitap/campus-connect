@@ -68,14 +68,6 @@ export function OwnedShopContainer({
     initialError,
   });
 
-  if (isEmptyState) {
-    return (
-      <div className="space-y-4">
-        <ShopEmptyState />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
       <Card>

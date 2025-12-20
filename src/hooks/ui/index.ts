@@ -11,7 +11,6 @@ export * from "./useOwnerProducts";
 export * from "./useProduct";
 export * from "./useProductFilters";
 export * from "./useProductForm";
-export * from "./useRegisterForm";
 export * from "./useSearch";
 export * from "./useShopForm";
 export * from "./useToggleTheme";

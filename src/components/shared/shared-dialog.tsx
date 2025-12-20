@@ -52,7 +52,9 @@ export default function SharedDialog({
 }: SharedDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogTrigger className="w-full" asChild>
+        {trigger}
+      </DialogTrigger>
       <DialogContent
         className={cn(
           "overflow-y-auto hide-scrollbar max-h-screen sm:max-w-lg",
