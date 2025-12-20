@@ -1,60 +1,19 @@
-import React from "react";
+"use client";
 
-import SharedDialog from "@/components/shared/shared-dialog";
-import { SharedForm } from "@/components/shared/shared-form";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
-import { useCategorySearch, useCreateProductForm } from "@/hooks";
-import { productUIServices } from "@/lib/utils";
-import { ButtonConfig } from "@/types";
 
 export function ShopAction() {
-  const { form, state, handlers } = useCreateProductForm();
-  const { suggestions, isLoadingSuggestions, onSearchQuery } =
-    useCategorySearch();
-
-  const submitButton: ButtonConfig = {
-    text: "Save Changes",
-    type: "submit",
-    variant: "default",
-    loading: state.isLoading || state.isSubmitting,
-    disabled: state.isLoading || state.isSubmitting,
-  };
-
-  const baseFields = productUIServices.createProductFormFields();
-  const fields = baseFields.map((field) => {
-    if (field.name === "category") {
-      return {
-        ...field,
-        suggestions,
-        isLoadingSuggestions,
-        onSearchQuery,
-      };
-    }
-    return field;
-  });
-
   return (
-    <div className="flex flex-row justify-end">
-      <SharedDialog
-        title="Link Product"
-        description="Link a product to this shop"
-        trigger={
-          <Button
-            className=" bg-blue-500 hover:bg-blue-600 dark:bg-blue-500 dark:hover:bg-blue-600 text-white"
-            variant="outline"
-          >
-            + Link Product
-          </Button>
-        }
-        showCloseButton={false}
-      >
-        <SharedForm
-          form={form}
-          submitButton={submitButton}
-          onSubmit={handlers.onSubmit}
-          fields={fields}
-        />
-      </SharedDialog>
+    <div className="flex flex-row gap-2 justify-end">
+      <Link href={"/owner-shops/products/new"}>
+        <Button className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+          <Plus className="h-4 w-4" />
+          Add Product
+        </Button>
+      </Link>
     </div>
   );
 }

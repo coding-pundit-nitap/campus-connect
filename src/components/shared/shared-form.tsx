@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import {
   Select,
   SelectContent,
@@ -66,7 +67,14 @@ export function SharedForm<T extends FieldValues>({
               <FormItem>
                 <FormLabel>{field.label}</FormLabel>
                 <FormControl>
-                  {field.type === "category" ? (
+                  {field.type === "richtext" ? (
+                    <RichTextEditor
+                      value={formField.value || ""}
+                      onChange={formField.onChange}
+                      placeholder={field.placeholder}
+                      disabled={field.disabled || isLoading}
+                    />
+                  ) : field.type === "category" ? (
                     <SharedCategoryInput
                       value={formField.value || ""}
                       onChange={formField.onChange}

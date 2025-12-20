@@ -12,9 +12,19 @@ class ProductAPIService {
   async fetchShopProducts({
     shop_id,
     cursor,
+    sortBy,
+    sortOrder,
+    categoryId,
+    search,
+    inStock,
   }: {
     shop_id: string;
     cursor: string | null;
+    sortBy?: string;
+    sortOrder?: string;
+    categoryId?: string;
+    search?: string;
+    inStock?: boolean;
   }): Promise<PaginatedProductsResponse> {
     const url = `shops/${shop_id}/products`;
     const response = await axiosInstance.get<
@@ -23,6 +33,11 @@ class ProductAPIService {
       params: {
         limit: 20,
         cursor: cursor || undefined,
+        sortBy,
+        sortOrder,
+        categoryId,
+        search,
+        inStock,
       },
     });
     return response.data.data;

@@ -1,6 +1,7 @@
 import { elasticClient, INDICES } from "../lib/elasticsearch";
 import { prisma } from "../lib/prisma";
 import {
+  CATEGORY_MAPPING,
   ORDER_MAPPING,
   PRODUCT_MAPPING,
   SHOP_MAPPING,
@@ -15,6 +16,7 @@ async function ensureIndices() {
     { name: INDICES.PRODUCTS, mapping: PRODUCT_MAPPING },
     { name: INDICES.ORDERS, mapping: ORDER_MAPPING },
     { name: INDICES.USERS, mapping: USER_MAPPING },
+    { name: INDICES.CATEGORIES, mapping: CATEGORY_MAPPING },
   ];
 
   for (const { name, mapping } of indices) {
@@ -67,7 +69,10 @@ async function syncShops() {
 async function syncProducts() {
   console.log("Syncing Products...");
   const products = await prisma.product.findMany({
-    include: { category: true },
+    include: {
+      category: true,
+      shop: { select: { is_active: true, name: true } },
+    },
   });
 
   if (products.length === 0) return;
@@ -82,6 +87,8 @@ async function syncProducts() {
       discount: Number(product.discount),
       stock_quantity: product.stock_quantity,
       shop_id: product.shop_id,
+      shop_name: product.shop.name,
+      shop_is_active: product.shop.is_active,
       category: product.category ? product.category.name : null,
       rating:
         product.review_count > 0
@@ -167,6 +174,30 @@ async function syncUsers() {
   }
 }
 
+async function syncCategories() {
+  console.log("Syncing Categories...");
+  const categories = await prisma.category.findMany();
+
+  if (categories.length === 0) return;
+
+  const operations = categories.flatMap((category) => [
+    { index: { _index: INDICES.CATEGORIES, _id: category.id } },
+    {
+      id: category.id,
+      name: category.name,
+      shop_id: category.shop_id,
+    },
+  ]);
+
+  const bulkResponse = await elasticClient.bulk({ refresh: true, operations });
+
+  if (bulkResponse.errors) {
+    console.error("Errors during category sync:", bulkResponse.items);
+  } else {
+    console.log(`Synced ${categories.length} categories.`);
+  }
+}
+
 async function main() {
   try {
     await ensureIndices();
@@ -174,6 +205,7 @@ async function main() {
     await syncProducts();
     await syncOrders();
     await syncUsers();
+    await syncCategories();
     console.log("Search sync completed successfully.");
   } catch (error) {
     console.error("Search sync failed:", error);

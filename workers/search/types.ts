@@ -10,6 +10,8 @@ export interface SearchJobData<T = Record<string, any>> {
     | "INDEX_ORDER"
     | "UPDATE_ORDER_STATUS"
     | "INDEX_USER"
-    | "DELETE_USER";
+    | "DELETE_USER"
+    | "INDEX_CATEGORY"
+    | "DELETE_CATEGORY";
   payload: T;
 }

@@ -1,5 +1,6 @@
 import React from "react";
 
+import { BackButton } from "@/components/shared/back-button";
 import Shops from "@/components/shops/shops";
 
 type Props = {
@@ -7,5 +8,10 @@ type Props = {
 };
 
 export default function IndividualShop({ shop_id }: Props) {
-  return <Shops shop_id={shop_id} />;
+  return (
+    <div className="container py-6 space-y-4">
+      <BackButton href="/shops" label="Back to Shops" />
+      <Shops shop_id={shop_id} />
+    </div>
+  );
 }

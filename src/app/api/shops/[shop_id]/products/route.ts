@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { Prisma } from "@/../prisma/generated/client";
-import { serializeProducts } from "@/lib/utils/product.utils";
+import { serializeProducts, SortBy } from "@/lib/utils/product.utils";
 import productRepository from "@/repositories/product.repository";
+import { esSearchService } from "@/services/search/es-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -24,15 +24,68 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "10");
-    const cursor = searchParams.get("cursor");
+    const cursor = searchParams.get("cursor") || undefined;
+    const sortBy = searchParams.get("sortBy") as SortBy | undefined;
+    const sortOrder =
+      (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+    const search = searchParams.get("search") || undefined;
+    const categoryId = searchParams.get("categoryId") || undefined;
+    const inStockParam = searchParams.get("inStock");
+    const inStock =
+      inStockParam === "true"
+        ? true
+        : inStockParam === "false"
+          ? false
+          : undefined;
+
+    const VALID_SORT_FIELDS = ["name", "price", "created_at", "stock_quantity"];
+    const effectiveSortBy =
+      sortBy && VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "created_at";
+
+    if (search || categoryId || inStock !== undefined) {
+      const esResponse = await esSearchService.searchProducts({
+        query: search,
+        shopId: shop_id,
+        categoryId,
+        inStock,
+        sortBy: effectiveSortBy,
+        sortOrder,
+        limit,
+        page: 1,
+      });
+
+      const responseData = {
+        data: esResponse.hits.map((hit) => ({
+          id: hit.id,
+          name: hit.name,
+          description: hit.description,
+          price: hit.price,
+          discount: hit.discount,
+          stock_quantity: hit.stock_quantity,
+          image_key: hit.image_key,
+          category_id: hit.category_id,
+          shop_id: hit.shop_id,
+          category: hit.category_name
+            ? { id: hit.category_id, name: hit.category_name }
+            : null,
+          shop: { id: hit.shop_id, name: hit.shop_name },
+          rating: 0,
+          created_at: hit.created_at,
+          updated_at: hit.updated_at,
+        })),
+        nextCursor: null,
+      };
+
+      return NextResponse.json(
+        createSuccessResponse(responseData, "Products retrieved successfully")
+      );
+    }
 
     const queryOptions = {
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
-      orderBy: {
-        created_at: Prisma.SortOrder.desc,
-      },
+      orderBy: { [effectiveSortBy]: sortOrder },
       include: {
         category: true,
         shop: {
