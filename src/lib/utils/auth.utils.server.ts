@@ -33,7 +33,7 @@ class AuthUtils implements IAuthUtils {
   }
 
   unAuthenticated(): never {
-    return redirect("/login");
+    return redirect("/");
   }
 
   unAuthorized(): never {
