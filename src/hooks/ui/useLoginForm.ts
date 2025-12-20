@@ -10,10 +10,6 @@ export function useLogin() {
     onGoogleLogin: useCallback(() => {
       loginUIService.handleGoogleLogin();
     }, []),
-
-    onNavigateToRegister: useCallback(() => {
-      router.push("/register");
-    }, [router]),
   };
 
   return {

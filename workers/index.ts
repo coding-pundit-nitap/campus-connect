@@ -2,7 +2,7 @@ import { loggers } from "./lib/logger";
 import { notificationWorker } from "./notification/consumer";
 import { searchWorker } from "./search/consumer";
 
-const logger = loggers.worker;
+export const logger = loggers.worker;
 
 logger.info("🚀 Worker Service Initialized");
 
