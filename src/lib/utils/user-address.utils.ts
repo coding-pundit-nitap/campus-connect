@@ -1,4 +1,4 @@
-import { UserAddress } from "@prisma/client";
+import { UserAddress } from "@/../prisma/generated/client";
 
 class UserAddressUIService {
   canDeleteAddress = (

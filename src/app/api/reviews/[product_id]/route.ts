@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 
+import { Prisma } from "@/../prisma/generated/client";
 import reviewRepository from "@/repositories/reviews.repository";
 import { createSuccessResponse } from "@/types";
 import { ReviewWithUser } from "@/types/review.type";

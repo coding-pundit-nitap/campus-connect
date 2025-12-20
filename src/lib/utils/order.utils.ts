@@ -1,11 +1,4 @@
 import {
-  Order,
-  OrderItem,
-  OrderStatus,
-  PaymentStatus,
-  Shop,
-} from "@prisma/client";
-import {
   BadgeCent,
   Bike,
   CheckCircle2,
@@ -19,6 +12,13 @@ import {
   XCircle,
 } from "lucide-react";
 
+import {
+  Order,
+  OrderItem,
+  OrderStatus,
+  PaymentStatus,
+  Shop,
+} from "@/../prisma/generated/client";
 import {
   OrderWithDetails,
   SearchResult,

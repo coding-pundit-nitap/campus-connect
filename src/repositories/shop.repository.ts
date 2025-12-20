@@ -1,5 +1,4 @@
-import { Prisma, Shop } from "@prisma/client";
-
+import { Prisma, Shop } from "@/../prisma/generated/client";
 import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
 import { searchQueue } from "@/lib/search/search-producer";
@@ -139,8 +138,6 @@ class ShopRepository {
       const result = await elasticClient.search<Shop>({
         index: INDICES.SHOPS,
         size: limit,
-        // Only fetch document IDs from Elasticsearch, then retrieve full data from PostgreSQL
-        // This ensures data consistency and allows us to use Prisma for data access
         _source: false,
         query: {
           bool: {

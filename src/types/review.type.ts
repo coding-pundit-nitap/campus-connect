@@ -1,4 +1,4 @@
-import { Review } from "@prisma/client";
+import { Review } from "@/../prisma/generated/client";
 
 export interface ReviewWithUser extends Review {
   user: {

@@ -1,6 +1,7 @@
-import { getCookieCache } from "better-auth/cookies";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+import { auth } from "@/auth";
 import {
   adminRoutes,
   apiAuthPrefix,
@@ -9,9 +10,12 @@ import {
   publicRoutes,
 } from "@/rbac";
 
-export const proxy = async (req: NextRequest) => {
+export async function proxy(req: NextRequest) {
   try {
-    const session = await getCookieCache(req);
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+
     const { nextUrl } = req;
     const path = nextUrl.pathname;
     const isLoggedIn = !!session?.user;
@@ -61,13 +65,12 @@ export const proxy = async (req: NextRequest) => {
 
     return response;
   } catch (error) {
-    console.error("[MIDDLEWARE ERROR]:", error);
-    const errorResponse = NextResponse.next();
-    return errorResponse;
+    console.error("[PROXY ERROR]:", error);
+    return NextResponse.next();
   }
-};
+}
 
-// Export matcher config for Next.js middleware
+// Export matcher config for Next.js proxy
 export const config = {
   matcher: [
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",

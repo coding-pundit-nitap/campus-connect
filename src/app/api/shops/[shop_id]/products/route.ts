@@ -1,6 +1,6 @@
-import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
+import { Prisma } from "@/../prisma/generated/client";
 import { serializeProducts } from "@/lib/utils/product.utils";
 import productRepository from "@/repositories/product.repository";
 import {

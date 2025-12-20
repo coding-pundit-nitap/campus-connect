@@ -40,8 +40,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/src/generated/prisma
+/prisma/generated
 
 !/*.example
 src/app/api/debug/*
 .pnpm-store
+/dist

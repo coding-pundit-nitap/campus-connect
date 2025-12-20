@@ -8,9 +8,7 @@ import { config } from "dotenv";
 config({ path: ".env.local" });
 config({ path: ".env" });
 
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../lib/prisma";
 
 const s3Client = new S3Client({
   endpoint: process.env.MINIO_ENDPOINT!,
@@ -96,7 +94,7 @@ async function cleanupOrphanedFiles(dryRun: boolean): Promise<CleanupResult> {
 
   const orphanedFiles: string[] = [];
 
-  console.log("� Scanning files...");
+  console.log("📂 Scanning files...");
 
   for await (const key of streamMinioKeys()) {
     result.totalFilesScanned++;

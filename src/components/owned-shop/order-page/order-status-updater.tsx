@@ -1,9 +1,5 @@
 "use client";
 
-import { useTransition } from "react";
-import { toast } from "sonner";
-
-import { updateOrderStatusAction } from "@/actions/orders/order-actions";
 import {
   Select,
   SelectContent,
@@ -11,6 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
+import { useUpdateShopOrderStatus } from "@/hooks/queries/useOrders";
 import { OrderStatus } from "@/types/prisma.types";
 
 type OrderStatusUpdaterProps = {
@@ -18,26 +16,36 @@ type OrderStatusUpdaterProps = {
   currentStatus: OrderStatus;
 };
 
+const STATUS_LABELS: Record<OrderStatus, string> = {
+  NEW: "New",
+  PREPARING: "Preparing",
+  READY_FOR_PICKUP: "Ready for Pickup",
+  OUT_FOR_DELIVERY: "Out for Delivery",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
+};
+
 export function OrderStatusUpdater({
   orderId,
   currentStatus,
 }: OrderStatusUpdaterProps) {
-  const [isPending, startTransition] = useTransition();
-  const allStatuses = Object.values(OrderStatus);
+  const { mutate, isPending } = useUpdateShopOrderStatus();
+
+  const validNextStatuses = VALID_ORDER_TRANSITIONS[currentStatus] || [];
 
   const handleStatusChange = (newStatus: OrderStatus) => {
-    startTransition(async () => {
-      const response = await updateOrderStatusAction({
-        order_id: orderId,
-        status: newStatus,
-      });
-      if (response.success) {
-        toast.success(response.details);
-      } else {
-        toast.error(response.details || "Failed to update order status.");
-      }
-    });
+    mutate({ order_id: orderId, status: newStatus });
   };
+
+  if (validNextStatuses.length === 0) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">
+          {STATUS_LABELS[currentStatus]} (Final)
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -46,18 +54,21 @@ export function OrderStatusUpdater({
         onValueChange={(value) => handleStatusChange(value as OrderStatus)}
         disabled={isPending}
       >
-        <SelectTrigger className="w-45">
+        <SelectTrigger className="w-48">
           <SelectValue placeholder="Change status" />
         </SelectTrigger>
         <SelectContent>
-          {allStatuses.map((status) => (
+          <SelectItem value={currentStatus} disabled>
+            {STATUS_LABELS[currentStatus]} (Current)
+          </SelectItem>
+          {validNextStatuses.map((status) => (
             <SelectItem key={status} value={status}>
-              {status}
+              {STATUS_LABELS[status as OrderStatus]}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      {isPending && <p>Updating...</p>}
+      {isPending && <p className="text-sm">Updating...</p>}
     </div>
   );
 }

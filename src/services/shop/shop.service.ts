@@ -1,5 +1,4 @@
-import { Shop } from "@prisma/client";
-
+import { Shop } from "@/../prisma/generated/client";
 import axiosInstance from "@/lib/axios";
 import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";

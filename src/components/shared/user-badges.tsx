@@ -1,5 +1,4 @@
-import { Role } from "@prisma/client";
-
+import { Role } from "@/../prisma/generated/client";
 import { Badge } from "@/components/ui/badge";
 
 interface UserRoleBadgeProps {

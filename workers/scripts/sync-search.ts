@@ -1,14 +1,11 @@
-import { PrismaClient } from "@prisma/client";
-
-import { elasticClient, INDICES } from "../src/lib/elasticsearch";
+import { elasticClient, INDICES } from "../lib/elasticsearch";
+import { prisma } from "../lib/prisma";
 import {
   ORDER_MAPPING,
   PRODUCT_MAPPING,
   SHOP_MAPPING,
   USER_MAPPING,
-} from "../src/lib/search/mappings";
-
-const prisma = new PrismaClient();
+} from "../search/mappings";
 
 async function ensureIndices() {
   console.log("Ensuring Indices...");
