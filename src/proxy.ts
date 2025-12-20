@@ -40,7 +40,7 @@ export async function proxy(req: NextRequest) {
       // Admin routes require both authentication and ADMIN role
       if (!isLoggedIn) {
         const redirectUrl = nextUrl.clone();
-        redirectUrl.pathname = "/login";
+        redirectUrl.pathname = "/";
         redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
         response = NextResponse.redirect(redirectUrl);
       } else if (userRole !== "ADMIN") {
@@ -55,7 +55,7 @@ export async function proxy(req: NextRequest) {
     } else if (!isAuthRoute && !isLoggedIn) {
       // Redirect unauthenticated users trying to access protected routes to login
       const redirectUrl = nextUrl.clone();
-      redirectUrl.pathname = "/login";
+      redirectUrl.pathname = "/";
       redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
       response = NextResponse.redirect(redirectUrl);
     } else {

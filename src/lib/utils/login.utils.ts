@@ -11,9 +11,9 @@ class LoginUIService {
   };
   getDefaultLoginCardConfig = () => {
     return {
-      className: "mx-4 w-full md:w-1/2 lg:w-1/3",
-      title: "Welcome Back",
-      description: "Please enter your details to sign in.",
+      className: "mx-4 w-full",
+      title: "Welcome",
+      description: "Please sign in to continue.",
     };
   };
   formatLoginError = (error: Error | null): string | null => {

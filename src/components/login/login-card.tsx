@@ -9,8 +9,6 @@ import { loginUIService } from "@/lib/utils";
 import { LoginCardConfig } from "@/types/login.types";
 import { AuthProviderConfig } from "@/types/ui.types";
 
-import { LoginFooter } from "./login-footer";
-
 export function LoginCard({ className, title, description }: LoginCardConfig) {
   const config = loginUIService.getDefaultLoginCardConfig();
   const { handlers } = useLogin();
@@ -33,9 +31,6 @@ export function LoginCard({ className, title, description }: LoginCardConfig) {
       description={finalConfig.description}
       showHeader={true}
       showFooter={true}
-      footerContent={
-        <LoginFooter onNavigateToRegister={handlers.onNavigateToRegister} />
-      }
       className={finalConfig.className}
     >
       <SharedAuthProviderButton config={googleAuthConfig} />

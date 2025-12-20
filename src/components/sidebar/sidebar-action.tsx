@@ -12,7 +12,7 @@ export default function SidebarAction() {
     if (session?.user?.id) {
       await authClient.signOut({ query: { redirect: "/" } });
     } else {
-      router.push("/login");
+      router.push("/");
     }
   };
   return (

@@ -7,7 +7,7 @@ export const publicRoutes: string[] = ["/help", "/shops", "/product"];
 
 // Routes related to authentication (login, register, error pages).
 // These routes redirect logged-in users to the default redirect path.
-export const authRoutes = ["/login", "/register", "/error"];
+export const authRoutes = ["/error"];
 
 // API routes that handle authentication processes. These are always accessible.
 export const apiAuthPrefix = ["/api/auth"];
