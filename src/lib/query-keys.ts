@@ -23,6 +23,10 @@ export const queryKeys = {
     /** User addresses query key factory */
     addresses: () => ["users", "addresses"] as const,
     me: ["users", "me"],
+    /** User favorite shops */
+    favorites: ["users", "favorites"] as const,
+    /** User stock watches */
+    stockWatches: ["users", "stock-watches"] as const,
   },
 
   /**

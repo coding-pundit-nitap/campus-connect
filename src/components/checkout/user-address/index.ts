@@ -5,7 +5,9 @@ export { UserAddressFormContainer } from "./user-address-form-container";
 export { UserAddressList as UserAddressListComponent } from "./user-address-list";
 export { UserAddressListContainer } from "./user-address-list-container";
 export { UserAddressListContainer as UserAddressList } from "./user-address-list-container";
-export { UserAddressListEmpty } from "./user-address-list-empty";
-export { UserAddressListError } from "./user-address-list-error";
-export { UserAddressListHeader } from "./user-address-list-header";
-export { UserAddressListSkeleton } from "./user-address-list-skeleton";
+export {
+  UserAddressListEmpty,
+  UserAddressListError,
+  UserAddressListHeader,
+  UserAddressListSkeleton,
+} from "./user-address-states";

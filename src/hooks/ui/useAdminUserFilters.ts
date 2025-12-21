@@ -1,7 +1,9 @@
 "use client";
+import { useUrlFilters } from "@/hooks/utils/useUrlFilters";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+interface UserFilterValues {
+  search: string;
+}
 
 interface UseAdminUserFiltersParams {
   initialSearch?: string;
@@ -10,26 +12,16 @@ interface UseAdminUserFiltersParams {
 export function useAdminUserFilters({
   initialSearch = "",
 }: UseAdminUserFiltersParams = {}) {
-  const router = useRouter();
-  const [search, setSearch] = useState(initialSearch);
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (search.trim()) {
-      params.set("search", search.trim());
-    }
-    router.push(`/admin/users?${params.toString()}`);
-  };
-
-  const handleClearSearch = () => {
-    setSearch("");
-    router.push("/admin/users");
-  };
+  const { filters, updateFilter, applyFilters, clearAllFilters } =
+    useUrlFilters<UserFilterValues>({
+      basePath: "/admin/users",
+      initialValues: { search: initialSearch },
+    });
 
   return {
-    search,
-    setSearch,
-    handleSearch,
-    handleClearSearch,
+    search: filters.search,
+    setSearch: (value: string) => updateFilter("search", value),
+    handleSearch: () => applyFilters(),
+    handleClearSearch: clearAllFilters,
   };
 }

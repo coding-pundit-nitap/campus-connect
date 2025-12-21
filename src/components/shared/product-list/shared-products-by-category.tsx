@@ -3,7 +3,7 @@ import React from "react";
 import {
   ProductGrid,
   ProductListEmpty,
-} from "@/components/shared/shared-product-list";
+} from "@/components/shared/product-list";
 import { Badge } from "@/components/ui/badge";
 import { productUIServices } from "@/lib/utils";
 import { SerializedProduct } from "@/types/product.types";

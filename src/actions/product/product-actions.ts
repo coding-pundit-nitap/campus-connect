@@ -19,8 +19,8 @@ import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
   ProductActionFormData,
   productActionSchema,
+  ProductUpdateActionFormData,
   productUpdateActionSchema,
-  ProductUpdateFormData,
 } from "@/validations/product";
 
 export async function createProductAction(
@@ -106,9 +106,7 @@ export async function createProductAction(
 
 export async function updateProductAction(
   product_id: string,
-  formData: Omit<ProductUpdateFormData, "image_key"> & {
-    image_key: string | null;
-  }
+  formData: ProductUpdateActionFormData
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
     const { shop_id } = await authUtils.getUserData();
@@ -120,10 +118,7 @@ export async function updateProductAction(
       select: { category_id: true, image_key: true },
     });
 
-    const parsedData = productUpdateActionSchema.parse({
-      ...formData,
-      image_key: formData.image_key || "",
-    });
+    const parsedData = productUpdateActionSchema.parse(formData);
 
     let category: Category | null = null;
     if (parsedData.category) {
@@ -133,11 +128,23 @@ export async function updateProductAction(
       );
     }
 
-    const { image_key, name, price, stock_quantity, description, discount } =
+    const { image, name, price, stock_quantity, description, discount } =
       parsedData;
 
-    if (currentProduct?.image_key && currentProduct.image_key !== image_key) {
-      await fileUploadService.deleteFile(currentProduct.image_key);
+    let image_key = parsedData.image_key || currentProduct?.image_key || "";
+    if (image instanceof File) {
+      const buffer = Buffer.from(await image.arrayBuffer());
+      image_key = await fileUploadService.upload(
+        image.name,
+        image.type,
+        image.size,
+        buffer,
+        { prefix: "product-images" }
+      );
+
+      if (currentProduct?.image_key && currentProduct.image_key !== image_key) {
+        await fileUploadService.deleteFile(currentProduct.image_key);
+      }
     }
 
     const productData = {
@@ -215,7 +222,6 @@ export async function deleteProductAction(
       throw new InternalServerError("Product not found");
     }
 
-    // Get users who have this product in their cart (via repository)
     const uniqueUserIds =
       await cartRepository.getUserIdsByProductInCart(product_id);
 

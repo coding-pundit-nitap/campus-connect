@@ -1,8 +1,8 @@
 "use client";
 import React from "react";
 
-import { ProductCard } from "@/components/shared/shared-product-card";
-import { ProductListWithViewModes } from "@/components/shared/shared-product-list/product-list-with-view-modes";
+import { ProductCard } from "@/components/shared/product-card";
+import { ProductListWithViewModes } from "@/components/shared/product-list/product-list-with-view-modes";
 import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 

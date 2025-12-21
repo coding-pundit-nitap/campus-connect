@@ -2,6 +2,8 @@
 
 import {
   AlertCircle,
+  Bell,
+  BellOff,
   Check,
   Loader2,
   Minus,
@@ -11,7 +13,11 @@ import {
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { useAddToCart } from "@/hooks/queries";
+import {
+  useAddToCart,
+  useIsWatchingStock,
+  useToggleStockWatch,
+} from "@/hooks/queries";
 import { cn } from "@/lib/cn";
 
 type ProductActionsProps = {
@@ -28,11 +34,21 @@ export default function ProductActions({
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const isOutOfStock = maxQuantity <= 0;
+
   const {
     mutate: upsertProduct,
     isPending: isPendingAddToCart,
     isError: isErrorAddToCart,
   } = useAddToCart();
+
+  const { data: isWatching, isLoading: isCheckingWatch } = useIsWatchingStock(
+    productId,
+    isOutOfStock
+  );
+
+  const { mutate: toggleWatch, isPending: isPendingWatch } =
+    useToggleStockWatch();
 
   const handleAddToCart = () => {
     upsertProduct(
@@ -46,9 +62,56 @@ export default function ProductActions({
     );
   };
 
+  const handleToggleWatch = () => {
+    toggleWatch(productId);
+  };
+
   const handleQuantityChange = (delta: number) => {
     setQuantity((prev) => Math.min(Math.max(1, prev + delta), maxQuantity));
   };
+
+  if (isOutOfStock) {
+    return (
+      <div className={cn("space-y-4", className)}>
+        <div className="text-center py-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+          <p className="text-orange-600 dark:text-orange-400 font-semibold">
+            Out of Stock
+          </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Get notified when this product is back in stock
+          </p>
+        </div>
+
+        <Button
+          size="lg"
+          variant={isWatching?.data ? "outline" : "default"}
+          className={cn(
+            "w-full h-14 text-base font-bold gap-2 transition-all duration-300",
+            isWatching?.data && "border-primary text-primary"
+          )}
+          onClick={handleToggleWatch}
+          disabled={isPendingWatch || isCheckingWatch}
+        >
+          {isPendingWatch || isCheckingWatch ? (
+            <>
+              <Loader2 className="h-5 w-5 animate-spin" />
+              {isCheckingWatch ? "Loading..." : "Updating..."}
+            </>
+          ) : isWatching ? (
+            <>
+              <BellOff className="h-5 w-5" />
+              Stop Watching
+            </>
+          ) : (
+            <>
+              <Bell className="h-5 w-5" />
+              Notify Me When Available
+            </>
+          )}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("space-y-6", className)}>

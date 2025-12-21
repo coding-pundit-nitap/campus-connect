@@ -18,7 +18,7 @@ import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService } from "@/services/product";
 import { shopAPIService } from "@/services/shop";
-import { ProductUpdateFormData } from "@/validations/product";
+import { ProductUpdateActionFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {
   return useQuery({
@@ -68,11 +68,8 @@ export function useShopProductsUpdate(product_id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (
-      formData: Omit<ProductUpdateFormData, "image_key"> & {
-        image_key: string | null;
-      }
-    ) => updateProductAction(product_id, formData),
+    mutationFn: (formData: ProductUpdateActionFormData) =>
+      updateProductAction(product_id, formData),
     onSuccess: (data) => {
       toast.success("Product updated successfully!");
 

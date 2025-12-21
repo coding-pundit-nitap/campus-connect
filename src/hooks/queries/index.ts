@@ -11,6 +11,8 @@ export * from "./useOrders";
 export * from "./usePayoutAdmin";
 export * from "./useProductAdmin";
 export * from "./useProductCategoriesSearch";
+export * from "./useProfileData";
+export * from "./useProfileImage";
 export * from "./useReview";
 export * from "./useReviewAdmin";
 export * from "./useSearchQuery";

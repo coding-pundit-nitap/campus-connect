@@ -6,7 +6,8 @@ import { fileUploadAPIService } from "@/services/file-upload";
 
 export const useImageUpload = () => {
   return useMutation({
-    mutationFn: (file: File) => fileUploadAPIService.uploadImage(file),
+    mutationFn: ({ file, prefix }: { file: File; prefix?: string }) =>
+      fileUploadAPIService.uploadImage(file, prefix),
     onSuccess: () => {
       toast.success("Image uploaded successfully!");
     },

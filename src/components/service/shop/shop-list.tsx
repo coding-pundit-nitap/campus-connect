@@ -2,15 +2,17 @@
 
 import React from "react";
 
-import { ProductSkeletonGrid } from "@/components/shared/shared-product-list";
+import { ProductSkeletonGrid } from "@/components/shared/product-list";
 import { useInfiniteScroll } from "@/hooks";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 import { ShopCard } from "./shop-card";
 import ShopGrid from "./shop-grid";
-import { ShopListEmpty } from "./shop-list-empty";
-import { ShopListError } from "./shop-list-error";
-import ShopListFooter from "./shop-list-footer";
+import {
+  ShopListEmpty,
+  ShopListError,
+  ShopListFooter,
+} from "./shop-list-states";
 
 type Props = {
   shops: ShopWithOwnerDetails[];
@@ -53,11 +55,10 @@ export default function ShopList({
         {shops.map((shop, index) => {
           const isLastShop = index === shops.length - 1;
           return (
-            // Attach ref to the wrapper div of the last element
             <div
               key={shop.id}
               ref={isLastShop ? lastElementRef : null}
-              className="animate-fade-in" // Add a subtle fade-in animation
+              className="animate-fade-in"
             >
               <ShopCard shop={shop} priority={index < 8} />
             </div>

@@ -1,9 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Pencil, Phone, User as UserIcon, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Camera,
+  Loader2,
+  Mail,
+  Pencil,
+  Phone,
+  User as UserIcon,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { User } from "@/auth";
@@ -19,8 +28,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useUpdateUser } from "@/hooks/queries/useUser";
+import { useProfileImageUpload, useUpdateUser } from "@/hooks";
 import { authClient } from "@/lib/auth-client";
+import { ImageUtils } from "@/lib/utils";
 import { updateUserSchema } from "@/validations/user.validation";
 
 import UserAvatar from "../sidebar/user-avatar";
@@ -29,8 +39,25 @@ interface ProfileCardProps {
   user: User;
 }
 
+const isUploadedImage = (image: string | null | undefined): boolean => {
+  if (!image) return false;
+  return !image.startsWith("http://") && !image.startsWith("https://");
+};
+
+const getDisplayImageUrl = (
+  image: string | null | undefined
+): string | null => {
+  if (!image) return null;
+  if (isUploadedImage(image)) {
+    return ImageUtils.getImageUrl(image);
+  }
+  return image;
+};
+
 const ProfileCard = ({ user }: ProfileCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [currentImage, setCurrentImage] = useState(user.image);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof updateUserSchema>>({
     resolver: zodResolver(updateUserSchema),
@@ -45,9 +72,12 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
       name: user.name ?? "",
       phone: user.phone ?? "",
     });
+    setCurrentImage(user.image);
   }, [user, isEditing, form]);
 
   const { mutate: updateUserMutation, isPending } = useUpdateUser();
+  const { mutateAsync: uploadProfileImage, isPending: isUploadingImage } =
+    useProfileImageUpload();
 
   const onSubmit = (values: z.infer<typeof updateUserSchema>) => {
     updateUserMutation(values, {
@@ -59,11 +89,69 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
     });
   };
 
+  const handleImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be less than 5MB");
+      return;
+    }
+
+    try {
+      const result = await uploadProfileImage(file);
+      if (result.success && result.data) {
+        await authClient.updateUser({ image: result.data.image_key });
+        setCurrentImage(result.data.image_key);
+      }
+    } catch {
+      toast.error("Image upload error");
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  const displayImageUrl = getDisplayImageUrl(currentImage);
+
   const headerContent = (
     <>
       <div className="flex flex-col items-center gap-6 py-6">
         <div className="relative group">
-          <UserAvatar image={user.image} name={user.name} dimention={140} />
+          <UserAvatar
+            image={displayImageUrl}
+            name={user.name}
+            dimention={140}
+          />
+          <button
+            onClick={handleImageClick}
+            disabled={isUploadingImage}
+            className="absolute bottom-2 right-2 p-2 rounded-full bg-primary text-primary-foreground shadow-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-primary/90 disabled:opacity-50"
+            title="Change profile picture"
+          >
+            {isUploadingImage ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Camera className="h-4 w-4" />
+            )}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
         </div>
         <div className="text-center space-y-1">
           <p className="text-3xl font-bold tracking-tight">{user.name}</p>

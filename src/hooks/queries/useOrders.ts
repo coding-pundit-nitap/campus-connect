@@ -5,7 +5,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { OrderStatus } from "prisma/generated/client";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -18,7 +19,7 @@ import {
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
 import { queryKeys } from "@/lib/query-keys";
-import { orderAPIService } from "@/services";
+import { orderAPIService, OrderFilters } from "@/services";
 import { SerializedOrderWithDetails } from "@/types";
 
 export type UseOrdersProps = {
@@ -34,6 +35,8 @@ export function useOrders({
   initialNextCursor,
   initialError,
 }: UseOrdersProps) {
+  const [filters, setFilters] = useState<OrderFilters>({});
+
   const {
     data,
     isLoading,
@@ -42,14 +45,15 @@ export function useOrders({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    refetch,
   } = useInfiniteQuery({
-    queryKey: queryKeys.orders.all,
+    queryKey: [...queryKeys.orders.all, filters],
     queryFn: ({ pageParam }) =>
-      orderAPIService.fetchUserOrders({ cursor: pageParam }),
+      orderAPIService.fetchUserOrders({ cursor: pageParam, ...filters }),
     initialPageParam: initialNextCursor,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData:
-      initialData.length > 0
+      initialData.length > 0 && Object.keys(filters).length === 0
         ? {
             pages: [
               {
@@ -71,6 +75,29 @@ export function useOrders({
     return data.pages.flatMap((page) => page.data);
   }, [data, initialData]);
 
+  const updateFilters = useCallback((newFilters: OrderFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setFilters({});
+  }, []);
+
+  const updateStatus = useCallback((status: OrderStatus | undefined) => {
+    setFilters((prev) => ({ ...prev, status }));
+  }, []);
+
+  const updateDateRange = useCallback(
+    (dateFrom: string | undefined, dateTo: string | undefined) => {
+      setFilters((prev) => ({ ...prev, dateFrom, dateTo }));
+    },
+    []
+  );
+
+  const hasActiveFilters = useMemo(() => {
+    return !!(filters.status || filters.dateFrom || filters.dateTo);
+  }, [filters]);
+
   return {
     allOrders,
     isLoading: isLoading && initialData.length === 0,
@@ -79,6 +106,13 @@ export function useOrders({
     hasNextPage: hasNextPage ?? initialHasNextPage,
     isFetchingNextPage,
     fetchNextPage,
+    refetch,
+    filters,
+    updateFilters,
+    clearFilters,
+    updateStatus,
+    updateDateRange,
+    hasActiveFilters,
   };
 }
 

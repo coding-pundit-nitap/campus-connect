@@ -13,11 +13,7 @@ import {
   productUpdateActionSchema,
 } from "@/validations";
 
-import {
-  useImageUpload,
-  useShopProductsCreate,
-  useShopProductsUpdate,
-} from "../queries";
+import { useShopProductsCreate, useShopProductsUpdate } from "../queries";
 
 type Props = {
   product: SerializedProduct;
@@ -31,9 +27,6 @@ export function useUpdateProductForm({ product }: Props) {
     isPending,
     error,
   } = useShopProductsUpdate(product.id);
-
-  const { mutateAsync: uploadImage, isPending: isUploadingImage } =
-    useImageUpload();
 
   const form = useForm<ProductUpdateActionFormData>({
     resolver: zodResolver(productUpdateActionSchema),
@@ -50,39 +43,25 @@ export function useUpdateProductForm({ product }: Props) {
   });
 
   const state: FormState = {
-    isLoading: isPending || isUploadingImage,
+    isLoading: isPending,
     error: error?.message || null,
     isSubmitting: form.formState.isSubmitting,
   };
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
-      try {
-        let finalimage_key: string = product.image_key;
-
-        if (data.image instanceof File) {
-          finalimage_key = await uploadImage(data.image);
-        }
-
-        const processedData = { ...data, image_key: finalimage_key };
-
-        updateProduct(processedData, {
-          onSuccess: (result) => {
-            if (result.success) {
-              setIsDialogOpen(false);
-              form.reset({
-                ...processedData,
-                image_key: finalimage_key,
-              });
-            }
-          },
-        });
-      } catch {
-        form.setError("image", {
-          type: "manual",
-          message: "Image upload failed. Please try again.",
-        });
-      }
+      updateProduct(data, {
+        onSuccess: (result) => {
+          if (result.success) {
+            setIsDialogOpen(false);
+            form.reset({
+              ...data,
+              image_key: result.data?.image_key || data.image_key,
+              image: undefined,
+            });
+          }
+        },
+      });
     }),
     openDialog: () => setIsDialogOpen(true),
     closeDialog: () => setIsDialogOpen(false),
@@ -126,14 +105,8 @@ export function useCreateProductForm() {
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
-      try {
-        await createProduct(data);
-      } catch {
-        form.setError("image_key", {
-          type: "manual",
-          message: "Image upload failed. Please try again.",
-        });
-      }
+      // Server action handles image upload
+      await createProduct(data);
     }),
   };
 

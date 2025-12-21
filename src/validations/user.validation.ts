@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const updateUserSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters long"),
+  name: z.string().min(3, "Name must be at least 3 characters long").optional(),
   phone: z.string().optional(),
 });
 

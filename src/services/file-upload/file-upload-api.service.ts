@@ -7,7 +7,10 @@ interface PresignedUrlResponse {
 }
 
 class FileUploadAPIService {
-  private async getPresignedUrl(file: File): Promise<PresignedUrlResponse> {
+  private async getPresignedUrl(
+    file: File,
+    prefix?: string
+  ): Promise<PresignedUrlResponse> {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
       method: "POST",
       headers: {
@@ -17,6 +20,7 @@ class FileUploadAPIService {
         fileName: file.name,
         fileType: file.type,
         fileSize: file.size,
+        prefix,
       }),
     });
 
@@ -35,9 +39,9 @@ class FileUploadAPIService {
     return result.data;
   }
 
-  async uploadImage(file: File): Promise<string> {
+  async uploadImage(file: File, prefix?: string): Promise<string> {
     try {
-      const { uploadUrl, objectKey } = await this.getPresignedUrl(file);
+      const { uploadUrl, objectKey } = await this.getPresignedUrl(file, prefix);
 
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",

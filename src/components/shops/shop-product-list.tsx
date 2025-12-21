@@ -3,8 +3,8 @@
 import {
   ProductCard,
   UserProductActions,
-} from "@/components/shared/shared-product-card";
-import { ProductListWithViewModes } from "@/components/shared/shared-product-list";
+} from "@/components/shared/product-card";
+import { ProductListWithViewModes } from "@/components/shared/product-list";
 import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 

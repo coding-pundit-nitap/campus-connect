@@ -7,7 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
 
-interface UploadOptions {
+export interface UploadOptions {
   maxSizeInMB?: number;
   allowedTypes?: string[];
   prefix?: string;
@@ -97,14 +97,12 @@ class FileUploadService {
       throw new BadRequestError(`File size exceeds the ${maxSizeInMB}MB limit.`);
     }
 
-    // MIME type validation
     if (!allowedTypes.includes(fileType)) {
       throw new BadRequestError(
         "Invalid file type. Allowed types are: " + allowedTypes.join(", ")
       );
     }
 
-    // File extension validation
     const extension = fileName
       .toLowerCase()
       .substring(fileName.lastIndexOf("."));

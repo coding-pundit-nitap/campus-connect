@@ -6,10 +6,12 @@ import { UserAddress } from "@/types/prisma.types";
 
 import { SelectedAddressDisplay } from "./selected-address-display";
 import { UserAddressCard } from "./user-address-card";
-import { UserAddressListEmpty } from "./user-address-list-empty";
-import { UserAddressListError } from "./user-address-list-error";
-import { UserAddressListHeader } from "./user-address-list-header";
-import { UserAddressListSkeleton } from "./user-address-list-skeleton";
+import {
+  UserAddressListEmpty,
+  UserAddressListError,
+  UserAddressListHeader,
+  UserAddressListSkeleton,
+} from "./user-address-states";
 
 interface UserAddressListProps {
   addresses: UserAddress[] | undefined;

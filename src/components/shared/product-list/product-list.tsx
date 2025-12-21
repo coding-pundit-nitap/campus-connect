@@ -4,9 +4,11 @@ import { useInfiniteScroll } from "@/hooks/utils/useInfiniteScroll";
 import { SerializedProduct } from "@/types/product.types";
 
 import { ProductGrid } from "./product-grid";
-import { ProductListEmpty } from "./product-list-empty";
-import { ProductListError } from "./product-list-error";
-import { ProductListFooter } from "./product-list-footer";
+import {
+  ProductListEmpty,
+  ProductListError,
+  ProductListFooter,
+} from "./product-list-states";
 import { ProductSkeletonGrid } from "./product-skeleton-grid";
 
 interface ProductListProps {

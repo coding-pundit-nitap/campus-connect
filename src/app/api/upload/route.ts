@@ -22,6 +22,7 @@ const uploadSchema = z.object({
     .number()
     .positive("File size must be positive")
     .max(10 * 1024 * 1024, "File too large"),
+  prefix: z.string().optional(),
 });
 
 export async function DELETE(request: NextRequest) {
@@ -79,12 +80,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const { fileName, fileType, fileSize } = validation.data;
+    const { fileName, fileType, fileSize, prefix } = validation.data;
 
     const data = await fileUploadService.createPresignedUploadUrl(
       fileName,
       fileType,
-      fileSize
+      fileSize,
+      {
+        prefix,
+      }
     );
 
     return NextResponse.json(

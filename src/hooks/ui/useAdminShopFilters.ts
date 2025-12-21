@@ -1,6 +1,11 @@
 "use client";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useUrlFilters } from "@/hooks/utils/useUrlFilters";
+
+interface ShopFilterValues {
+  search: string;
+  statusFilter: string;
+  verificationFilter: string;
+}
 
 interface UseAdminShopFiltersProps {
   initialSearch?: string;
@@ -13,46 +18,29 @@ export function useAdminShopFilters({
   initialStatus = "all",
   initialVerification = "all",
 }: UseAdminShopFiltersProps = {}) {
-  const router = useRouter();
-  const [search, setSearch] = useState(initialSearch);
-  const [statusFilter, setStatusFilter] = useState(initialStatus);
-  const [verificationFilter, setVerificationFilter] =
-    useState(initialVerification);
-
-  const handleSearch = () => {
-    const params = new URLSearchParams();
-    if (search) {
-      params.set("search", search);
-    }
-    if (statusFilter !== "all") {
-      params.set("is_active", statusFilter);
-    }
-    if (verificationFilter !== "all") {
-      params.set("verification_status", verificationFilter);
-    }
-    router.push(`/admin/shops?${params.toString()}`);
-  };
-
-  const handleClearSearch = () => {
-    setSearch("");
-    const params = new URLSearchParams();
-    if (statusFilter !== "all") {
-      params.set("is_active", statusFilter);
-    }
-    if (verificationFilter !== "all") {
-      params.set("verification_status", verificationFilter);
-    }
-    router.push(`/admin/shops?${params.toString()}`);
-  };
+  const { filters, updateFilter, applyFilters, clearFilter } =
+    useUrlFilters<ShopFilterValues>({
+      basePath: "/admin/shops",
+      initialValues: {
+        search: initialSearch,
+        statusFilter: initialStatus,
+        verificationFilter: initialVerification,
+      },
+      paramMapping: {
+        statusFilter: "is_active",
+        verificationFilter: "verification_status",
+      },
+    });
 
   return {
-    search,
-    statusFilter,
-    verificationFilter,
-    setSearch,
-    setStatusFilter,
-    setVerificationFilter,
-    handleSearch,
-    handleClearSearch,
+    search: filters.search,
+    statusFilter: filters.statusFilter,
+    verificationFilter: filters.verificationFilter,
+    setSearch: (value: string) => updateFilter("search", value),
+    setStatusFilter: (value: string) => updateFilter("statusFilter", value),
+    setVerificationFilter: (value: string) =>
+      updateFilter("verificationFilter", value),
+    handleSearch: () => applyFilters(),
+    handleClearSearch: () => clearFilter("search"),
   };
 }

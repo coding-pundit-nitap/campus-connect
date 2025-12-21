@@ -1,3 +1,5 @@
+import { OrderStatus } from "prisma/generated/client";
+
 import axiosInstance from "@/lib/axios";
 import {
   ActionResponse,
@@ -5,14 +7,27 @@ import {
   SerializedOrderWithDetails,
 } from "@/types";
 
+export interface OrderFilters {
+  status?: OrderStatus;
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export interface FetchOrdersParams extends OrderFilters {
+  limit?: number;
+  cursor?: string | null;
+}
+
 class OrderAPIService {
   async fetchUserOrders({
     limit = 10,
     cursor,
-  }: {
-    limit?: number;
-    cursor?: string | null;
-  }): Promise<CursorPaginatedResponse<SerializedOrderWithDetails>> {
+    status,
+    dateFrom,
+    dateTo,
+  }: FetchOrdersParams): Promise<
+    CursorPaginatedResponse<SerializedOrderWithDetails>
+  > {
     const url = `orders`;
     const response = await axiosInstance.get<
       ActionResponse<CursorPaginatedResponse<SerializedOrderWithDetails>>
@@ -20,6 +35,9 @@ class OrderAPIService {
       params: {
         limit,
         cursor: cursor || undefined,
+        status: status || undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
       },
     });
     return response.data.data;
