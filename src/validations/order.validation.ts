@@ -36,6 +36,15 @@ export function parseTimeString(
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return { hours, minutes };
 }
+function getISTTimeComponents(date: Date): { hours: number; minutes: number } {
+  const IST_OFFSET_MS = 330 * 60 * 1000;
+  const istDate = new Date(date.getTime() + IST_OFFSET_MS);
+
+  return {
+    hours: istDate.getUTCHours(),
+    minutes: istDate.getUTCMinutes(),
+  };
+}
 
 export function isWithinShopHours(
   deliveryTime: Date,
@@ -46,20 +55,20 @@ export function isWithinShopHours(
   const closingTime = parseTimeString(closing);
 
   if (!openingTime || !closingTime) {
+    console.warn(
+      `Invalid shop hours format - opening: "${opening}", closing: "${closing}". Allowing delivery.`
+    );
     return true;
   }
 
-  const IST_OFFSET_MINUTES = 330;
-  const deliveryTimeIST = new Date(
-    deliveryTime.getTime() + IST_OFFSET_MINUTES * 60 * 1000
-  );
-  const deliveryHour = deliveryTimeIST.getUTCHours();
-  const deliveryMinute = deliveryTimeIST.getUTCMinutes();
+  const { hours: deliveryHour, minutes: deliveryMinute } =
+    getISTTimeComponents(deliveryTime);
   const deliveryMinutes = deliveryHour * 60 + deliveryMinute;
 
   const openingMinutes = openingTime.hours * 60 + openingTime.minutes;
   const closingMinutes = closingTime.hours * 60 + closingTime.minutes;
 
+  // Handle overnight hours (e.g., 22:00 - 02:00)
   if (closingMinutes < openingMinutes) {
     return (
       deliveryMinutes >= openingMinutes || deliveryMinutes <= closingMinutes

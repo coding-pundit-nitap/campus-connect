@@ -9,7 +9,7 @@ import { cn } from "@/lib/cn";
 
 interface SharedFileInputProps {
   value?: string | File;
-  onChange?: (file: File | null) => void;
+  onChange: (file: File | null) => void;
   accept?: string;
   /** in MB */
   maxSize?: number;
@@ -53,7 +53,7 @@ export function SharedFileInput({
       }
 
       if (acceptedFiles.length > 0) {
-        onChange?.(acceptedFiles[0]);
+        onChange(acceptedFiles[0]);
       }
     },
     [onChange, maxSize]
@@ -89,7 +89,7 @@ export function SharedFileInput({
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onChange?.(null);
+    onChange(null);
   };
 
   return (

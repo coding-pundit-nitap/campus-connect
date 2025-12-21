@@ -27,6 +27,118 @@ interface RichTextEditorProps {
   disabled?: boolean;
   className?: string;
 }
+function saveSelection(containerEl: HTMLElement): Range | null {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return null;
+
+  const range = selection.getRangeAt(0);
+  if (!containerEl.contains(range.commonAncestorContainer)) return null;
+
+  return range.cloneRange();
+}
+
+function restoreSelection(range: Range | null): void {
+  if (!range) return;
+  const selection = window.getSelection();
+  if (!selection) return;
+
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function wrapSelectionWithTag(tagName: string, containerEl: HTMLElement): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+
+  const range = selection.getRangeAt(0);
+  if (!containerEl.contains(range.commonAncestorContainer)) return;
+
+  if (range.collapsed) return;
+
+  const wrapper = document.createElement(tagName);
+  try {
+    range.surroundContents(wrapper);
+  } catch {
+    const contents = range.extractContents();
+    wrapper.appendChild(contents);
+    range.insertNode(wrapper);
+  }
+
+  selection.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(wrapper);
+  selection.addRange(newRange);
+}
+
+function insertBlockElement(tagName: string, containerEl: HTMLElement): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+
+  const range = selection.getRangeAt(0);
+  if (!containerEl.contains(range.commonAncestorContainer)) return;
+
+  const selectedText = range.toString() || "";
+  const block = document.createElement(tagName);
+  block.textContent = selectedText;
+
+  range.deleteContents();
+  range.insertNode(block);
+
+  selection.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(block);
+  newRange.collapse(false);
+  selection.addRange(newRange);
+}
+
+function insertTextAtCaret(text: string): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+
+  const range = selection.getRangeAt(0);
+  range.deleteContents();
+
+  const textNode = document.createTextNode(text);
+  range.insertNode(textNode);
+
+  range.setStartAfter(textNode);
+  range.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
+function insertList(ordered: boolean, containerEl: HTMLElement): void {
+  const selection = window.getSelection();
+  if (!selection || selection.rangeCount === 0) return;
+
+  const range = selection.getRangeAt(0);
+  if (!containerEl.contains(range.commonAncestorContainer)) return;
+
+  const listTag = ordered ? "ol" : "ul";
+  const list = document.createElement(listTag);
+  const li = document.createElement("li");
+
+  if (range.collapsed) {
+    li.innerHTML = "<br>";
+  } else {
+    li.textContent = range.toString();
+    range.deleteContents();
+  }
+
+  list.appendChild(li);
+  range.insertNode(list);
+
+  selection.removeAllRanges();
+  const newRange = document.createRange();
+  newRange.selectNodeContents(li);
+  newRange.collapse(true);
+  selection.addRange(newRange);
+}
+
+interface HistoryState {
+  html: string;
+  savedRange: { startOffset: number; endOffset: number } | null;
+}
 
 export function RichTextEditor({
   value,
@@ -38,6 +150,12 @@ export function RichTextEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const [isFocused, setIsFocused] = useState(false);
   const lastValueRef = useRef(value);
+
+  const historyRef = useRef<HistoryState[]>([
+    { html: value || "", savedRange: null },
+  ]);
+  const historyIndexRef = useRef(0);
+  const isUndoRedoRef = useRef(false);
 
   const isEmpty = useMemo(() => {
     return !value || value === "<br>" || value.trim() === "";
@@ -51,27 +169,94 @@ export function RichTextEditor({
     }
   }, [value]);
 
+  const pushToHistory = useCallback((html: string) => {
+    if (isUndoRedoRef.current) {
+      isUndoRedoRef.current = false;
+      return;
+    }
+
+    const history = historyRef.current;
+    const currentIndex = historyIndexRef.current;
+
+    if (currentIndex < history.length - 1) {
+      history.splice(currentIndex + 1);
+    }
+
+    if (history[currentIndex]?.html !== html) {
+      history.push({ html, savedRange: null });
+      historyIndexRef.current = history.length - 1;
+    }
+
+    if (history.length > 50) {
+      history.shift();
+      historyIndexRef.current = Math.max(0, historyIndexRef.current - 1);
+    }
+  }, []);
+
+  const undo = useCallback(() => {
+    if (!editorRef.current || historyIndexRef.current <= 0) return;
+
+    isUndoRedoRef.current = true;
+    historyIndexRef.current--;
+    const state = historyRef.current[historyIndexRef.current];
+    editorRef.current.innerHTML = state.html;
+    lastValueRef.current = state.html;
+    onChange(state.html);
+  }, [onChange]);
+
+  const redo = useCallback(() => {
+    if (
+      !editorRef.current ||
+      historyIndexRef.current >= historyRef.current.length - 1
+    )
+      return;
+
+    isUndoRedoRef.current = true;
+    historyIndexRef.current++;
+    const state = historyRef.current[historyIndexRef.current];
+    editorRef.current.innerHTML = state.html;
+    lastValueRef.current = state.html;
+    onChange(state.html);
+  }, [onChange]);
+
   const exec = useCallback(
-    (command: string, cmdValue?: string) => {
+    (command: string) => {
       if (disabled || !editorRef.current) return;
 
+      const savedRange = saveSelection(editorRef.current);
       editorRef.current.focus();
+      restoreSelection(savedRange);
 
-      if (command === "heading") {
-        document.execCommand(
-          "insertHTML",
-          false,
-          "<h3>" + window.getSelection()?.toString() + "</h3>"
-        );
-      } else {
-        document.execCommand(command, false, cmdValue);
+      switch (command) {
+        case "bold":
+          wrapSelectionWithTag("strong", editorRef.current);
+          break;
+        case "italic":
+          wrapSelectionWithTag("em", editorRef.current);
+          break;
+        case "heading":
+          insertBlockElement("h3", editorRef.current);
+          break;
+        case "insertUnorderedList":
+          insertList(false, editorRef.current);
+          break;
+        case "insertOrderedList":
+          insertList(true, editorRef.current);
+          break;
+        case "undo":
+          undo();
+          return;
+        case "redo":
+          redo();
+          return;
       }
 
       const html = editorRef.current.innerHTML;
       onChange(html);
       lastValueRef.current = html;
+      pushToHistory(html);
     },
-    [disabled, onChange]
+    [disabled, onChange, undo, redo, pushToHistory]
   );
 
   const handleInput = () => {
@@ -79,12 +264,35 @@ export function RichTextEditor({
     const html = editorRef.current.innerHTML;
     lastValueRef.current = html;
     onChange(html);
+    pushToHistory(html);
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
     const text = e.clipboardData.getData("text/plain");
-    document.execCommand("insertText", false, text);
+    insertTextAtCaret(text);
+
+    if (editorRef.current) {
+      const html = editorRef.current.innerHTML;
+      lastValueRef.current = html;
+      onChange(html);
+      pushToHistory(html);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      e.preventDefault();
+      if (e.shiftKey) {
+        redo();
+      } else {
+        undo();
+      }
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === "y") {
+      e.preventDefault();
+      redo();
+    }
   };
 
   return (
@@ -165,6 +373,7 @@ export function RichTextEditor({
           )}
           onInput={handleInput}
           onPaste={handlePaste}
+          onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
