@@ -1,4 +1,4 @@
-import { Client } from "@elastic/elasticsearch";
+import { Client, errors } from "@elastic/elasticsearch";
 
 const globalForElastic = global as unknown as {
   __elasticClient?: Client;
@@ -35,3 +35,9 @@ export const INDICES = {
   USERS: "users",
   CATEGORIES: "categories",
 };
+export function isDocumentMissingError(error: unknown): boolean {
+  if (error instanceof errors.ResponseError) {
+    return error.body?.error?.type === "document_missing_exception";
+  }
+  return false;
+}

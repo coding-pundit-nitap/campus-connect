@@ -43,6 +43,7 @@ export async function GET(
       sortBy && VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "created_at";
 
     if (search || categoryId || inStock !== undefined) {
+      const page = cursor ? parseInt(cursor, 10) : 1;
       const esResponse = await esSearchService.searchProducts({
         query: search,
         shopId: shop_id,
@@ -51,8 +52,9 @@ export async function GET(
         sortBy: effectiveSortBy,
         sortOrder,
         limit,
-        page: 1,
+        page,
       });
+      const nextCursor = page < esResponse.totalPages ? String(page + 1) : null;
 
       const responseData = {
         data: esResponse.hits.map((hit) => ({
@@ -73,7 +75,7 @@ export async function GET(
           created_at: hit.created_at,
           updated_at: hit.updated_at,
         })),
-        nextCursor: null,
+        nextCursor,
       };
 
       return NextResponse.json(

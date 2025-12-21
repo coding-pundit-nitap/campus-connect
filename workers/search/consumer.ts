@@ -1,6 +1,10 @@
 import { Job, Worker } from "bullmq";
 
-import { elasticClient, INDICES } from "../lib/elasticsearch";
+import {
+  elasticClient,
+  INDICES,
+  isDocumentMissingError,
+} from "../lib/elasticsearch";
 import { loggers } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 import { redisConnection } from "../lib/redis-connection";
@@ -67,17 +71,7 @@ const workerHandler = async (job: Job<SearchJobData>) => {
             doc: { status: job.data.payload.status },
           });
         } catch (error) {
-          const isDocumentMissing =
-            (
-              error as unknown as {
-                meta: { body: { error: { type: string } } };
-              }
-            )?.meta?.body?.error?.type === "document_missing_exception" ||
-            (error as unknown as { message: string })?.message?.includes(
-              "document_missing_exception"
-            );
-
-          if (isDocumentMissing) {
+          if (isDocumentMissingError(error)) {
             logger.warn(
               { jobId: job.id, orderId: job.data.payload.id },
               "Document missing during update, fetching from DB and indexing..."
