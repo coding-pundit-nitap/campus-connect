@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { Prisma } from "@/../prisma/generated/client";
+import { prisma } from "@/lib/prisma";
 import { serializeProducts, SortBy } from "@/lib/utils/product.utils";
-import productRepository from "@/repositories/product.repository";
-import { esSearchService } from "@/services/search/es-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -42,48 +42,31 @@ export async function GET(
     const effectiveSortBy =
       sortBy && VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "created_at";
 
-    if (search || categoryId || inStock !== undefined) {
-      const page = cursor ? parseInt(cursor, 10) : 1;
-      const esResponse = await esSearchService.searchProducts({
-        query: search,
-        shopId: shop_id,
-        categoryId,
-        inStock,
-        sortBy: effectiveSortBy,
-        sortOrder,
-        limit,
-        page,
-      });
-      const nextCursor = page < esResponse.totalPages ? String(page + 1) : null;
+    const whereClause: Prisma.ProductWhereInput = {
+      shop_id,
+      deleted_at: null,
+    };
 
-      const responseData = {
-        data: esResponse.hits.map((hit) => ({
-          id: hit.id,
-          name: hit.name,
-          description: hit.description,
-          price: hit.price,
-          discount: hit.discount,
-          stock_quantity: hit.stock_quantity,
-          image_key: hit.image_key,
-          category_id: hit.category_id,
-          shop_id: hit.shop_id,
-          category: hit.category_name
-            ? { id: hit.category_id, name: hit.category_name }
-            : null,
-          shop: { id: hit.shop_id, name: hit.shop_name },
-          rating: 0,
-          created_at: hit.created_at,
-          updated_at: hit.updated_at,
-        })),
-        nextCursor,
-      };
-
-      return NextResponse.json(
-        createSuccessResponse(responseData, "Products retrieved successfully")
-      );
+    if (search) {
+      whereClause.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { category: { name: { contains: search, mode: "insensitive" } } },
+      ];
     }
 
-    const queryOptions = {
+    if (categoryId) {
+      whereClause.category_id = categoryId;
+    }
+
+    if (inStock === true) {
+      whereClause.stock_quantity = { gt: 0 };
+    } else if (inStock === false) {
+      whereClause.stock_quantity = { lte: 0 };
+    }
+
+    const products = await prisma.product.findMany({
+      where: whereClause,
       take: limit + 1,
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
@@ -97,12 +80,7 @@ export async function GET(
           },
         },
       },
-    };
-
-    const products = await productRepository.findManyByShopId(
-      shop_id,
-      queryOptions
-    );
+    });
 
     let nextCursor: typeof cursor | null = null;
     if (products.length > limit) {

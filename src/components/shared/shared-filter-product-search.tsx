@@ -1,7 +1,8 @@
+import { debounce } from "lodash";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 
-import { useNavigationSearch, useProductSearchQuery, useSearch } from "@/hooks";
+import { useNavigationSearch, useSearch, useSearchQuery } from "@/hooks";
 import { SearchResult } from "@/types";
 
 import { SharedSearchBar } from "./shared-search-bar";
@@ -26,6 +27,14 @@ export function SharedFilterProductSearch({
       if (selectedItem.shop_id) {
         router.push(`/product/${selectedItem.id}`);
       }
+    } else if (selectedItem.type === "shop") {
+      router.push(`/shops/${selectedItem.id}`);
+    } else if (selectedItem.type === "category") {
+      if (selectedItem.shop_id) {
+        router.push(
+          `/shops/${selectedItem.shop_id}?category=${selectedItem.id}`
+        );
+      }
     }
   };
 
@@ -34,21 +43,41 @@ export function SharedFilterProductSearch({
   });
 
   const { data: searchResults = [], isLoading } =
-    useProductSearchQuery(debouncedQuery);
+    useSearchQuery(debouncedQuery);
 
   const suggestions = searchResults.map((result) => ({
     id: result.id,
     title: result.title,
     subtitle: result.subtitle,
+    type: result.type,
   }));
 
   const handleSelectItem = (value: string) => {
     onSelectItem(value, searchResults);
   };
 
+  const debouncedOnSearchChange = useMemo(
+    () =>
+      debounce((query: string) => {
+        onSearchChange?.(query);
+      }, 300),
+    [onSearchChange]
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedOnSearchChange.cancel();
+    };
+  }, [debouncedOnSearchChange]);
+
   const handleSearch = (query: string) => {
     onSearch(query);
-    onSearchChange?.(query);
+    if (query.trim().length >= 2) {
+      debouncedOnSearchChange(query);
+    } else {
+      debouncedOnSearchChange.cancel();
+      onSearchChange?.("");
+    }
   };
 
   const baseSearch = useSearch({

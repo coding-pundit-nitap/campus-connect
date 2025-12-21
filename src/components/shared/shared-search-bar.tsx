@@ -13,7 +13,12 @@ export interface SharedSearchBarProps {
   onBlur?: () => void;
   onClick?: (e: React.MouseEvent<HTMLDivElement>) => void;
   onSelectItem?: (value: string) => void;
-  suggestions?: { id: string; title: string; subtitle: string }[];
+  suggestions?: {
+    id: string;
+    title: string;
+    subtitle: string;
+    type?: "shop" | "product" | "category";
+  }[];
   showSuggestionsDropdown: boolean;
   isLoading?: boolean;
   onInputChange?: (value: string) => void;

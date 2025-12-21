@@ -10,7 +10,7 @@ export const useSearchQuery = (query: string) => {
   return useQuery({
     queryKey: queryKeys.search.query(query),
     queryFn: ({ signal }) => searchAPIService.search(query, signal),
-    enabled: !!query && query.trim().length > 0,
+    enabled: !!query && query.trim().length >= 2,
     staleTime: 1000 * 60 * 5,
   });
 };
@@ -19,7 +19,7 @@ export const useProductSearchQuery = (query: string) => {
   return useQuery({
     queryKey: queryKeys.search.products(query),
     queryFn: ({ signal }) => searchAPIService.searchProducts(query, signal),
-    enabled: !!query && query.trim().length > 0,
+    enabled: !!query && query.trim().length >= 2,
     staleTime: 1000 * 60 * 5,
   });
 };

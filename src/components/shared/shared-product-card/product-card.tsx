@@ -13,7 +13,9 @@ import {
 import { useCategorySearch, useUpdateProductForm } from "@/hooks";
 import { ImageUtils } from "@/lib/utils";
 import { productUIServices } from "@/lib/utils/product.utils";
+import { FormFieldConfig } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
+import { ProductUpdateActionFormData } from "@/validations";
 
 import { ProductCardDetails } from "./product-card-details";
 import { ProductCardHeader } from "./product-card-header";
@@ -57,7 +59,7 @@ export function ProductCard({
       };
     }
     return field;
-  });
+  }) as FormFieldConfig<ProductUpdateActionFormData>[];
 
   const renderOwnerActions = () => {
     if (!onDelete) {

@@ -23,6 +23,7 @@ import { cn } from "@/lib/cn";
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
@@ -143,6 +144,7 @@ interface HistoryState {
 export function RichTextEditor({
   value,
   onChange,
+  onBlur,
   placeholder = "Write your description...",
   disabled = false,
   className,
@@ -163,7 +165,7 @@ export function RichTextEditor({
 
   useEffect(() => {
     if (!editorRef.current) return;
-    if (value !== lastValueRef.current) {
+    if (editorRef.current.innerHTML !== value) {
       editorRef.current.innerHTML = value || "";
       lastValueRef.current = value;
     }
@@ -375,7 +377,17 @@ export function RichTextEditor({
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            if (editorRef.current) {
+              const html = editorRef.current.innerHTML;
+              if (html !== lastValueRef.current) {
+                lastValueRef.current = html;
+                onChange(html);
+              }
+            }
+            onBlur?.();
+          }}
         />
       </div>
     </div>

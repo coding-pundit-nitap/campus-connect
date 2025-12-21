@@ -76,9 +76,10 @@ export function ProductCardDetails({
           {product.name}
         </h3>
         {product.description && !isMobileList && (
-          <p className="min-h-[40px] text-sm leading-relaxed text-muted-foreground line-clamp-2">
-            {product.description}
-          </p>
+          <div
+            className="min-h-[40px] text-sm leading-relaxed text-muted-foreground line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: product.description || "" }}
+          />
         )}
       </div>
 

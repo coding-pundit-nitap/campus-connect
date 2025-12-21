@@ -59,7 +59,7 @@ export const productActionSchema = productSchema.extend({
 export type ProductActionFormData = z.infer<typeof productActionSchema>;
 
 export const productUpdateActionSchema = productUpdateSchema.extend({
-  image: z.instanceof(File, { message: "Invalid file" }),
+  image: z.instanceof(File, { message: "Invalid file" }).optional(),
   image_key: z.string().min(1, "An image is required.").optional(),
 });
 export type ProductUpdateActionFormData = z.infer<

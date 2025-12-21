@@ -18,7 +18,6 @@ import {
 } from "../ui/card";
 import { ProductListContainer } from "./product-list";
 import { ShopAction } from "./shop-header/shop-action";
-import { ShopEmptyState } from "./shop-states/shop-empty-state";
 
 type Props = {
   shop_id: string;
@@ -57,7 +56,6 @@ export function OwnedShopContainer({
     clearPriceFilter,
     clearStockFilter,
     showNoMatchMessage,
-    isEmptyState,
   } = useSharedInfiniteProducts({
     shop_id,
     mode: "owner",

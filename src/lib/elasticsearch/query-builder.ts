@@ -27,6 +27,7 @@ export class ESQueryBuilder {
         multi_match: {
           query: query.trim(),
           fields,
+          type: "bool_prefix",
           fuzziness: "AUTO",
         },
       });

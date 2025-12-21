@@ -58,6 +58,17 @@ export const queryKeys = {
       ["products", "list", filters] as const,
     /** Products filtered by shop query key factory */
     byShop: (shop_id: string) => ["products", "shop", shop_id] as const,
+    /** Products filtered by shop with additional filters */
+    byShopWithFilters: (
+      shop_id: string,
+      filters?: {
+        sortBy?: string;
+        sortOrder?: string;
+        categoryId?: string;
+        search?: string;
+        inStock?: boolean;
+      }
+    ) => ["products", "shop", shop_id, "filtered", filters] as const,
     /** Individual product details query key factory */
     detail: (product_id: string) => ["products", product_id] as const,
     reviews: (product_id: string) =>
