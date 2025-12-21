@@ -187,3 +187,44 @@ export async function deleteProductAction(
     throw new InternalServerError("Failed to delete product.");
   }
 }
+
+export async function getProductStatsAction(): Promise<
+  ActionResponse<{
+    totalProducts: number;
+    inStockProducts: number;
+    outOfStockProducts: number;
+    recentProducts: number;
+  }>
+> {
+  try {
+    await verifyAdmin();
+
+    const [totalProducts, inStockProducts, recentProducts] = await Promise.all([
+      productRepository.count({}),
+      productRepository.count({ where: { stock_quantity: { gt: 0 } } }),
+      productRepository.count({
+        where: {
+          created_at: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
+      }),
+    ]);
+
+    return createSuccessResponse(
+      {
+        totalProducts,
+        inStockProducts,
+        outOfStockProducts: totalProducts - inStockProducts,
+        recentProducts,
+      },
+      "Product statistics retrieved successfully"
+    );
+  } catch (error) {
+    console.error("GET PRODUCT STATS ERROR:", error);
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to retrieve product statistics.");
+  }
+}
