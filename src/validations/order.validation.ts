@@ -55,9 +55,6 @@ export function isWithinShopHours(
   const closingTime = parseTimeString(closing);
 
   if (!openingTime || !closingTime) {
-    console.warn(
-      `Invalid shop hours format - opening: "${opening}", closing: "${closing}". Allowing delivery.`
-    );
     return true;
   }
 

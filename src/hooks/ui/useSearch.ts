@@ -182,10 +182,11 @@ export const useNavigationSearch = ({
 
   const onSearch = useMemo(
     () => (query: string) => {
-      if (query.trim().length > 0) {
+      if (query.trim().length >= 2) {
         debouncedSetQuery(query);
       } else {
-        debouncedSetQuery("");
+        debouncedSetQuery.cancel();
+        setDebouncedQuery("");
       }
     },
     [debouncedSetQuery]
@@ -198,10 +199,11 @@ export const useNavigationSearch = ({
       );
 
       if (selectedItem) {
+        debouncedSetQuery.cancel();
         onNavigate(selectedItem);
       }
     },
-    [onNavigate]
+    [onNavigate, debouncedSetQuery]
   );
 
   useEffect(() => {

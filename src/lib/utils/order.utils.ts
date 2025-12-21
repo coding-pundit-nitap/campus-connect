@@ -143,6 +143,7 @@ export function mapSearchResultsToSuggestions(searchResults: SearchResult[]) {
     id: result.id,
     title: result.title,
     subtitle: result.subtitle,
+    type: result.type,
   }));
 }
 

@@ -58,9 +58,10 @@ export function ShopCard({ shop, priority }: Props) {
             <CardTitle className="mb-1 line-clamp-2 text-xl font-bold transition-colors group-hover:text-primary">
               {shop.name}
             </CardTitle>
-            <CardDescription className="line-clamp-2 text-sm">
-              {shop.description}
-            </CardDescription>
+            <CardDescription
+              dangerouslySetInnerHTML={{ __html: shop.description }}
+              className="mt-1 prose prose-sm dark:prose-invert max-w-none"
+            />
           </CardHeader>
 
           <CardContent className="flex-1 space-y-3 p-0">

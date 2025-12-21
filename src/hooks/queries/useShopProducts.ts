@@ -28,11 +28,26 @@ export function useShop(shop_id: string) {
   });
 }
 
-export const useShopProducts = (shop_id: string) => {
+export interface ShopProductsFilters {
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  categoryId?: string;
+  search?: string;
+  inStock?: boolean;
+}
+
+export const useShopProducts = (
+  shop_id: string,
+  filters?: ShopProductsFilters
+) => {
   return useInfiniteQuery({
-    queryKey: queryKeys.products.byShop(shop_id),
+    queryKey: queryKeys.products.byShopWithFilters(shop_id, filters),
     queryFn: ({ pageParam }) =>
-      productAPIService.fetchShopProducts({ shop_id, cursor: pageParam }),
+      productAPIService.fetchShopProducts({
+        shop_id,
+        cursor: pageParam,
+        ...filters,
+      }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     enabled: !!shop_id && shop_id.trim() !== "",

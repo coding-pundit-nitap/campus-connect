@@ -103,3 +103,4 @@ Thumbs.db
 **/azure-pipelines.yml
 **/Jenkinsfile
 **/.circleci
+**/generated

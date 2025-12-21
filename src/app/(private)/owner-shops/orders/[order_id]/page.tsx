@@ -143,9 +143,12 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium">{item.product.name}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {item.product.description}
-                        </p>
+                        <div
+                          className="text-sm text-muted-foreground line-clamp-2"
+                          dangerouslySetInnerHTML={{
+                            __html: item.product.description || "",
+                          }}
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         x{item.quantity}

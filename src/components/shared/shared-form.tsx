@@ -71,6 +71,7 @@ export function SharedForm<T extends FieldValues>({
                     <RichTextEditor
                       value={formField.value || ""}
                       onChange={formField.onChange}
+                      onBlur={formField.onBlur}
                       placeholder={field.placeholder}
                       disabled={field.disabled || isLoading}
                     />

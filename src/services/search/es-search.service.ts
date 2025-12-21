@@ -149,9 +149,10 @@ class ESSearchService {
       return [];
     }
 
-    const [shopResults, productResults] = await Promise.all([
+    const [shopResults, productResults, categoryResults] = await Promise.all([
       this.searchShops({ query, limit }),
       this.searchProducts({ query, limit }),
+      this.searchCategories({ query, limit }),
     ]);
 
     const results: SearchResult[] = [
@@ -169,6 +170,14 @@ class ESSearchService {
         type: "product" as const,
         image_key: product.image_key,
         shop_id: product.shop_id,
+      })),
+      ...categoryResults.hits.map((category) => ({
+        id: category.id,
+        title: category.name,
+        subtitle: category.shop_id,
+        type: "category" as const,
+        image_key: null,
+        shop_id: category.shop_id,
       })),
     ];
 

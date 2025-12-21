@@ -1,3 +1,4 @@
+import { Grid2x2, Package, Store } from "lucide-react";
 import React from "react";
 
 import {
@@ -18,6 +19,7 @@ export interface SuggestionItem {
   id: string;
   title: string;
   subtitle: string;
+  type?: "shop" | "product" | "category";
 }
 
 /**
@@ -111,15 +113,32 @@ export function SharedCommand({
                 className="p-3 sm:p-2 cursor-pointer"
                 value={item.id}
               >
-                <div className="flex flex-col w-full">
-                  <span className="text-sm sm:text-base font-medium">
-                    {item.title}
-                  </span>
-                  {item.subtitle && (
-                    <span className="text-xs text-muted-foreground mt-1">
-                      {item.subtitle}
-                    </span>
+                <div className="flex items-center gap-3 w-full">
+                  {item.type && (
+                    <div className="flex-shrink-0">
+                      {item.type === "shop" ? (
+                        <Store className="h-4 w-4 text-blue-500" />
+                      ) : item.type === "category" ? (
+                        <Grid2x2 className="h-4 w-4 text-purple-500" />
+                      ) : (
+                        <Package className="h-4 w-4 text-green-500" />
+                      )}
+                    </div>
                   )}
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="text-sm sm:text-base font-medium truncate">
+                      {item.title}
+                    </span>
+                    {item.subtitle && (
+                      <span className="text-xs text-muted-foreground mt-0.5 truncate">
+                        {item.type === "shop"
+                          ? "Shop"
+                          : item.type === "category"
+                            ? "Category"
+                            : item.subtitle}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </CommandItem>
             ))}

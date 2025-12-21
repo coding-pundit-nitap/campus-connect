@@ -1,4 +1,4 @@
-# Define a reusable block for common Nginx settings
+# Define reusable blocks for common settings
 x-nginx-common: &nginx-common
   image: nginx:1.29-alpine
   volumes:
@@ -6,13 +6,22 @@ x-nginx-common: &nginx-common
   networks:
     - campus_connect_net
   healthcheck:
-    test: ["CMD", "wget", "--quiet", "--spider", "--fail", "http://localhost:8080/nginx-health"]
+    test:
+      [
+        "CMD",
+        "wget",
+        "--quiet",
+        "--spider",
+        "--fail",
+        "http://localhost:8080/nginx-health",
+      ]
     interval: 10s
     timeout: 5s
     retries: 3
   depends_on:
     minio:
       condition: service_healthy
+
 x-dev-resources: &dev-resources
   mem_limit: 512m
   cpus: "0.50"
@@ -22,6 +31,18 @@ x-logging: &default-logging
   options:
     max-size: "10m"
     max-file: "3"
+
+x-dev-build: &dev-build
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: dev
+
+x-dev-volumes: &dev-volumes
+  volumes:
+    - .:/app
+    - node_modules_volume:/app/node_modules
+    - pnpm_store_volume:/root/.local/share/pnpm/store
 
 services:
   # ----------------------------------------------------------------------------
@@ -55,27 +76,7 @@ services:
         condition: service_healthy
     profiles:
       - dev
-
-  # Installs node_modules into a shared volume before the app starts
-  installer-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
-    container_name: campus_connect_installer_dev
-    command: >
-      /bin/sh -c "
-        pnpm install --frozen-lockfile --ignore-scripts && 
-        pnpm prisma generate
-      "
-    environment:
-      - CI=true
-    volumes:
-      - .:/app
-      - node_modules_volume:/app/node_modules
-      - pnpm_store_volume:/root/.local/share/pnpm/store
-    profiles:
-      - dev
+    logging: *default-logging
 
   # ----------------------------------------------------------------------------
   # MIGRATOR: DEVELOPMENT
@@ -87,7 +88,7 @@ services:
       target: dev
     container_name: campus_connect_migrator_dev
     restart: "no"
-    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
+    command: pnpm prisma migrate deploy
     env_file:
       - .env.local
     environment:
@@ -98,8 +99,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      installer-dev:
-        condition: service_completed_successfully
     mem_limit: 512m
     cpus: "0.50"
     volumes:
@@ -110,10 +109,7 @@ services:
 
   # The main Next.js application for development
   app-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+    <<: *dev-build
     container_name: campus_connect_app_dev
     restart: unless-stopped
     entrypoint: ["/app/scripts/dev-entrypoint.sh"]
@@ -126,8 +122,6 @@ services:
       redis:
         condition: service_healthy
       create-buckets:
-        condition: service_completed_successfully
-      installer-dev:
         condition: service_completed_successfully
       migrator-dev:
         condition: service_completed_successfully
@@ -180,31 +174,29 @@ services:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
       - DATABASE_URL=${DATABASE_URL}
     depends_on:
-      - redis
-      - elasticsearch
-      - installer-dev
-      - migrator-dev
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      migrator-dev:
+        condition: service_completed_successfully
     networks:
       - campus_connect_net
     profiles:
       - dev
     logging: *default-logging
-    <<: *dev-resources
+    mem_limit: 512m
+    cpus: "0.50"
 
   # Prisma Studio for database debugging in development
   prisma-studio:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+    <<: *dev-build
     container_name: campus_connect_prisma_studio
     restart: unless-stopped
     command: pnpm prisma studio --port 5555 --browser none
     depends_on:
       db:
         condition: service_healthy
-      installer-dev:
-        condition: service_completed_successfully
       migrator-dev:
         condition: service_completed_successfully
     volumes:
@@ -255,6 +247,7 @@ services:
         condition: service_healthy
     profiles:
       - prod
+    logging: *default-logging
 
   # ----------------------------------------------------------------------------
   # MIGRATOR: PRODUCTION
@@ -266,7 +259,7 @@ services:
       target: migrator
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
-    command: npx prisma migrate deploy --schema=./prisma/schema.prisma
+    command: pnpm prisma migrate deploy
     env_file:
       - .env
       - .env.production
@@ -317,6 +310,7 @@ services:
       start_period: 60s
     profiles:
       - prod
+    logging: *default-logging
 
   # Worker for Production
   worker-prod:
@@ -372,6 +366,9 @@ services:
       retries: 5
     networks:
       - campus_connect_net
+    profiles:
+      - dev
+      - prod
     logging: *default-logging
 
   # MinIO S3-compatible object storage
@@ -394,6 +391,9 @@ services:
       retries: 5
     networks:
       - campus_connect_net
+    profiles:
+      - dev
+      - prod
 
   # One-off job to create MinIO buckets on startup
   create-buckets:
@@ -412,6 +412,9 @@ services:
       - .env
     networks:
       - campus_connect_net
+    profiles:
+      - dev
+      - prod
 
   # Redis cache
   redis:

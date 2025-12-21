@@ -6,7 +6,12 @@ import { useForm } from "react-hook-form";
 
 import { FormState } from "@/types";
 import { SerializedProduct } from "@/types/product.types";
-import { ProductActionFormData, productActionSchema } from "@/validations";
+import {
+  ProductActionFormData,
+  productActionSchema,
+  ProductUpdateActionFormData,
+  productUpdateActionSchema,
+} from "@/validations";
 
 import {
   useImageUpload,
@@ -30,8 +35,8 @@ export function useUpdateProductForm({ product }: Props) {
   const { mutateAsync: uploadImage, isPending: isUploadingImage } =
     useImageUpload();
 
-  const form = useForm<ProductActionFormData>({
-    resolver: zodResolver(productActionSchema),
+  const form = useForm<ProductUpdateActionFormData>({
+    resolver: zodResolver(productUpdateActionSchema),
     defaultValues: {
       name: product.name,
       description: product.description || "",

@@ -18,7 +18,7 @@ import { Progress } from "@/components/ui/progress";
 import { useLinkShop } from "@/hooks";
 
 import { SharedFileInput } from "../shared/shared-file-input";
-import { Textarea } from "../ui/textarea";
+import { RichTextEditor } from "../ui/rich-text-editor";
 
 export function CreateShopForm() {
   const [step, setStep] = useState(1);
@@ -72,10 +72,12 @@ export function CreateShopForm() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea
-                          aria-label="Shop Description"
-                          placeholder="The best shop on campus"
-                          {...field}
+                        <RichTextEditor
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          placeholder={"Write something about your shop"}
+                          disabled={field.disabled || isSubmitting}
                         />
                       </FormControl>
                       <FormDescription>
