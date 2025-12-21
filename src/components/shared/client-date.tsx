@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 
 interface ClientDateProps {
   date: Date | string;
@@ -13,7 +13,13 @@ export function ClientDate({
   format = "date",
   locale = "en-IN",
 }: ClientDateProps) {
-  const [mounted] = useState(() => typeof window !== "undefined");
+  const [mounted, setMounted] = useState(false);
+
+  const setMountedTrue = useEffectEvent(() => setMounted(true));
+
+  useEffect(() => {
+    setMountedTrue();
+  }, []);
 
   if (!mounted) {
     return <span>—</span>;

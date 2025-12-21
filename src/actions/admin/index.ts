@@ -23,7 +23,11 @@ export {
   getPayoutStatsAction,
   updatePayoutStatusAction,
 } from "./payout-actions";
-export { deleteProductAction, getAllProductsAction } from "./products-actions";
+export {
+  deleteProductAction,
+  getAllProductsAction,
+  getProductStatsAction,
+} from "./products-actions";
 export {
   deleteReviewAction,
   getAllReviewsAction,

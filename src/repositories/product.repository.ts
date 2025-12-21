@@ -235,6 +235,9 @@ class ProductRepository {
       });
     }
   }
+  async count(args: Prisma.ProductCountArgs) {
+    return prisma.product.count(args);
+  }
 }
 
 export const productRepository = new ProductRepository();
