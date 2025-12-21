@@ -1,11 +1,4 @@
-import {
-  Activity,
-  Calendar,
-  History,
-  Shield,
-  ShieldAlert,
-  UserCog,
-} from "lucide-react";
+import { Activity, Calendar, History, UserCog } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -62,7 +55,6 @@ export default async function AdminAuditLogsPage({
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <History className="h-7 w-7 text-slate-600" />
@@ -80,7 +72,6 @@ export default async function AdminAuditLogsPage({
         </div>
       </div>
 
-      {/* Stats Cards */}
       {stats && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>

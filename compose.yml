@@ -1,4 +1,3 @@
-# Define reusable blocks for common settings
 x-nginx-common: &nginx-common
   image: nginx:1.29-alpine
   volumes:
@@ -38,12 +37,6 @@ x-dev-build: &dev-build
     dockerfile: Dockerfile
     target: dev
 
-x-dev-volumes: &dev-volumes
-  volumes:
-    - .:/app
-    - node_modules_volume:/app/node_modules
-    - pnpm_store_volume:/root/.local/share/pnpm/store
-
 services:
   # ----------------------------------------------------------------------------
   # Development Services (profile: dev)
@@ -74,6 +67,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     profiles:
       - dev
     logging: *default-logging
@@ -102,7 +97,8 @@ services:
     mem_limit: 512m
     cpus: "0.50"
     volumes:
-      - .:/app
+      - ./prisma:/app/prisma
+      - ./prisma.config.ts:/app/prisma.config.ts
       - node_modules_volume:/app/node_modules
     profiles:
       - dev
@@ -128,7 +124,12 @@ services:
     mem_limit: 3g
     cpus: "2.0"
     volumes:
-      - .:/app
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.worker.json:/app/tsconfig.worker.json
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./prisma:/app/prisma
+      - ./scripts:/app/scripts
       - node_modules_volume:/app/node_modules
       - next_cache_volume:/app/.next
       - pnpm_store_volume:/root/.local/share/pnpm/store
@@ -139,7 +140,6 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
-      - TURBOPACK=1
       - CHOKIDAR_USEPOLLING=false
       - WATCHPACK_POLLING=false
       - TZ=UTC
@@ -166,7 +166,8 @@ services:
     container_name: campus_connect_worker_dev
     command: npx tsx workers/index.ts
     volumes:
-      - .:/app
+      - ./workers:/app/workers
+      - ./tsconfig.worker.json:/app/tsconfig.worker.json
       - node_modules_volume:/app/node_modules
       - pnpm_store_volume:/root/.local/share/pnpm/store
     environment:
@@ -200,7 +201,10 @@ services:
       migrator-dev:
         condition: service_completed_successfully
     volumes:
-      - .:/app
+      - ./prisma:/app/prisma
+      - ./prisma.config.ts:/app/prisma.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./tsconfig.worker.json:/app/tsconfig.worker.json
       - node_modules_volume:/app/node_modules
     expose:
       - "5555"
@@ -245,6 +249,12 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      worker-prod:
+        condition: service_started
     profiles:
       - prod
     logging: *default-logging

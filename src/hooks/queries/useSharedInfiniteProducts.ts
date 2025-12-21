@@ -1,13 +1,8 @@
 "use client";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
-import {
-  useAddToCart,
-  useImageDelete,
-  useShopProductsDelete,
-} from "@/hooks/queries";
+import { useProductActions } from "@/hooks/common/useProductActions";
 import { useProductFilters } from "@/hooks/ui/useProductFilters";
 import { queryKeys } from "@/lib/query-keys";
 import { getProductStates, productUIServices } from "@/lib/utils";
@@ -32,7 +27,6 @@ export const useSharedInfiniteProducts = ({
   initialNextCursor,
   initialError,
 }: Props) => {
-  const router = useRouter();
   const {
     filters,
     updateFilter,
@@ -119,39 +113,11 @@ export const useSharedInfiniteProducts = ({
     [allProducts, displayProducts, hasActiveFilters, isLoading]
   );
 
-  const { mutate: deleteProduct } = useShopProductsDelete();
-  const { mutateAsync: deleteImage } = useImageDelete();
-  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
-
-  const actionHandlers = useMemo(() => {
-    if (mode === "owner") {
-      return {
-        onDeleteProduct: async (product_id: string, image_key: string) => {
-          await deleteImage(image_key);
-          deleteProduct({ product_id, shop_id });
-        },
-        onResetFilters: clearFilters,
-      };
-    }
-
-    return {
-      onAddToCart: (product_id: string, quantity: number) => {
-        addToCart({ product_id, quantity });
-      },
-      onViewDetails: (product_id: string) => {
-        router.push(`/product/${product_id}`);
-      },
-      onResetFilters: clearFilters,
-    };
-  }, [
-    mode,
-    deleteProduct,
-    deleteImage,
-    clearFilters,
-    addToCart,
-    router,
-    shop_id,
-  ]);
+  const { onDeleteProduct, onAddToCart, onViewDetails, isAddingToCart } =
+    useProductActions({
+      mode,
+      shop_id,
+    });
 
   const loadingStates = useMemo(
     () => ({
@@ -187,7 +153,10 @@ export const useSharedInfiniteProducts = ({
     clearSearchFilter,
     clearPriceFilter,
     clearStockFilter,
-    ...actionHandlers,
+    onDeleteProduct,
+    onAddToCart,
+    onViewDetails,
+    onResetFilters: clearFilters,
     ...(mode === "user" && { isAddingToCart }),
   };
 };

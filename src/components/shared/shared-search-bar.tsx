@@ -22,6 +22,8 @@ export interface SharedSearchBarProps {
   showSuggestionsDropdown: boolean;
   isLoading?: boolean;
   onInputChange?: (value: string) => void;
+  shortcut?: boolean;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export function SharedSearchBar({
@@ -37,6 +39,8 @@ export function SharedSearchBar({
   showSuggestionsDropdown,
   isLoading = false,
   onInputChange,
+  shortcut,
+  inputRef,
 }: SharedSearchBarProps) {
   return (
     <div className="relative m-0 flex items-center justify-center">
@@ -49,6 +53,8 @@ export function SharedSearchBar({
         onBlur={onBlur}
         onClick={onClick}
         showIcon
+        shortcut={shortcut}
+        inputRef={inputRef}
       />
       {showSuggestionsDropdown && (
         <div className="absolute top-full left-0 right-0 mt-1 mx-2 sm:mx-0 sm:left-0 sm:right-auto sm:w-full sm:min-w-[300px] sm:max-w-[400px] md:w-[400px] z-50 rounded-md border bg-popover p-0 text-popover-foreground shadow-md max-h-[300px] overflow-y-auto">

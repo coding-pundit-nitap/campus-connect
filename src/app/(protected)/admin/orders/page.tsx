@@ -1,10 +1,4 @@
-import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  Package,
-  XCircle,
-} from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Package } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 

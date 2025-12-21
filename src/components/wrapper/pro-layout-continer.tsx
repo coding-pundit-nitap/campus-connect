@@ -10,11 +10,11 @@ interface LayoutContainerProps {
 }
 
 export function ProLayoutContainer({ children }: LayoutContainerProps) {
-  const navigation = navigationUIService.getProNavigationItems();
+  const groups = navigationUIService.getProNavigationGroups();
 
   return (
     <>
-      <ProLayout navigation={navigation}>{children}</ProLayout>
+      <ProLayout groups={groups}>{children}</ProLayout>
     </>
   );
 }

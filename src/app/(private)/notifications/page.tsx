@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { DateDisplay } from "@/components/shared/date-display";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -274,7 +275,7 @@ export default function NotificationHistoryPage() {
                       </span>
                     </div>
                     <CardDescription>
-                      {new Date(notification.created_at).toLocaleString()}
+                      <DateDisplay date={notification.created_at} />
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

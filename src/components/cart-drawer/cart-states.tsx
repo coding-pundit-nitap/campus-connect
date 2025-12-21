@@ -1,28 +1,18 @@
+import { ShoppingCart } from "lucide-react";
 import React from "react";
 
-import SharedDrawer from "@/components/shared/shared-drawer";
+import { SheetClose } from "@/components/ui/sheet";
 
-import { CartIcon } from "./cart-icon";
+import { Button } from "../ui/button";
 
 interface CartDrawerWrapperProps {
   children: React.ReactNode;
-  totalItems?: number;
 }
 
 export function CartDrawerWrapper({
   children,
-  totalItems = 0,
-}: CartDrawerWrapperProps) {
-  return (
-    <SharedDrawer
-      direction="right"
-      icon={<CartIcon totalItems={totalItems} />}
-      title="Your Cart"
-      description={totalItems > 0 ? `${totalItems} items` : "0 items"}
-    >
-      {children}
-    </SharedDrawer>
-  );
+}: Pick<CartDrawerWrapperProps, "children">) {
+  return <div className="flex w-full h-full flex-col">{children}</div>;
 }
 
 export function CartLoadingState() {
@@ -50,8 +40,21 @@ export function CartErrorState() {
 export function CartEmptyState() {
   return (
     <CartDrawerWrapper>
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Your cart is empty</p>
+      <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+          <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-lg font-medium">Your cart is empty</p>
+          <p className="text-sm text-muted-foreground">
+            Add items to your cart to checkout
+          </p>
+        </div>
+        <SheetClose asChild>
+          <Button variant="outline" size="sm" className="mt-4">
+            Start Shopping
+          </Button>
+        </SheetClose>
       </div>
     </CartDrawerWrapper>
   );

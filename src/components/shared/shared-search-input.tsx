@@ -44,6 +44,10 @@ export interface SharedSearchInputProps {
   autoFocus?: boolean;
   /** Input type */
   type?: "text" | "search";
+  /** Keyboard shortcut hint to display */
+  shortcut?: boolean;
+  /** Ref to the input element */
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export function SharedSearchInput({
@@ -64,6 +68,8 @@ export function SharedSearchInput({
   size = "default",
   autoFocus = false,
   type = "text",
+  shortcut = false,
+  inputRef,
 }: SharedSearchInputProps) {
   const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) {
@@ -103,6 +109,7 @@ export function SharedSearchInput({
         />
       )}
       <Input
+        ref={inputRef}
         type={type}
         placeholder={placeholder}
         value={value}
@@ -114,7 +121,7 @@ export function SharedSearchInput({
         autoFocus={autoFocus}
         className={`
           ${showIcon ? "pl-10" : "pl-3"} 
-          ${(showClear && value) || isLoading ? "pr-10" : "pr-3"}
+          ${(showClear && value) || isLoading ? "pr-10" : shortcut ? "pr-12" : "pr-3"}
           ${sizeClasses[size]} 
           truncate
         `}
@@ -123,27 +130,28 @@ export function SharedSearchInput({
         role="searchbox"
       />
 
-      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
         {isLoading ? (
           <div
             className={`${iconSizeClasses[size]} animate-spin rounded-full border-2 border-muted-foreground border-t-transparent`}
           />
-        ) : (
-          showClear &&
-          value && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleClear}
-              disabled={disabled}
-              className={`${iconSizeClasses[size]} items-center p-0 hover:bg-transparent`}
-              aria-label="Clear search"
-            >
-              <X className={iconSizeClasses[size]} />
-            </Button>
-          )
-        )}
+        ) : showClear && value ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={handleClear}
+            disabled={disabled}
+            className={`${iconSizeClasses[size]} items-center p-0 hover:bg-transparent`}
+            aria-label="Clear search"
+          >
+            <X className={iconSizeClasses[size]} />
+          </Button>
+        ) : shortcut ? (
+          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            ⌘ K
+          </kbd>
+        ) : null}
       </div>
     </div>
   );

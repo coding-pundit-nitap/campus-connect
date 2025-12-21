@@ -1,5 +1,4 @@
-import { getProductStates } from "@/lib/utils";
-import { productService } from "@/services/product/product.service";
+import { getShopPageData } from "@/services/product/shop-page.service";
 
 import { ProductsContainer } from "./products-container";
 
@@ -8,15 +7,8 @@ type Props = {
 };
 
 export async function Products({ shop_id }: Props) {
-  const { initialProducts, hasNextPage, nextCursor, error } =
-    await productService.fetchShopProducts(shop_id);
-
-  const productStates = getProductStates(
-    initialProducts,
-    initialProducts,
-    false,
-    false
-  );
+  const { initialProducts, productStates, hasNextPage, nextCursor, error } =
+    await getShopPageData(shop_id);
 
   return (
     <ProductsContainer

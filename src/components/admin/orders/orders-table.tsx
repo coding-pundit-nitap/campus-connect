@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { DateDisplay } from "@/components/shared/date-display";
 import { OrderActionsDropdown } from "@/components/shared/order-actions-dropdown";
 import { OrderFilterBar } from "@/components/shared/order-filter-bar";
 import {
@@ -146,7 +147,7 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
-                      {new Date(order.created_at).toLocaleString()}
+                      <DateDisplay date={order.created_at} />
                     </span>
                   </TableCell>
                   <TableCell className="text-right">

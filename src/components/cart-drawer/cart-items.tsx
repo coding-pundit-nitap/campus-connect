@@ -25,9 +25,16 @@ export function CartItems({ items, cart_id }: CartItemsProps) {
   return (
     <div className="flex-1 flex flex-col h-full space-y-2 p-4">
       {items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-center">
-          <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">Your cart is empty</p>
+        <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+            <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <div className="space-y-1">
+            <p className="text-lg font-medium">Your cart is empty</p>
+            <p className="text-sm text-muted-foreground">
+              Add items to your cart to checkout
+            </p>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

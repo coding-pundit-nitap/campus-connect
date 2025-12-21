@@ -287,6 +287,10 @@ export async function batchUpdateOrderStatusAction({
         );
       }
 
+      if (order.order_status === status) {
+        continue;
+      }
+
       const allowedStatuses =
         VALID_ORDER_TRANSITIONS[
           order.order_status as keyof typeof VALID_ORDER_TRANSITIONS

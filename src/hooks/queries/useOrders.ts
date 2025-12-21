@@ -13,6 +13,7 @@ import {
   updatePaymentStatusAction,
 } from "@/actions/admin";
 import {
+  batchUpdateOrderStatusAction,
   createOrderAction,
   getOrdersAction,
   updateOrderStatusAction,
@@ -94,6 +95,26 @@ function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
+    },
+  });
+}
+
+export function useBatchUpdateOrderStatus(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: batchUpdateOrderStatusAction,
+    onSuccess: (response) => {
+      if (response.success) {
+        toast.success(response.details || "Order status updated");
+        queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+        onSuccess?.();
+      } else {
+        toast.error(response.details || "Failed to update order status");
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update order status");
     },
   });
 }

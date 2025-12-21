@@ -11,14 +11,18 @@ type Props = {
 
 export function CartFooter({ total_price, onProceed }: Props) {
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <span className="text-lg font-semibold">Total</span>
-        <span className="text-lg font-bold">₹{total_price.toFixed(2)}</span>
+    <div className="border-t bg-background p-4 sticky bottom-0 z-10">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <span className="text-base text-muted-foreground">Subtotal</span>
+          <span className="text-lg font-bold">₹{total_price.toFixed(2)}</span>
+        </div>
+        <Button onClick={onProceed} className="w-full" size="lg">
+          <DrawerClose className="w-full h-full flex items-center justify-center">
+            Proceed to Checkout
+          </DrawerClose>
+        </Button>
       </div>
-      <Button asChild className="w-full" size="lg" onClick={onProceed}>
-        <DrawerClose>Proceed to Checkout</DrawerClose>
-      </Button>
     </div>
   );
 }

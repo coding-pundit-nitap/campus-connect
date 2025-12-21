@@ -8,7 +8,10 @@ import {
   Users,
 } from "lucide-react";
 
-import { NavigationItem } from "@/components/shared/shared-sidebar";
+import {
+  NavigationGroup,
+  NavigationItem,
+} from "@/components/shared/shared-sidebar";
 
 class NavigationUIService {
   getNavigationItems(): NavigationItem[] {
@@ -76,6 +79,72 @@ class NavigationUIService {
         title: "Settings",
         url: "/admin/settings",
         icon: Settings,
+      },
+    ];
+  }
+  getProNavigationGroups(): NavigationGroup[] {
+    return [
+      {
+        label: "Platform",
+        items: [
+          {
+            id: "dashboard",
+            title: "Dashboard",
+            url: "/admin",
+            icon: Home,
+          },
+        ],
+      },
+      {
+        label: "Management",
+        items: [
+          {
+            id: "users",
+            title: "Users",
+            url: "/admin/users",
+            icon: Users,
+          },
+          {
+            id: "shops",
+            title: "Shops",
+            url: "/admin/shops",
+            icon: Store,
+          },
+          {
+            id: "products",
+            title: "Products",
+            url: "/admin/products",
+            icon: Package,
+          },
+          {
+            id: "orders",
+            title: "Orders",
+            url: "/admin/orders",
+            icon: ShoppingBag,
+          },
+        ],
+      },
+      {
+        label: "Communication",
+        items: [
+          {
+            id: "broadcasts",
+            title: "Broadcasts",
+            url: "/admin/broadcasts",
+            icon: Bell,
+          },
+        ],
+      },
+      {
+        label: "System",
+        items: [
+          {
+            id: "settings",
+            title: "Settings",
+            url: "/admin/settings",
+            icon: Settings,
+          },
+        ],
       },
     ];
   }
