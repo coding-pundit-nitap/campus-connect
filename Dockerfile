@@ -144,6 +144,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=prod-deps /app/prisma/generated ./prisma/generated
+COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
 
