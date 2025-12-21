@@ -7,6 +7,7 @@ import {
 } from "@/components/pdf/order-receipt-pdf";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
+import { createErrorResponse } from "@/types";
 
 export async function GET(
   request: NextRequest,
@@ -49,7 +50,8 @@ export async function GET(
     });
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      const errorResponse = createErrorResponse("Order not found");
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Check if user owns this order or is the shop owner
@@ -57,11 +59,13 @@ export async function GET(
     const isShopOwner = order.shop_id
       ? await prisma.shop.findFirst({
           where: { id: order.shop_id, user: { id: userId } },
+          select: { id: true },
         })
       : null;
 
     if (!isOwner && !isShopOwner) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      const errorResponse = createErrorResponse("Forbidden");
+      return NextResponse.json(errorResponse, { status: 403 });
     }
 
     // Calculate totals
@@ -123,9 +127,7 @@ export async function GET(
     });
   } catch (error) {
     console.error("PDF Generation Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate PDF" },
-      { status: 500 }
-    );
+    const errorResponse = createErrorResponse("Failed to generate PDF");
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

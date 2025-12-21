@@ -1,14 +1,30 @@
 import { NextResponse } from "next/server";
+import z from "zod";
 
 import { Prisma } from "@/../prisma/generated/client";
+import { paginateCursor } from "@/lib/paginate";
 import { prisma } from "@/lib/prisma";
-import { serializeProducts, SortBy } from "@/lib/utils/product.utils";
+import { serializeProducts } from "@/lib/utils/product.utils";
 import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+import { cursorPaginationSchema } from "@/validations/pagination.validation";
 
 export const dynamic = "force-dynamic";
+
+const shopProductsQuerySchema = cursorPaginationSchema.extend({
+  sortBy: z.enum(["name", "price", "created_at", "stock_quantity"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  search: z.string().optional(),
+  categoryId: z.string().optional(),
+  inStock: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((v) =>
+      v === "true" ? true : v === "false" ? false : undefined
+    ),
+});
 
 export async function GET(
   request: Request,
@@ -22,82 +38,73 @@ export async function GET(
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const cursor = searchParams.get("cursor") || undefined;
-    const sortBy = searchParams.get("sortBy") as SortBy | undefined;
-    const sortOrder =
-      (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
-    const search = searchParams.get("search") || undefined;
-    const categoryId = searchParams.get("categoryId") || undefined;
-    const inStockParam = searchParams.get("inStock");
-    const inStock =
-      inStockParam === "true"
-        ? true
-        : inStockParam === "false"
-          ? false
-          : undefined;
+    const searchParams = Object.fromEntries(new URL(request.url).searchParams);
+    const parsed = shopProductsQuerySchema.parse(searchParams);
 
-    const VALID_SORT_FIELDS = ["name", "price", "created_at", "stock_quantity"];
-    const effectiveSortBy =
-      sortBy && VALID_SORT_FIELDS.includes(sortBy) ? sortBy : "created_at";
+    const effectiveSortBy = parsed.sortBy || "created_at";
 
     const whereClause: Prisma.ProductWhereInput = {
       shop_id,
       deleted_at: null,
     };
 
-    if (search) {
+    if (parsed.search) {
       whereClause.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { category: { name: { contains: search, mode: "insensitive" } } },
+        { name: { contains: parsed.search, mode: "insensitive" } },
+        { description: { contains: parsed.search, mode: "insensitive" } },
+        {
+          category: { name: { contains: parsed.search, mode: "insensitive" } },
+        },
       ];
     }
 
-    if (categoryId) {
-      whereClause.category_id = categoryId;
+    if (parsed.categoryId) {
+      whereClause.category_id = parsed.categoryId;
     }
 
-    if (inStock === true) {
+    if (parsed.inStock === true) {
       whereClause.stock_quantity = { gt: 0 };
-    } else if (inStock === false) {
+    } else if (parsed.inStock === false) {
       whereClause.stock_quantity = { lte: 0 };
     }
 
-    const products = await prisma.product.findMany({
-      where: whereClause,
-      take: limit + 1,
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : 0,
-      orderBy: { [effectiveSortBy]: sortOrder },
-      include: {
-        category: true,
-        shop: {
-          select: {
-            id: true,
-            name: true,
+    const result = await paginateCursor(
+      ({ take, cursor }) =>
+        prisma.product.findMany({
+          where: whereClause,
+          take,
+          cursor: cursor ? { id: cursor } : undefined,
+          skip: cursor ? 1 : 0,
+          orderBy: { [effectiveSortBy]: parsed.sortOrder },
+          include: {
+            category: true,
+            shop: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
-        },
-      },
-    });
+        }),
+      parsed.limit,
+      parsed.cursor
+    );
 
-    let nextCursor: typeof cursor | null = null;
-    if (products.length > limit) {
-      const lastItem = products.pop();
-      nextCursor = lastItem!.id;
-    }
-
-    const responseData = {
-      data: serializeProducts(products),
-      nextCursor,
-    };
     const successResponse = createSuccessResponse(
-      responseData,
+      {
+        ...result,
+        data: serializeProducts(result.data),
+      },
       "Products retrieved successfully"
     );
     return NextResponse.json(successResponse);
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        createErrorResponse(error.issues.map((e) => e.message).join(", ")),
+        { status: 400 }
+      );
+    }
     console.error("GET PRODUCTS ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."

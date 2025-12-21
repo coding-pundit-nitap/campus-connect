@@ -1,13 +1,27 @@
 import axiosInstance from "@/lib/axios";
-import { ActionResponse, SerializedOrderWithDetails } from "@/types";
+import {
+  ActionResponse,
+  CursorPaginatedResponse,
+  SerializedOrderWithDetails,
+} from "@/types";
 
 class OrderAPIService {
-  async fetchUserOrders(): Promise<SerializedOrderWithDetails[]> {
+  async fetchUserOrders({
+    limit = 10,
+    cursor,
+  }: {
+    limit?: number;
+    cursor?: string | null;
+  }): Promise<CursorPaginatedResponse<SerializedOrderWithDetails>> {
     const url = `orders`;
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedOrderWithDetails[]>>(
-        url
-      );
+    const response = await axiosInstance.get<
+      ActionResponse<CursorPaginatedResponse<SerializedOrderWithDetails>>
+    >(url, {
+      params: {
+        limit,
+        cursor: cursor || undefined,
+      },
+    });
     return response.data.data;
   }
 

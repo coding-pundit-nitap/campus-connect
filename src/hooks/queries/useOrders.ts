@@ -15,17 +15,16 @@ import {
 import {
   batchUpdateOrderStatusAction,
   createOrderAction,
-  getOrdersAction,
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
 import { queryKeys } from "@/lib/query-keys";
 import { orderAPIService } from "@/services";
-import { createSuccessResponse, SerializedOrderWithDetails } from "@/types";
+import { SerializedOrderWithDetails } from "@/types";
 
 export type UseOrdersProps = {
   initialData: SerializedOrderWithDetails[];
   initialHasNextPage: boolean;
-  initialNextCursor: number | null;
+  initialNextCursor: string | null;
   initialError?: string;
 };
 
@@ -35,12 +34,6 @@ export function useOrders({
   initialNextCursor,
   initialError,
 }: UseOrdersProps) {
-  const paginatedInitialData = {
-    data: initialData,
-    totalPages: initialHasNextPage ? 2 : 1,
-    currentPage: 1,
-  };
-  const response = createSuccessResponse(paginatedInitialData, "Initial data");
   const {
     data,
     isLoading,
@@ -51,18 +44,20 @@ export function useOrders({
     fetchNextPage,
   } = useInfiniteQuery({
     queryKey: queryKeys.orders.all,
-    queryFn: ({ pageParam = 1 }) => getOrdersAction({ page: pageParam || 1 }),
+    queryFn: ({ pageParam }) =>
+      orderAPIService.fetchUserOrders({ cursor: pageParam }),
     initialPageParam: initialNextCursor,
-    getNextPageParam: (lastPage) => {
-      if (lastPage.data.currentPage < lastPage.data.totalPages) {
-        return lastPage.data.currentPage + 1;
-      }
-      return undefined;
-    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData:
       initialData.length > 0
         ? {
-            pages: [response],
+            pages: [
+              {
+                data: initialData,
+                nextCursor: initialNextCursor,
+                hasMore: initialHasNextPage,
+              },
+            ],
             pageParams: [null],
           }
         : undefined,
@@ -73,7 +68,7 @@ export function useOrders({
       return initialData;
     }
 
-    return data.pages.flatMap((page) => page.data.data);
+    return data.pages.flatMap((page) => page.data);
   }, [data, initialData]);
 
   return {

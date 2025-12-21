@@ -1,7 +1,8 @@
 "use client";
+import { Loader2 } from "lucide-react";
 import React from "react";
 
-import { useOrders } from "@/hooks";
+import { useInfiniteScroll, useOrders } from "@/hooks";
 import { SerializedOrderWithDetails } from "@/types";
 
 import OrderCard from "./order-card";
@@ -12,18 +13,25 @@ import {
 } from "./order-state";
 
 export default function OrderCardList() {
-  const hookResult = useOrders({
+  const {
+    allOrders,
+    isLoading,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useOrders({
     initialData: [],
     initialError: undefined,
     initialHasNextPage: false,
     initialNextCursor: null,
   });
 
-  if (!hookResult) {
-    return <OrderLoadingState />;
-  }
-
-  const { allOrders, isLoading, error } = hookResult;
+  const { lastElementRef } = useInfiniteScroll({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  });
 
   if (isLoading) {
     return <OrderLoadingState />;
@@ -40,10 +48,27 @@ export default function OrderCardList() {
   return (
     <div className="flex-1 hide-scrollbar overflow-y-auto">
       <div className="space-y-4">
-        {allOrders.map((order: SerializedOrderWithDetails) => (
-          <OrderCard key={order.id} order={order} />
-        ))}
+        {allOrders.map((order: SerializedOrderWithDetails, index: number) => {
+          const isLastElement = index === allOrders.length - 1;
+          return (
+            <div key={order.id} ref={isLastElement ? lastElementRef : null}>
+              <OrderCard order={order} />
+            </div>
+          );
+        })}
       </div>
+
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {!hasNextPage && allOrders.length > 0 && !isFetchingNextPage && (
+        <div className="py-4 text-center text-sm text-muted-foreground">
+          You've reached the end of your orders.
+        </div>
+      )}
     </div>
   );
 }

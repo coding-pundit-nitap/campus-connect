@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Notification } from "prisma/generated/client";
 
 import { MAX_PAGE_SIZE } from "@/config/constants";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
-import { createErrorResponse, createSuccessResponse } from "@/types";
+import {
+  createErrorResponse,
+  createSuccessResponse,
+  CursorPaginatedResponse,
+} from "@/types";
 
 export async function GET(request: NextRequest) {
   try {
     const user_id = await authUtils.getUserId();
 
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
+
     const cursor = searchParams.get("cursor") || undefined;
     const requestedLimit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!, 10)
       : 20;
     const limit = Math.min(Math.max(1, requestedLimit), MAX_PAGE_SIZE);
 
-    const paginatedNotifications =
+    const paginatedNotifications: CursorPaginatedResponse<Notification> =
       await notificationService.getUserNotifications(user_id, limit, cursor);
 
     return NextResponse.json(createSuccessResponse(paginatedNotifications), {

@@ -8,16 +8,9 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   try {
     const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      return NextResponse.json(createErrorResponse("User not authenticated"), {
-        status: 401,
-      });
-    }
     const { searchParams } = new URL(request.url);
     const shop_id = searchParams.get("shop_id");
 

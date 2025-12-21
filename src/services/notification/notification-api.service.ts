@@ -22,8 +22,9 @@ export type NotificationSummaryType = {
 };
 
 interface PaginatedNotificationsResponse {
-  notifications: Notification[];
-  nextCursor?: string;
+  data: Notification[];
+  nextCursor: string | null;
+  hasMore: boolean;
 }
 
 export interface UnreadCountResponse {

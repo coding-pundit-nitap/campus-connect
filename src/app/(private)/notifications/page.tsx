@@ -99,8 +99,7 @@ export default function NotificationHistoryPage() {
 
   const { mutate: markAllAsRead, isPending } = useMarkAllNotificationsAsRead();
 
-  const allNotifications =
-    data?.pages.flatMap((page) => page.notifications) ?? [];
+  const allNotifications = data?.pages.flatMap((page) => page.data) ?? [];
 
   const notifications =
     selectedCategory === "ALL"

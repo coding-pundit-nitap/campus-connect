@@ -1,5 +1,6 @@
 import { Notification, Prisma } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
+import { CursorPaginatedResponse } from "@/types";
 
 class NotificationRepository {
   async create(data: Prisma.NotificationCreateArgs): Promise<Notification> {
@@ -14,7 +15,7 @@ class NotificationRepository {
   async getNotificationsByUserId(
     user_id: string,
     { limit = 20, cursor }: { limit?: number; cursor?: string }
-  ): Promise<{ notifications: Notification[]; nextCursor?: string }> {
+  ): Promise<CursorPaginatedResponse<Notification>> {
     const take = limit + 1;
     const notifications = await prisma.notification.findMany({
       where: { user_id },
@@ -24,13 +25,17 @@ class NotificationRepository {
       skip: cursor ? 1 : 0,
     });
 
-    let nextCursor: string | undefined = undefined;
+    let nextCursor: string | null = null;
     if (notifications.length > limit) {
       const nextItem = notifications.pop();
       nextCursor = nextItem!.id;
     }
 
-    return { notifications, nextCursor };
+    return {
+      data: notifications,
+      nextCursor,
+      hasMore: nextCursor !== undefined,
+    };
   }
   async getUnreadNotificationsByUserId(
     user_id: string,

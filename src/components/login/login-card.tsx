@@ -1,22 +1,25 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 
 import { SharedAuthProviderButton } from "@/components/shared/shared-authprovider-button";
 import { SharedCard } from "@/components/shared/shared-card";
-import { useLogin } from "@/hooks";
 import { loginUIService } from "@/lib/utils";
 import { LoginCardConfig } from "@/types/login.types";
 import { AuthProviderConfig } from "@/types/ui.types";
 
 export function LoginCard({ className, title, description }: LoginCardConfig) {
   const config = loginUIService.getDefaultLoginCardConfig();
-  const { handlers } = useLogin();
+
+  const handleGoogleLogin = useCallback(() => {
+    loginUIService.handleGoogleLogin();
+  }, []);
+
   const googleAuthConfig: AuthProviderConfig = {
     provider: "google",
     iconSrc: "/svg/google-icon.svg",
     label: "Sign in with Google",
-    onClick: handlers.onGoogleLogin,
+    onClick: handleGoogleLogin,
   };
 
   const finalConfig = {

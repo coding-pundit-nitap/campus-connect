@@ -11,12 +11,6 @@ import {
 export async function GET() {
   try {
     const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      return NextResponse.json(createErrorResponse("User not authenticated"), {
-        status: 401,
-      });
-    }
-
     const carts = await cartService.getAllUserCarts(user_id);
     const successResponse = createSuccessResponse(
       serializeFullCarts(carts),
