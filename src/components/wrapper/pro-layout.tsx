@@ -4,7 +4,10 @@ import React from "react";
 import { Toaster } from "sonner";
 
 import ThemeToggleContainer from "@/components/navigation/theme-toggle-container";
-import { NavigationItem } from "@/components/shared/shared-sidebar";
+import {
+  NavigationGroup,
+  NavigationItem,
+} from "@/components/shared/shared-sidebar";
 import AppSidebar from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -17,7 +20,8 @@ import { Button } from "../ui/button";
 
 interface LayoutProps {
   children: React.ReactNode;
-  navigation: NavigationItem[];
+  navigation?: NavigationItem[];
+  groups?: NavigationGroup[];
   isNavigationLoading?: boolean;
   navigationError?: string;
 }
@@ -25,6 +29,7 @@ interface LayoutProps {
 export function ProLayout({
   children,
   navigation,
+  groups,
   isNavigationLoading = false,
   navigationError,
 }: LayoutProps) {
@@ -32,6 +37,7 @@ export function ProLayout({
     <SidebarProvider>
       <AppSidebar
         navigation={navigation}
+        groups={groups}
         isLoading={isNavigationLoading}
         error={navigationError}
         footer={
@@ -46,8 +52,8 @@ export function ProLayout({
         }
       />
       <SidebarInset>
-        <div className="flex flex-col items-center justify-center w-full h-screen">
-          <header className="flex w-full h-16 shrink-0 items-center gap-2 border-b px-4">
+        <div className="flex flex-col items-center justify-center w-full min-h-screen">
+          <header className="sticky top-0 z-50 flex w-full h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-md px-4 supports-[backdrop-filter]:bg-background/60">
             <SidebarTrigger className="-ml-1 text-foreground" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="ml-auto flex items-center gap-2">

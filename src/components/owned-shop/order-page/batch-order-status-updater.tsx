@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2, Send } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/cn";
 import { OrderStatus } from "@/types/prisma.types";
 
 type BatchOrderStatusUpdaterProps = {
   onUpdate: (status: OrderStatus) => void;
   isUpdating: boolean;
-  selectedOrderStatuses?: OrderStatus[];
 };
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -46,17 +47,19 @@ export function BatchOrderStatusUpdater({
   const handleUpdate = () => {
     if (selectedStatus) {
       onUpdate(selectedStatus);
+      setSelectedStatus(null);
     }
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center gap-2 p-4 rounded-lg">
+    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
       <Select
+        value={selectedStatus ?? ""}
         onValueChange={(value) => setSelectedStatus(value as OrderStatus)}
         disabled={isUpdating}
       >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select new status" />
+        <SelectTrigger className="w-full sm:w-[180px]">
+          <SelectValue placeholder="Select status" />
         </SelectTrigger>
         <SelectContent>
           {ACTIONABLE_STATUSES.map((status) => (
@@ -66,12 +69,26 @@ export function BatchOrderStatusUpdater({
           ))}
         </SelectContent>
       </Select>
-      <Button onClick={handleUpdate} disabled={!selectedStatus || isUpdating}>
-        {isUpdating ? "Updating..." : "Apply to Selected"}
+      <Button
+        onClick={handleUpdate}
+        disabled={!selectedStatus || isUpdating}
+        className={cn(
+          "gap-2 transition-all",
+          selectedStatus && !isUpdating && "bg-primary hover:bg-primary/90"
+        )}
+      >
+        {isUpdating ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Updating...
+          </>
+        ) : (
+          <>
+            <Send className="h-4 w-4" />
+            Apply Status
+          </>
+        )}
       </Button>
-      <p className="text-xs text-muted-foreground">
-        Note: Only orders with valid transitions will be updated
-      </p>
     </div>
   );
 }

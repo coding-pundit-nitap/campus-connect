@@ -1,12 +1,16 @@
-import { Package, Star } from "lucide-react";
+import { ExternalLink, Package, Star, Store } from "lucide-react";
+import { Route } from "next";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/cn";
 
 type ProductDetailsProps = {
   product: {
     name: string;
     shop: {
+      id?: string;
       name: string;
     };
     stock_quantity: number;
@@ -19,103 +23,127 @@ type ProductDetailsProps = {
   className?: string;
 };
 
+const RATING_COLORS = {
+  excellent: "bg-green-500/10 text-green-600 border-green-500/20",
+  good: "bg-blue-500/10 text-blue-600 border-blue-500/20",
+  average: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20",
+  poor: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  bad: "bg-red-500/10 text-red-600 border-red-500/20",
+};
+
 export default function ProductDetails({
   product,
-  className = "lg:col-span-7",
+  className,
 }: ProductDetailsProps) {
   const discountedPrice =
     (product.price * (100 - (product.discount ?? 0))) / 100;
+  const savings = product.price - discountedPrice;
 
   const getStockStatus = () => {
-    if (product.stock_quantity === 0) {
-      return "Out of Stock";
-    }
-    if (product.stock_quantity <= 5) {
-      return "Low Stock";
-    }
-    if (product.stock_quantity <= 10) {
-      return "Limited Stock";
-    }
-    return "In Stock";
+    if (product.stock_quantity === 0)
+      return { label: "Out of Stock", color: "text-red-600", bg: "bg-red-50" };
+    if (product.stock_quantity <= 5)
+      return {
+        label: "Low Stock",
+        color: "text-orange-600",
+        bg: "bg-orange-50",
+      };
+    if (product.stock_quantity <= 10)
+      return {
+        label: "Limited Stock",
+        color: "text-yellow-600",
+        bg: "bg-yellow-50",
+      };
+    return { label: "In Stock", color: "text-green-600", bg: "bg-green-50" };
   };
 
-  const getStockColor = () => {
-    if (product.stock_quantity === 0) {
-      return "text-red-600";
-    }
-    if (product.stock_quantity <= 5) {
-      return "text-orange-600";
-    }
-    if (product.stock_quantity <= 10) {
-      return "text-yellow-600";
-    }
-    return "text-green-600";
-  };
-
-  const getRatingColors = () => {
+  const getRatingStyle = () => {
     const rating = product.rating || 0;
-    if (rating >= 4.5) {
-      return "bg-green-50 border-green-200 text-green-700";
-    }
-    if (rating >= 4.0) {
-      return "bg-blue-50 border-blue-200 text-blue-700";
-    }
-    if (rating >= 3.5) {
-      return "bg-yellow-50 border-yellow-200 text-yellow-700";
-    }
-    if (rating >= 3.0) {
-      return "bg-orange-50 border-orange-200 text-orange-700";
-    }
-    return "bg-red-50 border-red-200 text-red-700";
+    if (rating >= 4.5) return RATING_COLORS.excellent;
+    if (rating >= 4.0) return RATING_COLORS.good;
+    if (rating >= 3.5) return RATING_COLORS.average;
+    if (rating >= 3.0) return RATING_COLORS.poor;
+    return RATING_COLORS.bad;
   };
+
+  const stockStatus = getStockStatus();
 
   return (
-    <div className={className}>
-      <div className="space-y-4">
-        <p className="text-muted-foreground">{product.shop.name}</p>
-        <h1 className="text-2xl font-bold">{product.name}</h1>
+    <div className={cn("space-y-6", className)}>
+      <Link
+        href={(product.shop.id ? `/shop/${product.shop.id}` : "#") as Route}
+        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
+      >
+        <Store className="h-4 w-4" />
+        <span className="group-hover:underline">{product.shop.name}</span>
+        <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+      </Link>
 
-        <div className="flex items-center gap-3">
-          <Badge
-            className={cn(
-              "text-white font-bold text-sm px-2 py-0.5",
-              getRatingColors()
-            )}
-          >
-            <Star className="w-3.5 h-3.5 mr-1 fill-white" />
-            {product.rating.toFixed(1)}
-          </Badge>
-          <p className="text-sm font-medium text-muted-foreground">
-            {product.review_count} Reviews
-          </p>
-        </div>
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+        {product.name}
+      </h1>
 
-        <div className="flex items-baseline gap-3">
-          <span className="text-3xl font-bold">₹{discountedPrice}</span>
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge
+          variant="outline"
+          className={cn("gap-1.5 py-1", getRatingStyle())}
+        >
+          <Star className="h-3.5 w-3.5 fill-current" />
+          <span className="font-semibold">{product.rating.toFixed(1)}</span>
+        </Badge>
+        <span className="text-sm text-muted-foreground">
+          {product.review_count}{" "}
+          {product.review_count === 1 ? "review" : "reviews"}
+        </span>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-baseline gap-3">
+          <span className="text-3xl md:text-4xl font-bold">
+            ₹{discountedPrice.toFixed(0)}
+          </span>
           {product.discount && product.discount > 0 && (
             <>
               <span className="text-lg text-muted-foreground line-through">
                 ₹{product.price}
               </span>
-              <span className="text-lg font-bold text-green-600">
-                {product.discount}% off
-              </span>
+              <Badge className="bg-green-600 hover:bg-green-600 text-white">
+                {product.discount}% OFF
+              </Badge>
             </>
           )}
         </div>
+        {savings > 0 && (
+          <p className="text-sm text-green-600 font-medium">
+            You save ₹{savings.toFixed(0)}
+          </p>
+        )}
+      </div>
 
-        <div className="flex items-center gap-1">
-          <Package className="w-4 h-4 text-muted-foreground" />
-          <span className={`font-medium ${getStockColor()}`}>
-            {getStockStatus()}
-          </span>
+      <div
+        className={cn(
+          "inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium",
+          stockStatus.bg,
+          stockStatus.color
+        )}
+      >
+        <Package className="h-4 w-4" />
+        <span>{stockStatus.label}</span>
+        {product.stock_quantity > 0 && (
           <span className="text-muted-foreground">
-            ({product.stock_quantity})
+            ({product.stock_quantity} left)
           </span>
-        </div>
+        )}
+      </div>
 
+      <Separator />
+
+      <div className="space-y-2">
+        <h3 className="font-semibold text-lg">About this product</h3>
         <div
-          className="mt-1 text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none"
+          className="text-muted-foreground prose prose-sm dark:prose-invert max-w-none leading-relaxed"
           dangerouslySetInnerHTML={{ __html: product.description }}
         />
       </div>

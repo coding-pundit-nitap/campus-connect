@@ -20,7 +20,7 @@ export function DateTimePicker({
 }) {
   const [open, setOpen] = React.useState(false);
   const [date, setDate] = React.useState<Date | undefined>(undefined);
-  const [time, setTime] = React.useState<string>("10:30:00");
+  const [time, setTime] = React.useState<string>("09:00:00");
 
   const combineDateTime = (
     selectedDate: Date | undefined,

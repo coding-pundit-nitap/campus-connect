@@ -13,10 +13,12 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 
@@ -45,6 +47,18 @@ export interface NavigationItem {
 }
 
 /**
+ * Configuration for a group of navigation items.
+ *
+ * @interface NavigationGroup
+ */
+export interface NavigationGroup {
+  /** Optional title for the group */
+  label?: string;
+  /** List of navigation items in this group */
+  items: NavigationItem[];
+}
+
+/**
  * Configuration interface for the sidebar header section.
  *
  * @interface SidebarHeaderConfig
@@ -68,8 +82,10 @@ export interface SidebarHeaderConfig {
  * @interface SharedSidebarProps
  */
 export interface SharedSidebarProps {
-  /** Array of navigation items to display in the sidebar */
-  navigation: NavigationItem[];
+  /** Array of navigation items to display in the sidebar (flat list) */
+  navigation?: NavigationItem[];
+  /** Array of navigation groups to display groupings */
+  groups?: NavigationGroup[];
   /** Optional header configuration for the sidebar */
   header?: SidebarHeaderConfig;
   /** Additional CSS classes to apply to the sidebar container */
@@ -88,7 +104,8 @@ export interface SharedSidebarProps {
 }
 
 export default function SharedSidebar({
-  navigation,
+  navigation = [],
+  groups = [],
   header,
   className = "",
   showHeader = true,
@@ -101,6 +118,12 @@ export default function SharedSidebar({
 }: SharedSidebarProps) {
   const pathname = usePathname();
   const { setOpenMobile } = useSidebar();
+  const displayGroups: NavigationGroup[] =
+    groups.length > 0
+      ? groups
+      : navigation.length > 0
+        ? [{ items: navigation, label: "" }]
+        : [];
 
   const normalizeUrl = (url: Route | UrlObject): string => {
     if (typeof url === "string") {
@@ -172,7 +195,7 @@ export default function SharedSidebar({
     );
   };
 
-  const Item = (item: NavigationItem) => {
+  const Item = ({ item }: { item: NavigationItem }) => {
     const ItemIcon = item.icon;
     const isActive = isItemActive(item.url, pathname);
 
@@ -250,16 +273,24 @@ export default function SharedSidebar({
   return (
     <Sidebar className={className}>
       {Header()}
-      <SidebarContent className="flex flex-col justify-between p-4">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigation.map((item, index) => (
-                <Item key={index} {...item} />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent>
+        {displayGroups.map((group, index) => (
+          <SidebarGroup key={group.label || index}>
+            {group.label && (
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            )}
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item, itemIndex) => (
+                  <Item key={item.id || itemIndex} item={item} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+            {index < displayGroups.length - 1 && (
+              <SidebarSeparator className="my-2" />
+            )}
+          </SidebarGroup>
+        ))}
         {children}
       </SidebarContent>
     </Sidebar>

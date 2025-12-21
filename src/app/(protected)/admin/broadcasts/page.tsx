@@ -19,8 +19,8 @@ export default async function AdminBroadcastsPage() {
     if (response.success) {
       stats = response.data;
     }
-  } catch (error) {
-    console.error("Failed to load broadcast stats:", error);
+  } catch {
+    // handle error
   }
 
   return (

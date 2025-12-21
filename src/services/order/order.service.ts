@@ -21,9 +21,10 @@ class OrderService {
   private async generateDisplayId(
     tx: Prisma.TransactionClient
   ): Promise<string> {
-    const counter = await tx.globalCounter.update({
+    const counter = await tx.globalCounter.upsert({
       where: { id: "GLOBAL" },
-      data: { order_count: { increment: 1 } },
+      create: { id: "GLOBAL", order_count: 1001 },
+      update: { order_count: { increment: 1 } },
     });
     return `NITAP-${counter.order_count.toString().padStart(6, "0")}`;
   }

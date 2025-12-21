@@ -82,6 +82,7 @@ export async function GET(
       createdAt: new Date(order.created_at).toLocaleString("en-IN", {
         dateStyle: "medium",
         timeStyle: "short",
+        timeZone: "Asia/Kolkata",
       }),
       customer: {
         name: order.user?.name || "Guest",
@@ -96,6 +97,7 @@ export async function GET(
         ? new Date(order.requested_delivery_time).toLocaleString("en-IN", {
             dateStyle: "medium",
             timeStyle: "short",
+            timeZone: "Asia/Kolkata",
           })
         : undefined,
       paymentMethod: order.payment_method,

@@ -2,12 +2,14 @@ import { GraduationCap } from "lucide-react";
 import { Suspense } from "react";
 
 import SharedSidebar, {
+  NavigationGroup,
   NavigationItem,
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
 
 interface AppSidebarProps {
-  navigation: NavigationItem[];
+  navigation?: NavigationItem[];
+  groups?: NavigationGroup[];
   isLoading?: boolean;
   error?: string | null;
   footer: React.ReactNode;
@@ -15,6 +17,7 @@ interface AppSidebarProps {
 
 export default function AppSidebar({
   navigation,
+  groups,
   isLoading = false,
   error,
   footer,
@@ -29,6 +32,7 @@ export default function AppSidebar({
   return (
     <SharedSidebar
       navigation={navigation}
+      groups={groups}
       header={headerConfig}
       isLoading={isLoading}
       errorMessage={error || undefined}

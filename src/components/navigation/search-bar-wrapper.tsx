@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useEffectEvent } from "react";
 
 import { useNavigationSearch, useSearch, useSearchQuery } from "@/hooks";
 import {
@@ -36,6 +36,19 @@ export function SearchBarWrapper({
     onNavigate: handleNavigation,
   });
 
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  const down = useEffectEvent((e: KeyboardEvent) => {
+    if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      inputRef.current?.focus();
+    }
+  });
+  useEffect(() => {
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
   const { data: searchResults = [], isLoading } =
     useSearchQuery(debouncedQuery);
 
@@ -67,6 +80,8 @@ export function SearchBarWrapper({
         (isLoading || suggestions.length > 0)
       }
       isLoading={isLoading}
+      inputRef={inputRef}
+      shortcut={true}
     />
   );
 }

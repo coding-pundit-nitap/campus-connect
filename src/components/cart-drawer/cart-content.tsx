@@ -10,7 +10,7 @@ interface CartContentProps {
 }
 
 export default function CartContent({ summary }: CartContentProps) {
-  const { totalItems, shopCarts } = summary;
+  const { shopCarts } = summary;
 
   const tabItems: TabItem[] = shopCarts.map((cart, index) => ({
     value: index.toString(),
@@ -19,7 +19,7 @@ export default function CartContent({ summary }: CartContentProps) {
   }));
 
   return (
-    <CartDrawerWrapper totalItems={totalItems}>
+    <CartDrawerWrapper>
       <SharedTabs defaultValue="0" tabs={tabItems} />
     </CartDrawerWrapper>
   );

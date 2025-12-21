@@ -16,6 +16,7 @@ import { ReactNode } from "react";
 import { getShopOrderByIdAction } from "@/actions/orders/order-actions";
 import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
 import { BackButton } from "@/components/shared/back-button";
+import { DateDisplay } from "@/components/shared/date-display";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -89,7 +90,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
             Order #{order.display_id}
           </h1>
           <p className="text-muted-foreground">
-            Placed on {new Date(order.created_at).toLocaleString()}
+            Placed on <DateDisplay date={order.created_at} />
           </p>
         </div>
         <Badge
@@ -249,13 +250,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                   label="Requested Delivery Time"
                 >
                   <span className="text-orange-600 font-semibold">
-                    {new Date(order.requested_delivery_time).toLocaleString(
-                      "en-IN",
-                      {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }
-                    )}
+                    <DateDisplay date={order.requested_delivery_time} />
                   </span>
                 </DetailItem>
               )}

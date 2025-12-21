@@ -1,13 +1,11 @@
 "use client";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
+import { useProductActions } from "@/hooks/common/useProductActions";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService } from "@/services/product";
 import { SerializedProduct } from "@/types/product.types";
-
-import { useAddToCart } from ".";
 
 type Props = {
   initialProducts: SerializedProduct[];
@@ -24,8 +22,6 @@ export const useInfiniteProducts = ({
   initialError,
   limit,
 }: Props) => {
-  const router = useRouter();
-
   const {
     data,
     isLoading,
@@ -68,18 +64,9 @@ export const useInfiniteProducts = ({
     return [...serverData, ...clientProducts];
   }, [data, initialProducts]);
 
-  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
-
-  const actionHandlers = useMemo(() => {
-    return {
-      onAddToCart: (product_id: string, quantity: number) => {
-        addToCart({ product_id, quantity });
-      },
-      onViewDetails: (product_id: string) => {
-        router.push(`/product/${product_id}`);
-      },
-    };
-  }, [addToCart, router]);
+  const { onAddToCart, onViewDetails, isAddingToCart } = useProductActions({
+    mode: "user",
+  });
 
   return {
     isLoading: isLoading && initialProducts.length === 0,
@@ -89,7 +76,8 @@ export const useInfiniteProducts = ({
     isFetchingNextPage,
     fetchNextPage,
     allProducts,
-    ...actionHandlers,
+    onAddToCart,
+    onViewDetails,
     isAddingToCart,
   };
 };

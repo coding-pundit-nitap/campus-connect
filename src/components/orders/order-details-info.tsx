@@ -1,6 +1,9 @@
+"use client";
+
 import { Calendar, Clock, CreditCard, Hash, MapPin, Store } from "lucide-react";
 import React from "react";
 
+import { DateDisplay } from "@/components/shared/date-display";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SerializedOrderWithDetails } from "@/types";
@@ -55,7 +58,7 @@ export default function OrderDetailsInfo({ order }: Props) {
           {requested_delivery_time && (
             <InfoRow Icon={Calendar} label="Requested Delivery Time">
               <span className="font-semibold text-orange-600">
-                {new Date(requested_delivery_time).toLocaleString()}
+                <DateDisplay date={requested_delivery_time} />
               </span>
             </InfoRow>
           )}
@@ -63,13 +66,13 @@ export default function OrderDetailsInfo({ order }: Props) {
           {actual_delivery_time ? (
             <InfoRow Icon={Clock} label="Delivered At">
               <span className="font-semibold text-green-600">
-                {new Date(actual_delivery_time).toLocaleString()}
+                <DateDisplay date={actual_delivery_time} />
               </span>
             </InfoRow>
           ) : estimated_delivery_time ? (
             <InfoRow Icon={Clock} label="Estimated Delivery">
               <span className="font-semibold text-blue-600">
-                {new Date(estimated_delivery_time).toLocaleString()}
+                <DateDisplay date={estimated_delivery_time} />
               </span>
             </InfoRow>
           ) : null}
