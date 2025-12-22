@@ -39,16 +39,14 @@ export async function GET(request: NextRequest) {
     const result = await paginateCursor(
       ({ take, cursor }) =>
         orderRepository.getOrdersByUserId(user_id, {
+          take,
+          cursor: cursor ? { id: cursor } : undefined,
+          skip: cursor ? 1 : 0,
+          orderBy: { id: "desc" },
           where: {
-            take,
-            cursor: cursor ? { id: cursor } : undefined,
-            skip: cursor ? 1 : 0,
-            orderBy: { id: "desc" },
-            where: {
-              order_status: parsed.status,
-              created_at:
-                dateFrom || dateTo ? { gte: dateFrom, lte: dateTo } : undefined,
-            },
+            order_status: parsed.status,
+            created_at:
+              dateFrom || dateTo ? { gte: dateFrom, lte: dateTo } : undefined,
           },
           include: orderWithDetailsInclude,
         }),

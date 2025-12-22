@@ -97,7 +97,7 @@ export default function ProductActions({
               <Loader2 className="h-5 w-5 animate-spin" />
               {isCheckingWatch ? "Loading..." : "Updating..."}
             </>
-          ) : isWatching ? (
+          ) : isWatching?.data ? (
             <>
               <BellOff className="h-5 w-5" />
               Stop Watching
@@ -116,7 +116,7 @@ export default function ProductActions({
   return (
     <div className={cn("space-y-6", className)}>
       <div className="flex items-center gap-4">
-        <span className="font-medium text-sm text-muted-foreground min-w-[70px]">
+        <span className="font-medium text-sm text-muted-foreground min-w-17.5">
           Quantity:
         </span>
         <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">

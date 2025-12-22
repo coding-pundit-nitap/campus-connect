@@ -34,7 +34,7 @@ class NotificationRepository {
     return {
       data: notifications,
       nextCursor,
-      hasMore: nextCursor !== undefined,
+      hasMore: nextCursor !== null,
     };
   }
   async getUnreadNotificationsByUserId(
