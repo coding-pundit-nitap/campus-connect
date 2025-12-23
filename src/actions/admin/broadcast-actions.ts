@@ -10,6 +10,7 @@ import {
 } from "@/lib/custom-error";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import userRepository from "@/repositories/user.repository";
+import { auditService } from "@/services/audit";
 import { notificationService } from "@/services/notification/notification.service";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
@@ -40,7 +41,7 @@ export async function sendBroadcastNotificationAction(
   }>
 > {
   try {
-    await verifyAdmin();
+    const admin_id = await verifyAdmin();
 
     const parsedData = sendBroadcastNotificationSchema.safeParse(data);
 
@@ -58,6 +59,14 @@ export async function sendBroadcastNotificationAction(
     };
 
     await notificationService.broadcastNotification(broadcastData);
+
+    auditService.log(
+      admin_id,
+      "BROADCAST_CREATE",
+      "BROADCAST",
+      `broadcast-${Date.now()}`,
+      { title: data.title, message: data.message.slice(0, 100) }
+    );
 
     return createSuccessResponse(
       {

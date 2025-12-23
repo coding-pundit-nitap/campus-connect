@@ -9,6 +9,10 @@ class ImageUtils {
   }
 
   static getImageUrl(objectKey?: string | null): string {
+    if (!objectKey) return "/placeholders/placeholder.png";
+    if (objectKey.startsWith("http://") || objectKey.startsWith("https://")) {
+      return objectKey;
+    }
     return objectKey
       ? `${environment.minioBaseUrl}/${objectKey}`
       : "/placeholders/placeholder.png";

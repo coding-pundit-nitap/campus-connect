@@ -14,11 +14,12 @@ export async function GET(request: NextRequest) {
     const searchParams = Object.fromEntries(new URL(request.url).searchParams);
     const parsed = cursorPaginationSchema.parse(searchParams);
 
-    const notifications = await notificationService.getUserNotifications(
-      user.id,
-      parsed.limit,
-      parsed.cursor
-    );
+    const notifications =
+      await notificationService.getAllNotificationsWithBroadcasts(
+        user.id,
+        parsed.limit,
+        parsed.cursor
+      );
     const successResponse = createSuccessResponse(notifications);
     return NextResponse.json(successResponse, { status: 200 });
   } catch (error) {

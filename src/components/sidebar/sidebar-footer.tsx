@@ -6,6 +6,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";
+import { ImageUtils } from "@/lib/utils";
 import { Role } from "@/types/prisma.types";
 
 import { Button } from "../ui/button";
@@ -44,7 +45,7 @@ export function SidebarFooter() {
         <div className="flex items-center space-x-3">
           <UserAvatar
             dimention={40}
-            image={user.image}
+            image={ImageUtils.getImageUrl(user.image)}
             email={user.email}
             name={user.name}
           />

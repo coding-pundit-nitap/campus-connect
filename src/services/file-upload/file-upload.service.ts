@@ -94,7 +94,6 @@ class FileUploadService {
       throw new BadRequestError(
         `File size exceeds the ${maxSizeInMB}MB limit.`
       );
-      throw new BadRequestError(`File size exceeds the ${maxSizeInMB}MB limit.`);
     }
 
     if (!allowedTypes.includes(fileType)) {

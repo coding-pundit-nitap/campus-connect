@@ -11,8 +11,8 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
-import { adminAuditRepository } from "@/repositories/admin-audit.repository";
 import shopRepository from "@/repositories/shop.repository";
+import { auditService } from "@/services/audit";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { notificationService } from "@/services/notification/notification.service";
 import {
@@ -153,12 +153,8 @@ export async function activateShopAction(
       action_url: "/owner-shops",
     });
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "SHOP_ACTIVATE",
-      target_type: "SHOP",
-      target_id: shopId,
-      details: { shop_name: shop.name },
+    auditService.log(admin_id, "SHOP_ACTIVATE", "SHOP", shopId, {
+      shop_name: shop.name,
     });
 
     return createSuccessResponse(
@@ -242,12 +238,9 @@ export async function deactivateShopAction(
       action_url: "/owner-shops",
     });
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "SHOP_DEACTIVATE",
-      target_type: "SHOP",
-      target_id: shopId,
-      details: { shop_name: shop.name, affected_users: affectedUserIds.length },
+    auditService.log(admin_id, "SHOP_DEACTIVATE", "SHOP", shopId, {
+      shop_name: shop.name,
+      affected_users: affectedUserIds.length,
     });
 
     return createSuccessResponse(
@@ -330,12 +323,9 @@ export async function deleteShopAction(
       }
     }
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "SHOP_DELETE",
-      target_type: "SHOP",
-      target_id: shop.id,
-      details: { shop_name: shop.name, owner_id: shop.user?.id },
+    auditService.log(admin_id, "SHOP_DELETE", "SHOP", shop.id, {
+      shop_name: shop.name,
+      owner_id: shop.user?.id,
     });
 
     return createSuccessResponse(
@@ -411,22 +401,21 @@ export async function updateShopVerificationAction(
       action_url: "/owner-shops",
     });
 
-    await adminAuditRepository.create({
+    auditService.log(
       admin_id,
-      action:
-        status === "VERIFIED"
-          ? "SHOP_VERIFY"
-          : status === "REJECTED"
-            ? "SHOP_REJECT"
-            : "SHOP_VERIFY",
-      target_type: "SHOP",
-      target_id: shopId,
-      details: {
+      status === "VERIFIED"
+        ? "SHOP_VERIFY"
+        : status === "REJECTED"
+          ? "SHOP_REJECT"
+          : "SHOP_VERIFY",
+      "SHOP",
+      shopId,
+      {
         shop_name: shop.name,
         new_status: status,
         old_status: shop.verification_status,
-      },
-    });
+      }
+    );
 
     return createSuccessResponse(
       {

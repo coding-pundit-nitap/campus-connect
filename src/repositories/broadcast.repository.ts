@@ -41,6 +41,64 @@ class BroadcastNotificationRepository {
 
     return { broadcasts, nextCursor };
   }
+  async getAllForUser(
+    user_id: string,
+    { limit = 20, cursor }: { limit?: number; cursor?: string }
+  ): Promise<{
+    broadcasts: (BroadcastNotification & { isRead: boolean })[];
+    nextCursor?: string;
+  }> {
+    const take = limit + 1;
+    const broadcasts = await prisma.broadcastNotification.findMany({
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      take,
+      cursor: cursor ? { id: cursor } : undefined,
+      skip: cursor ? 1 : 0,
+      include: {
+        read_statuses: {
+          where: { user_id },
+          select: { read_at: true },
+        },
+      },
+    });
+
+    let nextCursor: string | undefined = undefined;
+    if (broadcasts.length > limit) {
+      broadcasts.pop();
+      nextCursor = broadcasts[broadcasts.length - 1]?.id;
+    }
+
+    const broadcastsWithReadStatus = broadcasts.map((b) => ({
+      ...b,
+      isRead: b.read_statuses.length > 0,
+      read_statuses: undefined,
+    }));
+
+    return { broadcasts: broadcastsWithReadStatus, nextCursor };
+  }
+
+  async getByCreatedAtBefore(
+    user_id: string,
+    { limit = 20, beforeDate }: { limit?: number; beforeDate?: Date }
+  ): Promise<(BroadcastNotification & { isRead: boolean })[]> {
+    const broadcasts = await prisma.broadcastNotification.findMany({
+      where: beforeDate ? { created_at: { lt: beforeDate } } : undefined,
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      take: limit,
+      include: {
+        read_statuses: {
+          where: { user_id },
+          select: { read_at: true },
+        },
+      },
+    });
+
+    return broadcasts.map((b) => ({
+      ...b,
+      isRead: b.read_statuses.length > 0,
+      read_statuses: undefined,
+    }));
+  }
 
   async markAsReadForUser(
     user_id: string,
@@ -78,7 +136,6 @@ class BroadcastNotificationRepository {
     });
   }
 
-  // in BroadcastNotificationRepository
   async markManyAsReadForUser(
     user_id: string,
     broadcast_ids: string[]

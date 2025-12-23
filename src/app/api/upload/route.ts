@@ -53,6 +53,7 @@ export async function DELETE(request: NextRequest) {
     );
   } catch (error) {
     console.error("Delete File API Error:", error);
+
     return NextResponse.json(createErrorResponse("File deletion failed."), {
       status: 500,
     });

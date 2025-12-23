@@ -37,6 +37,20 @@ class NotificationRepository {
       hasMore: nextCursor !== null,
     };
   }
+
+  async getByCreatedAtBefore(
+    user_id: string,
+    { limit = 20, beforeDate }: { limit?: number; beforeDate?: Date }
+  ): Promise<Notification[]> {
+    return prisma.notification.findMany({
+      where: {
+        user_id,
+        ...(beforeDate && { created_at: { lt: beforeDate } }),
+      },
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      take: limit,
+    });
+  }
   async getUnreadNotificationsByUserId(
     user_id: string,
     limit = 100

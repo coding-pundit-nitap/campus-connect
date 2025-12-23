@@ -10,8 +10,8 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { adminAuditRepository } from "@/repositories/admin-audit.repository";
 import userRepository from "@/repositories/user.repository";
+import { auditService } from "@/services/audit";
 import { notificationService } from "@/services/notification/notification.service";
 import {
   ActionResponse,
@@ -119,12 +119,8 @@ export async function makeUserAdminAction(
       role: Role.ADMIN,
     });
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "USER_MAKE_ADMIN",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email },
+    auditService.log(admin_id, "USER_MAKE_ADMIN", "USER", targetUserId, {
+      email: targetUser.email,
     });
 
     return createSuccessResponse(
@@ -173,12 +169,8 @@ export async function removeUserAdminAction(
       role: Role.USER,
     });
 
-    await adminAuditRepository.create({
-      admin_id: currentUserId,
-      action: "USER_REMOVE_ADMIN",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email },
+    auditService.log(currentUserId, "USER_REMOVE_ADMIN", "USER", targetUserId, {
+      email: targetUser.email,
     });
 
     return createSuccessResponse(
@@ -263,12 +255,8 @@ export async function forceSignOutUserAction(
 
     await userRepository.deleteAllSessions(targetUserId);
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "USER_FORCE_SIGNOUT",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email },
+    auditService.log(admin_id, "USER_FORCE_SIGNOUT", "USER", targetUserId, {
+      email: targetUser.email,
     });
 
     return createSuccessResponse(
@@ -318,16 +306,10 @@ export async function deleteUserAction(
         `Cannot delete user. User owns shop "${targetUser.owned_shop.name}". Please delete or transfer the shop first.`
       );
     }
-
-    // Delete the user (will cascade delete sessions, accounts, carts, orders, etc.)
     const deletedUser = await userRepository.delete(targetUserId);
 
-    await adminAuditRepository.create({
-      admin_id: currentUserId,
-      action: "USER_DELETE",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email },
+    auditService.log(currentUserId, "USER_DELETE", "USER", targetUserId, {
+      email: targetUser.email,
     });
 
     return createSuccessResponse(
@@ -383,12 +365,9 @@ export async function suspendUserAction(
     // Force sign out the user
     await userRepository.deleteAllSessions(targetUserId);
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "USER_SUSPEND",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email, reason },
+    auditService.log(admin_id, "USER_SUSPEND", "USER", targetUserId, {
+      email: targetUser.email,
+      reason,
     });
 
     await notificationService.publishNotification(targetUserId, {
@@ -443,12 +422,8 @@ export async function unsuspendUserAction(
       suspended_reason: null,
     });
 
-    await adminAuditRepository.create({
-      admin_id,
-      action: "USER_UNSUSPEND",
-      target_type: "USER",
-      target_id: targetUserId,
-      details: { email: targetUser.email },
+    auditService.log(admin_id, "USER_UNSUSPEND", "USER", targetUserId, {
+      email: targetUser.email,
     });
 
     await notificationService.publishNotification(targetUserId, {

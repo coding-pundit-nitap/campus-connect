@@ -38,7 +38,7 @@ export default function Review({ item, hasReview = false }: Props) {
                 className="object-cover"
               />
             ) : (
-              <div className="flex items-center justify-center h-full min-h-[8rem]">
+              <div className="flex items-center justify-center h-full min-h-32">
                 <Package className="h-10 w-10 text-muted-foreground" />
               </div>
             )}

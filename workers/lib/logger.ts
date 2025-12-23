@@ -49,6 +49,7 @@ export const loggers = {
   worker: createLogger({ component: "worker" }),
   notification: createLogger({ component: "notification" }),
   search: createLogger({ component: "search" }),
+  audit: createLogger({ component: "audit" }),
   db: createLogger({ component: "database" }),
 };
 

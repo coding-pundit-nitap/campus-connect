@@ -201,4 +201,4 @@ class ShopRepository {
 
 export const shopRepository = new ShopRepository();
 
-export default shopReShopRepository;
+export default shopRepository;

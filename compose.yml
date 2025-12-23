@@ -124,12 +124,7 @@ services:
     mem_limit: 3g
     cpus: "2.0"
     volumes:
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./tsconfig.worker.json:/app/tsconfig.worker.json
-      - ./src:/app/src
-      - ./public:/app/public
-      - ./prisma:/app/prisma
-      - ./scripts:/app/scripts
+      - .:/app
       - node_modules_volume:/app/node_modules
       - next_cache_volume:/app/.next
       - pnpm_store_volume:/root/.local/share/pnpm/store

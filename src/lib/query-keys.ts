@@ -15,6 +15,7 @@ export const queryKeys = {
    * User-related query keys for profile management, orders, and authentication.
    */
   users: {
+    /** Base key for all user-related queries */
     all: ["users"] as const,
     /** User-specific orders query key factory */
     orders: (user_id: string) => ["users", user_id, "orders"] as const,
@@ -34,14 +35,17 @@ export const queryKeys = {
    *
    */
   cart: {
+    /** Base key for all cart-related queries */
     all: ["cart"] as const,
-    byShop: (shopId: string) => ["cart", "shop", shopId] as const,
+    /** Shop-specific cart items query key factory */
+    byShop: (shop_id: string) => ["cart", "shop", shop_id] as const,
   },
 
   /**
    * Shop-related query keys for shop information and product listings.
    */
   shops: {
+    /** Base key for all shop-related queries */
     all: ["shops"] as const,
     /** Individual shop details query key factory */
     detail: (shop_id: string) => ["shops", shop_id] as const,
@@ -56,6 +60,7 @@ export const queryKeys = {
    * Product catalog query keys for product management and browsing.
    */
   products: {
+    /** Base key for all product-related queries */
     all: ["products"] as const,
     /** Query key for paginated product lists with optional filters */
     list: (filters: { limit?: number }) =>
@@ -83,18 +88,25 @@ export const queryKeys = {
    * Order management query keys for order processing and tracking.
    */
   orders: {
+    /** Base key for all order-related queries */
     all: ["orders"] as const,
-    byUser: (userId: string) => ["orders", "user", userId] as const,
-    byShop: (shopId: string) => ["orders", "shop", shopId] as const,
-    detail: (orderId: string) => ["orders", orderId] as const,
+    /** User-specific order history query key factory */
+    byUser: (user_id: string) => ["orders", "user", user_id] as const,
+    /** Shop-specific order management query key factory */
+    byShop: (shop_id: string) => ["orders", "shop", shop_id] as const,
+    /** Individual order details query key factory */
+    detail: (order_id: string) => ["orders", order_id] as const,
   },
 
   /**
    * Seller dashboard query keys for vendor management and analytics.
    */
   seller: {
+    /** Base key for all seller-related queries */
     all: ["seller"] as const,
+    /** Seller order management query key factory */
     orders: () => ["seller", "orders"] as const,
+    /** Seller dashboard analytics query key factory */
     dashboard: () => ["seller", "dashboard"] as const,
   },
 

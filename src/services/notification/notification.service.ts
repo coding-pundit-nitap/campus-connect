@@ -35,6 +35,55 @@ class NotificationService {
     });
   }
 
+  async getAllNotificationsWithBroadcasts(
+    user_id: string,
+    limit = 20,
+    cursor?: string
+  ) {
+    const beforeDate = cursor ? new Date(cursor) : undefined;
+
+    const [notifications, broadcasts] = await Promise.all([
+      notificationRepository.getByCreatedAtBefore(user_id, {
+        limit: limit + 1,
+        beforeDate,
+      }),
+      broadcastRepository.getByCreatedAtBefore(user_id, {
+        limit: limit + 1,
+        beforeDate,
+      }),
+    ]);
+
+    const notificationsWithType = notifications.map((notification) => ({
+      ...notification,
+      source: "notification" as const,
+    }));
+
+    const broadcastsWithType = broadcasts.map((broadcast) => ({
+      ...broadcast,
+      source: "broadcast" as const,
+      user_id: user_id,
+      read: broadcast.isRead ?? false,
+    }));
+
+    const merged = [...notificationsWithType, ...broadcastsWithType].sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+
+    const limited = merged.slice(0, limit);
+    const hasMore = merged.length > limit;
+    const nextCursor =
+      hasMore && limited.length > 0
+        ? new Date(limited[limited.length - 1].created_at).toISOString()
+        : null;
+
+    return {
+      data: limited,
+      nextCursor,
+      hasMore,
+    };
+  }
+
   async getPaginatedUnreadBroadcasts(
     user_id: string,
     limit = 20,

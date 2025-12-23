@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import React from "react";
@@ -21,7 +21,7 @@ function QueryErrorFallback({
         Something went wrong
       </h2>
       <p className="text-red-600 text-center mb-4">
-        {error.message || 'An unexpected error occurred while loading data.'}
+        {error.message || "An unexpected error occurred while loading data."}
       </p>
       <Button variant={"destructive"} onClick={resetErrorBoundary}>
         Try again
@@ -45,7 +45,7 @@ export function QueryErrorBoundary({
         <ErrorBoundary
           FallbackComponent={fallback || QueryErrorFallback}
           onReset={reset}
-          resetKeys={['query-error']}
+          resetKeys={["query-error"]}
         >
           {children}
         </ErrorBoundary>

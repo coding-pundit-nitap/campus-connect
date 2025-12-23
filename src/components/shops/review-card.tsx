@@ -2,6 +2,7 @@ import { Star } from "lucide-react";
 import React from "react";
 
 import { cn } from "@/lib/cn";
+import { ImageUtils } from "@/lib/utils";
 import { ReviewWithUser } from "@/types/review.type";
 
 import { ClientDate } from "../shared/client-date";
@@ -45,7 +46,7 @@ export default function ReviewCard({ review }: Props) {
       <CardContent className="p-4">
         <div className="flex gap-4">
           <UserAvatar
-            image={review.user.image}
+            image={ImageUtils.getImageUrl(review.user.image)}
             name={review.user.name}
             dimention={44}
           />
