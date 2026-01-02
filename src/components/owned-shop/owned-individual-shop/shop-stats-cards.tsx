@@ -1,4 +1,4 @@
-import { Clock,Package, ShoppingCart, Tag } from "lucide-react";
+import { Clock, Package, ShoppingCart, Tag } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 

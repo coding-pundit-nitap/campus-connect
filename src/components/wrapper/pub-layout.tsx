@@ -47,7 +47,7 @@ export function PubLayout({
       />
       <SidebarInset>
         <div className="flex flex-col items-center justify-center w-full min-h-screen">
-          <header className="sticky top-0 z-50 flex w-full h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-md px-4 supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-50 flex w-full h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-md px-4 supports-backdrop-filter:bg-background/60">
             <SidebarTrigger className="-ml-1 text-foreground" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <SearchBarContainer />
