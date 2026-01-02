@@ -16,7 +16,7 @@ const eslintConfig = defineConfig([
     "**/*.generated.ts",
     "node_modules/**",
     "prisma/generated",
-    "dist/**"
+    "dist/**",
   ]),
   {
     plugins: {

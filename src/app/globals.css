@@ -133,11 +133,6 @@ body {
     -webkit-appearance: none;
     -moz-appearance: textfield;
   }
-  .hide-spinner::-webkit-outer-spin-button,
-  .hide-spinner::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
 
   .min-h-svh {
     min-height: 100dvh;
