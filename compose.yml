@@ -7,7 +7,12 @@ x-nginx-common: &nginx-common
   healthcheck:
     test:
       [
-        "CMD-SHELL", "wget -q --spider http://localhost:8080/nginx-health || exit 1"
+        "CMD",
+        "wget",
+        "--quiet",
+        "--spider",
+        "--fail",
+        "http://localhost:8080/nginx-health",
       ]
     interval: 10s
     timeout: 5s
@@ -15,6 +20,8 @@ x-nginx-common: &nginx-common
   depends_on:
     minio:
       condition: service_healthy
+  networks:
+    - campus_connect_net
 
 x-dev-resources: &dev-resources
   mem_limit: 512m
