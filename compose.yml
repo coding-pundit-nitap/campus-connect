@@ -20,8 +20,6 @@ x-nginx-common: &nginx-common
   depends_on:
     minio:
       condition: service_healthy
-  networks:
-    - campus_connect_net
 
 x-dev-resources: &dev-resources
   mem_limit: 512m
