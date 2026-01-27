@@ -2,7 +2,7 @@
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/coding-pundit-nitap/campus-connect)
 
-A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, Elasticsearch, MinIO, and BullMQ.
+A comprehensive, containerized marketplace platform designed specifically for campus communities. It enables students and staff to buy and sell products within their campus ecosystem, all running on a modern, production-ready stack with Docker, Nginx, PostgreSQL, Redis, MinIO, and BullMQ.
 
 ## 📋 Table of Contents
 
@@ -39,7 +39,7 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - 🔐 **Secure Authentication**: Robust user authentication powered by Better Auth.
 - 📊 **Order Tracking**: Real-time order status updates for buyers and sellers.
 - 🔔 **Real-time Notifications**: SSE-based notifications with Redis Pub/Sub.
-- 🔍 **Full-text Search**: Elasticsearch-powered search with PostgreSQL fallback.
+- 🔍 **Full-text Search**: Prisma-powered search across products, shops, and categories.
 - 💾 **Object Storage**: Integrated with MinIO for scalable file storage.
 - ⚡ **Redis Caching**: Utilizes Redis for message queuing.
 - 📝 **Structured Logging**: Production-grade logging with Pino.
@@ -72,7 +72,6 @@ Campus Connect is a modern web application built with Next.js that serves as a m
 - **[Nginx](https://www.nginx.com/)** - Reverse proxy with rate limiting.
 - **[PostgreSQL 17](https://www.postgresql.org/)** - Primary relational database.
 - **[Redis](https://redis.io/)** - Cache, Pub/Sub, and job queues.
-- **[Elasticsearch 9](https://www.elastic.co/)** - Full-text search engine.
 - **[MinIO](https://min.io/)** - S3-compatible object storage.
 
 ### Development Tools
@@ -116,7 +115,6 @@ Before you begin, ensure you have the following installed:
     - **🌐 Main Application**: [http://localhost](http://localhost)
     - **🗄️ MinIO Console**: [http://localhost:9001](http://localhost:9001)
     - **📀 Prisma Studio**: [http://localhost:5555](http://localhost:5555)
-    - **🔍 Elasticsearch**: [http://localhost:9200](http://localhost:9200)
 
 ## ⚙️ Configuration
 
@@ -125,17 +123,6 @@ Before you begin, ensure you have the following installed:
 - `.env`: Infrastructure services (PostgreSQL, MinIO, Redis)
 - `.env.local`: Development application variables
 - `.env.production`: Production application variables
-
-### Elasticsearch Security (Production)
-
-For production, enable Elasticsearch security:
-
-```bash
-# In .env.production
-ES_SECURITY_ENABLED=true
-ES_USERNAME=elastic
-ES_PASSWORD=your-secure-password
-```
 
 ## 🐳 Docker Usage
 
@@ -188,7 +175,6 @@ pnpm docker:prod:up -d
 | :--------------------------------------- | :--------------------------------------- |
 | `pnpm docker:cleanup:orphaned-files:dry` | Preview orphaned files without deleting. |
 | `pnpm docker:cleanup:orphaned-files`     | Delete orphaned files from MinIO.        |
-| `pnpm docker:sync-search`                | Re-index all data to Elasticsearch.      |
 
 ## 📁 Project Structure
 
@@ -200,7 +186,7 @@ campus-connect/
 ├── src/
 │   ├── app/              # Next.js App Router pages and API routes
 │   ├── components/       # Reusable React components
-│   ├── lib/              # Utilities (db, redis, elasticsearch, logger)
+│   ├── lib/              # Utilities (db, redis, logger)
 │   ├── repositories/     # Data access layer
 │   ├── services/         # Business logic layer
 │   └── types/            # TypeScript definitions
@@ -222,7 +208,6 @@ Authentication is handled by **Better Auth** with:
 The application uses BullMQ for background processing:
 
 - **Notification Worker**: Processes and delivers notifications via Redis Pub/Sub
-- **Search Worker**: Syncs data changes to Elasticsearch indices
 
 ## 🤝 Contributing
 

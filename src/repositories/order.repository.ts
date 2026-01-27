@@ -1,7 +1,5 @@
 import { Order, OrderStatus, Prisma } from "@/../prisma/generated/client";
-import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
-import { searchQueue } from "@/lib/search/search-producer";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
 
@@ -88,27 +86,6 @@ class OrderRepository {
       data,
     });
 
-    if (!order.user_id) {
-      throw new Error("Order must have a user_id to be indexed.");
-    }
-
-    const user = await db.user.findUnique({
-      where: { id: order.user_id },
-      select: { email: true },
-    });
-
-    await searchQueue.add("index-order", {
-      type: "INDEX_ORDER",
-      payload: {
-        id: order.id,
-        shop_id: order.shop_id,
-        display_id: order.display_id,
-        user_email: user?.email,
-        delivery_address: order.delivery_address_snapshot,
-        status: order.order_status,
-        created_at: order.created_at,
-      },
-    });
     return order;
   }
 
@@ -127,13 +104,6 @@ class OrderRepository {
       },
     });
 
-    await searchQueue.add("update-order", {
-      type: "UPDATE_ORDER_STATUS",
-      payload: {
-        id: order.id,
-        status: order.order_status,
-      },
-    });
     return order;
   }
 
@@ -145,18 +115,6 @@ class OrderRepository {
       where: { id: { in: order_ids } },
       data: { order_status },
     });
-
-    await Promise.all(
-      order_ids.map((id) =>
-        searchQueue.add("update-order-batch", {
-          type: "UPDATE_ORDER_STATUS",
-          payload: {
-            id,
-            status: order_status,
-          },
-        })
-      )
-    );
 
     return result;
   }
@@ -181,76 +139,62 @@ class OrderRepository {
       });
     }
 
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mustQuery: any[] = [{ term: { shop_id } }];
-      if (orderStatus) mustQuery.push({ term: { status: orderStatus } });
-      if (dateRange) {
-        mustQuery.push({
-          range: { created_at: { gte: dateRange.from, lte: dateRange.to } },
-        });
-      }
-
-      mustQuery.push({
-        multi_match: {
-          query: searchTerm,
-          fields: ["display_id", "delivery_address", "user_email"],
-          type: "phrase_prefix",
-        },
-      });
-
-      let searchAfter: string[] | undefined;
-      if (cursor) {
-        try {
-          searchAfter = JSON.parse(
-            Buffer.from(cursor, "base64").toString("utf-8")
-          );
-        } catch {
-          // If cursor is invalid/corrupted, start from page 1 safely
-        }
-      }
-
-      const result = await elasticClient.search({
-        index: INDICES.ORDERS,
-        size: limit,
-        query: { bool: { must: mustQuery } },
-        track_total_hits: false,
-        _source: false,
-        sort: [{ created_at: "desc" }, { id: "desc" }],
-        search_after: searchAfter,
-      });
-
-      const hits = result.hits.hits;
-      if (hits.length === 0) return { orders: [] };
-
-      const ids = hits.map((h) => h._id as string);
-      const orders = await prisma.order.findMany({
-        where: { id: { in: ids } },
-        include: orderWithDetailsInclude,
-        orderBy: [{ created_at: "desc" }, { id: "desc" }],
-      });
-
-      let nextCursor: string | undefined;
-      const lastHit = hits[hits.length - 1];
-
-      if (hits.length === limit && lastHit?.sort) {
-        nextCursor = Buffer.from(JSON.stringify(lastHit.sort)).toString(
-          "base64"
-        );
-      }
-
-      return { orders, nextCursor };
-    } catch (error) {
-      console.error("Search failed, falling back to DB", error);
-      return this.getPaginatedShopOrdersFromDB({
-        shop_id,
-        limit,
-        cursor,
-        searchTerm,
-        orderStatus,
-        dateRange,
-      });
+    // Use Prisma for search instead of Elasticsearch
+    const where: any = { shop_id };
+    if (orderStatus) where.order_status = orderStatus;
+    if (dateRange) {
+      where.created_at = {
+        gte: dateRange.from,
+        lte: dateRange.to,
+      };
     }
+    if (searchTerm) {
+      where.OR = [
+        { display_id: { contains: searchTerm, mode: "insensitive" } },
+        { delivery_address_snapshot: { contains: searchTerm, mode: "insensitive" } },
+        { user: { email: { contains: searchTerm, mode: "insensitive" } } },
+      ];
+    }
+
+    let cursorCondition: any = {};
+    if (cursor) {
+      try {
+        const cursorData = JSON.parse(
+          Buffer.from(cursor, "base64").toString("utf-8")
+        );
+        cursorCondition = {
+          OR: [
+            { created_at: { lt: new Date(cursorData[0]) } },
+            {
+              AND: [
+                { created_at: { equals: new Date(cursorData[0]) } },
+                { id: { lt: cursorData[1] } },
+              ],
+            },
+          ],
+        };
+      } catch {
+        // If cursor is invalid, ignore it
+      }
+    }
+
+    const orders = await prisma.order.findMany({
+      where: { ...where, ...cursorCondition },
+      include: orderWithDetailsInclude,
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
+      take: limit + 1, // Take one extra to check if there are more
+    });
+
+    let nextCursor: string | undefined;
+    if (orders.length > limit) {
+      const lastOrder = orders[limit - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify([lastOrder.created_at.toISOString(), lastOrder.id])
+      ).toString("base64");
+      orders.pop(); // Remove the extra item
+    }
+
+    return { orders, nextCursor };
   }
 
   async getPaginatedShopOrdersFromDB({

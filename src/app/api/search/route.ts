@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { esSearchService } from "@/services/search/es-search.service";
+import { prismaSearchService } from "@/services/search/prisma-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const results = await esSearchService.globalSearch(query.trim());
+    const results = await prismaSearchService.globalSearch(query.trim());
 
     const successResponse = createSuccessResponse(
       results,
