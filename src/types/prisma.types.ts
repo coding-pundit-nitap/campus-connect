@@ -14,7 +14,7 @@ export enum OrderStatus {
 export enum BatchStatus {
   OPEN = "OPEN",
   LOCKED = "LOCKED",
-  IN_PROGRESS = "IN_PROGRESS",
+  IN_TRANSIT = "IN_TRANSIT",
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
 }

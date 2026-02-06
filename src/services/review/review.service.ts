@@ -32,12 +32,15 @@ class ReviewService {
   }
 
   async updateReview(
+    user_id: string,
     data: ReviewFormData,
     product_id: string,
     review_id: string
   ) {
-    const existingReview = await reviewRepository.findById(review_id);
-    if (!existingReview) {
+    const existingReview = await reviewRepository.findById(review_id, {
+      select: { user_id: true, rating: true },
+    });
+    if (!existingReview || existingReview.user_id !== user_id) {
       throw new Error("Review not found");
     }
 

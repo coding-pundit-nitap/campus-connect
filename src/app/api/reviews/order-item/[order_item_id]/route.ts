@@ -1,6 +1,8 @@
+import { NextResponse } from "next/server";
+
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import reviewRepository from "@/repositories/reviews.repository";
-import { createErrorResponse,createSuccessResponse } from "@/types";
+import { createErrorResponse, createSuccessResponse } from "@/types";
 
 export async function GET(
   _request: Request,
@@ -18,6 +20,7 @@ export async function GET(
     const review = await reviewRepository.findByOrderItemId(order_item_id, {
       select: {
         id: true,
+        user_id: true,
         rating: true,
         comment: true,
         created_at: true,
@@ -25,16 +28,16 @@ export async function GET(
       },
     });
 
-    if (!review) {
-      return Response.json(createErrorResponse("Review not found"), {
+    if (!review || review.user_id !== user_id) {
+      return NextResponse.json(createErrorResponse("Review not found"), {
         status: 404,
       });
     }
 
-    return Response.json(createSuccessResponse(review));
+    return NextResponse.json(createSuccessResponse(review));
   } catch (error) {
     console.error("Error fetching review:", error);
-    return Response.json(createErrorResponse("Failed to fetch review"), {
+    return NextResponse.json(createErrorResponse("Failed to fetch review"), {
       status: 500,
     });
   }
