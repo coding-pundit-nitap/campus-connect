@@ -45,8 +45,7 @@ export function VendorDashboard() {
       </Alert>
     );
   }
-
-  const { open_batch, active_batches } = data;
+  const { open_batch, active_batches = [] } = data || {};
   const hasNoBatches = !open_batch && active_batches.length === 0;
 
   return (

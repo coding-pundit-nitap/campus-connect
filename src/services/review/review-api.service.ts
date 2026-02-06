@@ -25,6 +25,13 @@ class ReviewApiService {
     });
     return response.data.data;
   }
+
+  async fetchReviewByOrderItemId(order_item_id: string) {
+    const url = `reviews/order-item/${order_item_id}`;
+    const response =
+      await axiosInstance.get<ActionResponse<ReviewWithUser | null>>(url);
+    return response.data.data;
+  }
 }
 
 export const reviewApiService = new ReviewApiService();

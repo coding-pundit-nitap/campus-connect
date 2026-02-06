@@ -6,7 +6,7 @@ import React, { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import z from "zod";
 
-import { useCreateReview } from "@/hooks";
+import { useCreateReview, useUpdateReview } from "@/hooks";
 import { cn } from "@/lib/cn";
 
 import { Button } from "../ui/button";
@@ -22,7 +22,10 @@ import { Textarea } from "../ui/textarea";
 
 type Props = {
   product_id: string;
-  order_item_id: string;
+  order_item_id?: string;
+  review_id?: string;
+  initialRating?: number;
+  initialComment?: string;
   onSuccess?: () => void;
 };
 
@@ -50,31 +53,57 @@ const MIN_COMMENT_LENGTH = 10;
 export default function ReviewForm({
   product_id,
   order_item_id,
+  review_id,
+  initialRating = 5,
+  initialComment = "",
   onSuccess,
 }: Props) {
-  const { mutate: createReview, isPending } = useCreateReview();
+  const { mutate: createReview, isPending: isCreatePending } =
+    useCreateReview();
+  const { mutate: updateReview, isPending: isUpdatePending } =
+    useUpdateReview();
+  const isPending = isCreatePending || isUpdatePending;
+  const isUpdate = !!review_id;
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const form = useForm({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
-      rating: 5,
-      comment: "",
+      rating: initialRating,
+      comment: initialComment,
     },
   });
 
   const handleFormSubmit = (data: { rating: number; comment: string }) => {
-    createReview(
-      { ...data, product_id, order_item_id },
-      {
-        onSuccess: () => {
-          setIsSubmitted(true);
-          setTimeout(() => {
-            onSuccess?.();
-          }, 1500);
-        },
+    if (isUpdate && review_id) {
+      updateReview(
+        { ...data, product_id, review_id },
+        {
+          onSuccess: () => {
+            setIsSubmitted(true);
+            setTimeout(() => {
+              onSuccess?.();
+            }, 1500);
+          },
+        }
+      );
+    } else {
+      if (!order_item_id) {
+        console.error("order_item_id is required for creating a review");
+        return;
       }
-    );
+      createReview(
+        { ...data, product_id, order_item_id },
+        {
+          onSuccess: () => {
+            setIsSubmitted(true);
+            setTimeout(() => {
+              onSuccess?.();
+            }, 1500);
+          },
+        }
+      );
+    }
   };
 
   const commentValue = useWatch({ control: form.control, name: "comment" });
@@ -169,12 +198,12 @@ export default function ReviewForm({
             {isPending ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Submitting...
+                {isUpdate ? "Updating..." : "Submitting..."}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4" />
-                Submit Review
+                {isUpdate ? "Update Review" : "Submit Review"}
               </>
             )}
           </Button>

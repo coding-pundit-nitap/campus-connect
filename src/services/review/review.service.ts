@@ -30,6 +30,32 @@ class ReviewService {
     }
     return review;
   }
+
+  async updateReview(
+    data: ReviewFormData,
+    product_id: string,
+    review_id: string
+  ) {
+    const existingReview = await reviewRepository.findById(review_id);
+    if (!existingReview) {
+      throw new Error("Review not found");
+    }
+
+    const ratingDifference = data.rating - existingReview.rating;
+
+    const review = await reviewRepository.updateReview(review_id, {
+      data: {
+        comment: data.comment,
+        rating: data.rating,
+      },
+    });
+
+    if (ratingDifference !== 0) {
+      await reviewRepository.updateProductRatings(product_id, ratingDifference);
+    }
+
+    return review;
+  }
 }
 
 export const reviewService = new ReviewService();
