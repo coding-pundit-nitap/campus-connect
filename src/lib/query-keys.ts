@@ -82,6 +82,8 @@ export const queryKeys = {
     detail: (product_id: string) => ["products", product_id] as const,
     reviews: (product_id: string) =>
       ["products", product_id, "reviews"] as const,
+    byOrderItem: (order_item_id: string) =>
+      ["products", "by-order-item", order_item_id] as const,
   },
 
   /**

@@ -8,7 +8,7 @@ function serializeMoney(value: unknown): string {
   if (typeof value === "number") return String(value);
   if (typeof value === "bigint") return value.toString();
 
-  if (typeof value === "object" && value && "toString" in value) {
+  if (typeof value === "object" && "toString" in value) {
     return (value as MoneyLike).toString();
   }
 

@@ -170,7 +170,7 @@ export default function ReviewForm({
                 <Textarea
                   {...field}
                   placeholder="Share your experience with this product. What did you like or dislike?"
-                  className="min-h-[120px] resize-none transition-all focus:ring-2 focus:ring-primary/20"
+                  className="min-h-30 resize-none transition-all focus:ring-2 focus:ring-primary/20"
                   disabled={isPending}
                 />
               </FormControl>

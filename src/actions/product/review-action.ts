@@ -25,6 +25,7 @@ export const updateReviewAction = async ({
     }
 
     const review = await reviewService.updateReview(
+      user_id,
       { rating, comment },
       product_id,
       review_id
