@@ -3,6 +3,7 @@ import z from "zod";
 
 import { Prisma } from "@/../prisma/generated/client";
 import { paginateCursor } from "@/lib/paginate";
+import { formatShopData } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
@@ -33,8 +34,13 @@ export async function GET(request: Request) {
       parsed.cursor
     );
 
+    const formattedResult = {
+      ...result,
+      data: result.data.map(formatShopData),
+    };
+
     const successResponse = createSuccessResponse(
-      result,
+      formattedResult,
       "Shops retrieved successfully"
     );
     return NextResponse.json(successResponse);

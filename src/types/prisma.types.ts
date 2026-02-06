@@ -5,9 +5,16 @@ export enum Role {
 
 export enum OrderStatus {
   NEW = "NEW",
-  PREPARING = "PREPARING",
-  READY_FOR_PICKUP = "READY_FOR_PICKUP",
+  BATCHED = "BATCHED",
   OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum BatchStatus {
+  OPEN = "OPEN",
+  LOCKED = "LOCKED",
+  IN_PROGRESS = "IN_PROGRESS",
   COMPLETED = "COMPLETED",
   CANCELLED = "CANCELLED",
 }
@@ -80,6 +87,7 @@ export enum NotificationCategory {
 export interface UserAddress {
   id: string;
   label: string;
+  hostel_block: string | null;
   building: string;
   room_number: string;
   notes: string | null;

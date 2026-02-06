@@ -28,7 +28,6 @@ redisSubscriber.removeAllListeners("error");
 redisSubscriber.removeAllListeners("close");
 redisSubscriber.removeAllListeners("ready");
 
-// Now attach fresh listeners
 redis.on("error", (error) => console.log("Redis Error:", error));
 redisSubscriber.on("error", (error) =>
   console.log("Redis Subscriber Error: ", error)

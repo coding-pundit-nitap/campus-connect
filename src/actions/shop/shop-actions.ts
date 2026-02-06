@@ -5,6 +5,7 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import shopRepository from "@/repositories/shop.repository";
 import { categoryServices } from "@/services/category/category.service";
@@ -17,7 +18,27 @@ export async function createShopAction(formData: ShopActionFormData) {
   const uploadedFiles: string[] = [];
 
   try {
-    const user_id = await authUtils.getUserId();
+    const user = await authUtils.getUserData();
+    const user_id = user.id;
+    if (!user_id) {
+      throw new UnauthorizedError("User is not authorized to create a shop");
+    }
+
+    if (user.shop_id) {
+      throw new BadRequestError(
+        "You already have a shop linked. Update your existing shop instead."
+      );
+    }
+
+    const existingShop = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (existingShop?.id) {
+      throw new BadRequestError(
+        "You already have a shop linked. Update your existing shop instead."
+      );
+    }
+
     const parsedData = shopActionSchema.safeParse(formData);
     if (!parsedData.success) {
       throw new BadRequestError(parsedData.error.message);
@@ -31,6 +52,10 @@ export async function createShopAction(formData: ShopActionFormData) {
       image,
       qr_image,
       upi_id,
+      min_order_value,
+      batch_cards,
+      default_delivery_fee,
+      default_platform_fee,
     } = parsedData.data;
 
     let image_key = "";
@@ -74,12 +99,34 @@ export async function createShopAction(formData: ShopActionFormData) {
       image_key,
       qr_image_key,
       upi_id,
+      min_order_value,
+      default_delivery_fee,
+      default_platform_fee,
       user: { connect: { id: user_id } },
     });
 
+    let batchCardsSaved = true;
+    if (batch_cards && batch_cards.length > 0) {
+      try {
+        await prisma.batchSlot.createMany({
+          data: batch_cards.map((card, idx) => ({
+            shop_id: newShop.id,
+            cutoff_time_minutes: card.cutoff_time_minutes,
+            label: card.label?.trim() || null,
+            is_active: true,
+            sort_order: idx,
+          })),
+        });
+      } catch {
+        batchCardsSaved = false;
+      }
+    }
+
     return createSuccessResponse(
       newShop,
-      "Shop created successfully! Please log out and back in to access the seller dashboard."
+      batchCardsSaved
+        ? "Shop created successfully! Please log out and back in to access the seller dashboard."
+        : "Shop created successfully, but batch cards could not be saved (migration pending). The shop will run in direct-delivery mode."
     );
   } catch (error) {
     for (const fileKey of uploadedFiles) {
@@ -94,6 +141,12 @@ export async function createShopAction(formData: ShopActionFormData) {
     }
 
     console.error("CREATE SHOP ERROR:", error);
+    if (
+      error instanceof BadRequestError ||
+      error instanceof UnauthorizedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to create shop.");
   }
 }

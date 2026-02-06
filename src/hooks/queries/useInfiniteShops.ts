@@ -1,7 +1,7 @@
 "use client";
 import { useMemo } from "react";
 
-import { formatShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
+import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 
 import { useAllShops } from ".";
 
@@ -39,11 +39,9 @@ export const useInfiniteShops = ({
     const serverData = data.pages[0]?.data ?? [];
     const clientPages = data.pages.slice(1);
 
-    const clientShops = clientPages.flatMap((page) =>
-      page.data.map(formatShopData)
-    );
+    const clientShops = clientPages.flatMap((page) => page.data);
 
-    return [...serverData.map(formatShopData), ...clientShops];
+    return [...serverData, ...clientShops];
   }, [data, initialData]);
 
   const finalIsError =

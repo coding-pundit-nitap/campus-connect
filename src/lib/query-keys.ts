@@ -108,6 +108,8 @@ export const queryKeys = {
     orders: () => ["seller", "orders"] as const,
     /** Seller dashboard analytics query key factory */
     dashboard: () => ["seller", "dashboard"] as const,
+    /** Seller overview stats used on /owner-shops */
+    overview: () => ["seller", "overview"] as const,
   },
 
   search: {
@@ -121,7 +123,11 @@ export const queryKeys = {
     /** Search query key factory for order search  */
     orders: (
       searchTerm: string,
-      filters: { status?: OrderStatus; dateRange?: DateRange }
+      filters: {
+        status?: OrderStatus;
+        dateRange?: DateRange;
+        hostelBlock?: string;
+      }
     ) => ["search", "orders", searchTerm, filters] as const,
   },
 
@@ -137,6 +143,13 @@ export const queryKeys = {
   health: {
     all: ["health"] as const,
     database: () => ["health", "database"] as const,
+  },
+
+  batch: {
+    all: ["batch"] as const,
+    vendorDashboard: () => ["batch", "vendor", "dashboard"] as const,
+    nextSlot: (shopId: string) => ["batch", "next-slot", shopId] as const,
+    summary: (batchId: string) => ["batch", batchId, "summary"] as const,
   },
 } as const;
 

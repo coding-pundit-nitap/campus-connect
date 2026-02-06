@@ -11,9 +11,11 @@ export const auth = betterAuth({
   }),
   baseURL: process.env.BETTER_AUTH_URL,
   emailAndPassword: {
-    enabled: true,
+    enabled: false,
   },
-  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL as string],
+  trustedOrigins: process.env.NEXT_PUBLIC_APP_URL
+    ? [process.env.NEXT_PUBLIC_APP_URL]
+    : [],
   session: {
     cookieCache: {
       enabled: true,

@@ -43,7 +43,7 @@ interface ShopsTableProps {
       id: string;
       name: string;
       email: string;
-    };
+    } | null;
   }>;
   searchParams: {
     cursor?: string;
@@ -167,9 +167,11 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                   <TableCell className="font-medium">{shop.name}</TableCell>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm">{shop.user.name}</span>
+                      <span className="text-sm">
+                        {shop.user?.name ?? "Unassigned"}
+                      </span>
                       <span className="text-xs text-muted-foreground">
-                        {shop.user.email}
+                        {shop.user?.email ?? "—"}
                       </span>
                     </div>
                   </TableCell>
@@ -213,7 +215,7 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                       onUpdateVerification={(status) =>
                         updateVerification({ shopId: shop.id, status: status })
                       }
-                      disabled={isPending}
+                      disabled={isPending || !shop.user}
                     />
                   </TableCell>
                 </TableRow>

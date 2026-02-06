@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider      = "prisma-client-js"
-  output        = "./generated/client"
+  provider = "prisma-client-js"
+  output   = "./generated/client"
 }
 
 datasource db {
@@ -24,8 +24,7 @@ enum Role {
 
 enum OrderStatus {
   NEW
-  PREPARING
-  READY_FOR_PICKUP
+  BATCHED
   OUT_FOR_DELIVERY
   COMPLETED
   CANCELLED
@@ -80,6 +79,41 @@ enum AdminAction {
   USER_FORCE_SIGNOUT
   BROADCAST_CREATE
   ORDER_STATUS_OVERRIDE
+}
+
+enum BatchStatus {
+  OPEN
+  LOCKED
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+// ----------------------------------------
+// Batch Scheduling Models
+// ----------------------------------------
+
+model BatchSlot {
+  id String @id @default(cuid())
+
+  shop_id String
+  shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+  // Minutes from midnight (0-1439) representing the daily batch cutoff time.
+  cutoff_time_minutes Int
+  label               String? // Optional display label (e.g. "5 PM Batch")
+  is_active           Boolean @default(true)
+  sort_order          Int     @default(0)
+
+  batches Batch[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([shop_id, cutoff_time_minutes, label])
+  @@index([shop_id])
+  @@index([shop_id, is_active])
+  @@map("batch_slot")
 }
 
 // ----------------------------------------
@@ -186,12 +220,17 @@ model Shop {
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
 
-  // Relations
+  min_order_value      Decimal @default(50.00) @db.Decimal(10, 2)
+  default_delivery_fee Decimal @default(0) @db.Decimal(10, 2)
+  default_platform_fee Decimal @default(0) @db.Decimal(10, 2)
+
   products     Product[]
   orders       Order[]
   payouts      Payout[]
   carts        Cart[]
   categories   Category[]
+  batches      Batch[]
+  batch_slots  BatchSlot[]
   user         User?          @relation("owned_shop")
   favorited_by FavoriteShop[]
 
@@ -245,14 +284,15 @@ model Product {
 // ----------------------------------------
 
 model UserAddress {
-  id          String   @id @default(cuid())
-  label       String
-  building    String
-  room_number String
-  notes       String?
-  is_default  Boolean  @default(false)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id           String   @id @default(cuid())
+  label        String
+  hostel_block String?
+  building     String
+  room_number  String
+  notes        String?
+  is_default   Boolean  @default(false)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
 
   // Relations
   user_id String
@@ -260,6 +300,7 @@ model UserAddress {
   orders  Order[]
 
   @@index([user_id])
+  @@index([hostel_block])
 }
 
 model Cart {
@@ -313,9 +354,14 @@ model Review {
 // ----------------------------------------
 
 model Order {
-  id                        String        @id @default(cuid())
-  display_id                String        @unique
-  total_price               Decimal
+  id         String @id @default(cuid())
+  display_id String @unique
+
+  item_total   Decimal @db.Decimal(10, 2)
+  delivery_fee Decimal @default(0) @db.Decimal(10, 2)
+  platform_fee Decimal @default(0) @db.Decimal(10, 2)
+  total_price  Decimal @db.Decimal(10, 2)
+
   payment_method            PaymentMethod
   payment_status            PaymentStatus @default(PENDING)
   order_status              OrderStatus   @default(NEW)
@@ -332,18 +378,22 @@ model Order {
 
   assigned_to    String?
   customer_notes String?
+  delivery_otp   String?
 
   // Relations
   user_id             String?
   user                User?        @relation(fields: [user_id], references: [id], onDelete: SetNull)
   shop_id             String?
   shop                Shop?        @relation(fields: [shop_id], references: [id], onDelete: SetNull)
+  batch_id            String?
+  batch               Batch?       @relation(fields: [batch_id], references: [id])
   items               OrderItem[]
   delivery_address_id String?
   delivery_address    UserAddress? @relation(fields: [delivery_address_id], references: [id], onDelete: SetNull)
 
   @@index([user_id])
   @@index([shop_id])
+  @@index([batch_id])
   @@index([order_status])
   @@index([payment_status])
 }
@@ -442,9 +492,31 @@ model BroadcastReadStatus {
   @@index([user_id])
 }
 
-model GlobalCounter {
-  id          String @id @default("GLOBAL")
-  order_count Int    @default(1000)
+// ----------------------------------------
+// Logistics Models
+// ----------------------------------------
+
+model Batch {
+  id String @id @default(cuid())
+
+  shop_id String
+  shop    Shop   @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+
+  slot_id String?
+  slot    BatchSlot? @relation(fields: [slot_id], references: [id], onDelete: SetNull)
+
+  cutoff_time DateTime
+  status      BatchStatus @default(OPEN)
+
+  orders Order[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([shop_id])
+  @@index([cutoff_time])
+  @@index([status])
+  @@index([slot_id])
 }
 
 // ----------------------------------------

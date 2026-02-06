@@ -1,6 +1,15 @@
 "use client";
 
-import { Calendar, Clock, CreditCard, Hash, MapPin, Store } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  CreditCard,
+  Hash,
+  Key,
+  MapPin,
+  Package,
+  Store,
+} from "lucide-react";
 import React from "react";
 
 import { DateDisplay } from "@/components/shared/date-display";
@@ -37,19 +46,53 @@ export default function OrderDetailsInfo({ order }: Props) {
     requested_delivery_time,
     estimated_delivery_time,
     actual_delivery_time,
+    batch,
     payment_method,
     payment_status,
     upi_transaction_id,
+    order_status,
+    delivery_otp,
   } = order;
+
+  const showOtp = order_status === "OUT_FOR_DELIVERY" && delivery_otp;
+
   return (
     <div className="space-y-4 col-span-1">
+      {showOtp && (
+        <Card className="py-4 border-2 border-green-500 bg-green-50 dark:bg-green-950/20">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Key className="h-5 w-5 text-green-600" />
+              Delivery OTP
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Show this code to the delivery person to confirm your order
+            </p>
+            <div className="flex justify-center">
+              <div className="flex gap-2">
+                {delivery_otp.split("").map((digit, i) => (
+                  <div
+                    key={i}
+                    className="w-12 h-14 flex items-center justify-center bg-white dark:bg-gray-900 border-2 border-green-500 rounded-lg text-2xl font-bold text-green-700 dark:text-green-400"
+                  >
+                    {digit}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="py-4">
         <CardHeader>
           <CardTitle className="text-lg">Delivery Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <InfoRow Icon={Store} label="Restaurant">
-            {items[0].product.shop?.name || "Unknown"}
+            {items?.[0].product.shop?.name || "Unknown"}
           </InfoRow>
           <InfoRow Icon={MapPin} label="Delivery Address">
             {delivery_address_snapshot}
@@ -62,6 +105,23 @@ export default function OrderDetailsInfo({ order }: Props) {
               </span>
             </InfoRow>
           )}
+
+          <InfoRow Icon={Package} label="Batch Slot">
+            {batch ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-orange-600">
+                  <DateDisplay date={batch.cutoff_time} />
+                </span>
+                <Badge variant="secondary" className="uppercase">
+                  {batch.status}
+                </Badge>
+              </div>
+            ) : (
+              <span className="text-muted-foreground">
+                Not assigned yet (waiting for batching)
+              </span>
+            )}
+          </InfoRow>
 
           {actual_delivery_time ? (
             <InfoRow Icon={Clock} label="Delivered At">

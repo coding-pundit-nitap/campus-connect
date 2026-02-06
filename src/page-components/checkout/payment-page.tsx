@@ -8,8 +8,16 @@ export default async function PaymentPageComponent({
 }: {
   cart_id: string;
 }) {
-  const { cart, total, shop_id, qr_image_key, upi_id } =
-    await cartService.getCartData(cart_id);
+  const {
+    cart,
+    total,
+    shop_id,
+    qr_image_key,
+    upi_id,
+    item_total,
+    delivery_fee,
+    platform_fee,
+  } = await cartService.getCartData(cart_id);
 
   return (
     <SharedCard
@@ -24,7 +32,13 @@ export default async function PaymentPageComponent({
         upi_id={upi_id}
       />
       <div className="space-y-6">
-        <OrderSummary items={cart.items} total={total} />
+        <OrderSummary
+          items={cart.items}
+          total={total}
+          itemTotal={item_total}
+          deliveryFee={delivery_fee}
+          platformFee={platform_fee}
+        />
       </div>
     </SharedCard>
   );

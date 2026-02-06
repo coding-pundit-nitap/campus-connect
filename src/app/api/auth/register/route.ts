@@ -1,47 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import userRepository from "@/repositories/user.repository";
-import {
-  createErrorResponse,
-  createSuccessResponse,
-} from "@/types/response.types";
-import { registerSchema } from "@/validations/auth";
+import { createErrorResponse } from "@/types/response.types";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const parsedData = registerSchema.safeParse(body);
-    if (!parsedData.success) {
-      const errorResponse = createErrorResponse("Invalid input data");
-      return NextResponse.json(errorResponse, { status: 400 });
-    }
-    const { name, email } = parsedData.data;
-    const existingUser = await userRepository.findByEmail(email);
-    if (existingUser) {
-      const errorResponse = createErrorResponse(
-        "User with this email already exists."
-      );
-      return NextResponse.json(errorResponse, { status: 409 });
-    }
-
-    const user = await userRepository.create({
-      data: {
-        name,
-        email,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-      },
-    });
-
-    const successResponse = createSuccessResponse(
-      user,
-      "User registered successfully"
+    void request;
+    return NextResponse.json(
+      createErrorResponse(
+        "Registration is disabled. Please use Google sign-in from the login dialog."
+      ),
+      { status: 410 }
     );
-    return NextResponse.json(successResponse, { status: 201 });
   } catch (error) {
     console.error("REGISTRATION ERROR:", error);
     const errorResponse = createErrorResponse(

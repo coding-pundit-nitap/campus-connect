@@ -79,6 +79,24 @@ export function UserAddressForm({
 
           <FormField
             control={form.control}
+            name="hostel_block"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Hostel Block (Optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="e.g., BH-1, Block A"
+                    {...field}
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="room_number"
             render={({ field }) => (
               <FormItem>

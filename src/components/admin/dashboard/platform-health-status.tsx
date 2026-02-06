@@ -26,7 +26,7 @@ interface DashboardAnalytics {
     newOrders: number;
     todayRevenue: number;
     completedOrders: number;
-    preparingOrders: number;
+    batchedOrders: number;
     pendingPayments: number;
   };
 }
@@ -92,9 +92,9 @@ export function PlatformHealthStatus({ analytics }: PlatformHealthStatusProps) {
             </div>
             <div className="flex flex-col p-2 bg-muted/50 rounded text-center">
               <span className="text-lg font-bold text-orange-600">
-                {analytics.orders.preparingOrders}
+                {analytics.orders.batchedOrders}
               </span>
-              <span className="text-xs text-muted-foreground">Preparing</span>
+              <span className="text-xs text-muted-foreground">Batched</span>
             </div>
             <div className="flex flex-col p-2 bg-muted/50 rounded text-center">
               <span className="text-lg font-bold text-green-600">

@@ -148,6 +148,8 @@ export type OrderReceiptData = {
     discount: number;
   }>;
   subtotal: number;
+  deliveryFee: number;
+  platformFee: number;
   total: number;
 };
 
@@ -202,7 +204,6 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           )}
         </View>
 
-        {/* Customer Notes */}
         {data.customerNotes && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Customer Notes</Text>
@@ -212,7 +213,6 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           </View>
         )}
 
-        {/* Items Table */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Order Items</Text>
           <View style={styles.table}>
@@ -245,7 +245,6 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           </View>
         </View>
 
-        {/* Totals */}
         <View style={styles.totals}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal:</Text>
@@ -253,8 +252,18 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Delivery:</Text>
-            <Text style={styles.totalValue}>₹0.00</Text>
+            <Text style={styles.totalValue}>
+              ₹{data.deliveryFee.toFixed(2)}
+            </Text>
           </View>
+          {data.platformFee > 0 && (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Platform Fee:</Text>
+              <Text style={styles.totalValue}>
+                ₹{data.platformFee.toFixed(2)}
+              </Text>
+            </View>
+          )}
           <View style={[styles.totalRow, styles.grandTotal]}>
             <Text style={[styles.totalLabel, styles.grandTotal]}>Total:</Text>
             <Text style={[styles.totalValue, styles.grandTotal]}>
@@ -263,7 +272,6 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           </View>
         </View>
 
-        {/* Footer */}
         <Text style={styles.footer}>
           Thank you for your order! | Campus Connect | Generated on{" "}
           {new Date().toLocaleDateString()}

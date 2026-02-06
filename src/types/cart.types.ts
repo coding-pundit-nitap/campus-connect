@@ -1,7 +1,9 @@
 import {
+  BatchSlot,
   Cart,
   CartItem,
   Category,
+  Prisma,
   Product,
 } from "@/../prisma/generated/client";
 
@@ -53,6 +55,12 @@ export type SerializedFullCart = Cart & {
         upi_id: string;
         opening: string;
         closing: string;
+        default_delivery_fee: string;
+        default_platform_fee: string;
+        batch_slots?: Pick<
+          BatchSlot,
+          "id" | "cutoff_time_minutes" | "label" | "sort_order" | "is_active"
+        >[];
       };
       category: Category | null;
     };
@@ -70,6 +78,12 @@ export type FullCart = Cart & {
         upi_id: string;
         opening: string;
         closing: string;
+        default_delivery_fee: Prisma.Decimal;
+        default_platform_fee: Prisma.Decimal;
+        batch_slots: Pick<
+          BatchSlot,
+          "id" | "cutoff_time_minutes" | "label" | "sort_order" | "is_active"
+        >[];
       };
       category: Category | null;
     };

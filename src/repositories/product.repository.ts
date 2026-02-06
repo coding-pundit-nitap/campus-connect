@@ -1,7 +1,5 @@
 import { Prisma, Product } from "@/../prisma/generated/client";
-import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
-import { searchQueue } from "@/lib/search/search-producer";
 
 export type CreateProductDto = Prisma.ProductCreateInput;
 
@@ -51,20 +49,6 @@ class ProductRepository {
       include: { category: true, shop: { select: { id: true, name: true } } },
     });
 
-    await searchQueue.add("index-product", {
-      type: "INDEX_PRODUCT",
-      payload: {
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        shop_id: product.shop_id,
-        shop_name: product.shop.name,
-        category_name: product.category?.name,
-        price: product.price,
-        image_key: product.image_key,
-      },
-    });
-
     return product;
   }
 
@@ -82,35 +66,12 @@ class ProductRepository {
         },
       },
     });
-    await searchQueue
-      .add("update-product", {
-        type: "INDEX_PRODUCT",
-        payload: {
-          id: product.id,
-          name: product.name,
-          description: product.description,
-          shop_id: product.shop_id,
-          shop_name: product.shop.name,
-          category_name: product.category?.name,
-          price: product.price,
-          image_key: product.image_key,
-        },
-      })
-      .catch((err) => console.error("ES Update Error", err));
-
     return product;
   }
   async delete(product_id: string): Promise<Product> {
     const product = await prisma.product.update({
       where: { id: product_id },
       data: { deleted_at: new Date() },
-    });
-
-    await searchQueue.add("delete-product", {
-      type: "DELETE_PRODUCT",
-      payload: {
-        id: product_id,
-      },
     });
 
     return product;
@@ -122,13 +83,6 @@ class ProductRepository {
     const product = await prisma.product.delete({
       where: { id: product_id },
       ...data,
-    });
-
-    await searchQueue.add("delete-product", {
-      type: "DELETE_PRODUCT",
-      payload: {
-        id: product_id,
-      },
     });
 
     return product;
@@ -155,85 +109,36 @@ class ProductRepository {
       };
     })[]
   > {
-    try {
-      const result = await elasticClient.search<
-        Product & { shop: { id: string; name: string } }
-      >({
-        index: INDICES.PRODUCTS,
-        size: limit,
-        _source: false,
-        query: {
-          multi_match: {
-            query: searchTerm,
-            fields: ["name^3", "description", "shop_name^2", "category_name"],
-            fuzziness: "AUTO",
-          },
-        },
-      });
-      const hits = result.hits.hits;
-      if (hits.length === 0) return [];
+    const trimmed = searchTerm.trim();
 
-      const ids = hits.map((h) => h._id || "");
-
-      const products = await prisma.product.findMany({
-        where: {
-          id: { in: ids },
-          shop: { is_active: true, deleted_at: null },
-          deleted_at: null,
-        },
-        include: {
-          shop: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      });
-      const productMap = new Map(products.map((p) => [p.id, p]));
-
-      return hits
-        .map((hit) => productMap.get(hit._id || ""))
-        .filter(
-          (p): p is Product & { shop: { id: string; name: string } } =>
-            p !== undefined
-        );
-    } catch (error) {
-      console.error("ES Search Error", error);
-      return prisma.product.findMany({
-        where: {
-          OR: [
-            {
-              name: {
-                contains: searchTerm,
-                mode: "insensitive",
+    return prisma.product.findMany({
+      where: {
+        deleted_at: null,
+        shop: { is_active: true, deleted_at: null },
+        OR: trimmed
+          ? [
+              { name: { contains: trimmed, mode: "insensitive" } },
+              { description: { contains: trimmed, mode: "insensitive" } },
+              {
+                category: { name: { contains: trimmed, mode: "insensitive" } },
               },
-            },
-            {
-              description: {
-                contains: searchTerm,
-                mode: "insensitive",
-              },
-            },
-          ],
-          shop: {
-            is_active: true,
+              { shop: { name: { contains: trimmed, mode: "insensitive" } } },
+            ]
+          : undefined,
+      },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            name: true,
           },
         },
-        include: {
-          shop: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-        orderBy: {
-          name: "asc",
-        },
-        take: limit,
-      });
-    }
+      },
+      orderBy: {
+        name: "asc",
+      },
+      take: limit,
+    });
   }
   async count(args: Prisma.ProductCountArgs) {
     return prisma.product.count(args);

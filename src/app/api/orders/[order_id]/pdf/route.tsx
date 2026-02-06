@@ -54,7 +54,6 @@ export async function GET(
       return NextResponse.json(errorResponse, { status: 404 });
     }
 
-    // Check if user owns this order or is the shop owner
     const isOwner = order.user_id === userId;
     const isShopOwner = order.shop_id
       ? await prisma.shop.findFirst({
@@ -68,7 +67,6 @@ export async function GET(
       return NextResponse.json(errorResponse, { status: 403 });
     }
 
-    // Calculate totals
     const items = order.items.map((item) => ({
       name: item.product.name,
       quantity: item.quantity,
@@ -109,6 +107,8 @@ export async function GET(
       customerNotes: order.customer_notes || undefined,
       items,
       subtotal,
+      deliveryFee: Number(order.delivery_fee),
+      platformFee: Number(order.platform_fee),
       total: Number(order.total_price),
     };
 

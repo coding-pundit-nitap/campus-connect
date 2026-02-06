@@ -22,6 +22,7 @@ import { cn } from "@/lib/cn";
 import { OrderStatus } from "@/types/prisma.types";
 
 import { BatchOrderStatusUpdater } from "./batch-order-status-updater";
+import HostelBlockFilter from "./hostel-block-filter";
 import OrderCard from "./order-card";
 import { OrderCardSkeletonList } from "./order-card-skeleton";
 import OrderFilter from "./order-filter";
@@ -32,6 +33,7 @@ export default function OrderPage() {
   const [filters, setFilters] = useState<{
     status?: OrderStatus;
     dateRange?: DateRange;
+    hostelBlock?: string;
   }>({});
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
 
@@ -64,6 +66,14 @@ export default function OrderPage() {
 
   const handleDateChange = (dateRange?: DateRange) => {
     setFilters((prev) => ({ ...prev, dateRange }));
+    if (selectedOrders.length > 0) {
+      toast.info("Selection cleared due to filter change");
+    }
+    setSelectedOrders([]);
+  };
+
+  const handleHostelBlockChange = (hostelBlock?: string) => {
+    setFilters((prev) => ({ ...prev, hostelBlock }));
     if (selectedOrders.length > 0) {
       toast.info("Selection cleared due to filter change");
     }
@@ -109,12 +119,16 @@ export default function OrderPage() {
     orders.length > 0 && selectedOrders.length === orders.length;
 
   const hasActiveFilters =
-    !!debouncedSearchTerm || !!filters.status || !!filters.dateRange;
+    !!debouncedSearchTerm ||
+    !!filters.status ||
+    !!filters.dateRange ||
+    !!filters.hostelBlock;
 
   const activeFilterCount = [
     debouncedSearchTerm,
     filters.status,
     filters.dateRange,
+    filters.hostelBlock,
   ].filter(Boolean).length;
 
   return (
@@ -149,10 +163,16 @@ export default function OrderPage() {
                 selectedStatus={filters.status}
                 onStatusChange={handleStatusChange}
               />
-              <DateRangePicker
-                date={filters.dateRange}
-                onDateChange={handleDateChange}
-              />
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <HostelBlockFilter
+                  selectedHostelBlock={filters.hostelBlock}
+                  onHostelBlockChange={handleHostelBlockChange}
+                />
+                <DateRangePicker
+                  date={filters.dateRange}
+                  onDateChange={handleDateChange}
+                />
+              </div>
             </div>
             {hasActiveFilters && (
               <div className="flex items-center justify-between pt-2 border-t border-border/50">

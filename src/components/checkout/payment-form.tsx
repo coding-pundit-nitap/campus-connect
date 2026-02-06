@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { SharedCard } from "@/components/shared/shared-card";
@@ -28,33 +28,88 @@ export function PaymentForm({
   upi_id,
 }: PaymentFormProps) {
   const router = useRouter();
-  const [paymentMethod, setPaymentMethord] = useState<PaymentMethod>(
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     PaymentMethod.CASH
   );
   const [upiTransactionId, setUpiTransactionId] = useState("");
 
-  const checkoutData = useMemo<{
+  const [checkoutData, setCheckoutData] = useState<{
     delivery_address_id: string;
-    requested_delivery_time: string;
-  } | null>(() => {
-    const data = sessionStorage.getItem("checkout_data");
-    if (!data) {
-      toast.error("Checkout session expired. Please start over.");
-      router.push(`/checkout/${cart_id}`);
-      return null;
+    requested_delivery_time?: string;
+  } | null>(null);
+  const [isCheckoutDataReady, setIsCheckoutDataReady] = useState(false);
+  const hasRedirectedRef = useRef(false);
+
+  useEffect(() => {
+    const redirectToCheckout = (message: string) => {
+      if (hasRedirectedRef.current) return;
+      hasRedirectedRef.current = true;
+      toast.error(message);
+      router.replace(`/checkout/${cart_id}`);
+    };
+
+    const raw = sessionStorage.getItem("checkout_data");
+    if (!raw) {
+      setTimeout(() => {
+        setCheckoutData(null);
+        setIsCheckoutDataReady(true);
+        redirectToCheckout("Checkout session expired. Please start over.");
+      }, 100);
+      return;
     }
+
     try {
-      const parsed = JSON.parse(data);
-      if (parsed.cart_id !== cart_id) {
-        toast.error("Invalid checkout session.");
-        router.push(`/checkout/${cart_id}`);
-        return null;
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== "object") {
+        setTimeout(() => {
+          setCheckoutData(null);
+          setIsCheckoutDataReady(true);
+          redirectToCheckout("Invalid checkout data. Please start over.");
+        }, 100);
+        return;
       }
-      return parsed;
+
+      const anyParsed = parsed as Record<string, unknown>;
+      if (anyParsed.cart_id !== cart_id) {
+        setTimeout(() => {
+          setCheckoutData(null);
+          setIsCheckoutDataReady(true);
+          redirectToCheckout("Invalid checkout session. Please start over.");
+        }, 100);
+        return;
+      }
+
+      const delivery_address_id = anyParsed.delivery_address_id;
+      const requested_delivery_time = anyParsed.requested_delivery_time;
+
+      if (
+        typeof delivery_address_id !== "string" ||
+        (requested_delivery_time !== undefined &&
+          typeof requested_delivery_time !== "string")
+      ) {
+        setTimeout(() => {
+          setCheckoutData(null);
+          setIsCheckoutDataReady(true);
+          redirectToCheckout("Invalid checkout session. Please start over.");
+        }, 100);
+        return;
+      }
+
+      setTimeout(() => {
+        setCheckoutData({
+          delivery_address_id,
+          ...(typeof requested_delivery_time === "string"
+            ? { requested_delivery_time }
+            : {}),
+        });
+        setIsCheckoutDataReady(true);
+      }, 100);
     } catch {
-      toast.error("Invalid checkout data.");
-      router.push(`/checkout/${cart_id}`);
-      return null;
+      setTimeout(() => {
+        setCheckoutData(null);
+        setIsCheckoutDataReady(true);
+        redirectToCheckout("Invalid checkout data. Please start over.");
+      }, 100);
     }
   }, [cart_id, router]);
 
@@ -62,17 +117,17 @@ export function PaymentForm({
 
   const handlePlaceOrder = async () => {
     if (!checkoutData) {
-      toast.error("Checkout");
+      toast.error("Checkout session missing. Please start over.");
       return;
     }
 
     if (paymentMethod === PaymentMethod.ONLINE) {
-      if (!upiTransactionId) {
+      if (!upiTransactionId.trim()) {
         toast.error("Please enter UPI transaction ID");
         return;
       }
       const upiRegex = /^[A-Za-z0-9]{10,}$/;
-      if (!upiRegex.test(upiTransactionId)) {
+      if (!upiRegex.test(upiTransactionId.trim())) {
         toast.error(
           "Invalid UPI Transaction ID. Must be at least 10 alphanumeric characters."
         );
@@ -85,9 +140,17 @@ export function PaymentForm({
         shop_id,
         payment_method: paymentMethod,
         delivery_address_id: checkoutData.delivery_address_id,
-        requested_delivery_time: new Date(checkoutData.requested_delivery_time),
+        ...(checkoutData.requested_delivery_time
+          ? {
+              requested_delivery_time: new Date(
+                checkoutData.requested_delivery_time
+              ),
+            }
+          : {}),
         upi_transaction_id:
-          paymentMethod === PaymentMethod.ONLINE ? upiTransactionId : undefined,
+          paymentMethod === PaymentMethod.ONLINE
+            ? upiTransactionId.trim()
+            : undefined,
       },
       {
         onSuccess(data) {
@@ -102,15 +165,19 @@ export function PaymentForm({
     );
   };
 
+  if (!isCheckoutDataReady) {
+    return null;
+  }
+
   if (!checkoutData) {
     return null;
   }
   return (
     <div className="space-y-6">
-      <SharedCard className="px-0" title="Payment Methord">
+      <SharedCard className="px-0" title="Payment Method">
         <RadioGroup
           value={paymentMethod}
-          onValueChange={(value) => setPaymentMethord(value as PaymentMethod)}
+          onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
         >
           <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-accent">
             <RadioGroupItem value="CASH" id="cash" />
@@ -183,7 +250,9 @@ export function PaymentForm({
         <div className="text-sm text-muted-foreground space-y-1">
           <p>
             • Delivery time:{" "}
-            {new Date(checkoutData.requested_delivery_time).toLocaleString()}
+            {new Date(
+              checkoutData.requested_delivery_time || ""
+            ).toLocaleString()}
           </p>
           {paymentMethod === "CASH" && (
             <p>• Payment will be collected on delivery</p>

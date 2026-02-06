@@ -2,7 +2,6 @@ import dynamic from "next/dynamic";
 import React from "react";
 import { Toaster } from "sonner";
 
-import { CartDrawer } from "@/components/cart-drawer";
 import SearchBarContainer from "@/components/navigation/search-bar-container";
 import ThemeToggleContainer from "@/components/navigation/theme-toggle-container";
 import { NavigationItem } from "@/components/shared/shared-sidebar";
@@ -21,6 +20,11 @@ const OrderNotificationBell = dynamic(
     import("../notification/notification-bell").then(
       (mod) => mod.OrderNotificationBell
     ),
+  { ssr: false }
+);
+
+const CartDrawer = dynamic(
+  () => import("@/components/cart-drawer").then((mod) => mod.CartDrawer),
   { ssr: false }
 );
 

@@ -6,10 +6,19 @@ import { CartItemContainer } from "../cart-drawer/cart-item-container";
 
 interface OrderSummaryProps {
   items: CartItemData[];
+  itemTotal: number;
+  deliveryFee: number;
+  platformFee: number;
   total: number;
 }
 
-export default function OrderSummary({ items, total }: OrderSummaryProps) {
+export default function OrderSummary({
+  items,
+  itemTotal,
+  deliveryFee,
+  platformFee,
+  total,
+}: OrderSummaryProps) {
   return (
     <Card className="sticky py-4 top-4">
       <CardHeader>
@@ -22,6 +31,21 @@ export default function OrderSummary({ items, total }: OrderSummaryProps) {
           ))}
         </div>
         <div className="space-y-2">
+          <Separator />
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Item Total</span>
+            <span>₹{itemTotal.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between text-sm text-muted-foreground">
+            <span>Delivery Fee</span>
+            <span>₹{deliveryFee.toFixed(2)}</span>
+          </div>
+          {platformFee > 0 && (
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Platform Fee</span>
+              <span>₹{platformFee.toFixed(2)}</span>
+            </div>
+          )}
           <Separator />
           <div className="flex justify-between font-bold text-lg">
             <span>Total</span>

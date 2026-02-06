@@ -22,21 +22,8 @@ export const useInfiniteProducts = ({
   initialError,
   limit,
 }: Props) => {
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-  } = useInfiniteQuery({
-    queryKey: queryKeys.products.all,
-    queryFn: ({ pageParam }) =>
-      productAPIService.fetchProducts({ cursor: pageParam, limit }),
-    initialPageParam: initialNextCursor,
-    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
-    initialData:
+  const initialDataValue = useMemo(
+    () =>
       initialProducts.length > 0
         ? {
             pages: [
@@ -47,9 +34,28 @@ export const useInfiniteProducts = ({
                 error: initialError,
               },
             ],
-            pageParams: [null],
+            pageParams: [null as string | null],
           }
         : undefined,
+    [initialProducts, initialNextCursor, initialHasNextPage, initialError]
+  );
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    queryKey: queryKeys.products.list({ limit }),
+    queryFn: ({ pageParam }) =>
+      productAPIService.fetchProducts({ cursor: pageParam, limit }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
+    initialData: initialDataValue,
+    refetchOnMount: true,
   });
 
   const allProducts: SerializedProduct[] = useMemo(() => {

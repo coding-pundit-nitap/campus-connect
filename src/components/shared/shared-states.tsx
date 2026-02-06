@@ -26,7 +26,6 @@ interface StateDisplayProps extends BaseStateProps {
   };
 }
 
-// Base state wrapper
 export function StateWrapper({ children, className }: BaseStateProps) {
   return (
     <Card className={cn("p-8 text-center", className)}>
@@ -37,7 +36,6 @@ export function StateWrapper({ children, className }: BaseStateProps) {
   );
 }
 
-// Generic state display
 export function StateDisplay({
   icon,
   title,

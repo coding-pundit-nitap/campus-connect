@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { esSearchService } from "@/services/search/es-search.service";
+import { dbSearchService } from "@/services/search/db-search.service";
 import { SearchResult } from "@/types";
 import {
   createErrorResponse,
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
-    const esResponse = await esSearchService.searchProducts({
+    const esResponse = await dbSearchService.searchProducts({
       query: query.trim(),
       limit: 10,
     });

@@ -65,7 +65,6 @@ export function isWithinShopHours(
   const openingMinutes = openingTime.hours * 60 + openingTime.minutes;
   const closingMinutes = closingTime.hours * 60 + closingTime.minutes;
 
-  // Handle overnight hours (e.g., 22:00 - 02:00)
   if (closingMinutes < openingMinutes) {
     return (
       deliveryMinutes >= openingMinutes || deliveryMinutes <= closingMinutes

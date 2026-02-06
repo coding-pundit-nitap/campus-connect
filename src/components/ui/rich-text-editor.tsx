@@ -19,6 +19,7 @@ import React, {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { sanitizeHTML } from "@/lib/sanitize";
 
 interface RichTextEditorProps {
   value: string;
@@ -203,7 +204,7 @@ export function RichTextEditor({
     const state = historyRef.current[historyIndexRef.current];
     editorRef.current.innerHTML = state.html;
     lastValueRef.current = state.html;
-    onChange(state.html);
+    onChange(sanitizeHTML(state.html));
   }, [onChange]);
 
   const redo = useCallback(() => {
@@ -218,7 +219,7 @@ export function RichTextEditor({
     const state = historyRef.current[historyIndexRef.current];
     editorRef.current.innerHTML = state.html;
     lastValueRef.current = state.html;
-    onChange(state.html);
+    onChange(sanitizeHTML(state.html));
   }, [onChange]);
 
   const exec = useCallback(
@@ -254,7 +255,7 @@ export function RichTextEditor({
       }
 
       const html = editorRef.current.innerHTML;
-      onChange(html);
+      onChange(sanitizeHTML(html));
       lastValueRef.current = html;
       pushToHistory(html);
     },
@@ -265,7 +266,7 @@ export function RichTextEditor({
     if (!editorRef.current) return;
     const html = editorRef.current.innerHTML;
     lastValueRef.current = html;
-    onChange(html);
+    onChange(sanitizeHTML(html));
     pushToHistory(html);
   };
 
@@ -277,7 +278,7 @@ export function RichTextEditor({
     if (editorRef.current) {
       const html = editorRef.current.innerHTML;
       lastValueRef.current = html;
-      onChange(html);
+      onChange(sanitizeHTML(html));
       pushToHistory(html);
     }
   };
@@ -369,7 +370,7 @@ export function RichTextEditor({
           contentEditable={!disabled}
           suppressContentEditableWarning
           className={cn(
-            "min-h-[120px] p-3 focus:outline-none prose prose-sm max-w-none",
+            "min-h-30 p-3 focus:outline-none prose prose-sm max-w-none",
             "dark:prose-invert",
             "[&_h3]:text-lg [&_h3]:font-semibold"
           )}
@@ -383,7 +384,7 @@ export function RichTextEditor({
               const html = editorRef.current.innerHTML;
               if (html !== lastValueRef.current) {
                 lastValueRef.current = html;
-                onChange(html);
+                onChange(sanitizeHTML(html));
               }
             }
             onBlur?.();

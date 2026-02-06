@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Bike,
-  CheckCircle2,
-  CircleDot,
-  CookingPot,
-  Package,
-  XCircle,
-} from "lucide-react";
+import { Bike, CheckCircle2, CircleDot, Package, XCircle } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 import { OrderStatus } from "@/types/prisma.types";
@@ -27,15 +20,9 @@ const statusSteps = [
     icon: CircleDot,
   },
   {
-    status: OrderStatus.PREPARING,
-    label: "Preparing",
-    description: "Seller is preparing your order",
-    icon: CookingPot,
-  },
-  {
-    status: OrderStatus.READY_FOR_PICKUP,
-    label: "Ready for Pickup",
-    description: "Order is ready to be picked up",
+    status: OrderStatus.BATCHED,
+    label: "Batched",
+    description: "Order has been batched for delivery",
     icon: Package,
   },
   {
@@ -124,7 +111,7 @@ export function OrderStatusTimeline({
                     <StepIcon className="w-5 h-5" />
                   )}
                 </div>
-                <div className="mt-3 text-center max-w-[100px]">
+                <div className="mt-3 text-center max-w-25">
                   <p
                     className={cn(
                       "text-xs font-medium transition-colors",
@@ -159,7 +146,7 @@ export function OrderStatusTimeline({
               {!isLast && (
                 <div
                   className={cn(
-                    "absolute left-[19px] top-10 w-0.5 h-[calc(100%-16px)]",
+                    "absolute left-4.75 top-10 w-0.5 h-[calc(100%-16px)]",
                     isCompleted ? "bg-primary" : "bg-muted-foreground/20"
                   )}
                 />

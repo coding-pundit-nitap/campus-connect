@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { NotFoundError } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import { cartUIService, serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { cartRepository, productRepository } from "@/repositories";
@@ -29,14 +30,49 @@ class CartService {
     const cart = cartUIService.transformToShopCart(serializeFullCart(fullCart));
     const shopData = fullCart.items[0]?.product?.shop;
 
+    let batch_slots: {
+      id: string;
+      cutoff_time_minutes: number;
+      label: string | null;
+      sort_order: number;
+      is_active: boolean;
+    }[] = [];
+
+    if (shopData?.id) {
+      try {
+        batch_slots = await prisma.batchSlot.findMany({
+          where: { shop_id: shopData.id, is_active: true },
+          select: {
+            id: true,
+            cutoff_time_minutes: true,
+            label: true,
+            sort_order: true,
+            is_active: true,
+          },
+          orderBy: [{ sort_order: "asc" }, { cutoff_time_minutes: "asc" }],
+        });
+      } catch {
+        batch_slots = [];
+      }
+    }
+
+    const item_total = cart.totalPrice;
+    const delivery_fee = Number(shopData?.default_delivery_fee ?? 0);
+    const platform_fee = Number(shopData?.default_platform_fee ?? 0);
+    const total = item_total + delivery_fee + platform_fee;
+
     return {
       cart,
-      total: cart.totalPrice,
+      item_total,
+      delivery_fee,
+      platform_fee,
+      total,
       shop_id: cart.items[0].shop_id,
       qr_image_key: cart.qr_image_key,
       upi_id: cart.upi_id,
       shop_opening: shopData?.opening,
       shop_closing: shopData?.closing,
+      batch_slots,
     };
   }
 

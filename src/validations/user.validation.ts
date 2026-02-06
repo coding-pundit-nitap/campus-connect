@@ -7,6 +7,7 @@ export const updateUserSchema = z.object({
 
 export const userAddressSchema = z.object({
   label: z.string().min(1, "Label is required"),
+  hostel_block: z.string().optional(),
   building: z.string().min(1, "Building details are required"),
   room_number: z.string().min(1, "Room/Apartment number is required"),
   notes: z.string().optional(),

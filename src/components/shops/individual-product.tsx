@@ -1,6 +1,7 @@
 import { getProductPageData } from "@/services/product/product-page.service";
 
 import { Card, CardContent } from "../ui/card";
+import { BatchCountdownBanner } from "./batch";
 import ProductActions from "./product-actions";
 import ProductDetails from "./product-details";
 import ProductImage from "./product-image";
@@ -24,6 +25,8 @@ export default async function IndividualProduct({
 
   return (
     <div className="space-y-8">
+      <BatchCountdownBanner shopId={product.shop.id} />
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
         <ProductImage
           className="lg:col-span-5"

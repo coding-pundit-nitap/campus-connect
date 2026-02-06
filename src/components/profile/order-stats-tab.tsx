@@ -38,7 +38,6 @@ export function OrderStatsTab() {
       description="Quick overview of your orders"
     >
       <div className="space-y-6">
-        {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 rounded-lg border bg-muted/30 text-center">
             <ShoppingBag className="h-6 w-6 mx-auto mb-2 text-primary" />
@@ -68,7 +67,6 @@ export function OrderStatsTab() {
           </div>
         </div>
 
-        {/* Recent Orders */}
         {recentOrders.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-muted-foreground">
@@ -100,7 +98,6 @@ export function OrderStatsTab() {
           </div>
         )}
 
-        {/* View All Button */}
         <Button asChild className="w-full">
           <Link href="/orders">
             View All Orders

@@ -5,7 +5,6 @@ import {
   CircleDot,
   CircleSlash,
   Clock,
-  CookingPot,
   LucideIcon,
   Package,
   RefreshCcw,
@@ -63,6 +62,9 @@ export const serializeOrder = (order: Order): SerializedOrder => {
     ...order,
     created_at: transformDateToLocaleString(order.created_at),
     updated_at: transformDateToLocaleString(order.updated_at),
+    item_total: Number(order.item_total),
+    delivery_fee: Number(order.delivery_fee),
+    platform_fee: Number(order.platform_fee),
     total_price: Number(order.total_price),
     requested_delivery_time: order.requested_delivery_time
       ? transformDateToLocaleString(order.requested_delivery_time)
@@ -94,6 +96,13 @@ export const orderWithDetailsInclude = {
       },
     },
   },
+  batch: {
+    select: {
+      id: true,
+      cutoff_time: true,
+      status: true,
+    },
+  },
   delivery_address: true,
   user: {
     select: {
@@ -113,6 +122,13 @@ export const serializeOrderWithDetails = (
       ...serializeOrderItem(item),
       product: serializeProduct(item.product),
     })),
+    batch: order.batch
+      ? {
+          id: order.batch.id,
+          cutoff_time: transformDateToLocaleString(order.batch.cutoff_time),
+          status: order.batch.status,
+        }
+      : null,
     user: {
       name: order.user?.name || "Unknown",
       phone: order.user?.phone || "Unknown",
@@ -154,15 +170,10 @@ export const getOrderStatusInfo = (status: OrderStatus): StatusInfo => {
       Icon: CircleDot,
       colorClassName: "text-blue-500",
     },
-    PREPARING: {
-      label: "Preparing",
-      Icon: CookingPot,
-      colorClassName: "text-orange-500",
-    },
-    READY_FOR_PICKUP: {
-      label: "Ready for Pickup",
+    BATCHED: {
+      label: "Batched",
       Icon: Package,
-      colorClassName: "text-yellow-500",
+      colorClassName: "text-orange-500",
     },
     OUT_FOR_DELIVERY: {
       label: "Out for Delivery",

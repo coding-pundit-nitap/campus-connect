@@ -58,6 +58,7 @@ export async function getProductPageData(product_id: string) {
     name: serializedProduct.name,
     image_key: serializedProduct.image_key,
     shop: {
+      id: product.shop.id,
       name: product.shop.name,
     },
     stock_quantity: serializedProduct.stock_quantity,

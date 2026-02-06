@@ -11,8 +11,7 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     "default" | "outline" | "secondary" | "destructive" | null | undefined
   > = {
     NEW: "default",
-    PREPARING: "outline",
-    READY_FOR_PICKUP: "secondary",
+    BATCHED: "outline",
     OUT_FOR_DELIVERY: "outline",
     COMPLETED: "default",
     CANCELLED: "destructive",
@@ -20,8 +19,7 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
 
   const colors: Record<OrderStatus, string> = {
     NEW: "bg-blue-500",
-    PREPARING: "bg-yellow-500",
-    READY_FOR_PICKUP: "bg-purple-500",
+    BATCHED: "bg-yellow-500",
     OUT_FOR_DELIVERY: "bg-indigo-500",
     COMPLETED: "bg-green-500",
     CANCELLED: "bg-red-500",

@@ -46,3 +46,6 @@ next-env.d.ts
 src/app/api/debug/*
 .pnpm-store
 /dist
+.github/instructions
+.agents/
+.agent/

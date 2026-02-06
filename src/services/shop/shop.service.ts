@@ -1,10 +1,11 @@
 import { Shop } from "@/../prisma/generated/client";
 import axiosInstance from "@/lib/axios";
+import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";
 
 interface PaginatedShopResponse {
-  data: ShopWithOwner[];
+  data: ShopWithOwnerDetails[];
   nextCursor: string | null;
 }
 

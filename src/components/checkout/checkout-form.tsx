@@ -9,9 +9,9 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { UserAddress } from "@/components/checkout";
+import { BatchSlotSelector } from "@/components/checkout/batch-slot-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DateTimePicker } from "@/components/ui/date-time-picker";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUpdateUser } from "@/hooks";
 import { authClient, useSession } from "@/lib/auth-client";
-import { parseTimeString } from "@/lib/utils/shop-hours";
 import { UserAddress as UserAddressType } from "@/types/prisma.types";
 
 interface CheckoutFormProps {
@@ -39,6 +38,11 @@ interface CheckoutFormProps {
   total: number;
   shopOpening?: string;
   shopClosing?: string;
+  batchSlots?: {
+    id: string;
+    cutoff_time_minutes: number;
+    label: string | null;
+  }[];
 }
 
 const phoneSchema = z.object({
@@ -48,46 +52,20 @@ const phoneSchema = z.object({
     .regex(/^\d+$/, "Phone number must contain only digits"),
 });
 
-function isWithinShopHours(
-  deliveryTime: Date,
-  opening: string,
-  closing: string
-): boolean {
-  const openingTime = parseTimeString(opening);
-  const closingTime = parseTimeString(closing);
-
-  if (!openingTime || !closingTime) {
-    return true;
-  }
-
-  const deliveryHour = deliveryTime.getHours();
-  const deliveryMinute = deliveryTime.getMinutes();
-  const deliveryMinutes = deliveryHour * 60 + deliveryMinute;
-
-  const openingMinutes = openingTime.hours * 60 + openingTime.minutes;
-  const closingMinutes = closingTime.hours * 60 + closingTime.minutes;
-
-  if (closingMinutes < openingMinutes) {
-    return (
-      deliveryMinutes >= openingMinutes || deliveryMinutes <= closingMinutes
-    );
-  }
-
-  return deliveryMinutes >= openingMinutes && deliveryMinutes <= closingMinutes;
-}
-
 export function CheckoutForm({
   cart_id,
   total,
   shopOpening,
   shopClosing,
+  batchSlots = [],
 }: CheckoutFormProps) {
   const router = useRouter();
   const session = useSession();
 
   const [selectedAddress, setSelectedAddress] =
     useState<UserAddressType | null>(null);
-  const [requestedDeliveryTime, setRequestedDeliveryTime] = useState<Date>();
+  const [requestedDeliveryTime, setRequestedDeliveryTime] =
+    useState<Date | null>(null);
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
 
   const { mutate: updateUser, isPending: isUpdatingPhone } = useUpdateUser();
@@ -99,7 +77,7 @@ export function CheckoutForm({
     },
   });
 
-  const handleSelectTime = (date: Date) => {
+  const handleSelectSlot = (date: Date) => {
     setRequestedDeliveryTime(date);
   };
 
@@ -108,30 +86,22 @@ export function CheckoutForm({
   };
 
   const validateDeliveryTime = (): boolean => {
+    const hasBatchCards = batchSlots.length > 0;
+
+    if (hasBatchCards && !requestedDeliveryTime) {
+      toast.error("Please select a batch slot");
+      return false;
+    }
+
     if (!requestedDeliveryTime) {
-      toast.error("Please select a delivery time");
-      return false;
+      // Direct delivery (no batching)
+      return true;
     }
+
     const now = new Date();
-    const minTime = new Date(now.getTime() + 15 * 60 * 1000);
-    if (requestedDeliveryTime < minTime) {
-      toast.error("Delivery time must be at least 15 minutes from now");
+    if (requestedDeliveryTime.getTime() <= now.getTime()) {
+      toast.error("Selected batch slot is in the past");
       return false;
-    }
-
-    const maxTime = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    if (requestedDeliveryTime > maxTime) {
-      toast.error("Delivery time must be within 7 days");
-      return false;
-    }
-
-    if (shopOpening && shopClosing) {
-      if (!isWithinShopHours(requestedDeliveryTime, shopOpening, shopClosing)) {
-        toast.error(
-          `Delivery time must be within shop hours (${shopOpening} - ${shopClosing})`
-        );
-        return false;
-      }
     }
 
     return true;
@@ -155,11 +125,19 @@ export function CheckoutForm({
   };
 
   const proceedToPayment = () => {
-    const checkoutData = {
+    const checkoutData: {
+      cart_id: string;
+      delivery_address_id: string;
+      requested_delivery_time?: string;
+    } = {
       cart_id,
       delivery_address_id: selectedAddress!.id,
-      requested_delivery_time: requestedDeliveryTime!.toISOString(),
     };
+
+    if (requestedDeliveryTime) {
+      checkoutData.requested_delivery_time =
+        requestedDeliveryTime.toISOString();
+    }
     sessionStorage.setItem("checkout_data", JSON.stringify(checkoutData));
     router.push(`/checkout/${cart_id}/payment`);
   };
@@ -192,7 +170,7 @@ export function CheckoutForm({
 
         <Card className="px-0">
           <CardHeader>
-            <CardTitle>Delivery Time</CardTitle>
+            <CardTitle>Select Delivery Batch</CardTitle>
             {shopOpening && shopClosing && (
               <p className="text-sm text-muted-foreground">
                 Shop hours: {shopOpening} - {shopClosing}
@@ -200,10 +178,15 @@ export function CheckoutForm({
             )}
           </CardHeader>
           <CardContent>
-            <DateTimePicker handleOnDateChange={handleSelectTime} />
-            {requestedDeliveryTime && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Selected: {requestedDeliveryTime.toLocaleString()}
+            {batchSlots.length > 0 ? (
+              <BatchSlotSelector
+                batchSlots={batchSlots}
+                selectedSlot={requestedDeliveryTime}
+                onSlotSelect={handleSelectSlot}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                This shop delivers directly (no batch cards configured).
               </p>
             )}
           </CardContent>
@@ -213,7 +196,10 @@ export function CheckoutForm({
           <CardContent className="pt-6">
             <Button
               onClick={handleProceedToPayment}
-              disabled={!selectedAddress || !requestedDeliveryTime}
+              disabled={
+                !selectedAddress ||
+                (batchSlots.length > 0 && !requestedDeliveryTime)
+              }
               className="w-full"
               size="lg"
             >

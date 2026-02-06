@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
 export type CartFindOptions = Omit<Prisma.CartFindManyArgs, "where">;
-export const fullCartInclude = {
+export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
   items: {
     include: {
       product: {
@@ -17,6 +17,22 @@ export const fullCartInclude = {
               upi_id: true,
               opening: true,
               closing: true,
+              default_delivery_fee: true,
+              default_platform_fee: true,
+              batch_slots: {
+                where: { is_active: true },
+                select: {
+                  id: true,
+                  cutoff_time_minutes: true,
+                  label: true,
+                  sort_order: true,
+                  is_active: true,
+                },
+                orderBy: [
+                  { sort_order: Prisma.SortOrder.asc },
+                  { cutoff_time_minutes: Prisma.SortOrder.asc },
+                ],
+              },
             },
           },
         },
@@ -24,7 +40,7 @@ export const fullCartInclude = {
     },
     orderBy: { id: Prisma.SortOrder.asc },
   },
-};
+});
 class CartRepository {
   async findOrCreate(user_id: string, shop_id: string): Promise<FullCart> {
     const cart = await prisma.cart.findUnique({

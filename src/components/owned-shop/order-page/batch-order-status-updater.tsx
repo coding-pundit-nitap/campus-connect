@@ -21,16 +21,14 @@ type BatchOrderStatusUpdaterProps = {
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   NEW: "New",
-  PREPARING: "Preparing",
-  READY_FOR_PICKUP: "Ready for Pickup",
+  BATCHED: "Batched",
   OUT_FOR_DELIVERY: "Out for Delivery",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
 };
 
 const ACTIONABLE_STATUSES: OrderStatus[] = [
-  OrderStatus.PREPARING,
-  OrderStatus.READY_FOR_PICKUP,
+  OrderStatus.BATCHED,
   OrderStatus.OUT_FOR_DELIVERY,
   OrderStatus.COMPLETED,
   OrderStatus.CANCELLED,

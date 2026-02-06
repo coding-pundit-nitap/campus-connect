@@ -56,6 +56,11 @@ export function UserAddressCard({
                   Default
                 </Badge>
               )}
+              {address.hostel_block && (
+                <Badge variant="outline" className="text-xs">
+                  {address.hostel_block}
+                </Badge>
+              )}
             </div>
 
             <p className="text-sm text-muted-foreground leading-relaxed">

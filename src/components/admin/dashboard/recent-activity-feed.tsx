@@ -17,7 +17,7 @@ import { AdminAction } from "@/types/prisma.types";
 
 interface AuditLogEntry {
   id: string;
-  action: AdminAction; // Or string
+  action: AdminAction;
   admin_name: string | null;
   created_at: Date;
 }
