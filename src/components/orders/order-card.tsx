@@ -1,4 +1,5 @@
 import { ClientDate } from "@/components/shared/client-date";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
@@ -64,6 +65,25 @@ export default function OrderCard({ order }: Props) {
             </h3>
             <p className="text-xs text-muted-foreground">
               <ClientDate date={order.created_at} format="datetime" />
+            </p>
+
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Batch Slot:</span>
+              {order.batch ? (
+                <>
+                  <span className="font-semibold text-orange-600">
+                    <ClientDate
+                      date={order.batch.cutoff_time}
+                      format="datetime"
+                    />
+                  </span>
+                  <Badge variant="secondary" className="uppercase">
+                    {order.batch.status}
+                  </Badge>
+                </>
+              ) : (
+                <span>Not assigned yet</span>
+              )}
             </p>
           </div>
           <div className="text-left md:text-right">

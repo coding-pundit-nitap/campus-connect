@@ -34,6 +34,25 @@ const closingSchema = z
 
 const qr_image_keySchema = z.string().min(1, "An QR code image is required.");
 
+const feeSchema = z
+  .number()
+  .min(0, "Fee cannot be negative")
+  .max(500, "Fee cannot exceed ₹500");
+
+const minOrderValueSchema = z
+  .number()
+  .min(0, "Minimum order value cannot be negative")
+  .max(10000, "Minimum order value cannot exceed ₹10,000");
+
+const batchCardSchema = z.object({
+  cutoff_time_minutes: z
+    .number()
+    .int("Cutoff time must be minutes")
+    .min(0)
+    .max(1439),
+  label: z.string().max(50).optional().nullable(),
+});
+
 export const shopSchema = z.object({
   name: nameSchema,
   description: descriptionSchema,
@@ -43,6 +62,10 @@ export const shopSchema = z.object({
   image_key: image_keySchema,
   qr_image_key: qr_image_keySchema,
   upi_id: z.string(),
+  min_order_value: minOrderValueSchema,
+  batch_cards: z.array(batchCardSchema).max(48),
+  default_delivery_fee: feeSchema,
+  default_platform_fee: feeSchema,
 });
 
 export type ShopFormData = z.infer<typeof shopSchema>;
@@ -53,4 +76,5 @@ export const shopActionSchema = shopSchema.extend({
   qr_image: z.instanceof(File, { message: "Invalid file" }).optional(),
   qr_image_key: qr_image_keySchema.optional(),
 });
+export type ShopActionFormInput = z.input<typeof shopActionSchema>;
 export type ShopActionFormData = z.infer<typeof shopActionSchema>;

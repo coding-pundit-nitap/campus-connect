@@ -38,17 +38,15 @@ export function OrderDetailsDialog({
       "default" | "outline" | "secondary" | "destructive" | null | undefined
     > = {
       NEW: "default",
-      PREPARING: "outline",
-      READY_FOR_PICKUP: "secondary",
+      BATCHED: "outline",
       OUT_FOR_DELIVERY: "outline",
       COMPLETED: "default",
       CANCELLED: "destructive",
     };
     const colors: Record<OrderStatus, string> = {
       NEW: "bg-blue-500",
-      PREPARING: "bg-yellow-500",
-      READY_FOR_PICKUP: "bg-purple-500",
-      OUT_FOR_DELIVERY: "bg-indigo-500",
+      BATCHED: "bg-yellow-500",
+      OUT_FOR_DELIVERY: "bg-purple-500",
       COMPLETED: "bg-green-500",
       CANCELLED: "bg-red-500",
     };
@@ -146,7 +144,9 @@ export function OrderDetailsDialog({
               Shop Information
             </h3>
             <div className="text-sm">
-              <p className="font-medium">{order.items[0].product.shop?.name}</p>
+              <p className="font-medium">
+                {order.items?.[0].product.shop?.name || "Unknown"}
+              </p>
             </div>
           </div>
 

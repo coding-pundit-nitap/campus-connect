@@ -7,6 +7,7 @@ import { ProductFiltersContainer } from "@/components/shared/product-filters/";
 import { useSharedInfiniteProducts } from "@/hooks/queries/useSharedInfiniteProducts";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
+import { BatchCountdownBanner } from "./batch";
 import { ShopProductList } from "./shop-product-list";
 
 type Props = {
@@ -62,6 +63,7 @@ export function ProductsContainer({
 
   return (
     <div className="flex flex-col h-full">
+      <BatchCountdownBanner shopId={shop_id} />
       <div className="shrink-0 space-y-4 pb-4">
         <ProductFiltersContainer
           filters={filters}

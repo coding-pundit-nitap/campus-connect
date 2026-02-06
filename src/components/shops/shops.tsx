@@ -8,7 +8,7 @@ type Props = {
 
 export default function Shops({ shop_id }: Props) {
   return (
-    <div className="flex gap-2 flex-col justify-between flex-wrap h-full">
+    <div className="flex gap-4 flex-col justify-between flex-wrap h-full">
       <Products shop_id={shop_id} />
     </div>
   );

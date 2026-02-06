@@ -1,3 +1,4 @@
+"use client";
 import React, { useMemo } from "react";
 
 import { useInfiniteScroll } from "@/hooks";
@@ -97,7 +98,9 @@ export function ProductReviewsList({
               </p>
             </div>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={() => {
+                if (typeof window !== "undefined") window.location.reload();
+              }}
               variant="outline"
               size="lg"
             >

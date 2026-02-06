@@ -222,7 +222,6 @@ export function PayoutsTable({ initialData, searchParams }: PayoutsTableProps) {
         </Table>
       </div>
 
-      {/* Load More */}
       {initialData.hasMore && (
         <div className="flex justify-center">
           <Button onClick={handleLoadMore} variant="outline">

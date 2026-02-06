@@ -213,7 +213,7 @@ export async function getUserStatsAction(): Promise<
         userRepository.count({ role: Role.ADMIN }),
         userRepository.count({
           createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           },
         }),
         userRepository.count({ sessions: { some: {} } }),

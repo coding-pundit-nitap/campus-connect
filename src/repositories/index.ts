@@ -1,3 +1,4 @@
+export { default as batchRepository } from "./batch.repository";
 export { default as cartRepository } from "./cart.repository";
 export { default as categoryRepository } from "./category.repository";
 export { default as orderRepository } from "./order.repository";

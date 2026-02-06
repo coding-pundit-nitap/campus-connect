@@ -12,7 +12,7 @@ export function SelectedAddressDisplay({
   selectedAddress,
 }: SelectedAddressDisplayProps) {
   const formatAddressWithLabel = (address: UserAddress) =>
-    `${address.label} - ${address.building}, Room ${address.room_number}`;
+    `${address.label}${address.hostel_block ? ` (${address.hostel_block})` : ""} - ${address.building}, Room ${address.room_number}`;
 
   return (
     <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">

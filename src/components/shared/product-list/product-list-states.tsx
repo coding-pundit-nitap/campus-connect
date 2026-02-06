@@ -4,10 +4,6 @@ import React from "react";
 import { StateDisplay } from "@/components/shared/shared-states";
 import { EmptyState } from "@/components/ui/empty-state";
 
-// ============================================================================
-// ProductListEmpty
-// ============================================================================
-
 export function ProductListEmpty() {
   return (
     <EmptyState
@@ -17,10 +13,6 @@ export function ProductListEmpty() {
     />
   );
 }
-
-// ============================================================================
-// ProductListError
-// ============================================================================
 
 interface ProductListErrorProps {
   error: Error;

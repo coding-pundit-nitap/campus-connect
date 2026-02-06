@@ -1,4 +1,4 @@
-import { productAPIService } from "@/services/product";
+import { productService } from "@/services/product/product.service";
 import { SerializedProduct } from "@/types/product.types";
 
 export async function getHomepageData() {
@@ -8,7 +8,7 @@ export async function getHomepageData() {
   let initialError: string | undefined;
 
   try {
-    const result = await productAPIService.fetchProducts({ limit: 20 });
+    const result = await productService.getPaginatedProducts({ limit: 20 });
     initialProducts = result.initialProducts;
     hasNextPage = result.hasNextPage;
     nextCursor = result.nextCursor;

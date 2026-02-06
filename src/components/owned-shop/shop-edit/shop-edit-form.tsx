@@ -1,14 +1,15 @@
 "use client";
 
+import { BatchCardsManager } from "@/components/owned-shop/batch-cards/batch-cards-manager";
 import { SharedForm } from "@/components/shared/shared-form";
 import { useUpdateShop } from "@/hooks";
 import { shopUIServices } from "@/lib/utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
 import { ButtonConfig } from "@/types";
-import { ShopWithOwner } from "@/types/shop.types";
+import { ShopUpdateFormShop } from "@/types/shop.types";
 
 interface ShopEditFormProps {
-  shop: ShopWithOwner;
+  shop: ShopUpdateFormShop;
 }
 
 export function ShopEditForm({ shop }: ShopEditFormProps) {
@@ -43,13 +44,27 @@ export function ShopEditForm({ shop }: ShopEditFormProps) {
   };
 
   return (
-    <SharedForm
-      fields={formFields}
-      form={form}
-      onSubmit={handlers.onSubmit}
-      submitButton={submitButton}
-      error={state.error}
-      isLoading={state.isLoading || state.isSubmitting}
-    />
+    <div className="space-y-6">
+      <SharedForm
+        fields={formFields}
+        form={form}
+        onSubmit={handlers.onSubmit}
+        submitButton={submitButton}
+        error={state.error}
+        isLoading={state.isLoading || state.isSubmitting}
+      />
+
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">
+            Delivery schedule (batch cards)
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Configure cutoff times. Empty schedule = direct-delivery mode.
+          </p>
+        </div>
+        <BatchCardsManager />
+      </div>
+    </div>
   );
 }

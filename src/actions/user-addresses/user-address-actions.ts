@@ -26,6 +26,7 @@ export async function getUserAddressesAction() {
 
 export type CreateAddressFormData = {
   label: string;
+  hostel_block?: string;
   building: string;
   room_number: string;
   notes?: string;

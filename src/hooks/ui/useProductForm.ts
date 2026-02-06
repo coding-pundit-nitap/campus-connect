@@ -105,7 +105,6 @@ export function useCreateProductForm() {
 
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
-      // Server action handles image upload
       await createProduct(data);
     }),
   };

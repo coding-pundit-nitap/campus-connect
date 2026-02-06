@@ -1,14 +1,5 @@
-import {
-  Calendar,
-  Clock,
-  Edit,
-  Eye,
-  ListOrdered,
-  MapPin,
-  Store,
-} from "lucide-react";
+import { Calendar, Clock, Edit, Eye, MapPin, Store } from "lucide-react";
 import Link from "next/link";
-import React from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { getVerificationStatusInfo } from "@/lib/shop.utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
 import { ShopWithOwner } from "@/types";
@@ -28,6 +20,7 @@ import { SellerVerificationStatus } from "@/types/prisma.types";
 
 import { ShopPaymentInfo } from "./shop-payment-info";
 import { ShopStatsCards } from "./shop-stats-cards";
+import { ShopStatusToggle } from "./shop-status-toggle";
 
 interface ShopHeaderCardProps {
   shop: ShopWithOwner;
@@ -81,16 +74,7 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-2xl">{shop.name}</CardTitle>
-                <Badge
-                  variant={shop.is_active ? "default" : "secondary"}
-                  className={
-                    shop.is_active
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "bg-gray-400"
-                  }
-                >
-                  {shop.is_active ? "Active" : "Inactive"}
-                </Badge>
+                <ShopStatusToggle shopId={shop.id} isActive={shop.is_active} />
               </div>
               <div className="flex items-center gap-2">
                 <Badge
@@ -108,7 +92,9 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
             </div>
             <div
               className="mt-1 text-sm text-muted-foreground prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: shop.description }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHTML(shop.description),
+              }}
             />
           </div>
         </CardHeader>
@@ -154,27 +140,19 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
         </CardContent>
         <Separator />
         <CardFooter className="p-4">
-          <div className="flex flex-col md:flex-row justify-between w-full gap-2">
+          <div className="flex flex-col sm:flex-row justify-end w-full gap-2">
             <Button asChild variant="outline">
               <Link href={`/shops/${shop.id}`} target="_blank">
                 <Eye className="mr-2 h-4 w-4" />
                 View Public Page
               </Link>
             </Button>
-            <div className="flex flex-col md:flex-row gap-2">
-              <Button asChild variant="outline">
-                <Link href={`/owner-shops/products`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Manage Products
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href="/owner-shops/orders">
-                  <ListOrdered className="mr-2 h-4 w-4" />
-                  Manage Orders
-                </Link>
-              </Button>
-            </div>
+            <Button asChild>
+              <Link href="/owner-shops/edit">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Shop
+              </Link>
+            </Button>
           </div>
         </CardFooter>
       </Card>

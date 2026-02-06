@@ -7,7 +7,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { Button } from "../ui/button";
 
 interface QueryErrorFallbackProps {
-  error: Error;
+  error: unknown;
   resetErrorBoundary: () => void;
 }
 
@@ -21,7 +21,9 @@ function QueryErrorFallback({
         Something went wrong
       </h2>
       <p className="text-red-600 text-center mb-4">
-        {error.message || "An unexpected error occurred while loading data."}
+        {error instanceof Error
+          ? error.message
+          : "An unexpected error occurred while loading data."}
       </p>
       <Button variant={"destructive"} onClick={resetErrorBoundary}>
         Try again

@@ -33,7 +33,7 @@ export async function getDashboardAnalyticsAction(): Promise<
     orders: {
       totalOrders: number;
       newOrders: number;
-      preparingOrders: number;
+      batchedOrders: number;
       completedOrders: number;
       cancelledOrders: number;
       pendingPayments: number;

@@ -2,7 +2,7 @@ import { Grid3X3, List } from "lucide-react";
 import React, { useState } from "react";
 
 import { ProductList } from "@/components/shared/product-list";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"; // Using shadcn ToggleGroup
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { SerializedProduct } from "@/types/product.types";
 
 import { SharedProductsByCategory } from "./shared-products-by-category";

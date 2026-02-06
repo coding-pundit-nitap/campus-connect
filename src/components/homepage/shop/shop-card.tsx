@@ -14,12 +14,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
 
 type Props = {
   shop: ShopWithOwnerDetails;
-  priority: boolean; // Simplified priority prop
+  priority: boolean;
 };
 
 export function ShopCard({ shop, priority }: Props) {
@@ -59,7 +60,9 @@ export function ShopCard({ shop, priority }: Props) {
               {shop.name}
             </CardTitle>
             <CardDescription
-              dangerouslySetInnerHTML={{ __html: shop.description }}
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHTML(shop.description),
+              }}
               className="mt-1 prose prose-sm dark:prose-invert max-w-none"
             />
           </CardHeader>

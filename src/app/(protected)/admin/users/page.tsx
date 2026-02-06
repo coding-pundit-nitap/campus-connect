@@ -53,7 +53,6 @@ export default async function AdminUsersPage({
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <Users className="h-7 w-7 text-blue-600" />
@@ -71,7 +70,6 @@ export default async function AdminUsersPage({
         </div>
       </div>
 
-      {/* Stats Cards */}
       {stats && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>

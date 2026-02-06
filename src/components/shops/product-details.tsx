@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/cn";
+import { sanitizeHTML } from "@/lib/sanitize";
 
 type ProductDetailsProps = {
   product: {
@@ -144,7 +145,9 @@ export default function ProductDetails({
         <h3 className="font-semibold text-lg">About this product</h3>
         <div
           className="text-muted-foreground prose prose-sm dark:prose-invert max-w-none leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: product.description }}
+          dangerouslySetInnerHTML={{
+            __html: sanitizeHTML(product.description),
+          }}
         />
       </div>
     </div>

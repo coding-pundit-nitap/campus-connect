@@ -51,10 +51,7 @@ export function OrderFilterBar({
         <SelectContent>
           <SelectItem value="all">All Orders</SelectItem>
           <SelectItem value={OrderStatus.NEW}>New</SelectItem>
-          <SelectItem value={OrderStatus.PREPARING}>Preparing</SelectItem>
-          <SelectItem value={OrderStatus.READY_FOR_PICKUP}>
-            Ready for Pickup
-          </SelectItem>
+          <SelectItem value={OrderStatus.BATCHED}>Batched</SelectItem>
           <SelectItem value={OrderStatus.OUT_FOR_DELIVERY}>
             Out for Delivery
           </SelectItem>

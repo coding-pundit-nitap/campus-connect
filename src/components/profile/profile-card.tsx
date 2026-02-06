@@ -174,12 +174,10 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
       showHeader={true}
       headerContent={headerContent}
     >
-      {/* Profile Form Section */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {!isEditing ? (
             <div className="space-y-6">
-              {/* Display Mode */}
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-2 p-4 rounded-lg border bg-muted/30">
                   <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -216,7 +214,6 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
             </div>
           ) : (
             <>
-              {/* Edit Mode */}
               <div className="space-y-4">
                 <FormField
                   control={form.control}

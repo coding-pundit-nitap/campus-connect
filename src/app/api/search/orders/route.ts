@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
     const status = (searchParams.get("status") as OrderStatus) || undefined;
     const from = searchParams.get("from") || undefined;
     const to = searchParams.get("to") || undefined;
+    const hostel_block = searchParams.get("hostel_block") || undefined;
 
     if (!shop_id) {
       const errorResponse = createErrorResponse("Unauthorized");
@@ -31,6 +32,7 @@ export async function GET(request: NextRequest) {
         cursor,
         searchTerm,
         orderStatus: status,
+        hostelBlock: hostel_block,
         dateRange:
           from && to ? { from: new Date(from), to: new Date(to) } : undefined,
       }

@@ -23,8 +23,7 @@ import { OrderFilters } from "@/services";
 
 const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   NEW: "New",
-  PREPARING: "Preparing",
-  READY_FOR_PICKUP: "Ready for Pickup",
+  BATCHED: "Batched",
   OUT_FOR_DELIVERY: "Out for Delivery",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
@@ -137,14 +136,12 @@ export function OrderFilterBar({
         </PopoverContent>
       </Popover>
 
-      {/* Clear Date Button */}
       {(dateFrom || dateTo) && (
         <Button variant="ghost" size="icon" onClick={handleClearDates}>
           <X className="h-4 w-4" />
         </Button>
       )}
 
-      {/* Clear All Filters */}
       {hasActiveFilters && (
         <Button
           variant="outline"

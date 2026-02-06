@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { esSearchService } from "@/services/search/es-search.service";
+import { dbSearchService } from "@/services/search/db-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
     const shopId = await authUtils.getOwnedShopId();
 
-    const esResponse = await esSearchService.searchCategories({
+    const esResponse = await dbSearchService.searchCategories({
       query: query.trim(),
       shopId: shopId ?? undefined,
       limit: 10,

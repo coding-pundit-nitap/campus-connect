@@ -106,9 +106,9 @@ export default async function AdminOrdersPage({
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-amber-600">
-                {stats.preparingOrders}
+                {stats.batchedOrders}
               </div>
-              <p className="text-xs text-muted-foreground">In preparation</p>
+              <p className="text-xs text-muted-foreground">In batch</p>
             </CardContent>
           </Card>
           <Card>

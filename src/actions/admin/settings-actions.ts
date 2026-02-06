@@ -246,7 +246,7 @@ export async function getPlatformOverviewAction(): Promise<
       prisma.order.count(),
       prisma.order.count({
         where: {
-          order_status: { in: ["NEW", "PREPARING", "READY_FOR_PICKUP"] },
+          order_status: { in: ["NEW", "BATCHED", "OUT_FOR_DELIVERY"] },
         },
       }),
       prisma.order.count({ where: { order_status: "COMPLETED" } }),

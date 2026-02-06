@@ -58,7 +58,7 @@ class ReviewRepository {
         rating: true,
       },
       orderBy: {
-        rating: "desc", // so it lists 5 stars first
+        rating: "desc",
       },
     });
   }

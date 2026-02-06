@@ -115,7 +115,6 @@ export function OrderNotificationBell() {
 
         <div className="max-h-80 overflow-y-auto">
           {isLoading ? (
-            // Enhanced Skeleton Loader
             Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex items-start gap-4 p-3">
                 <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
@@ -135,7 +134,6 @@ export function OrderNotificationBell() {
               </p>
             </div>
           ) : (
-            // Styled Notification List
             allNotifications.map((notification) => {
               const { Icon, className } = getNotificationConfig(
                 notification.type as NotificationType

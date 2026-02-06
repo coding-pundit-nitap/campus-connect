@@ -1,4 +1,5 @@
 import {
+  BatchStatus,
   Category,
   Order,
   OrderItem,
@@ -19,6 +20,11 @@ export type OrderWithDetails = Order & {
       } | null;
     };
   })[];
+  batch: {
+    id: string;
+    cutoff_time: Date;
+    status: BatchStatus;
+  } | null;
   user: {
     name: string;
     id: string;
@@ -48,6 +54,9 @@ export type SerializedOrder = Omit<
   Order,
   | "created_at"
   | "updated_at"
+  | "item_total"
+  | "delivery_fee"
+  | "platform_fee"
   | "total_price"
   | "requested_delivery_time"
   | "estimated_delivery_time"
@@ -55,6 +64,9 @@ export type SerializedOrder = Omit<
 > & {
   created_at: string;
   updated_at: string;
+  item_total: number;
+  delivery_fee: number;
+  platform_fee: number;
   total_price: number;
   requested_delivery_time?: string;
   estimated_delivery_time?: string;
@@ -67,6 +79,11 @@ export type SerializedOrderItemWithProduct = SerializedOrderItem & {
 
 export type SerializedOrderWithDetails = SerializedOrder & {
   items: SerializedOrderItemWithProduct[];
+  batch: {
+    id: string;
+    cutoff_time: string;
+    status: BatchStatus;
+  } | null;
   user: {
     name: string;
     phone: string;

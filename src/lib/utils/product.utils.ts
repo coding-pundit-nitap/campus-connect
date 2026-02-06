@@ -136,7 +136,11 @@ export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
     ...item,
     product: {
       ...serializeProduct(item.product),
-      shop: item.product.shop,
+      shop: {
+        ...item.product.shop,
+        default_delivery_fee: item.product.shop.default_delivery_fee.toString(),
+        default_platform_fee: item.product.shop.default_platform_fee.toString(),
+      },
       category: item.product.category,
     },
   })),

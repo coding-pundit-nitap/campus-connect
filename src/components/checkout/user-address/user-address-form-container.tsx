@@ -29,6 +29,7 @@ export function UserAddressFormContainer({
     defaultValues: {
       label: "",
       building: "",
+      hostel_block: "",
       room_number: "",
       notes: "",
       is_default: false,

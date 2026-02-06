@@ -8,11 +8,11 @@ import { toast } from "sonner";
 import { useShopLink, useShopUpdate } from "@/hooks";
 import { authClient } from "@/lib/auth-client";
 import { FormState } from "@/types";
-import { ShopWithOwner } from "@/types/shop.types";
+import { ShopUpdateFormShop } from "@/types/shop.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 
 export function useLinkShop() {
-  const { mutate: linkShop, isPending, error } = useShopLink();
+  const { mutateAsync: linkShop, isPending, error } = useShopLink();
 
   const router = useRouter();
 
@@ -27,6 +27,10 @@ export function useLinkShop() {
       image: undefined,
       qr_image: undefined,
       upi_id: "",
+      min_order_value: 50,
+      batch_cards: [],
+      default_delivery_fee: 0,
+      default_platform_fee: 0,
     },
   });
 
@@ -39,15 +43,12 @@ export function useLinkShop() {
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
       try {
-        linkShop(data, {
-          onSuccess: async (result) => {
-            if (result.success) {
-              await authClient.updateUser({ shop_id: result.data.id });
-              router.push(`/owner-shops`);
-              form.reset();
-            }
-          },
-        });
+        const result = await linkShop(data);
+        if (result.success) {
+          await authClient.updateUser({ shop_id: result.data.id });
+          router.push(`/owner-shops`);
+          form.reset();
+        }
       } catch {
         form.setError("image", {
           type: "manual",
@@ -70,7 +71,7 @@ export function useLinkShop() {
 }
 
 type UpdateShopProps = {
-  shop: ShopWithOwner;
+  shop: ShopUpdateFormShop;
 };
 
 export function useUpdateShop({ shop }: UpdateShopProps) {
@@ -89,7 +90,11 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
       image: undefined,
       qr_image: undefined,
       qr_image_key: shop.qr_image_key || undefined,
-      upi_id: shop.upi_id || undefined,
+      upi_id: shop.upi_id || "",
+      min_order_value: Number(shop.min_order_value) || 50,
+      batch_cards: [],
+      default_delivery_fee: Number(shop.default_delivery_fee) || 0,
+      default_platform_fee: Number(shop.default_platform_fee) || 0,
     },
   });
 

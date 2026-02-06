@@ -7,7 +7,7 @@ import {
   RefreshCw,
   Server,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { useDatabaseStatus } from "@/hooks";
@@ -33,14 +33,20 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
   });
 
   const [showReconnecting, setShowReconnecting] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (isConnected && showReconnecting) {
-      setTimeout(() => {
+      timeoutRef.current = setTimeout(() => {
         setShowReconnecting(false);
       }, 2000);
     }
-  }, [isConnected, showReconnecting]);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [isConnected, showReconnecting, timeoutRef]);
 
   if (isDevelopment) {
     return <>{children}</>;
@@ -121,7 +127,6 @@ function DatabaseErrorPage({
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6">
-        {/* Error Icon */}
         <div className="flex justify-center">
           <div className="relative">
             <Database className="h-24 w-24 text-muted-foreground" />
@@ -131,7 +136,6 @@ function DatabaseErrorPage({
           </div>
         </div>
 
-        {/* Title and Description */}
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-foreground">
             Database Unavailable
@@ -142,7 +146,6 @@ function DatabaseErrorPage({
           </p>
         </div>
 
-        {/* Error Details */}
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-sm text-red-800 font-medium">Error Details:</p>
@@ -150,7 +153,6 @@ function DatabaseErrorPage({
           </div>
         )}
 
-        {/* Status Messages */}
         <div className="space-y-3">
           <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
             <Server className="h-4 w-4" />
@@ -171,10 +173,8 @@ function DatabaseErrorPage({
           </div>
         </div>
 
-        {/* Retry Button */}
         <Button
           onClick={() => {
-            // Reset circuit breaker when user manually retries
             healthCheckAPIService.resetCircuitBreaker();
             onRetry();
           }}

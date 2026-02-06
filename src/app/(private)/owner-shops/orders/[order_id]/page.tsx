@@ -14,6 +14,7 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { getShopOrderByIdAction } from "@/actions/orders/order-actions";
+import { IndividualDeliveryCard } from "@/components/owned-shop/order-page/individual-delivery-card";
 import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
 import { BackButton } from "@/components/shared/back-button";
 import { DateDisplay } from "@/components/shared/date-display";
@@ -71,11 +72,6 @@ export default async function ShopOrderDetailPage({ params }: Props) {
   }
 
   const order = response.data;
-  const subtotal = order.items.reduce((acc, item) => {
-    const discountedPrice =
-      item.price - (item.price * (item.product.discount || 0)) / 100;
-    return acc + discountedPrice * item.quantity;
-  }, 0);
 
   return (
     <div className="container mx-auto p-4 md:p-8">
@@ -205,6 +201,11 @@ export default async function ShopOrderDetailPage({ params }: Props) {
             </CardContent>
           </Card>
 
+          <IndividualDeliveryCard
+            orderId={order.id}
+            status={order.order_status as OrderStatus}
+          />
+
           <Card className="py-4">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
@@ -284,17 +285,23 @@ export default async function ShopOrderDetailPage({ params }: Props) {
             <Separator />
             <CardContent className="p-6">
               <div className="flex justify-between text-muted-foreground">
-                <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>Item Total</span>
+                <span>₹{order.item_total.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-muted-foreground">
                 <span>Delivery Fee</span>
-                <span>₹0.00</span>
+                <span>₹{order.delivery_fee.toFixed(2)}</span>
               </div>
+              {order.platform_fee > 0 && (
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Platform Fee</span>
+                  <span>₹{order.platform_fee.toFixed(2)}</span>
+                </div>
+              )}
               <Separator className="my-2" />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span>₹{order.total_price.toFixed(2)}</span>
               </div>
             </CardContent>
           </Card>

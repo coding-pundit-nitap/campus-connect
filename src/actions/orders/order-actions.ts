@@ -39,7 +39,7 @@ export async function getOrdersAction(options: {
       limit: options.limit || 10,
     };
 
-    const { orders, totalPages, currentPage } = await orderService.getOrders({
+    const { orders, total_pages, currentPage } = await orderService.getOrders({
       ...queryOptions,
       userId,
     });
@@ -47,7 +47,7 @@ export async function getOrdersAction(options: {
     return createSuccessResponse(
       {
         data: orders.map(serializeOrderWithDetails),
-        totalPages,
+        total_pages,
         currentPage,
       },
       "Orders retrieved successfully"

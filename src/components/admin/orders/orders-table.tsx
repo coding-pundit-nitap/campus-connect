@@ -127,7 +127,7 @@ export function OrdersTable({ initialData, searchParams }: OrdersTableProps) {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
-                      {order.items[0].product.shop?.name}
+                      {order.items?.[0].product.shop?.name || "Unknown"}
                     </span>
                   </TableCell>
                   <TableCell>

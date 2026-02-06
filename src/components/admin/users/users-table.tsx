@@ -97,7 +97,6 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
         onClearSearch={filters.handleClearSearch}
       />
 
-      {/* Table */}
       <div className="border rounded-lg">
         <Table>
           <TableHeader>

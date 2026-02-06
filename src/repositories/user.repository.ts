@@ -1,6 +1,5 @@
 import { Prisma, Role, User } from "@/../prisma/generated/client";
 import { prisma } from "@/lib/prisma";
-import { searchQueue } from "@/lib/search/search-producer";
 
 export type CreateUserDto = Omit<Prisma.UserCreateInput, "role">;
 
@@ -47,54 +46,16 @@ class UserRepository {
 
   async create(data: Prisma.UserCreateArgs): Promise<User> {
     const user = await prisma.user.create(data);
-    await searchQueue.add(
-      "index-user",
-      {
-        type: "INDEX_USER",
-        payload: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          shop_id: user.shop_id,
-          created_at: user.createdAt,
-        },
-      },
-      { removeOnComplete: true }
-    );
     return user;
   }
 
   async update(user_id: string, data: UpdateUserDto): Promise<User> {
     const user = await prisma.user.update({ where: { id: user_id }, data });
-    await searchQueue.add(
-      "index-user",
-      {
-        type: "INDEX_USER",
-        payload: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          shop_id: user.shop_id,
-          created_at: user.createdAt,
-        },
-      },
-      { removeOnComplete: true }
-    );
     return user;
   }
 
   async delete(user_id: string): Promise<User> {
     const user = await prisma.user.delete({ where: { id: user_id } });
-    await searchQueue.add(
-      "delete-user",
-      {
-        type: "DELETE_USER",
-        payload: { id: user.id },
-      },
-      { removeOnComplete: true }
-    );
     return user;
   }
   async findMany<T extends Prisma.UserFindManyArgs>(

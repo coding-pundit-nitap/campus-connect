@@ -26,12 +26,7 @@ const STATUS_CONFIG: Record<
   { label: string; icon: typeof CircleDot; color: string }
 > = {
   NEW: { label: "New", icon: CircleDot, color: "text-blue-500" },
-  PREPARING: { label: "Preparing", icon: CookingPot, color: "text-orange-500" },
-  READY_FOR_PICKUP: {
-    label: "Ready for Pickup",
-    icon: Package,
-    color: "text-yellow-600",
-  },
+  BATCHED: { label: "Batched", icon: CookingPot, color: "text-orange-500" },
   OUT_FOR_DELIVERY: {
     label: "Out for Delivery",
     icon: Package,

@@ -44,7 +44,6 @@ export default async function AdminBroadcastsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       {stats && (
         <div className="grid gap-4 md:grid-cols-3">
           <Card>

@@ -2,6 +2,7 @@ import { Package, Star } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductCardDetailsProps {
@@ -77,8 +78,10 @@ export function ProductCardDetails({
         </h3>
         {product.description && !isMobileList && (
           <div
-            className="min-h-[40px] text-sm leading-relaxed text-muted-foreground line-clamp-2"
-            dangerouslySetInnerHTML={{ __html: product.description || "" }}
+            className="min-h-10 text-sm leading-relaxed text-muted-foreground line-clamp-2"
+            dangerouslySetInnerHTML={{
+              __html: sanitizeHTML(product.description) || "",
+            }}
           />
         )}
       </div>

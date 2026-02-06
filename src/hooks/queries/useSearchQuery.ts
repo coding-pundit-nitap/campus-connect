@@ -26,7 +26,7 @@ export const useProductSearchQuery = (query: string) => {
 
 export const useOrderSearchQuery = (
   query: string,
-  filters: { status?: OrderStatus; dateRange?: DateRange }
+  filters: { status?: OrderStatus; dateRange?: DateRange; hostelBlock?: string }
 ) => {
   return useInfiniteQuery({
     queryKey: queryKeys.search.orders(query, filters),
@@ -35,6 +35,7 @@ export const useOrderSearchQuery = (
         query,
         status: filters.status,
         dateRange: filters.dateRange,
+        hostelBlock: filters.hostelBlock,
         pageParam,
         signal,
       }),

@@ -27,15 +27,10 @@ const STATUS_BADGE_VARIANTS: Record<
     text: "text-blue-600 dark:text-blue-400",
     border: "border-blue-500/20",
   },
-  PREPARING: {
+  BATCHED: {
     bg: "bg-orange-500/10",
     text: "text-orange-600 dark:text-orange-400",
     border: "border-orange-500/20",
-  },
-  READY_FOR_PICKUP: {
-    bg: "bg-yellow-500/10",
-    text: "text-yellow-600 dark:text-yellow-400",
-    border: "border-yellow-500/20",
   },
   OUT_FOR_DELIVERY: {
     bg: "bg-purple-500/10",
@@ -92,9 +87,7 @@ export default function OrderCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              {/* Left Section: Order Info */}
               <div className="flex flex-col gap-3">
-                {/* Order ID & Status */}
                 <div className="flex flex-wrap items-center gap-3">
                   <span className="font-bold text-lg">#{order.display_id}</span>
                   <Badge

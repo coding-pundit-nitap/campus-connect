@@ -11,3 +11,4 @@ export * from "./search";
 export * from "./seller";
 export * from "./shop";
 export * from "./user";
+export * from "./vendor";

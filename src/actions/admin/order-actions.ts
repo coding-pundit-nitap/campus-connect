@@ -161,8 +161,7 @@ export async function updateOrderStatusAdminAction(
 
     const statusMessages: Record<OrderStatus, string> = {
       NEW: "has been received",
-      PREPARING: "is being prepared",
-      READY_FOR_PICKUP: "is ready for pickup",
+      BATCHED: "is being prepared",
       OUT_FOR_DELIVERY: "is out for delivery",
       COMPLETED: "has been completed",
       CANCELLED: "has been cancelled",
@@ -282,7 +281,7 @@ export async function getOrderStatsAction(): Promise<
   ActionResponse<{
     totalOrders: number;
     newOrders: number;
-    preparingOrders: number;
+    batchedOrders: number;
     completedOrders: number;
     cancelledOrders: number;
     pendingPayments: number;
@@ -299,7 +298,7 @@ export async function getOrderStatsAction(): Promise<
     const [
       totalOrders,
       newOrders,
-      preparingOrders,
+      batchedOrders,
       completedOrders,
       cancelledOrders,
       pendingPayments,
@@ -308,13 +307,13 @@ export async function getOrderStatsAction(): Promise<
     ] = await Promise.all([
       orderRepository.count({}),
       orderRepository.count({ order_status: OrderStatus.NEW }),
-      orderRepository.count({ order_status: OrderStatus.PREPARING }),
+      orderRepository.count({ order_status: OrderStatus.BATCHED }),
       orderRepository.count({ order_status: OrderStatus.COMPLETED }),
       orderRepository.count({ order_status: OrderStatus.CANCELLED }),
       orderRepository.count({ payment_status: PaymentStatus.PENDING }),
       orderRepository.count({
         created_at: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Last 7 days
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         },
       }),
       orderRepository.findMany({
@@ -339,7 +338,7 @@ export async function getOrderStatsAction(): Promise<
       {
         totalOrders,
         newOrders,
-        preparingOrders,
+        batchedOrders,
         completedOrders,
         cancelledOrders,
         pendingPayments,

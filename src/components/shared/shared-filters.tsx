@@ -45,7 +45,6 @@ interface FilterControlsProps {
     onValueChange: (value: string) => void;
   }[];
 
-  // Actions
   hasActiveFilters?: boolean;
   onClearFilters?: () => void;
 }

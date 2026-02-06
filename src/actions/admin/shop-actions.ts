@@ -45,7 +45,7 @@ export async function getAllShopsAction(
         id: string;
         name: string;
         email: string;
-      };
+      } | null;
     }>
   >
 > {
@@ -106,7 +106,7 @@ export async function getAllShopsAction(
           is_active: shop.is_active,
           verification_status: shop.verification_status,
           created_at: shop.created_at,
-          user: shop.user!,
+          user: shop.user,
         })),
         nextCursor,
         hasMore,

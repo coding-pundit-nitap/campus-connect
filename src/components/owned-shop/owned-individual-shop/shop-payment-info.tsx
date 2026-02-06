@@ -3,6 +3,7 @@
 import { Check, Copy, QrCode } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +24,13 @@ export function ShopPaymentInfo({ upiId, qrImageKey }: ShopPaymentInfoProps) {
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = async () => {
-    await navigator.clipboard.writeText(upiId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(upiId);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy UPI ID to clipboard.");
+    }
   };
 
   const qrImageUrl = qrImageKey ? ImageUtils.getImageUrl(qrImageKey) : null;

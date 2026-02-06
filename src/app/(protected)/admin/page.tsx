@@ -54,7 +54,6 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <LayoutDashboard className="h-7 w-7 text-primary" />
@@ -144,7 +143,6 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Quick Actions Grid */}
       <QuickActionsGrid />
 
       <div className="grid gap-6 lg:grid-cols-2">

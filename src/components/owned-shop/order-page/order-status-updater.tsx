@@ -18,8 +18,7 @@ type OrderStatusUpdaterProps = {
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   NEW: "New",
-  PREPARING: "Preparing",
-  READY_FOR_PICKUP: "Ready for Pickup",
+  BATCHED: "Batched",
   OUT_FOR_DELIVERY: "Out for Delivery",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",

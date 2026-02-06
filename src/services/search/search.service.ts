@@ -10,6 +10,7 @@ type FetchOrdersParams = {
   query: string;
   status?: OrderStatus;
   dateRange?: DateRange;
+  hostelBlock?: string;
   pageParam: string | undefined;
   signal?: AbortSignal;
 };
@@ -49,6 +50,7 @@ class SearchAPIService {
     query,
     status,
     dateRange,
+    hostelBlock,
     pageParam,
     signal,
   }: FetchOrdersParams): Promise<{
@@ -71,6 +73,9 @@ class SearchAPIService {
     if (pageParam) {
       params.append("cursor", pageParam);
     }
+    if (hostelBlock) {
+      params.append("hostel_block", hostelBlock);
+    }
 
     const url = `search/orders`;
     const response = await axiosInstance.get<
@@ -85,6 +90,7 @@ class SearchAPIService {
         from: dateRange?.from?.toISOString(),
         to: dateRange?.to?.toISOString(),
         cursor: pageParam,
+        hostel_block: hostelBlock,
       },
       signal,
     });

@@ -51,14 +51,9 @@ export function OrderActionsDropdown({
               New
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => onUpdateOrderStatus(OrderStatus.PREPARING)}
+              onClick={() => onUpdateOrderStatus(OrderStatus.BATCHED)}
             >
-              Preparing
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onUpdateOrderStatus(OrderStatus.READY_FOR_PICKUP)}
-            >
-              Ready for Pickup
+              Batched
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onUpdateOrderStatus(OrderStatus.OUT_FOR_DELIVERY)}

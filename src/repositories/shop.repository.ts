@@ -1,7 +1,5 @@
 import { Prisma, Shop } from "@/../prisma/generated/client";
-import { elasticClient, INDICES } from "@/lib/elasticsearch";
 import { prisma } from "@/lib/prisma";
-import { searchQueue } from "@/lib/search/search-producer";
 
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;
 
@@ -33,74 +31,24 @@ class ShopRepository {
 
   async create(data: Prisma.ShopCreateInput): Promise<Shop> {
     const shop = await prisma.shop.create({ data });
-
-    await searchQueue.add("index-shop", {
-      type: "INDEX_SHOP",
-      payload: {
-        id: shop.id,
-        name: shop.name,
-        description: shop.description,
-        location: shop.location,
-        is_active: shop.is_active,
-      },
-    });
-
     return shop;
   }
 
   async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
     const shop = await prisma.shop.update({ where: { id: shop_id }, data });
-
-    await searchQueue.add("update-shop", {
-      type: "INDEX_SHOP",
-      payload: {
-        id: shop.id,
-        name: shop.name,
-        description: shop.description,
-        location: shop.location,
-        is_active: shop.is_active,
-        image_key: shop.image_key,
-      },
-    });
-
     return shop;
   }
 
-  /**
-   * Soft delete - sets deleted_at timestamp instead of actually deleting.
-   * Shop data is preserved for historical purposes.
-   */
   async delete(shop_id: string): Promise<Shop> {
     const shop = await prisma.shop.update({
       where: { id: shop_id },
       data: { deleted_at: new Date(), is_active: false },
     });
-
-    // Remove from search index
-    await searchQueue.add("delete-shop", {
-      type: "DELETE_SHOP",
-      payload: {
-        id: shop_id,
-      },
-    });
-
     return shop;
   }
 
-  /**
-   * Hard delete - permanently removes the shop from the database.
-   * Use only for cleanup/maintenance purposes.
-   */
   async hardDelete(shop_id: string): Promise<Shop> {
     const shop = await prisma.shop.delete({ where: { id: shop_id } });
-
-    await searchQueue.add("delete-shop", {
-      type: "DELETE_SHOP",
-      payload: {
-        id: shop_id,
-      },
-    });
-
     return shop;
   }
 
@@ -134,55 +82,22 @@ class ShopRepository {
   }
 
   async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
-    try {
-      const result = await elasticClient.search<Shop>({
-        index: INDICES.SHOPS,
-        size: limit,
-        _source: false,
-        query: {
-          bool: {
-            must: [
-              { term: { is_active: true } },
-              {
-                multi_match: {
-                  query: searchTerm,
-                  fields: ["name^3", "description", "location"],
-                  fuzziness: "AUTO",
-                },
-              },
-            ],
-          },
-        },
-      });
-      const hits = result.hits.hits;
-      if (hits.length === 0) return [];
+    const trimmed = searchTerm.trim();
 
-      const ids = hits.map((h) => h._id || "");
-
-      const shops = await prisma.shop.findMany({
-        where: { id: { in: ids }, is_active: true, deleted_at: null },
-      });
-
-      const shopMap = new Map(shops.map((s) => [s.id, s]));
-
-      return hits
-        .map((hit) => shopMap.get(hit._id || ""))
-        .filter((s): s is Shop => s !== undefined);
-    } catch (error) {
-      console.error("Elasticsearch failed, falling back to database", error);
-      return prisma.shop.findMany({
-        where: {
-          OR: [
-            { name: { contains: searchTerm, mode: "insensitive" } },
-            { description: { contains: searchTerm, mode: "insensitive" } },
-            { location: { contains: searchTerm, mode: "insensitive" } },
-          ],
-          is_active: true,
-          deleted_at: null,
-        },
-        take: limit,
-      });
-    }
+    return prisma.shop.findMany({
+      where: {
+        is_active: true,
+        deleted_at: null,
+        OR: trimmed
+          ? [
+              { name: { contains: trimmed, mode: "insensitive" } },
+              { description: { contains: trimmed, mode: "insensitive" } },
+              { location: { contains: trimmed, mode: "insensitive" } },
+            ]
+          : undefined,
+      },
+      take: limit,
+    });
   }
 
   async findMany<T extends Prisma.ShopFindManyArgs>(

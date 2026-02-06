@@ -15,6 +15,7 @@ interface NotificationEvent {
 
 const MAX_RETRY_DELAY = 30000;
 const INITIAL_RETRY_DELAY = 1000;
+const TOAST_THROTTLE_MS = 5000;
 
 export function useLiveNotifications() {
   const session = useSession();
@@ -22,6 +23,7 @@ export function useLiveNotifications() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const retryCountRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastToastTimeRef = useRef(0);
 
   const isAuthenticated = !!session.data;
 
@@ -52,7 +54,11 @@ export function useLiveNotifications() {
               return oldSummary;
             }
 
-            toast.success(newNotification.message);
+            const now = Date.now();
+            if (now - lastToastTimeRef.current >= TOAST_THROTTLE_MS) {
+              toast.success(newNotification.message);
+              lastToastTimeRef.current = now;
+            }
 
             return {
               ...oldSummary,

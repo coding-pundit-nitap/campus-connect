@@ -7,7 +7,7 @@ export default function ShopAction() {
   const { data: session } = useSession();
 
   if (session?.user.shop_id) {
-    return undefined;
+    return null;
   }
 
   return (

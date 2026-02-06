@@ -6,9 +6,9 @@ import {
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
+import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
 import orderRepository from "@/repositories/order.repository";
-import { shopRepository } from "@/repositories/shop.repository";
 import { notificationService } from "@/services/notification/notification.service";
 
 type GetOrdersOptions = {
@@ -21,12 +21,93 @@ class OrderService {
   private async generateDisplayId(
     tx: Prisma.TransactionClient
   ): Promise<string> {
-    const counter = await tx.globalCounter.upsert({
-      where: { id: "GLOBAL" },
-      create: { id: "GLOBAL", order_count: 1001 },
-      update: { order_count: { increment: 1 } },
+    const result = await tx.$queryRaw<{ next_id: bigint }[]>`
+      SELECT nextval('order_display_id_seq') as next_id
+    `;
+    const nextId = result[0].next_id.toString();
+    return `NITAP-${nextId.padStart(6, "0")}`;
+  }
+
+  private normalizeToMinute(date: Date): Date {
+    const normalized = new Date(date);
+    normalized.setSeconds(0);
+    normalized.setMilliseconds(0);
+    return normalized;
+  }
+
+  private async getActiveBatchSlots(
+    tx: Prisma.TransactionClient,
+    shop_id: string
+  ): Promise<
+    { id: string; cutoff_time_minutes: number; sort_order: number }[]
+  > {
+    try {
+      return await tx.batchSlot.findMany({
+        where: { shop_id, is_active: true },
+        select: { id: true, cutoff_time_minutes: true, sort_order: true },
+        orderBy: [{ sort_order: "asc" }, { cutoff_time_minutes: "asc" }],
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  private async findOrCreateBatchForRequestedTime(
+    tx: Prisma.TransactionClient,
+    shop_id: string,
+    requested_delivery_time: Date
+  ) {
+    const now = new Date();
+    const cutoffTime = this.normalizeToMinute(requested_delivery_time);
+
+    if (cutoffTime.getTime() <= now.getTime()) {
+      throw new ValidationError("Selected batch slot is in the past");
+    }
+
+    const activeSlots = await this.getActiveBatchSlots(tx, shop_id);
+    if (activeSlots.length === 0) {
+      throw new ValidationError(
+        "This shop has no batch cards configured. Use direct delivery instead."
+      );
+    }
+
+    const cutoffZoned = getZonedParts(cutoffTime, APP_TIME_ZONE);
+    const minutesFromMidnight = cutoffZoned.hour * 60 + cutoffZoned.minute;
+    const matchingSlot = activeSlots.find(
+      (s) => s.cutoff_time_minutes === minutesFromMidnight
+    );
+
+    if (!matchingSlot) {
+      throw new ValidationError("Selected batch slot is not available");
+    }
+
+    const existingBatch = await tx.batch.findFirst({
+      where: {
+        shop_id,
+        cutoff_time: cutoffTime,
+        status: { in: ["OPEN", "LOCKED", "IN_TRANSIT", "COMPLETED"] },
+      },
+      select: { id: true, status: true },
     });
-    return `NITAP-${counter.order_count.toString().padStart(6, "0")}`;
+
+    if (existingBatch && existingBatch.status !== "OPEN") {
+      throw new ValidationError(
+        "This batch has already been locked. Please pick another slot or use direct delivery."
+      );
+    }
+
+    if (existingBatch) {
+      return await tx.batch.findUnique({ where: { id: existingBatch.id } });
+    }
+
+    return await tx.batch.create({
+      data: {
+        shop_id,
+        cutoff_time: cutoffTime,
+        status: "OPEN",
+        slot_id: matchingSlot.id,
+      },
+    });
   }
 
   async getOrders(options: GetOrdersOptions) {
@@ -49,7 +130,7 @@ class OrderService {
     return {
       orders,
       totalOrders,
-      totalPages: Math.ceil(totalOrders / limit),
+      total_pages: Math.ceil(totalOrders / limit),
       currentPage: page,
     };
   }
@@ -73,12 +154,27 @@ class OrderService {
         },
       });
 
+      const shop = await tx.shop.findUnique({
+        where: { id: shop_id },
+        select: {
+          id: true,
+          name: true,
+          min_order_value: true,
+          default_delivery_fee: true,
+          default_platform_fee: true,
+          user: { select: { id: true } },
+        },
+      });
+
       const deliveryAddress = await tx.userAddress.findUnique({
         where: { id: delivery_address_id },
       });
 
       if (!cart || cart.items.length === 0) {
         throw new NotFoundError("Cart is empty.");
+      }
+      if (!shop) {
+        throw new NotFoundError("Shop not found.");
       }
       if (!deliveryAddress) {
         throw new NotFoundError("Delivery address not found.");
@@ -94,7 +190,7 @@ class OrderService {
         FOR UPDATE
       `;
 
-      let totalPricePaise = 0;
+      let itemTotalPaise = 0;
       for (const item of cart.items) {
         const product = await tx.product.findUnique({
           where: { id: item.product_id },
@@ -110,19 +206,41 @@ class OrderService {
         const discountPercent = Number(item.product.discount) || 0;
         const discountPaise = Math.round((pricePaise * discountPercent) / 100);
         const discountedPricePaise = pricePaise - discountPaise;
-        totalPricePaise += discountedPricePaise * item.quantity;
+        itemTotalPaise += discountedPricePaise * item.quantity;
       }
-      const totalPrice = Math.round(totalPricePaise) / 100;
+      const itemTotal = Math.round(itemTotalPaise) / 100;
+      const minOrderValue = Number(shop.min_order_value);
+      if (itemTotal < minOrderValue) {
+        throw new ValidationError(
+          `Minimum order value is ₹${minOrderValue}. Your cart total is ₹${itemTotal}.`
+        );
+      }
+
+      const deliveryFee = Number(shop.default_delivery_fee) || 0;
+      const platformFee = Number(shop.default_platform_fee) || 0;
+      const totalPrice = itemTotal + deliveryFee + platformFee;
 
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
       const display_id = await this.generateDisplayId(tx);
+
+      const batch = requested_delivery_time
+        ? await this.findOrCreateBatchForRequestedTime(
+            tx,
+            shop_id,
+            requested_delivery_time
+          )
+        : null;
 
       const order = await tx.order.create({
         data: {
           display_id,
           user_id: user_id,
           shop_id: shop_id,
+          ...(batch ? { batch_id: batch.id } : {}),
+          item_total: itemTotal,
+          delivery_fee: deliveryFee,
+          platform_fee: platformFee,
           total_price: totalPrice,
           payment_method,
           payment_status: payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
@@ -162,11 +280,7 @@ class OrderService {
 
       await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
 
-      const shop = await shopRepository.findById(shop_id, {
-        include: { user: { select: { id: true } } },
-      });
-
-      if (shop && shop.user) {
+      if (shop.user) {
         try {
           await notificationService.publishNotification(shop.user.id, {
             title: "New Order Received",
