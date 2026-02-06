@@ -6,6 +6,8 @@ export type CreateReviewDto = Prisma.ReviewCreateInput;
 
 export type UpdateReviewDto = Omit<Prisma.ReviewUpdateArgs, "where">;
 
+type ReviewFindOptions = Omit<Prisma.ReviewFindUniqueArgs, "where">;
+
 class ReviewRepository {
   async createReview(
     data: CreateReviewDto,
@@ -35,6 +37,48 @@ class ReviewRepository {
   async deleteReview(review_id: string) {
     return prisma.review.delete({ where: { id: review_id } });
   }
+
+  async findById(review_id: string): Promise<Review | null>;
+  async findById<T extends ReviewFindOptions>(
+    review_id: string,
+    options: T
+  ): Promise<Prisma.ReviewGetPayload<T> | null>;
+  async findById<T extends ReviewFindOptions>(
+    review_id: string,
+    options?: T
+  ): Promise<Prisma.ReviewGetPayload<T> | Review | null> {
+    const query = {
+      where: { id: review_id },
+      ...(options ?? {}),
+    } as Prisma.ReviewFindUniqueArgs;
+    return prisma.review.findUnique(query);
+  }
+
+  async findByOrderItemId(order_item_id: string): Promise<Review | null>;
+  async findByOrderItemId<T extends ReviewFindOptions>(
+    order_item_id: string,
+    options: T
+  ): Promise<Prisma.ReviewGetPayload<T> | null>;
+  async findByOrderItemId<T extends ReviewFindOptions>(
+    order_item_id: string,
+    options?: T
+  ): Promise<Prisma.ReviewGetPayload<T> | Review | null> {
+    const query = {
+      where: { order_item_id },
+      ...(options ?? {}),
+    } as Prisma.ReviewFindUniqueArgs;
+    return prisma.review.findUnique(query);
+  }
+
+  async updateProductRatings(product_id: string, ratingDifference: number) {
+    return prisma.product.update({
+      where: { id: product_id },
+      data: {
+        rating_sum: { increment: ratingDifference },
+      },
+    });
+  }
+
   async findAllReviewsByProductId(product_id: string): Promise<Review[]>;
   async findAllReviewsByProductId<T extends Prisma.ReviewFindManyArgs>(
     product_id: string,

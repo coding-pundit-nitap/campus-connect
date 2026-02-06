@@ -1,4 +1,5 @@
 import axiosInstance from "@/lib/axios";
+import { ActionResponse } from "@/types";
 
 import { BatchInfo } from "../batch";
 
@@ -25,21 +26,26 @@ export interface VendorOverviewResponse {
 class VendorApiService {
   async getVendorDetails(): Promise<VendorDashboardResponse> {
     const response =
-      await axiosInstance.get<VendorDashboardResponse>("/vendor/dashboard");
-    return response.data;
+      await axiosInstance.get<ActionResponse<VendorDashboardResponse>>(
+        "/vendor/dashboard"
+      );
+    console.log(response.data.data);
+    return response.data.data;
   }
 
   async getNextSlot(shopId: string): Promise<NextSlotResponse> {
-    const response = await axiosInstance.get<NextSlotResponse>(
+    const response = await axiosInstance.get<ActionResponse<NextSlotResponse>>(
       `/shops/${shopId}/next-slot`
     );
-    return response.data;
+    return response.data.data;
   }
 
   async getVendorOverview(): Promise<VendorOverviewResponse> {
     const response =
-      await axiosInstance.get<VendorOverviewResponse>("/vendor/overview");
-    return response.data;
+      await axiosInstance.get<ActionResponse<VendorOverviewResponse>>(
+        "/vendor/overview"
+      );
+    return response.data.data;
   }
 }
 
