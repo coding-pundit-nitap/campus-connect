@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { OrderStatus } from "prisma/generated/client";
 import z from "zod";
 
+import { OrderStatus } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
 import authUtils from "@/lib/utils/auth.utils.server";
 import {

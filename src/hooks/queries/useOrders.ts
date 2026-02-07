@@ -5,7 +5,6 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { OrderStatus } from "prisma/generated/client";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +17,7 @@ import {
   createOrderAction,
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
+import { OrderStatus } from "@/generated/client";
 import { queryKeys } from "@/lib/query-keys";
 import { orderAPIService, OrderFilters } from "@/services";
 import { SerializedOrderWithDetails } from "@/types";

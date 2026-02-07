@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { Role } from "@/../prisma/generated/client";
 import { auth, User } from "@/auth";
+import { Role } from "@/generated/client";
 
 export interface IAuthUtils {
   getUserData: () => Promise<User>;

@@ -1,7 +1,6 @@
 "use client";
 
 import { CalendarIcon, FilterX, X } from "lucide-react";
-import { OrderStatus } from "prisma/generated/client";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { OrderStatus } from "@/generated/client";
 import { cn } from "@/lib/cn";
 import { OrderFilters } from "@/services";
 

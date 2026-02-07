@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { Prisma } from "@/../prisma/generated/client";
+import { Prisma } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

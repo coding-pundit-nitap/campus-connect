@@ -1,4 +1,4 @@
-import { Prisma } from "../../prisma/generated/client";
+import { Prisma } from "../generated/client";
 
 export const NOTIFICATION_QUEUE_NAME = "notification-queue";
 

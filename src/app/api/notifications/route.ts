@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Notification } from "prisma/generated/client";
 
 import { MAX_PAGE_SIZE } from "@/config/constants";
+import { Notification } from "@/generated/client";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
 import {

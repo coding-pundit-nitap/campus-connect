@@ -1,4 +1,4 @@
-import { Category, Product } from "@/../prisma/generated/client";
+import { Category, Product } from "@/generated/client";
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 import { ProductActionFormData } from "@/validations";

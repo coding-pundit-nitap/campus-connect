@@ -1,4 +1,4 @@
-import { Prisma } from "@/../prisma/generated/client";
+import { Prisma } from "@/generated/client";
 import { notificationQueue } from "@/lib/notification/notification-producer";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import { notificationRepository } from "@/repositories/notification.repository";

@@ -1,4 +1,4 @@
-import { Prisma, Product } from "@/../prisma/generated/client";
+import { Prisma, Product } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 export type CreateProductDto = Prisma.ProductCreateInput;

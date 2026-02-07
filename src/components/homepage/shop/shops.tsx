@@ -1,4 +1,4 @@
-import { Prisma } from "@/../prisma/generated/client";
+import { Prisma } from "@/generated/client";
 import { formatShopData, ShopWithOwnerDetails } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 
