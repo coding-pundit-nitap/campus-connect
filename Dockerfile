@@ -9,7 +9,7 @@ RUN apk add --no-cache libc6-compat openssl curl dumb-init \
     && corepack enable \
     && corepack prepare pnpm@latest --activate
 
-FROM base AS prisma-gen
+FROM base AS deps
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL:-postgresql://placeholder}
 COPY package.json pnpm-lock.yaml ./
@@ -19,32 +19,21 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile \
     && pnpm prisma generate
 
-
-FROM base AS deps
-WORKDIR /app
-
-COPY --from=prisma-gen /app/src/generated ./src/generated
-COPY --from=prisma-gen /app/workers/generated ./workers/generated
-COPY package.json pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --ignore-scripts
-
 FROM base AS prod-deps
-WORKDIR /app
-
-COPY --from=prisma-gen /app/src/generated ./src/generated
-COPY --from=prisma-gen /app/workers/generated ./workers/generated
 COPY package.json pnpm-lock.yaml ./
+COPY --from=deps /app/src/generated ./src/generated
+COPY --from=deps /app/workers/generated ./workers/generated
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --prod --frozen-lockfile --ignore-scripts
 
+# Development target
 FROM deps AS dev
 
 FROM base AS app-builder
 ENV NODE_ENV=production
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=prisma-gen /app/src/generated ./src/generated
+COPY --from=deps /app/src/generated ./src/generated
 COPY . .
 RUN pnpm build
 
@@ -53,7 +42,7 @@ ENV NODE_ENV=production
 
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=prisma-gen /app/workers/generated ./workers/generated
+COPY --from=deps /app/workers/generated ./workers/generated
 COPY . .
 RUN pnpm build:worker
 
@@ -66,10 +55,9 @@ RUN addgroup --system --gid 1001 nodejs \
     && mkdir -p /home/nextjs/.cache/node/corepack \
     && chown -R nextjs:nodejs /home/nextjs/.cache
 
-# Copy standalone output (includes required node_modules)
-COPY --from=app-builder /app/.next/standalone ./
-COPY --from=app-builder /app/public ./public
-COPY --from=app-builder /app/.next/static ./.next/static
+COPY --from=app-builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=app-builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=app-builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 RUN mkdir -p .next/cache \
     && chown -R nextjs:nodejs .next/cache \
@@ -91,7 +79,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=worker-builder /app/dist ./dist
-COPY --from=prisma-gen /app/workers/generated ./workers/generated
+COPY --from=deps /app/workers/generated ./workers/generated
 
 USER worker
 ENTRYPOINT ["dumb-init", "--"]
@@ -104,7 +92,7 @@ RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/migrator --shell /bin/false migrator
 
 COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prisma-gen /app/src/generated ./src/generated
+COPY --from=deps /app/src/generated ./src/generated
 COPY package.json pnpm-lock.yaml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
