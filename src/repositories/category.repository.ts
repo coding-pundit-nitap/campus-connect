@@ -1,4 +1,4 @@
-import { Category, Prisma } from "@/../prisma/generated/client";
+import { Category, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 export type CreateCategoryDto = Prisma.CategoryCreateInput;

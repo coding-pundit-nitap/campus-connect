@@ -27,9 +27,6 @@ const nextConfig: NextConfig = {
     ],
   },
   reactCompiler: true,
-  outputFileTracingIncludes: {
-    "/*": ["prisma/generated/client/**/*"],
-  },
 };
 
 export default nextConfig;

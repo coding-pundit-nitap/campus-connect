@@ -12,6 +12,7 @@ package-lock.json
 yarn.lock
 
 **/*.generated.ts
-/prisma/generated/
+/src/generated/
+/workers/generated/
 
 .eslintcache

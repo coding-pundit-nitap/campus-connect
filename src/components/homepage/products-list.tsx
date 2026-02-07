@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 
 import { useInfiniteProducts } from "@/hooks/queries/useInfiniteProducts";
 import { SerializedProduct } from "@/types/product.types";

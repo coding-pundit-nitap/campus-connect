@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { Prisma, SellerVerificationStatus } from "@/../prisma/generated/client";
+import { Prisma, SellerVerificationStatus } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

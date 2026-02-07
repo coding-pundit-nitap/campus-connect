@@ -5,7 +5,7 @@ import {
   OrderItem,
   Product,
   Shop,
-} from "@/../prisma/generated/client";
+} from "@/generated/client";
 
 import { PaymentMethod } from "./prisma.types";
 import { SerializedProduct } from "./product.types";

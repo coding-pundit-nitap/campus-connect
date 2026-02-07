@@ -1,4 +1,4 @@
-import { Prisma, Shop } from "@/../prisma/generated/client";
+import { Prisma, Shop } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;

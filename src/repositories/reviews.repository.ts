@@ -1,4 +1,4 @@
-import { Prisma, Review } from "@/../prisma/generated/client";
+import { Prisma, Review } from "@/generated/client";
 import { BadRequestError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 

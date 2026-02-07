@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import z from "zod";
 
-import { Prisma } from "@/../prisma/generated/client";
+import { Prisma } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
 import { prisma } from "@/lib/prisma";
 import { serializeProducts } from "@/lib/utils/product.utils";

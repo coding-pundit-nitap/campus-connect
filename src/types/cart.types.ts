@@ -5,7 +5,7 @@ import {
   Category,
   Prisma,
   Product,
-} from "@/../prisma/generated/client";
+} from "@/generated/client";
 
 import { SerializedProduct } from "./product.types";
 

@@ -1,4 +1,4 @@
-import { BroadcastNotification, Prisma } from "@/../prisma/generated/client";
+import { BroadcastNotification, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 class BroadcastNotificationRepository {

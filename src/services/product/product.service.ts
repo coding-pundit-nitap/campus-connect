@@ -1,4 +1,4 @@
-import { Prisma, Product } from "@/../prisma/generated/client";
+import { Prisma, Product } from "@/generated/client";
 import { serializeProducts } from "@/lib/utils";
 import { productRepository } from "@/repositories";
 import {

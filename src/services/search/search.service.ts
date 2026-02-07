@@ -1,6 +1,6 @@
 import { DateRange } from "react-day-picker";
 
-import { OrderStatus } from "@/../prisma/generated/client";
+import { OrderStatus } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
 import { SerializedOrderWithDetails } from "@/types";
 import { ActionResponse } from "@/types/response.types";

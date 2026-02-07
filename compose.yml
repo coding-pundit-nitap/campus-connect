@@ -17,13 +17,6 @@ x-nginx-common: &nginx-common
     interval: 10s
     timeout: 5s
     retries: 3
-  depends_on:
-    minio:
-      condition: service_healthy
-
-x-dev-resources: &dev-resources
-  mem_limit: 512m
-  cpus: "0.50"
 
 x-logging: &default-logging
   driver: "json-file"
@@ -37,12 +30,16 @@ x-dev-build: &dev-build
     dockerfile: Dockerfile
     target: dev
 
-services:
-  # ----------------------------------------------------------------------------
-  # Development Services (profile: dev)
-  # ----------------------------------------------------------------------------
+x-dev-env: &dev-env
+  env_file:
+    - .env.local
 
-  # Nginx reverse proxy for development
+x-prod-env: &prod-env
+  env_file:
+    - .env
+    - .env.production
+
+services:
   nginx-dev:
     <<: *nginx-common
     mem_limit: 128m
@@ -51,10 +48,10 @@ services:
     restart: unless-stopped
     ports:
       - "80:80"
-      - "5555:5555" # Prisma Studio
-      - "8080:8080" # Health check
-      - "9000:9000" # MinIO API
-      - "9001:9001" # MinIO Console
+      - "5555:5555"
+      - "8080:8080"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d/dev.conf:/etc/nginx/conf.d/default.conf:ro
@@ -69,19 +66,11 @@ services:
       - dev
     logging: *default-logging
 
-  # ----------------------------------------------------------------------------
-  # MIGRATOR: DEVELOPMENT
-  # ----------------------------------------------------------------------------
   migrator-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+    <<: [*dev-build, *dev-env]
     container_name: campus_connect_migrator_dev
     restart: "no"
     command: pnpm prisma migrate deploy
-    env_file:
-      - .env.local
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - NODE_ENV=development
@@ -99,9 +88,8 @@ services:
     profiles:
       - dev
 
-  # The main Next.js application for development
   app-dev:
-    <<: *dev-build
+    <<: [*dev-build, *dev-env]
     container_name: campus_connect_app_dev
     restart: unless-stopped
     entrypoint: ["/app/scripts/dev-entrypoint.sh"]
@@ -126,8 +114,6 @@ services:
       - pnpm_store_volume:/root/.local/share/pnpm/store
     expose:
       - "3000"
-    env_file:
-      - .env.local
     environment:
       - NODE_ENV=development
       - NEXT_TELEMETRY_DISABLED=1
@@ -147,12 +133,8 @@ services:
       - dev
     logging: *default-logging
 
-  # Worker for Development (Mounts code locally)
   worker-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: dev
+    <<: *dev-build
     container_name: campus_connect_worker_dev
     command: npx tsx workers/index.ts
     volumes:
@@ -176,9 +158,8 @@ services:
     mem_limit: 512m
     cpus: "0.50"
 
-  # Prisma Studio for database debugging in development
   prisma-studio:
-    <<: *dev-build
+    <<: [*dev-build, *dev-env]
     container_name: campus_connect_prisma_studio
     restart: unless-stopped
     command: pnpm prisma studio --port 5555 --browser none
@@ -195,8 +176,6 @@ services:
       - node_modules_volume:/app/node_modules
     expose:
       - "5555"
-    env_file:
-      - .env.local
     environment:
       - NODE_ENV=development
       - TZ=UTC
@@ -214,22 +193,16 @@ services:
       - dev
     logging: *default-logging
 
-  # ----------------------------------------------------------------------------
-  # Production Services (profile: prod)
-  # ----------------------------------------------------------------------------
-
-  # Nginx reverse proxy for production
   nginx-prod:
     <<: *nginx-common
     container_name: campus_connect_nginx_prod
     restart: always
     ports:
       - "80:80"
-      - "8080:8080" # Health check
-      - "9000:9000" # MinIO API
-      - "9001:9001" # MinIO Console
+      - "8080:8080"
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       app-prod:
@@ -239,25 +212,21 @@ services:
       redis:
         condition: service_healthy
       worker-prod:
-        condition: service_started
+        condition: service_healthy
     profiles:
       - prod
+    mem_limit: 128m
+    cpus: "0.25"
     logging: *default-logging
 
-  # ----------------------------------------------------------------------------
-  # MIGRATOR: PRODUCTION
-  # ----------------------------------------------------------------------------
   migrator-prod:
+    <<: *prod-env
     build:
       context: .
       dockerfile: Dockerfile
       target: migrator
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
-    command: pnpm prisma migrate deploy
-    env_file:
-      - .env
-      - .env.production
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - NODE_ENV=production
@@ -266,34 +235,36 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    mem_limit: 256m
+    cpus: "0.25"
     profiles:
       - prod
+    logging: *default-logging
 
-  # The main Next.js application for production
   app-prod:
+    <<: *prod-env
     build:
       context: .
       dockerfile: Dockerfile
       target: runner
-      args:
-        - NEXT_PUBLIC_API_URL=/api
-        - NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
-        - NEXT_PUBLIC_MINIO_BUCKET=campus-connect
     container_name: campus_connect_app_prod
     restart: always
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
       migrator-prod:
         condition: service_completed_successfully
     expose:
       - "3000"
-    env_file:
-      - .env
-      - .env.production
     environment:
       - TZ=UTC
       - HOSTNAME=0.0.0.0
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
     networks:
       - campus_connect_net
     healthcheck:
@@ -304,22 +275,25 @@ services:
       start_period: 60s
     profiles:
       - prod
+    mem_limit: 3g
+    mem_reservation: 1g
+    cpus: "1.5"
+    cpu_shares: 1024
+    stop_grace_period: 30s
     logging: *default-logging
 
-  # Worker for Production
   worker-prod:
+    <<: *prod-env
     build:
       context: .
       dockerfile: Dockerfile
       target: worker-runner
     container_name: campus_connect_worker_prod
     restart: always
-    env_file:
-      - .env
-      - .env.production
     environment:
       - REDIS_HOST=redis
       - DATABASE_URL=${DATABASE_URL}
+      - NODE_ENV=production
     depends_on:
       redis:
         condition: service_healthy
@@ -331,13 +305,19 @@ services:
       - campus_connect_net
     profiles:
       - prod
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'node dist/workers/index.js' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    mem_limit: 1g
+    mem_reservation: 512m
+    cpus: "1.0"
+    cpu_shares: 768
+    stop_grace_period: 60s
     logging: *default-logging
 
-  # ----------------------------------------------------------------------------
-  # Common Infrastructure Services (used by dev and prod)
-  # ----------------------------------------------------------------------------
-
-  # PostgreSQL database
   db:
     image: postgres:18.1-alpine
     container_name: campus_connect_db
@@ -360,9 +340,11 @@ services:
     profiles:
       - dev
       - prod
+    mem_limit: 2g
+    cpus: "1.0"
+    shm_size: 256mb
     logging: *default-logging
 
-  # MinIO S3-compatible object storage
   minio:
     image: minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: campus_connect_minio
@@ -385,8 +367,10 @@ services:
     profiles:
       - dev
       - prod
+    mem_limit: 512m
+    cpus: "0.5"
+    logging: *default-logging
 
-  # One-off job to create MinIO buckets on startup
   create-buckets:
     image: minio/mc
     container_name: campus_connect_mc
@@ -407,12 +391,11 @@ services:
       - dev
       - prod
 
-  # Redis cache
   redis:
     image: redis:8.2.1-alpine
     container_name: campus_connect_redis
     restart: unless-stopped
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --maxmemory 400mb --maxmemory-policy noeviction
     expose:
       - "6379"
     volumes:
@@ -427,6 +410,8 @@ services:
     profiles:
       - dev
       - prod
+    mem_limit: 512m
+    cpus: "0.5"
     logging: *default-logging
 
 networks:

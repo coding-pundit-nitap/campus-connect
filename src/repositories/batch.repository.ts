@@ -4,7 +4,7 @@ import {
   BatchStatus,
   OrderStatus,
   Prisma,
-} from "@/../prisma/generated/client";
+} from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 type BatchFindOptions = Omit<Prisma.BatchFindUniqueArgs, "where">;

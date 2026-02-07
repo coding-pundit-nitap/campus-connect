@@ -1,4 +1,4 @@
-import { Role } from "@/../prisma/generated/client";
+import { Role } from "@/generated/client";
 import { ConflictError } from "@/lib/custom-error";
 import userRepository, { CreateUserDto } from "@/repositories/user.repository";
 

@@ -1,5 +1,4 @@
-import { OrderStatus } from "prisma/generated/client";
-
+import { OrderStatus } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
 import {
   ActionResponse,
