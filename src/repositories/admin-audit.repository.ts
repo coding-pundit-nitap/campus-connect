@@ -1,4 +1,4 @@
-import { AdminAction, Prisma } from "@/../prisma/generated/client";
+import { AdminAction, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 export type CreateAuditLogInput = {

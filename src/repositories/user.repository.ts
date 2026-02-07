@@ -1,4 +1,4 @@
-import { Prisma, Role, User } from "@/../prisma/generated/client";
+import { Prisma, Role, User } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 export type CreateUserDto = Omit<Prisma.UserCreateInput, "role">;

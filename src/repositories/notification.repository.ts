@@ -1,4 +1,4 @@
-import { Notification, Prisma } from "@/../prisma/generated/client";
+import { Notification, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 import { CursorPaginatedResponse } from "@/types";
 

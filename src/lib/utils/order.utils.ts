@@ -17,7 +17,7 @@ import {
   OrderStatus,
   PaymentStatus,
   Shop,
-} from "@/../prisma/generated/client";
+} from "@/generated/client";
 import {
   OrderWithDetails,
   SearchResult,

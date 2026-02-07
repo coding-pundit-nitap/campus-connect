@@ -1,6 +1,6 @@
 "use server";
-import { OrderStatus, PaymentMethod } from "@/../prisma/generated/client";
 import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
+import { OrderStatus, PaymentMethod } from "@/generated/client";
 import {
   InternalServerError,
   UnauthorizedError,

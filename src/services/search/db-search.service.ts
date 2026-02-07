@@ -1,4 +1,4 @@
-import { Prisma } from "@/../prisma/generated/client";
+import { Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 import { SearchResult } from "@/types/search.types";
 

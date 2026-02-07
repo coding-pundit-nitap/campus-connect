@@ -2,10 +2,10 @@ import { AlertTriangle, CheckCircle, Clock, Package } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
-import { OrderStatus, PaymentStatus } from "@/../prisma/generated/client";
 import { getAllOrdersAction, getOrderStatsAction } from "@/actions/admin";
 import { OrdersTable } from "@/components/admin/orders/orders-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { OrderStatus, PaymentStatus } from "@/generated/client";
 
 export const metadata: Metadata = {
   title: "Order Management | Admin Dashboard",

@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { PayoutStatus, Prisma } from "@/../prisma/generated/client";
+import { PayoutStatus, Prisma } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

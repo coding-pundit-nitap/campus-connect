@@ -1,6 +1,6 @@
 import { Job, Worker } from "bullmq";
 
-import { Prisma } from "../../prisma/generated/client";
+import { Prisma } from "../generated/client";
 import { loggers } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 import { redisConnection } from "../lib/redis-connection";

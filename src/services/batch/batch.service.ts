@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 
-import { BatchStatus } from "@/../prisma/generated/client";
+import { BatchStatus } from "@/generated/client";
 import { NotFoundError } from "@/lib/custom-error";
 import {
   addZonedDays,

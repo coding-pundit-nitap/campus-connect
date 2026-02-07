@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { Prisma, Role, UserStatus } from "@/../prisma/generated/client";
+import { Prisma, Role, UserStatus } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,

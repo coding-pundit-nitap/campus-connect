@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 
-import { AdminAction, Prisma } from "@/../prisma/generated/client";
+import { AdminAction, Prisma } from "@/generated/client";
 
 import { redisConnection } from "../redis-connection";
 

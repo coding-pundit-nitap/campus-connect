@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 
-import { AdminAction, Prisma } from "@/../prisma/generated/client";
+import { AdminAction, Prisma } from "@/generated/client";
 import { AuditJobData, auditQueue } from "@/lib/audit";
 
 class AuditService {

@@ -1,4 +1,4 @@
-import { Order, OrderStatus, Prisma } from "@/../prisma/generated/client";
+import { Order, OrderStatus, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";

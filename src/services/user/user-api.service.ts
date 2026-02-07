@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { User } from "@/../prisma/generated/client";
+import { User } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
 import { updateUserSchema } from "@/validations/user.validation";
 
