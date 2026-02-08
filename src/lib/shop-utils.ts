@@ -17,11 +17,11 @@ function serializeMoney(value: unknown): string {
 
 export type ShopWithOwnerSerialized = Omit<
   ShopWithOwner,
-  "min_order_value" | "default_delivery_fee" | "default_platform_fee"
+  "min_order_value" | "default_delivery_fee" | "direct_delivery_fee"
 > & {
   min_order_value: string;
   default_delivery_fee: string;
-  default_platform_fee: string;
+  direct_delivery_fee: string;
 };
 
 export function isShopOpen(
@@ -57,7 +57,7 @@ export function formatShopData(shop: ShopWithOwner): ShopWithOwnerSerialized & {
     ...shop,
     min_order_value: serializeMoney(shop.min_order_value),
     default_delivery_fee: serializeMoney(shop.default_delivery_fee),
-    default_platform_fee: serializeMoney(shop.default_platform_fee),
+    direct_delivery_fee: serializeMoney(shop.direct_delivery_fee),
     user: {
       name: ownerName,
       email: shop.user ? shop.user.email : "Unknown Email",

@@ -22,7 +22,7 @@ export async function GET(
     const { order_id } = await params;
 
     const order = await prisma.order.findUnique({
-      where: { id: order_id },
+      where: { id: order_id, order_status: "COMPLETED" },
       include: {
         items: {
           include: {
@@ -107,8 +107,8 @@ export async function GET(
       customerNotes: order.customer_notes || undefined,
       items,
       subtotal,
-      deliveryFee: Number(order.delivery_fee),
-      platformFee: Number(order.platform_fee),
+      deliveryFee: Number(order.delivery_fee) || 0,
+      platformFee: Number(order.platform_fee) || 0,
       total: Number(order.total_price),
     };
 

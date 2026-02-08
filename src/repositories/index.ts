@@ -2,6 +2,7 @@ export { default as batchRepository } from "./batch.repository";
 export { default as cartRepository } from "./cart.repository";
 export { default as categoryRepository } from "./category.repository";
 export { default as orderRepository } from "./order.repository";
+export { default as platformSettingsRepository } from "./platform-settings.repository";
 export { default as productRepository } from "./product.repository";
 export { default as shopRepository } from "./shop.repository";
 export { default as userRepository } from "./user.repository";

@@ -28,9 +28,9 @@ export function useLinkShop() {
       qr_image: undefined,
       upi_id: "",
       min_order_value: 50,
-      batch_cards: [],
+      batch_slots: [],
       default_delivery_fee: 0,
-      default_platform_fee: 0,
+      direct_delivery_fee: 0,
     },
   });
 
@@ -92,9 +92,9 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
       qr_image_key: shop.qr_image_key || undefined,
       upi_id: shop.upi_id || "",
       min_order_value: Number(shop.min_order_value) || 50,
-      batch_cards: [],
+      batch_slots: [],
       default_delivery_fee: Number(shop.default_delivery_fee) || 0,
-      default_platform_fee: Number(shop.default_platform_fee) || 0,
+      direct_delivery_fee: Number(shop.direct_delivery_fee) || 0,
     },
   });
 

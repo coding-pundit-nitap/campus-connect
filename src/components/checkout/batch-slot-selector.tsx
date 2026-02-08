@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Timer } from "lucide-react";
+import { Clock, Package, Timer } from "lucide-react";
 import { useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -19,13 +19,20 @@ interface BatchSlotSelectorProps {
     id: string;
     cutoff_time_minutes: number;
     label: string | null;
+    is_today_available?: boolean;
   }[];
   selectedSlot: Date | null;
-  onSlotSelect: (slot: Date) => void;
+  isDirectDelivery?: boolean;
+  directDeliveryFee?: number;
+  onSlotSelect: (slot: Date | null) => void;
 }
 
 function buildUpcomingSlots(
-  configured: { cutoff_time_minutes: number; label: string | null }[]
+  configured: {
+    cutoff_time_minutes: number;
+    label: string | null;
+    is_today_available?: boolean;
+  }[]
 ): BatchSlot[] {
   const now = new Date();
   const today = new Date(now);
@@ -46,6 +53,11 @@ function buildUpcomingSlots(
       time.setMilliseconds(0);
 
       if (time.getTime() <= now.getTime()) continue;
+
+      const isToday = day.getDate() === today.getDate();
+      if (isToday && slot.is_today_available === false) {
+        continue;
+      }
 
       occurrences.push({
         time,
@@ -72,6 +84,8 @@ function buildUpcomingSlots(
 export function BatchSlotSelector({
   batchSlots,
   selectedSlot,
+  isDirectDelivery = false,
+  directDeliveryFee = 0,
   onSlotSelect,
 }: BatchSlotSelectorProps) {
   const slots = useMemo(() => buildUpcomingSlots(batchSlots), [batchSlots]);
@@ -117,7 +131,42 @@ export function BatchSlotSelector({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {slots.length === 0 && (
+        {/* Direct Delivery Option */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-muted-foreground">
+            Delivery Options
+          </p>
+          <Button
+            variant={isDirectDelivery ? "default" : "outline"}
+            size="sm"
+            className="w-full justify-start"
+            onClick={() => onSlotSelect(null)}
+          >
+            <Package className="h-3 w-3 mr-2" />
+            Direct Delivery
+            {directDeliveryFee > 0 && (
+              <span className="ml-auto text-xs">
+                +₹{directDeliveryFee.toFixed(2)}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        {/* Separator */}
+        {slots.length > 0 && (
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Or select a batch slot
+              </span>
+            </div>
+          </div>
+        )}
+
+        {slots.length === 0 && !isDirectDelivery && (
           <p className="text-sm text-muted-foreground">
             No upcoming batch slots available.
           </p>
@@ -159,7 +208,7 @@ export function BatchSlotSelector({
           </div>
         ))}
 
-        {selectedSlot && (
+        {selectedSlot && !isDirectDelivery && (
           <div className="p-3 bg-muted rounded-lg">
             <p className="text-sm">
               <span className="font-medium">Selected batch:</span>{" "}
@@ -171,6 +220,20 @@ export function BatchSlotSelector({
                 minute: "2-digit",
                 hour12: true,
               })}
+            </p>
+          </div>
+        )}
+
+        {isDirectDelivery && (
+          <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+            <p className="text-sm">
+              <span className="font-medium">Direct Delivery selected</span>
+              {directDeliveryFee > 0 && (
+                <span className="text-muted-foreground">
+                  {" "}
+                  (+₹{directDeliveryFee.toFixed(2)} extra)
+                </span>
+              )}
             </p>
           </div>
         )}

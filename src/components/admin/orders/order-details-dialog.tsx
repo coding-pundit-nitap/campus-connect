@@ -205,7 +205,23 @@ export function OrderDetailsDialog({
           <div className="space-y-2">
             <h3 className="font-semibold">Order Summary</h3>
             <div className="space-y-1">
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Item Total</span>
+                <span>₹{order.item_total}</span>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>
+                  Delivery Fee ({order.is_direct_delivery ? "Direct" : "Batch"})
+                </span>
+                <span>₹{order.delivery_fee}</span>
+              </div>
+              {Number(order.platform_fee) > 0 && (
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Platform Fee</span>
+                  <span>₹{order.platform_fee}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold pt-2 border-t mt-2">
                 <span>Total Amount</span>
                 <span>₹{order.total_price}</span>
               </div>

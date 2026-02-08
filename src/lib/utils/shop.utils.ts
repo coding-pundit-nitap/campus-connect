@@ -109,8 +109,8 @@ class ShopUIServices {
         required: false,
       },
       {
-        name: "default_platform_fee",
-        label: "Default Platform Fee (₹)",
+        name: "direct_delivery_fee",
+        label: "Direct Delivery Fee (₹)",
         type: "number",
         placeholder: "0",
         required: false,

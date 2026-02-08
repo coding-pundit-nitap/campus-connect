@@ -8,11 +8,13 @@ import {
 import {
   getCleanupStatsAction,
   getPlatformOverviewAction,
+  getPlatformSettingsAction,
   getSystemHealthAction,
 } from "@/actions/admin/settings-actions";
 import { User } from "@/auth";
 import { AdministratorInfoCard } from "@/components/admin/settings/administrator-info-card";
 import { CleanupCard } from "@/components/admin/settings/cleanup-card";
+import { PlatformFeeCard } from "@/components/admin/settings/platform-fee-card";
 import { PlatformOverviewCard } from "@/components/admin/settings/platform-overview-card";
 import { RecentActivityCard } from "@/components/admin/settings/recent-activity-card";
 import { SystemHealthCard } from "@/components/admin/settings/system-health-card";
@@ -30,6 +32,7 @@ export default async function AdminSettingsPage() {
   let systemHealth = null;
   let cleanupStats = null;
   let platformOverview = null;
+  let platformSettings = null;
   let auditStats = null;
   let recentActivity = null;
 
@@ -38,12 +41,14 @@ export default async function AdminSettingsPage() {
       healthResponse,
       cleanupResponse,
       overviewResponse,
+      settingsResponse,
       auditResponse,
       activityResponse,
     ] = await Promise.all([
       getSystemHealthAction(),
       getCleanupStatsAction(),
       getPlatformOverviewAction(),
+      getPlatformSettingsAction(),
       getAuditLogStatsAction(),
       getRecentAuditLogsAction(5),
     ]);
@@ -51,6 +56,7 @@ export default async function AdminSettingsPage() {
     if (healthResponse.success) systemHealth = healthResponse.data;
     if (cleanupResponse.success) cleanupStats = cleanupResponse.data;
     if (overviewResponse.success) platformOverview = overviewResponse.data;
+    if (settingsResponse.success) platformSettings = settingsResponse.data;
     if (auditResponse.success) auditStats = auditResponse.data;
     if (activityResponse.success) recentActivity = activityResponse.data;
   } catch {
@@ -75,6 +81,8 @@ export default async function AdminSettingsPage() {
       </div>
 
       {systemHealth && <SystemHealthCard systemHealth={systemHealth} />}
+
+      <PlatformFeeCard initialFee={platformSettings?.platform_fee ?? 0} />
 
       {platformOverview && (
         <PlatformOverviewCard platformOverview={platformOverview} />

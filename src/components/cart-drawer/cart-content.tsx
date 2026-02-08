@@ -15,7 +15,13 @@ export default function CartContent({ summary }: CartContentProps) {
   const tabItems: TabItem[] = shopCarts.map((cart, index) => ({
     value: index.toString(),
     label: cart.shop_name,
-    content: <CartItems cart_id={cart.id} items={cart.items} />,
+    content: (
+      <CartItems
+        cart_id={cart.id}
+        items={cart.items}
+        min_order_value={cart.min_order_value}
+      />
+    ),
   }));
 
   return (

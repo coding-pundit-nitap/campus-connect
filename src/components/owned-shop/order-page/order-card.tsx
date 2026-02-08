@@ -58,14 +58,6 @@ export default function OrderCard({
   const statusInfo = getOrderStatusInfo(order.order_status);
   const badgeStyle = STATUS_BADGE_VARIANTS[order.order_status];
 
-  const subtotal = order.items.reduce((acc, item) => {
-    return (
-      acc +
-      (item.price - (item.price * (item.product.discount || 0)) / 100) *
-        item.quantity
-    );
-  }, 0);
-
   return (
     <Card
       ref={lastElementRef}
@@ -135,7 +127,9 @@ export default function OrderCard({
               </div>
 
               <div className="flex items-center gap-6 lg:flex-col lg:items-end lg:gap-2">
-                <p className="font-bold text-xl">₹{subtotal.toFixed(2)}</p>
+                <p className="font-bold text-xl">
+                  ₹{order.total_price.toFixed(2)}
+                </p>
                 <Button
                   asChild
                   variant="ghost"

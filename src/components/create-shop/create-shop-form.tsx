@@ -32,8 +32,8 @@ export function CreateShopForm() {
     3: [
       "min_order_value",
       "default_delivery_fee",
-      "default_platform_fee",
-      "batch_cards",
+      "direct_delivery_fee",
+      "batch_slots",
     ] as const,
     4: ["image"] as const,
     5: ["qr_image", "upi_id"] as const,
@@ -225,7 +225,7 @@ export function CreateShopForm() {
 
                   <FormField
                     control={form.control}
-                    name="batch_cards"
+                    name="batch_slots"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Batch cards</FormLabel>
@@ -253,9 +253,10 @@ export function CreateShopForm() {
                             min={0}
                             step="1"
                             value={field.value ?? 0}
-                            onChange={(e) =>
-                              field.onChange(e.currentTarget.valueAsNumber)
-                            }
+                            onChange={(e) => {
+                              const value = e.currentTarget.valueAsNumber;
+                              field.onChange(isNaN(value) ? 0 : value);
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -265,21 +266,25 @@ export function CreateShopForm() {
 
                   <FormField
                     control={form.control}
-                    name="default_platform_fee"
+                    name="direct_delivery_fee"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Default Platform Fee (₹)</FormLabel>
+                        <FormLabel>Direct Delivery Fee (₹)</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
                             min={0}
                             step="1"
                             value={field.value ?? 0}
-                            onChange={(e) =>
-                              field.onChange(e.currentTarget.valueAsNumber)
-                            }
+                            onChange={(e) => {
+                              const value = e.currentTarget.valueAsNumber;
+                              field.onChange(isNaN(value) ? 0 : value);
+                            }}
                           />
                         </FormControl>
+                        <FormDescription>
+                          Extra fee charged for direct (non-batched) delivery
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

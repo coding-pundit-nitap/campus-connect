@@ -1,2 +1,7 @@
-export type { BatchInfo, BatchSummaryItem } from "./batch.service";
+export type {
+  BatchInfo,
+  BatchSlotWithAvailability,
+  BatchSummaryItem,
+  DirectOrderInfo,
+} from "./batch.service";
 export { batchService } from "./batch.service";

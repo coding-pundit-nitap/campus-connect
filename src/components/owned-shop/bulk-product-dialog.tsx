@@ -62,12 +62,15 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
         row[header] = values[index] || "";
       });
 
-      if (!row.name || !row.price) continue;
+      if (!row.name || row.price === "") continue;
+
+      const parsedPrice = Number(row.price);
+      if (Number.isNaN(parsedPrice)) continue;
 
       parsed.push({
         name: row.name,
         description: row.description,
-        price: parseFloat(row.price) || 0,
+        price: parsedPrice,
         stock_quantity: parseInt(row.stock_quantity || row.stock || "0") || 0,
         discount: row.discount ? parseFloat(row.discount) : undefined,
         category: row.category,

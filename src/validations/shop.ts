@@ -63,9 +63,9 @@ export const shopSchema = z.object({
   qr_image_key: qr_image_keySchema,
   upi_id: z.string(),
   min_order_value: minOrderValueSchema,
-  batch_cards: z.array(batchCardSchema).max(48),
+  batch_slots: z.array(batchCardSchema).max(48),
   default_delivery_fee: feeSchema,
-  default_platform_fee: feeSchema,
+  direct_delivery_fee: feeSchema,
 });
 
 export type ShopFormData = z.infer<typeof shopSchema>;

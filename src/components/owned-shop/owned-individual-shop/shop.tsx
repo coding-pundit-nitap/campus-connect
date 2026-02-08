@@ -229,7 +229,7 @@ export default function Shop() {
                 </Link>
               </Button>
               <Button asChild className="justify-start" variant="outline">
-                <Link href="/owner-shops/edit">
+                <Link href="/owner-shops/settings">
                   <Settings className="mr-2 h-4 w-4" />
                   Shop settings (MOV, fees)
                 </Link>

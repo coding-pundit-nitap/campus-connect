@@ -72,7 +72,7 @@ export default function ProductDetails({
   return (
     <div className={cn("space-y-6", className)}>
       <Link
-        href={(product.shop.id ? `/shop/${product.shop.id}` : "#") as Route}
+        href={(product.shop.id ? `/shops/${product.shop.id}` : "#") as Route}
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors group"
       >
         <Store className="h-4 w-4" />

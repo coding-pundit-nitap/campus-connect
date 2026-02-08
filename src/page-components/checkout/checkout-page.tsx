@@ -1,4 +1,4 @@
-import { CheckoutHeader, OrderSummary } from "@/components/checkout";
+import { CheckoutHeader } from "@/components/checkout";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { BackButton } from "@/components/shared/back-button";
 import { SharedCard } from "@/components/shared/shared-card";
@@ -13,8 +13,8 @@ export default async function CheckoutPageComponent({
   const {
     item_total,
     delivery_fee,
+    direct_delivery_fee,
     platform_fee,
-    total,
     cart,
     shop_id,
     shop_opening,
@@ -31,21 +31,15 @@ export default async function CheckoutPageComponent({
       >
         <CheckoutForm
           cart_id={cart_id}
-          total={total}
           shopOpening={shop_opening}
           shopClosing={shop_closing}
+          direct_delivery_fee={direct_delivery_fee}
+          deliveryFee={delivery_fee}
+          platformFee={platform_fee}
+          itemTotal={item_total}
+          items={cart.items}
           batchSlots={batch_slots}
         />
-
-        <div className="space-y-6">
-          <OrderSummary
-            items={cart.items}
-            itemTotal={item_total}
-            deliveryFee={delivery_fee}
-            platformFee={platform_fee}
-            total={total}
-          />
-        </div>
       </SharedCard>
     </div>
   );

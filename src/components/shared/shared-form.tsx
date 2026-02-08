@@ -129,8 +129,13 @@ export function SharedForm<T extends FieldValues>({
                       maxLength={field.maxLength}
                       onChange={(e) => {
                         if (field.type === "number") {
-                          const value = e.target.value;
-                          formField.onChange(value === "" ? 0 : Number(value));
+                          const rawValue = e.currentTarget.value;
+                          if (rawValue === "") {
+                            formField.onChange("");
+                            return;
+                          }
+                          const value = e.currentTarget.valueAsNumber;
+                          formField.onChange(Number.isNaN(value) ? "" : value);
                         } else {
                           formField.onChange(e);
                         }

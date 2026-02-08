@@ -24,10 +24,7 @@ export default function OrderDetailsCard({ order }: Props) {
 
       <div className="grid gap-6 md:grid-cols-2">
         <OrderDetailsInfo order={order} />
-        <OrderDetailsItems
-          items={order.items}
-          orderStatus={order.order_status as OrderStatus}
-        />
+        <OrderDetailsItems order={order} />
       </div>
 
       <OrderDetailsActions order={order} />

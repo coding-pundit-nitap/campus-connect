@@ -19,7 +19,7 @@ export type ShopUpdateFormShop = {
   upi_id: string;
   min_order_value: string | number;
   default_delivery_fee: string | number;
-  default_platform_fee: string | number;
+  direct_delivery_fee: string | number;
   user: {
     name: string;
     email: string;

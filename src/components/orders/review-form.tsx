@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Send, Star } from "lucide-react";
 import React, { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 import { useCreateReview, useUpdateReview } from "@/hooks";
@@ -89,7 +90,7 @@ export default function ReviewForm({
       );
     } else {
       if (!order_item_id) {
-        console.error("order_item_id is required for creating a review");
+        toast.error("Order item ID is required for creating a review");
         return;
       }
       createReview(

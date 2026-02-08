@@ -219,15 +219,16 @@ model Shop {
   upi_id              String
   qr_image_key        String
   is_active           Boolean                  @default(false)
+  accepting_orders    Boolean                  @default(true)
   pg_seller_id        String?                  @unique
   verification_status SellerVerificationStatus @default(NOT_STARTED)
   deleted_at          DateTime?
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
 
-  min_order_value      Decimal @default(50.00) @db.Decimal(10, 2)
-  default_delivery_fee Decimal @default(0) @db.Decimal(10, 2)
-  default_platform_fee Decimal @default(0) @db.Decimal(10, 2)
+  min_order_value       Decimal @default(50.00) @db.Decimal(10, 2)
+  default_delivery_fee  Decimal @default(0) @db.Decimal(10, 2)
+  direct_delivery_fee   Decimal @default(0) @db.Decimal(10, 2)
 
   products     Product[]
   orders       Order[]
@@ -381,9 +382,10 @@ model Order {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  assigned_to    String?
-  customer_notes String?
-  delivery_otp   String?
+  assigned_to        String?
+  customer_notes     String?
+  delivery_otp       String?
+  is_direct_delivery Boolean @default(false)
 
   // Relations
   user_id             String?
@@ -571,4 +573,16 @@ model StockWatch {
   @@unique([user_id, product_id])
   @@index([user_id])
   @@map("stock_watch")
+}
+
+// ----------------------------------------
+// Platform Settings (Global Admin Config)
+// ----------------------------------------
+
+model PlatformSettings {
+  id           String   @id @default("default")
+  platform_fee Decimal  @default(0) @db.Decimal(10, 2)
+  updated_at   DateTime @updatedAt
+
+  @@map("platform_settings")
 }

@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { UserAddress } from "@/components/checkout";
+import { OrderSummary, UserAddress } from "@/components/checkout";
 import { BatchSlotSelector } from "@/components/checkout/batch-slot-selector";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,13 +31,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUpdateUser } from "@/hooks";
 import { authClient, useSession } from "@/lib/auth-client";
+import { CartItemData } from "@/types";
 import { UserAddress as UserAddressType } from "@/types/prisma.types";
 
 interface CheckoutFormProps {
   cart_id: string;
-  total: number;
   shopOpening?: string;
   shopClosing?: string;
+  direct_delivery_fee?: number;
+  deliveryFee: number;
+  platformFee: number;
+  itemTotal: number;
+  items: CartItemData[];
   batchSlots?: {
     id: string;
     cutoff_time_minutes: number;
@@ -54,9 +59,13 @@ const phoneSchema = z.object({
 
 export function CheckoutForm({
   cart_id,
-  total,
   shopOpening,
   shopClosing,
+  direct_delivery_fee = 0,
+  deliveryFee = 0,
+  platformFee = 0,
+  itemTotal,
+  items,
   batchSlots = [],
 }: CheckoutFormProps) {
   const router = useRouter();
@@ -66,6 +75,7 @@ export function CheckoutForm({
     useState<UserAddressType | null>(null);
   const [requestedDeliveryTime, setRequestedDeliveryTime] =
     useState<Date | null>(null);
+  const [isDirectDelivery, setIsDirectDelivery] = useState(false);
   const [showPhoneDialog, setShowPhoneDialog] = useState(false);
 
   const { mutate: updateUser, isPending: isUpdatingPhone } = useUpdateUser();
@@ -77,8 +87,19 @@ export function CheckoutForm({
     },
   });
 
-  const handleSelectSlot = (date: Date) => {
-    setRequestedDeliveryTime(date);
+  const activeDeliveryFee = isDirectDelivery
+    ? direct_delivery_fee
+    : deliveryFee;
+  const total = itemTotal + activeDeliveryFee + platformFee;
+
+  const handleSelectSlot = (date: Date | null) => {
+    if (date === null) {
+      setIsDirectDelivery(true);
+      setRequestedDeliveryTime(null);
+    } else {
+      setIsDirectDelivery(false);
+      setRequestedDeliveryTime(date);
+    }
   };
 
   const handleAddressSelect = (address: UserAddressType) => {
@@ -88,13 +109,12 @@ export function CheckoutForm({
   const validateDeliveryTime = (): boolean => {
     const hasBatchCards = batchSlots.length > 0;
 
-    if (hasBatchCards && !requestedDeliveryTime) {
-      toast.error("Please select a batch slot");
+    if (hasBatchCards && !requestedDeliveryTime && !isDirectDelivery) {
+      toast.error("Please select a batch slot or direct delivery");
       return false;
     }
 
-    if (!requestedDeliveryTime) {
-      // Direct delivery (no batching)
+    if (isDirectDelivery || !requestedDeliveryTime) {
       return true;
     }
 
@@ -129,12 +149,14 @@ export function CheckoutForm({
       cart_id: string;
       delivery_address_id: string;
       requested_delivery_time?: string;
+      is_direct_delivery: boolean;
     } = {
       cart_id,
       delivery_address_id: selectedAddress!.id,
+      is_direct_delivery: isDirectDelivery,
     };
 
-    if (requestedDeliveryTime) {
+    if (requestedDeliveryTime && !isDirectDelivery) {
       checkoutData.requested_delivery_time =
         requestedDeliveryTime.toISOString();
     }
@@ -182,6 +204,8 @@ export function CheckoutForm({
               <BatchSlotSelector
                 batchSlots={batchSlots}
                 selectedSlot={requestedDeliveryTime}
+                isDirectDelivery={isDirectDelivery}
+                directDeliveryFee={direct_delivery_fee}
                 onSlotSelect={handleSelectSlot}
               />
             ) : (
@@ -198,7 +222,9 @@ export function CheckoutForm({
               onClick={handleProceedToPayment}
               disabled={
                 !selectedAddress ||
-                (batchSlots.length > 0 && !requestedDeliveryTime)
+                (batchSlots.length > 0 &&
+                  !requestedDeliveryTime &&
+                  !isDirectDelivery)
               }
               className="w-full"
               size="lg"
@@ -207,6 +233,17 @@ export function CheckoutForm({
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="space-y-6">
+        <OrderSummary
+          items={items}
+          itemTotal={itemTotal}
+          deliveryFee={activeDeliveryFee}
+          platformFee={platformFee}
+          total={total}
+          isDirectDelivery={isDirectDelivery}
+        />
       </div>
 
       <Dialog open={showPhoneDialog} onOpenChange={setShowPhoneDialog}>

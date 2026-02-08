@@ -11,9 +11,10 @@ import { CartItemContainer } from "./cart-item-container";
 interface CartItemsProps {
   items: CartItemData[];
   cart_id: string;
+  min_order_value: string;
 }
 
-export function CartItems({ items, cart_id }: CartItemsProps) {
+export function CartItems({ items, cart_id, min_order_value }: CartItemsProps) {
   const router = useRouter();
   const total_price = items.reduce(
     (acc, item) =>
@@ -48,7 +49,11 @@ export function CartItems({ items, cart_id }: CartItemsProps) {
           ))}
         </div>
       )}
-      <CartFooter total_price={total_price} onProceed={handlePlaceOrder} />
+      <CartFooter
+        total_price={total_price}
+        min_order_value={Number(min_order_value)}
+        onProceed={handlePlaceOrder}
+      />
     </div>
   );
 }

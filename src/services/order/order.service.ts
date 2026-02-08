@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
+import { platformSettingsRepository } from "@/repositories";
 import orderRepository from "@/repositories/order.repository";
 import { notificationService } from "@/services/notification/notification.service";
 
@@ -143,7 +144,8 @@ class OrderService {
     pg_payment_id?: string,
     requested_delivery_time?: Date,
     upi_transaction_id?: string,
-    customer_notes?: string
+    customer_notes?: string,
+    is_direct_delivery?: boolean
   ) {
     return prisma.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -161,7 +163,7 @@ class OrderService {
           name: true,
           min_order_value: true,
           default_delivery_fee: true,
-          default_platform_fee: true,
+          direct_delivery_fee: true,
           user: { select: { id: true } },
         },
       });
@@ -216,8 +218,12 @@ class OrderService {
         );
       }
 
-      const deliveryFee = Number(shop.default_delivery_fee) || 0;
-      const platformFee = Number(shop.default_platform_fee) || 0;
+      const baseDeliveryFee = Number(shop.default_delivery_fee) || 0;
+      const directDeliveryFee = is_direct_delivery
+        ? Number(shop.direct_delivery_fee) || 0
+        : 0;
+      const deliveryFee = baseDeliveryFee + directDeliveryFee;
+      const platformFee = await platformSettingsRepository.getPlatformFee();
       const totalPrice = itemTotal + deliveryFee + platformFee;
 
       const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
@@ -250,6 +256,7 @@ class OrderService {
           delivery_address_snapshot,
           requested_delivery_time,
           customer_notes,
+          is_direct_delivery: is_direct_delivery ?? false,
           items: {
             create: cart.items.map((item) => ({
               product_id: item.product_id,

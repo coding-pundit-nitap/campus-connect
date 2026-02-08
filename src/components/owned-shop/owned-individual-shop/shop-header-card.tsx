@@ -20,7 +20,6 @@ import { SellerVerificationStatus } from "@/types/prisma.types";
 
 import { ShopPaymentInfo } from "./shop-payment-info";
 import { ShopStatsCards } from "./shop-stats-cards";
-import { ShopStatusToggle } from "./shop-status-toggle";
 
 interface ShopHeaderCardProps {
   shop: ShopWithOwner;
@@ -74,7 +73,6 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <CardTitle className="text-2xl">{shop.name}</CardTitle>
-                <ShopStatusToggle shopId={shop.id} isActive={shop.is_active} />
               </div>
               <div className="flex items-center gap-2">
                 <Badge

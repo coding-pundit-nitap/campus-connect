@@ -29,6 +29,7 @@ export interface ShopCart {
   shop_name: string;
   qr_image_key: string;
   upi_id: string;
+  min_order_value: string;
 }
 
 export interface CartSummary {
@@ -56,7 +57,8 @@ export type SerializedFullCart = Cart & {
         opening: string;
         closing: string;
         default_delivery_fee: string;
-        default_platform_fee: string;
+        direct_delivery_fee: string;
+        min_order_value: string;
         batch_slots?: Pick<
           BatchSlot,
           "id" | "cutoff_time_minutes" | "label" | "sort_order" | "is_active"
@@ -79,7 +81,8 @@ export type FullCart = Cart & {
         opening: string;
         closing: string;
         default_delivery_fee: Prisma.Decimal;
-        default_platform_fee: Prisma.Decimal;
+        direct_delivery_fee: Prisma.Decimal;
+        min_order_value: Prisma.Decimal;
         batch_slots: Pick<
           BatchSlot,
           "id" | "cutoff_time_minutes" | "label" | "sort_order" | "is_active"

@@ -8,6 +8,5 @@ export function useVendorOverview() {
   return useQuery({
     queryKey: queryKeys.seller.overview(),
     queryFn: vendorApiService.getVendorOverview,
-    refetchInterval: 60000,
   });
 }

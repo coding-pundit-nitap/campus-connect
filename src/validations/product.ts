@@ -7,9 +7,9 @@ const nameSchema = z
 
 const descriptionSchema = z.string().optional();
 
-const priceSchema = z.number().positive("Price must be a positive number");
+const priceSchema = z.number().min(0, "Price must be a positive number");
 
-const stockQuantitySchema = z.number().int().min(0, "Stock cannot be negative");
+const stockQuantitySchema = z.number().min(0, "Stock cannot be negative");
 
 const image_keySchema = z.string().min(1, "An image is required.");
 

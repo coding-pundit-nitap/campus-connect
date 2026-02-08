@@ -18,7 +18,8 @@ export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
               opening: true,
               closing: true,
               default_delivery_fee: true,
-              default_platform_fee: true,
+              direct_delivery_fee: true,
+              min_order_value: true,
               batch_slots: {
                 where: { is_active: true },
                 select: {

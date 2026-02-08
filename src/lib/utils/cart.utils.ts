@@ -51,6 +51,7 @@ class CartDrawerServices {
       shop_name,
       qr_image_key: cart.items[0].product.shop.qr_image_key,
       upi_id: cart.items[0].product.shop.upi_id,
+      min_order_value: cart.items[0].product.shop.min_order_value,
     };
   };
 

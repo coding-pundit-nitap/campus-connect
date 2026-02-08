@@ -4,8 +4,10 @@ import {
   ForbiddenError,
   InternalServerError,
   UnauthorizedError,
+  ValidationError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { platformSettingsRepository } from "@/repositories";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
@@ -305,5 +307,71 @@ export async function getPlatformOverviewAction(): Promise<
       throw error;
     }
     throw new InternalServerError("Failed to get platform overview.");
+  }
+}
+
+/**
+ * Get current platform settings including global platform fee.
+ */
+export async function getPlatformSettingsAction(): Promise<
+  ActionResponse<{ platform_fee: number }>
+> {
+  try {
+    await verifyAdmin();
+
+    const platformFee = await platformSettingsRepository.getPlatformFee();
+
+    return createSuccessResponse(
+      { platform_fee: platformFee },
+      "Platform settings retrieved"
+    );
+  } catch (error) {
+    console.error("GET PLATFORM SETTINGS ERROR:", error);
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to get platform settings.");
+  }
+}
+
+/**
+ * Update global platform fee (admin only).
+ */
+export async function updatePlatformFeeAction(
+  fee: number
+): Promise<ActionResponse<{ platform_fee: number }>> {
+  try {
+    const adminId = await verifyAdmin();
+
+    if (typeof fee !== "number" || fee < 0) {
+      throw new ValidationError("Platform fee must be a non-negative number.");
+    }
+
+    const settings = await platformSettingsRepository.updatePlatformFee(fee);
+
+    await prisma.adminAuditLog.create({
+      data: {
+        admin_id: adminId,
+        action: "ORDER_STATUS_OVERRIDE",
+        target_type: "PLATFORM_SETTINGS",
+        target_id: "default",
+        details: { new_platform_fee: fee },
+      },
+    });
+
+    return createSuccessResponse(
+      { platform_fee: Number(settings.platform_fee) },
+      "Platform fee updated successfully"
+    );
+  } catch (error) {
+    console.error("UPDATE PLATFORM FEE ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof ValidationError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to update platform fee.");
   }
 }

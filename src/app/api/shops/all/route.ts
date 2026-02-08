@@ -11,8 +11,6 @@ import {
 } from "@/types/response.types";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   try {
     const searchParams = Object.fromEntries(new URL(request.url).searchParams);
