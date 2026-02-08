@@ -1,0 +1,222 @@
+groups:
+  - name: service_alerts
+    rules:
+      - alert: NextJSAppDown
+        expr: up{job="nextjs-app"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Next.js application is down"
+          description: "The Campus Connect Next.js application has been unreachable for more than 2 minutes."
+
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL exporter is not responding, indicating the database may be down."
+
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis exporter is not responding, indicating Redis may be down."
+
+      - alert: MinIODown
+        expr: up{job="minio"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MinIO is down"
+          description: "MinIO storage service has been down for more than 2 minutes."
+
+  - name: resource_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 85% for more than 5 minutes on {{ $labels.instance }}."
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is above 95% for more than 3 minutes on {{ $labels.instance }}."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes."
+
+      - alert: CriticalMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is above 95%. System may start swapping or killing processes."
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk space is running low"
+          description: "Disk usage is above 85% on {{ $labels.mountpoint }}."
+
+  - name: container_alerts
+    rules:
+      - alert: ContainerRestarting
+        expr: rate(container_start_time_seconds{name!=""}[15m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container is restarting frequently"
+          description: "Container {{ $labels.name }} is restarting frequently."
+
+      - alert: ContainerHighMemory
+        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container memory usage is high"
+          description: "Container {{ $labels.name }} is using more than 90% of its memory limit."
+
+      - alert: ContainerOOMKilled
+        expr: increase(container_memory_failcnt{name!=""}[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container experiencing OOM events"
+          description: "Container {{ $labels.name }} has experienced out-of-memory events."
+
+  - name: database_alerts
+    rules:
+      - alert: PostgreSQLTooManyConnections
+        expr: sum by(instance) (pg_stat_activity_count) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL has too many connections"
+          description: "PostgreSQL instance {{ $labels.instance }} has {{ $value }} active connections."
+
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "PostgreSQL replication lag is high"
+          description: "Replication lag is {{ $value }} seconds on {{ $labels.instance }}."
+
+  - name: redis_alerts
+    rules:
+      - alert: RedisMemoryHigh
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value }}% of its configured max memory."
+
+      - alert: RedisMemoryCritical
+        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis memory usage is critical"
+          description: "Redis is using {{ $value }}% of its configured max memory. May start evicting keys."
+
+      - alert: RedisHighClients
+        expr: redis_connected_clients > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis client count is high"
+          description: "Redis has {{ $value }} connected clients."
+
+      - alert: RedisEvictedKeys
+        expr: rate(redis_evicted_keys_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Redis is evicting keys"
+          description: "Redis is evicting {{ $value }} keys per second due to memory pressure."
+
+  - name: application_alerts
+    rules:
+      - alert: HighHTTPErrorRate
+        expr: (sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "HTTP 5xx error rate is {{ $value }}% over the last 5 minutes."
+
+      - alert: HighHTTPLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP request latency"
+          description: "95th percentile of HTTP request duration is {{ $value }}s."
+
+      - alert: HighAuthenticationFailureRate
+        expr: rate(authentication_attempts_total{status="failed"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value }} per second. Possible brute force attack."
+
+  - name: minio_alerts
+    rules:
+      - alert: MinIODiskUsageHigh
+        expr: (minio_cluster_capacity_usable_free_bytes / minio_cluster_capacity_usable_total_bytes) * 100 < 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MinIO disk usage is high"
+          description: "MinIO has less than 20% free disk space available."
+
+      - alert: MinIONodeOffline
+        expr: minio_cluster_nodes_offline_total > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MinIO node is offline"
+          description: "{{ $value }} MinIO node(s) are offline."
+

@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: "Campus Connect Dashboards"
+    orgId: 1
+    folder: "Campus Connect"
+    folderUid: "campus-connect"
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

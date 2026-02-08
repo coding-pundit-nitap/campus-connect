@@ -1,0 +1,35 @@
+{
+  "uid": "nextjs-app",
+  "title": "Next.js Application",
+  "tags": ["nextjs", "application"],
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Application Up",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "up{job=\"nextjs-app\"}"
+        }
+      ],
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Latency (p95)",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_request_duration_seconds_bucket[5m])))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      },
+      "gridPos": { "x": 6, "y": 0, "w": 18, "h": 8 }
+    }
+  ]
+}

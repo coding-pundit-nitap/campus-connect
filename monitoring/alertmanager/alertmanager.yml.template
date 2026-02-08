@@ -1,0 +1,65 @@
+global:
+  smtp_smarthost: 'SMTP_HOST_PLACEHOLDER:SMTP_PORT_PLACEHOLDER'
+  smtp_from: 'ALERT_EMAIL_FROM_PLACEHOLDER'
+  smtp_auth_username: 'SMTP_USERNAME_PLACEHOLDER'
+  smtp_auth_password: 'SMTP_PASSWORD_PLACEHOLDER'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'email-notifications'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'email-critical'
+      repeat_interval: 1h
+    - match:
+        severity: warning
+      receiver: 'email-notifications'
+      repeat_interval: 4h
+
+receivers:
+  - name: 'email-notifications'
+    email_configs:
+      - to: 'ALERT_EMAIL_TO_PLACEHOLDER'
+        send_resolved: true
+        headers:
+          subject: '[Campus Connect] {{ .Status | toUpper }} - {{ .CommonLabels.alertname }}'
+        html: |
+          {{ range .Alerts }}
+          <h3>{{ .Status | toUpper }}: {{ .Labels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Severity:</strong> {{ .Labels.severity }}</p>
+          <p><strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          {{ if .EndsAt }}
+          <p><strong>Ended:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          {{ end }}
+          <hr>
+          {{ end }}
+
+  - name: 'email-critical'
+    email_configs:
+      - to: 'ALERT_EMAIL_TO_PLACEHOLDER'
+        send_resolved: true
+        headers:
+          subject: '[CRITICAL] Campus Connect Alert - {{ .CommonLabels.alertname }}'
+        html: |
+          <h2 style="color: red;">🚨 CRITICAL ALERT</h2>
+          {{ range .Alerts }}
+          <h3>{{ .Labels.alertname }}</h3>
+          <p><strong>Summary:</strong> {{ .Annotations.summary }}</p>
+          <p><strong>Description:</strong> {{ .Annotations.description }}</p>
+          <p><strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          <hr>
+          {{ end }}
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
