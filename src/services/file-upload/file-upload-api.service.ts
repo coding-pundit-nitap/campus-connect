@@ -11,18 +11,21 @@ class FileUploadAPIService {
     file: File,
     prefix?: string
   ): Promise<PresignedUrlResponse> {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/upload`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        fileName: file.name,
-        fileType: file.type,
-        fileSize: file.size,
-        prefix,
-      }),
-    });
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL || "/api"}/upload`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+          prefix,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new InternalServerError("Failed to contact the upload API.");
