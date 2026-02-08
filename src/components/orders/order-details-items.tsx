@@ -8,26 +8,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useOrderItemReview } from "@/hooks/queries/useOrderItemReview";
 import { ImageUtils } from "@/lib/utils";
-import { SerializedOrderItemWithProduct } from "@/types";
-import { OrderStatus } from "@/types/prisma.types";
+import {
+  SerializedOrderItemWithProduct,
+  SerializedOrderWithDetails,
+} from "@/types";
 
 import SharedDialog from "../shared/shared-dialog";
 import ReviewForm from "./review-form";
 
 type Props = {
-  items: SerializedOrderItemWithProduct[];
-  orderStatus: OrderStatus;
+  order: SerializedOrderWithDetails;
 };
 
-export default function OrderDetailsItems({ items, orderStatus }: Props) {
-  const isCompleted = orderStatus === "COMPLETED";
-  const subTotal = items.reduce(
-    (sum, item) =>
-      sum +
-      (item.price - (item.price * (item.product.discount || 0)) / 100) *
-        item.quantity,
-    0
-  );
+export default function OrderDetailsItems({ order }: Props) {
+  const {
+    items,
+    order_status,
+    item_total,
+    delivery_fee,
+    platform_fee,
+    total_price,
+    is_direct_delivery,
+  } = order;
+  const isCompleted = order_status === "COMPLETED";
 
   return (
     <Card className="col-span-1 py-4">
@@ -43,9 +46,27 @@ export default function OrderDetailsItems({ items, orderStatus }: Props) {
               isCompleted={isCompleted}
             />
           ))}
-          <div className="flex items-center justify-between pt-2 font-bold">
-            <span>Total</span>
-            <span>₹{subTotal.toFixed(2)}</span>
+          <div className="space-y-2 pt-4 border-t">
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>Item Total</span>
+              <span>₹{item_total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-muted-foreground">
+              <span>
+                Delivery Fee ({is_direct_delivery ? "Direct" : "Batch"})
+              </span>
+              <span>₹{delivery_fee.toFixed(2)}</span>
+            </div>
+            {platform_fee > 0 && (
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Platform Fee</span>
+                <span>₹{platform_fee.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-2 font-bold text-base border-t mt-2">
+              <span>Total Amount</span>
+              <span>₹{total_price.toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -103,9 +124,7 @@ function OrderDetailsItem({
           showCloseButton={false}
           open={dialogOpen}
           onOpenChange={setDialogOpen}
-          title={`${
-            existingReview ? "Update" : "Write"
-          } Review: ${item.product.name}`}
+          title={`${existingReview ? "Update" : "Write"} Review: ${item.product.name}`}
           trigger={
             <Button
               variant="outline"

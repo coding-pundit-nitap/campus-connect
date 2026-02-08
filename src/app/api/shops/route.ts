@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { formatShopData } from "@/lib/shop-utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
 import {
@@ -25,13 +26,7 @@ export async function GET() {
       });
     }
 
-    const { user, ...shopData } = shopWithUser;
-    const shop = {
-      ...shopData,
-      user: user
-        ? { name: user.name, email: user.email }
-        : { name: "Unknown", email: "Unknown" },
-    };
+    const shop = formatShopData(shopWithUser);
 
     const successResponse = createSuccessResponse(
       shop,

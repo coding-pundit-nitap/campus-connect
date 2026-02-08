@@ -1,12 +1,8 @@
 "use client";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { toggleShopStatusAction } from "@/actions/shops/toggle-status-action";
+import { toggleAcceptingOrdersAction } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 import { shopAPIService } from "@/services/shop";
@@ -37,18 +33,14 @@ export const useAllShops = ({ initialData, initialNextCursor }: Props) => {
   });
 };
 
-export const useToggleShopStatus = (shopId: string) => {
-  const queryClient = useQueryClient();
-
+export function useToggleAcceptingOrders() {
   return useMutation({
-    mutationFn: () => toggleShopStatusAction(shopId),
-    onSuccess: (response) => {
-      toast.success(response.details);
-      queryClient.invalidateQueries({ queryKey: queryKeys.shops.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.shops.byUser() });
+    mutationFn: toggleAcceptingOrdersAction,
+    onSuccess: () => {
+      toast.success("Shop accepting orders toggled successfully");
     },
-    onError: (error) => {
-      toast.error(error.message || "Failed to toggle shop status");
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to toggle shop accepting orders");
     },
   });
-};
+}

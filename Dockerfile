@@ -77,9 +77,9 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/worker --shell /bin/false worker
 
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=worker-builder /app/dist ./dist
-COPY --from=deps /app/workers/generated ./workers/generated
+COPY --from=prod-deps --chown=worker:nodejs /app/node_modules ./node_modules
+COPY --from=worker-builder --chown=worker:nodejs /app/dist ./dist
+COPY --from=deps --chown=worker:nodejs /app/workers/generated ./workers/generated
 
 USER worker
 ENTRYPOINT ["dumb-init", "--"]
@@ -91,11 +91,11 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/migrator --shell /bin/false migrator
 
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=deps /app/src/generated ./src/generated
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma
-COPY prisma.config.ts ./prisma.config.ts
+COPY --from=prod-deps --chown=migrator:nodejs /app/node_modules ./node_modules
+COPY --from=deps --chown=migrator:nodejs /app/src/generated ./src/generated
+COPY --chown=migrator:nodejs package.json pnpm-lock.yaml ./
+COPY --chown=migrator:nodejs prisma ./prisma
+COPY --chown=migrator:nodejs prisma.config.ts ./prisma.config.ts
 
 USER migrator
 CMD ["pnpm", "prisma", "migrate", "deploy"]

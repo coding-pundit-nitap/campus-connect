@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { OrderSummary } from "@/components/checkout";
 import { SharedCard } from "@/components/shared/shared-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,21 +12,30 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCreateOrder } from "@/hooks";
 import { ImageUtils } from "@/lib/utils";
+import { CartItemData } from "@/types";
 import { PaymentMethod } from "@/types/prisma.types";
 
 interface PaymentFormProps {
   cart_id: string;
   shop_id: string;
-  total: number;
   qr_image_key: string;
   upi_id?: string;
+  item_total: number;
+  delivery_fee: number;
+  direct_delivery_fee: number;
+  platform_fee: number;
+  items: CartItemData[];
 }
 export function PaymentForm({
   cart_id,
-  total,
   shop_id,
   qr_image_key,
   upi_id,
+  item_total,
+  delivery_fee,
+  direct_delivery_fee,
+  platform_fee,
+  items,
 }: PaymentFormProps) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
@@ -36,6 +46,7 @@ export function PaymentForm({
   const [checkoutData, setCheckoutData] = useState<{
     delivery_address_id: string;
     requested_delivery_time?: string;
+    is_direct_delivery: boolean;
   } | null>(null);
   const [isCheckoutDataReady, setIsCheckoutDataReady] = useState(false);
   const hasRedirectedRef = useRef(false);
@@ -81,6 +92,7 @@ export function PaymentForm({
 
       const delivery_address_id = anyParsed.delivery_address_id;
       const requested_delivery_time = anyParsed.requested_delivery_time;
+      const is_direct_delivery = anyParsed.is_direct_delivery === true;
 
       if (
         typeof delivery_address_id !== "string" ||
@@ -98,6 +110,7 @@ export function PaymentForm({
       setTimeout(() => {
         setCheckoutData({
           delivery_address_id,
+          is_direct_delivery,
           ...(typeof requested_delivery_time === "string"
             ? { requested_delivery_time }
             : {}),
@@ -140,6 +153,7 @@ export function PaymentForm({
         shop_id,
         payment_method: paymentMethod,
         delivery_address_id: checkoutData.delivery_address_id,
+        is_direct_delivery: checkoutData.is_direct_delivery,
         ...(checkoutData.requested_delivery_time
           ? {
               requested_delivery_time: new Date(
@@ -172,117 +186,139 @@ export function PaymentForm({
   if (!checkoutData) {
     return null;
   }
-  return (
-    <div className="space-y-6">
-      <SharedCard className="px-0" title="Payment Method">
-        <RadioGroup
-          value={paymentMethod}
-          onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
-        >
-          <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-accent">
-            <RadioGroupItem value="CASH" id="cash" />
-            <Label htmlFor="cash" className="flex-1 cursor-pointer">
-              <div className="font-medium">Cash on Delivery</div>
-              <div className="text-sm text-muted-foreground">
-                Pay with cash when your order arrives
-              </div>
-            </Label>
-          </div>
+  const deliveryFee = checkoutData.is_direct_delivery
+    ? direct_delivery_fee
+    : delivery_fee;
 
-          <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-accent">
-            <RadioGroupItem value="ONLINE" id="online" />
-            <Label htmlFor="online" className="flex-1 cursor-pointer">
-              <div className="font-medium">UPI Payment</div>
-              <div className="text-sm text-muted-foreground">
-                Pay online via UPI (PhonePe, Google Pay, Paytm, etc.)
-              </div>
-            </Label>
-          </div>
-        </RadioGroup>
-        {paymentMethod === "ONLINE" && (
-          <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
-            <div className="space-y-2">
-              <h4 className="font-medium">UPI Payment Details</h4>
-              <p className="text-sm text-muted-foreground">
-                Scan the QR code below or use UPI ID to make payment
-              </p>
+  const total = item_total + deliveryFee + platform_fee;
+
+  return (
+    <>
+      <div className="space-y-6">
+        <SharedCard className="px-0" title="Payment Method">
+          <RadioGroup
+            value={paymentMethod}
+            onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+          >
+            <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-accent">
+              <RadioGroupItem value="CASH" id="cash" />
+              <Label htmlFor="cash" className="flex-1 cursor-pointer">
+                <div className="font-medium">Cash on Delivery</div>
+                <div className="text-sm text-muted-foreground">
+                  Pay with cash when your order arrives
+                </div>
+              </Label>
             </div>
 
-            <div className="flex justify-center p-4 bg-white rounded-lg">
-              <div className="text-center space-y-2">
-                <Image
-                  src={ImageUtils.getImageUrl(qr_image_key)}
-                  alt="QR for Payment"
-                  width={192}
-                  height={192}
-                />
-                {upi_id && (
-                  <p className="text-sm text-muted-foreground font-medium">
-                    UPI ID: {upi_id}
-                  </p>
-                )}
+            <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-accent">
+              <RadioGroupItem value="ONLINE" id="online" />
+              <Label htmlFor="online" className="flex-1 cursor-pointer">
+                <div className="font-medium">UPI Payment</div>
+                <div className="text-sm text-muted-foreground">
+                  Pay online via UPI (PhonePe, Google Pay, Paytm, etc.)
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+          {paymentMethod === "ONLINE" && (
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <div className="space-y-2">
+                <h4 className="font-medium">UPI Payment Details</h4>
                 <p className="text-sm text-muted-foreground">
-                  Amount: ₹{total.toFixed(2)}
+                  Scan the QR code below or use UPI ID to make payment
+                </p>
+              </div>
+
+              <div className="flex justify-center p-4 bg-white rounded-lg">
+                <div className="text-center space-y-2">
+                  <Image
+                    src={ImageUtils.getImageUrl(qr_image_key)}
+                    alt="QR for Payment"
+                    width={192}
+                    height={192}
+                  />
+                  {upi_id && (
+                    <p className="text-sm text-muted-foreground font-medium">
+                      UPI ID: {upi_id}
+                    </p>
+                  )}
+                  <p className="text-sm text-muted-foreground">
+                    Amount: ₹{total.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="transaction-id">
+                  Transaction ID <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="transaction-id"
+                  placeholder="Enter UPI transaction ID"
+                  value={upiTransactionId}
+                  onChange={(e) => setUpiTransactionId(e.target.value)}
+                  disabled={isPending}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Enter the transaction ID from your payment app (alphanumeric,
+                  min 10 characters)
                 </p>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="transaction-id">
-                Transaction ID <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="transaction-id"
-                placeholder="Enter UPI transaction ID"
-                value={upiTransactionId}
-                onChange={(e) => setUpiTransactionId(e.target.value)}
-                disabled={isPending}
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter the transaction ID from your payment app (alphanumeric,
-                min 10 characters)
+          )}
+        </SharedCard>
+        <SharedCard className="px-0">
+          <div className="text-sm text-muted-foreground space-y-1">
+            <div className="pb-4">
+              <p>
+                • Delivery:{" "}
+                {checkoutData.is_direct_delivery
+                  ? "Direct Delivery (ASAP)"
+                  : new Date(
+                      checkoutData.requested_delivery_time || ""
+                    ).toLocaleString()}
               </p>
+              {paymentMethod === "CASH" && (
+                <p>• Payment will be collected on delivery</p>
+              )}
+              {paymentMethod === "ONLINE" && (
+                <p>• Payment verification may take a few minutes</p>
+              )}
             </div>
           </div>
-        )}
-      </SharedCard>
-      <SharedCard className="px-0">
-        <div className="text-sm text-muted-foreground space-y-1">
-          <p>
-            • Delivery time:{" "}
-            {new Date(
-              checkoutData.requested_delivery_time || ""
-            ).toLocaleString()}
-          </p>
-          {paymentMethod === "CASH" && (
-            <p>• Payment will be collected on delivery</p>
-          )}
-          {paymentMethod === "ONLINE" && (
-            <p>• Payment verification may take a few minutes</p>
-          )}
-        </div>
 
-        <Button
-          onClick={handlePlaceOrder}
-          disabled={
-            isPending ||
-            (paymentMethod === "ONLINE" && !upiTransactionId.trim())
-          }
-          className="w-full"
-          size="lg"
-        >
-          {isPending ? "Processing..." : `Place Order - ₹${total.toFixed(2)}`}
-        </Button>
+          <Button
+            onClick={handlePlaceOrder}
+            disabled={
+              isPending ||
+              (paymentMethod === "ONLINE" && !upiTransactionId.trim())
+            }
+            className="w-full"
+            size="lg"
+          >
+            {isPending ? "Processing..." : `Place Order - ₹${total.toFixed(2)}`}
+          </Button>
 
-        <Button
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isPending}
-          className="w-full"
-        >
-          Back to Checkout
-        </Button>
-      </SharedCard>
-    </div>
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isPending}
+            className="w-full"
+          >
+            Back to Checkout
+          </Button>
+        </SharedCard>
+      </div>
+      <div className="space-y-6">
+        <OrderSummary
+          items={items}
+          itemTotal={item_total}
+          deliveryFee={deliveryFee}
+          platformFee={platform_fee}
+          total={total}
+          isDirectDelivery={checkoutData.is_direct_delivery}
+        />
+      </div>
+    </>
   );
 }

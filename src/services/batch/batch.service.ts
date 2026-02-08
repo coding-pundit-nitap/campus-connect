@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 
-import { BatchStatus } from "@/generated/client";
+import { BatchSlot, BatchStatus } from "@/generated/client";
 import { NotFoundError } from "@/lib/custom-error";
 import {
   addZonedDays,
@@ -31,6 +31,7 @@ export interface BatchInfo {
   orders?: {
     id: string;
     display_id: string;
+    status: string;
     delivery_address?: {
       hostel_block: string | null;
       label: string;
@@ -40,7 +41,75 @@ export interface BatchInfo {
   }[];
 }
 
+export interface DirectOrderInfo {
+  id: string;
+  display_id: string;
+  status: string;
+  item_total: number;
+  delivery_fee: number;
+  platform_fee: number;
+  total_earnings: number;
+  created_at: Date;
+  delivery_address?: {
+    hostel_block: string | null;
+    label: string;
+    building: string;
+    room_number: string;
+  } | null;
+}
+
+export interface BatchSlotWithAvailability extends BatchSlot {
+  is_today_available: boolean;
+}
+
 class BatchService {
+  async getBatchSlotsWithAvailability(
+    shopId: string
+  ): Promise<BatchSlotWithAvailability[]> {
+    const allSlots = await batchRepository.findActiveSlots(shopId);
+
+    const now = new Date();
+    const nowZoned = getZonedParts(now, APP_TIME_ZONE);
+    const todayStart = zonedPartsToUtcDate(
+      { ...nowZoned, hour: 0, minute: 0, second: 0 },
+      APP_TIME_ZONE
+    );
+    const todayEnd = zonedPartsToUtcDate(
+      { ...nowZoned, hour: 23, minute: 59, second: 59 },
+      APP_TIME_ZONE
+    );
+
+    const todayBatches = await batchRepository.findBatchesByTimeRange(
+      shopId,
+      todayStart,
+      todayEnd
+    );
+
+    return allSlots.map((slot) => {
+      const slotCutoffToday = zonedPartsToUtcDate(
+        {
+          ...nowZoned,
+          hour: Math.floor(slot.cutoff_time_minutes / 60),
+          minute: slot.cutoff_time_minutes % 60,
+          second: 0,
+        },
+        APP_TIME_ZONE
+      );
+
+      const existingBatch = todayBatches.find(
+        (b) =>
+          Math.abs(b.cutoff_time.getTime() - slotCutoffToday.getTime()) < 1000
+      );
+
+      let is_today_available = true;
+      if (existingBatch && existingBatch.status !== "OPEN") {
+        is_today_available = false;
+      }
+
+      return { ...slot, is_today_available };
+    });
+  }
+
   private async getActiveSlots(
     shopId: string
   ): Promise<
@@ -177,6 +246,7 @@ class BatchService {
   async getVendorDashboard(shopId: string): Promise<{
     open_batch: BatchInfo | null;
     active_batches: BatchInfo[];
+    direct_orders: DirectOrderInfo[];
   }> {
     const openBatch = await batchRepository.findOpenBatchByShopId(shopId, {
       include: {
@@ -184,6 +254,7 @@ class BatchService {
           select: {
             id: true,
             display_id: true,
+            order_status: true,
             item_total: true,
             delivery_fee: true,
             platform_fee: true,
@@ -207,6 +278,7 @@ class BatchService {
             id: true,
             display_id: true,
             item_total: true,
+            order_status: true,
             delivery_fee: true,
             platform_fee: true,
             delivery_address: {
@@ -247,6 +319,7 @@ class BatchService {
       batchInfo.orders = batch.orders.map((order) => ({
         id: order.id,
         display_id: order.display_id,
+        status: order.order_status,
         delivery_address: order.delivery_address,
       }));
 
@@ -266,9 +339,54 @@ class BatchService {
       }
     }
 
+    const directOrdersRaw = await orderRepository.getOrdersByIds([], {
+      where: {
+        shop_id: shopId,
+        is_direct_delivery: true,
+        order_status: { in: ["NEW", "OUT_FOR_DELIVERY"] },
+      },
+      select: {
+        id: true,
+        display_id: true,
+        order_status: true,
+        item_total: true,
+        delivery_fee: true,
+        platform_fee: true,
+        created_at: true,
+        delivery_address: {
+          select: {
+            hostel_block: true,
+            label: true,
+            building: true,
+            room_number: true,
+          },
+        },
+      },
+      orderBy: { created_at: "asc" },
+    });
+
+    const directOrders: DirectOrderInfo[] = directOrdersRaw.map((order) => ({
+      id: order.id,
+      display_id: order.display_id,
+      status: order.order_status,
+      item_total: Number(order.item_total),
+      delivery_fee: Number(order.delivery_fee),
+      platform_fee: Number(order.platform_fee),
+      total_earnings:
+        Math.round(
+          (Number(order.item_total) +
+            Number(order.delivery_fee) -
+            Number(order.platform_fee)) *
+            100
+        ) / 100,
+      created_at: order.created_at,
+      delivery_address: order.delivery_address,
+    }));
+
     return {
       open_batch: formattedOpenBatch,
       active_batches: formattedActiveBatches,
+      direct_orders: directOrders,
     };
   }
 
@@ -353,6 +471,7 @@ class BatchService {
         order_status: true,
         shop_id: true,
         batch_id: true,
+        payment_method: true,
       },
     });
 
@@ -377,6 +496,10 @@ class BatchService {
       actual_delivery_time: new Date(),
       delivery_otp: null,
     });
+
+    if (order.payment_method === "CASH") {
+      await orderRepository.updateStatus(orderId, "COMPLETED");
+    }
 
     return { success: true, message: "Order delivered successfully" };
   }

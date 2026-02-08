@@ -81,7 +81,7 @@ export async function createProductAction(
 
     const serializedProduct = serializeProduct(newProduct);
 
-    revalidatePath(`/shop/${shop_id}`);
+    revalidatePath(`/shops/${shop_id}`);
 
     return createSuccessResponse(
       serializedProduct,
@@ -190,7 +190,7 @@ export async function updateProductAction(
 
     const serializedProduct = serializeProduct(updatedProduct);
 
-    revalidatePath(`/shop/${updatedProduct.shop_id}`);
+    revalidatePath(`/shops/${updatedProduct.shop_id}`);
 
     return createSuccessResponse(
       serializedProduct,
@@ -319,7 +319,7 @@ export async function bulkCreateProductsAction(
       createdProducts.push({ id: newProduct.id, name: newProduct.name });
     }
 
-    revalidatePath(`/shop/${shop_id}`);
+    revalidatePath(`/shops/${shop_id}`);
 
     return createSuccessResponse(
       {

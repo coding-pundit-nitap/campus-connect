@@ -53,9 +53,9 @@ export async function createShopAction(formData: ShopActionFormData) {
       qr_image,
       upi_id,
       min_order_value,
-      batch_cards,
+      batch_slots,
       default_delivery_fee,
-      default_platform_fee,
+      direct_delivery_fee,
     } = parsedData.data;
 
     let image_key = "";
@@ -101,15 +101,15 @@ export async function createShopAction(formData: ShopActionFormData) {
       upi_id,
       min_order_value,
       default_delivery_fee,
-      default_platform_fee,
+      direct_delivery_fee,
       user: { connect: { id: user_id } },
     });
 
     let batchCardsSaved = true;
-    if (batch_cards && batch_cards.length > 0) {
+    if (batch_slots && batch_slots.length > 0) {
       try {
         await prisma.batchSlot.createMany({
-          data: batch_cards.map((card, idx) => ({
+          data: batch_slots.map((card, idx) => ({
             shop_id: newShop.id,
             cutoff_time_minutes: card.cutoff_time_minutes,
             label: card.label?.trim() || null,
@@ -209,7 +209,18 @@ export async function updateShopAction(formData: ShopActionFormData) {
       }
     }
 
-    const updatedShop = await shopRepository.update(shop_id, updateData);
+    const updatedShop = await shopRepository.update(shop_id, {
+      ...updateData,
+      batch_slots: {
+        deleteMany: {},
+        create: values.batch_slots.map((card, idx) => ({
+          cutoff_time_minutes: card.cutoff_time_minutes,
+          label: card.label?.trim() || null,
+          is_active: true,
+          sort_order: idx,
+        })),
+      },
+    });
 
     await notificationService.publishNotification(user_id, {
       title: "Shop Updated Successfully",
@@ -270,5 +281,50 @@ export async function deleteShopAction() {
   } catch (error) {
     console.error("DELETE SHOP ERROR:", error);
     throw new InternalServerError("Failed to delete shop.");
+  }
+}
+
+export async function toggleAcceptingOrdersAction(acceptingOrders: boolean) {
+  try {
+    const user = await authUtils.getUserData();
+    const user_id = user.id;
+    if (!user_id) {
+      throw new UnauthorizedError("User is not authorized");
+    }
+
+    const shop = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true, is_active: true },
+    });
+
+    if (!shop) {
+      throw new BadRequestError("You don't have a shop to update");
+    }
+
+    if (!shop.is_active) {
+      throw new BadRequestError(
+        "Cannot toggle orders - your shop is deactivated by admin"
+      );
+    }
+
+    await prisma.shop.update({
+      where: { id: shop.id },
+      data: { accepting_orders: acceptingOrders },
+    });
+
+    return createSuccessResponse(
+      { accepting_orders: acceptingOrders },
+      acceptingOrders
+        ? "Shop is now accepting orders"
+        : "Shop is now paused - no new orders will be accepted"
+    );
+  } catch (error) {
+    console.error("TOGGLE ACCEPTING ORDERS ERROR:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof BadRequestError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to toggle order acceptance.");
   }
 }

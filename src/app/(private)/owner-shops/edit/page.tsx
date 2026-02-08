@@ -27,7 +27,7 @@ export default async function ShopEditPage() {
       upi_id: true,
       min_order_value: true,
       default_delivery_fee: true,
-      default_platform_fee: true,
+      direct_delivery_fee: true,
       user: { select: { name: true, email: true } },
     },
   });
@@ -42,7 +42,7 @@ export default async function ShopEditPage() {
     ...shopData,
     min_order_value: shopData.min_order_value.toString(),
     default_delivery_fee: shopData.default_delivery_fee.toString(),
-    default_platform_fee: shopData.default_platform_fee.toString(),
+    direct_delivery_fee: shopData.direct_delivery_fee.toString(),
     description: shopData.description ?? "",
     image_key: shopData.image_key ?? "",
     qr_image_key: shopData.qr_image_key ?? "",

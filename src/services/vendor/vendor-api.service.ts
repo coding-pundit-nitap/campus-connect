@@ -1,11 +1,17 @@
+import type { BatchSlot } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types";
+import type { ActionResponse } from "@/types";
 
-import { BatchInfo } from "../batch";
+import type {
+  BatchInfo,
+  BatchSlotWithAvailability,
+  DirectOrderInfo,
+} from "../batch";
 
 interface VendorDashboardResponse {
   open_batch: BatchInfo | null;
   active_batches: BatchInfo[];
+  direct_orders: DirectOrderInfo[];
 }
 
 interface NextSlotResponse {
@@ -30,6 +36,13 @@ class VendorApiService {
         "/vendor/dashboard"
       );
     console.log(response.data.data);
+    return response.data.data;
+  }
+
+  async getBatchSlots(shopId: string): Promise<BatchSlotWithAvailability[]> {
+    const response = await axiosInstance.get<
+      ActionResponse<BatchSlotWithAvailability[]>
+    >(`/shops/${shopId}/batch-slots`);
     return response.data.data;
   }
 

@@ -6,6 +6,7 @@ import {
   CreditCard,
   Hash,
   Key,
+  LucideIcon,
   MapPin,
   Package,
   Store,
@@ -26,7 +27,7 @@ const InfoRow = ({
   label,
   children,
 }: {
-  Icon: React.ElementType;
+  Icon: LucideIcon;
   label: string;
   children: React.ReactNode;
 }) => (

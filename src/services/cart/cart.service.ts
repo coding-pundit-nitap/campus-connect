@@ -3,7 +3,11 @@ import { notFound } from "next/navigation";
 import { NotFoundError } from "@/lib/custom-error";
 import { cartUIService, serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { cartRepository, productRepository } from "@/repositories";
+import {
+  cartRepository,
+  platformSettingsRepository,
+  productRepository,
+} from "@/repositories";
 import { FullCart } from "@/types";
 
 class CartService {
@@ -31,13 +35,15 @@ class CartService {
 
     const item_total = cart.totalPrice;
     const delivery_fee = Number(shopData?.default_delivery_fee ?? 0);
-    const platform_fee = Number(shopData?.default_platform_fee ?? 0);
+    const direct_delivery_fee = Number(shopData?.direct_delivery_fee ?? 0);
+    const platform_fee = await platformSettingsRepository.getPlatformFee();
     const total = item_total + delivery_fee + platform_fee;
 
     return {
       cart,
       item_total,
       delivery_fee,
+      direct_delivery_fee,
       platform_fee,
       total,
       shop_id: cart.items[0].shop_id,

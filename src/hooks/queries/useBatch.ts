@@ -17,7 +17,6 @@ export function useVendorDashboard() {
   return useQuery({
     queryKey: queryKeys.batch.vendorDashboard(),
     queryFn: vendorApiService.getVendorDetails,
-    refetchInterval: 30000,
   });
 }
 
@@ -26,7 +25,6 @@ export function useNextSlot(shopId: string) {
     queryKey: queryKeys.batch.nextSlot(shopId),
     queryFn: () => vendorApiService.getNextSlot(shopId),
     enabled: !!shopId,
-    refetchInterval: 60000,
   });
 }
 
@@ -112,5 +110,13 @@ export function useVerifyOtp() {
     onError: (error: Error) => {
       toast.error(error.message || "Invalid OTP");
     },
+  });
+}
+
+export function useBatchSlots(shopId: string) {
+  return useQuery({
+    queryKey: queryKeys.batch.all,
+    queryFn: () => vendorApiService.getBatchSlots(shopId),
+    enabled: !!shopId,
   });
 }

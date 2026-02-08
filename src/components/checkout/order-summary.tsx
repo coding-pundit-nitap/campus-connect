@@ -10,6 +10,7 @@ interface OrderSummaryProps {
   deliveryFee: number;
   platformFee: number;
   total: number;
+  isDirectDelivery?: boolean;
 }
 
 export default function OrderSummary({
@@ -18,6 +19,7 @@ export default function OrderSummary({
   deliveryFee,
   platformFee,
   total,
+  isDirectDelivery = false,
 }: OrderSummaryProps) {
   return (
     <Card className="sticky py-4 top-4">
@@ -37,7 +39,7 @@ export default function OrderSummary({
             <span>₹{itemTotal.toFixed(2)}</span>
           </div>
           <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Delivery Fee</span>
+            <span>Delivery Fee ({isDirectDelivery ? "Direct" : "Batch"})</span>
             <span>₹{deliveryFee.toFixed(2)}</span>
           </div>
           {platformFee > 0 && (

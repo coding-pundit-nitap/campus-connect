@@ -139,7 +139,8 @@ export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
       shop: {
         ...item.product.shop,
         default_delivery_fee: item.product.shop.default_delivery_fee.toString(),
-        default_platform_fee: item.product.shop.default_platform_fee.toString(),
+        direct_delivery_fee: item.product.shop.direct_delivery_fee.toString(),
+        min_order_value: item.product.shop.min_order_value.toString(),
       },
       category: item.product.category,
     },

@@ -164,6 +164,22 @@ class BatchRepository {
       },
     });
   }
+
+  async findManyByShopId(shop_id: string): Promise<BatchSlot[]> {
+    return prisma.batchSlot.findMany({
+      where: { shop_id },
+    });
+  }
+
+  async findBatchesByTimeRange(shop_id: string, start: Date, end: Date) {
+    return prisma.batch.findMany({
+      where: {
+        shop_id,
+        cutoff_time: { gte: start, lte: end },
+      },
+      select: { cutoff_time: true, status: true },
+    });
+  }
 }
 
 const batchRepository = new BatchRepository();
