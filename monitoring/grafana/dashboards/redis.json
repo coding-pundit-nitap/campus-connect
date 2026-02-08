@@ -1,0 +1,35 @@
+{
+  "uid": "redis",
+  "title": "Redis",
+  "tags": ["redis"],
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "gauge",
+      "title": "Memory Usage %",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes / redis_memory_max_bytes * 100"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 }
+      },
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 }
+    },
+    {
+      "type": "stat",
+      "title": "Connected Clients",
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "redis_connected_clients"
+        }
+      ],
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 6 }
+    }
+  ]
+}
