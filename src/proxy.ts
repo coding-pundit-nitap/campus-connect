@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { Counter, Histogram } from "prom-client";
+import type { Counter, Histogram } from "prom-client";
 
 import { auth } from "@/auth";
 import {
