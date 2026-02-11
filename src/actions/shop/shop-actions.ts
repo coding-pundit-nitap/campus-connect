@@ -62,7 +62,7 @@ export async function createShopAction(formData: ShopActionFormData) {
     if (image) {
       const imageFile = image;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      image_key = await fileUploadService.upload(
+      const uploadResult = await fileUploadService.uploadOptimizedImage(
         imageFile.name,
         imageFile.type,
         imageFile.size,
@@ -71,6 +71,7 @@ export async function createShopAction(formData: ShopActionFormData) {
           prefix: "shop-images",
         }
       );
+      image_key = uploadResult.key;
       uploadedFiles.push(image_key);
     }
 
@@ -78,7 +79,7 @@ export async function createShopAction(formData: ShopActionFormData) {
     if (qr_image) {
       const qrImageFile = qr_image;
       const buffer = Buffer.from(await qrImageFile.arrayBuffer());
-      qr_image_key = await fileUploadService.upload(
+      const uploadResult = await fileUploadService.uploadOptimizedImage(
         qrImageFile.name,
         qrImageFile.type,
         qrImageFile.size,
@@ -87,6 +88,7 @@ export async function createShopAction(formData: ShopActionFormData) {
           prefix: "shop-qr-images",
         }
       );
+      qr_image_key = uploadResult.key;
       uploadedFiles.push(qr_image_key);
     }
 

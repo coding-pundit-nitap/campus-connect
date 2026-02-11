@@ -1,0 +1,39 @@
+{
+  "name": "Campus Connect - Campus Shopping & Delivery",
+  "short_name": "Campus Connect",
+  "description": "Hyper-local e-commerce platform connecting campus vendors with students. Order from your favorite campus shops and get batch delivery to your hostel.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "food", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Browse Shops",
+      "short_name": "Shops",
+      "description": "Browse all campus shops",
+      "url": "/shops",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}

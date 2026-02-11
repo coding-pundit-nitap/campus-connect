@@ -6,6 +6,12 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
+import {
+  getCompressionRatio,
+  getImageMetadata,
+  isValidImage,
+  optimizeForProductDetail,
+} from "@/lib/utils/image-optimizer";
 
 export interface UploadOptions {
   maxSizeInMB?: number;
@@ -187,6 +193,81 @@ class FileUploadService {
     } catch (error) {
       console.error("Error uploading to MinIO:", error);
       throw new Error("Failed to upload file to MinIO");
+    }
+  }
+
+  async uploadOptimizedImage(
+    fileName: string,
+    fileType: string,
+    fileSize: number,
+    fileBuffer: Buffer,
+    options: UploadOptions = {}
+  ): Promise<{
+    key: string;
+    originalSize: number;
+    optimizedSize: number;
+    compressionRatio: number;
+  }> {
+    const { prefix = "general" } = options;
+
+    this.validateFileSecurity(fileName, fileType, fileSize, options);
+
+    const isImage = await isValidImage(fileBuffer);
+    if (!isImage) {
+      throw new BadRequestError("File is not a valid image");
+    }
+
+    const originalMetadata = await getImageMetadata(fileBuffer);
+    console.log("Original image:", {
+      size: `${(fileSize / 1024).toFixed(2)} KB`,
+      dimensions: `${originalMetadata?.width}x${originalMetadata?.height}`,
+      format: originalMetadata?.format,
+    });
+
+    const optimizedBuffer = await optimizeForProductDetail(fileBuffer);
+    const optimizedMetadata = await getImageMetadata(optimizedBuffer);
+
+    const compressionRatio = getCompressionRatio(
+      fileSize,
+      optimizedBuffer.length
+    );
+
+    console.log("Optimized image:", {
+      size: `${(optimizedBuffer.length / 1024).toFixed(2)} KB`,
+      dimensions: `${optimizedMetadata?.width}x${optimizedMetadata?.height}`,
+      compressionRatio: `${compressionRatio}%`,
+      savedBytes: `${((fileSize - optimizedBuffer.length) / 1024).toFixed(2)} KB`,
+    });
+
+    const objectKey = this.generateSecureFileName(fileName, prefix);
+
+    const command = new PutObjectCommand({
+      Bucket: this.BUCKET_NAME,
+      Key: objectKey,
+      Body: optimizedBuffer,
+      ContentType: "image/jpeg",
+      Metadata: {
+        "original-filename": Buffer.from(fileName).toString("base64"),
+        "upload-timestamp": new Date().toISOString(),
+        "original-size": fileSize.toString(),
+        "optimized-size": optimizedBuffer.length.toString(),
+        "compression-ratio": compressionRatio.toString(),
+        "original-dimensions": `${originalMetadata?.width}x${originalMetadata?.height}`,
+      },
+      CacheControl: "public, max-age=31536000, immutable",
+    });
+
+    try {
+      await this.internalS3Client.send(command);
+      return {
+        key: objectKey,
+        originalSize: fileSize,
+        optimizedSize: optimizedBuffer.length,
+        compressionRatio,
+      };
+    } catch (error) {
+      console.error("Error uploading optimized image to MinIO:", error);
+      throw new Error("Failed to upload optimized image to MinIO");
     }
   }
 
