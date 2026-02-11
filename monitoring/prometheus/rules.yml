@@ -219,4 +219,3 @@ groups:
         annotations:
           summary: "MinIO node is offline"
           description: "{{ $value }} MinIO node(s) are offline."
-
