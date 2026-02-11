@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { sanitizeHTML } from "@/lib/sanitize";
 import { ImageUtils } from "@/lib/utils";
 import { OrderStatus } from "@/types/prisma.types";
 
@@ -143,7 +144,9 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                         <div
                           className="text-sm text-muted-foreground line-clamp-2"
                           dangerouslySetInnerHTML={{
-                            __html: item.product.description || "",
+                            __html: sanitizeHTML(
+                              item.product.description || ""
+                            ),
                           }}
                         />
                       </TableCell>

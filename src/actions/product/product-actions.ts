@@ -52,13 +52,21 @@ export async function createProductAction(
     if (image) {
       const imageFile = image as File;
       const buffer = Buffer.from(await imageFile.arrayBuffer());
-      image_key = await fileUploadService.upload(
+
+      const uploadResult = await fileUploadService.uploadOptimizedImage(
         imageFile.name,
         imageFile.type,
         imageFile.size,
-        buffer
+        buffer,
+        { prefix: "product-images" }
       );
+
+      image_key = uploadResult.key;
       uploadedImageKey = image_key;
+
+      console.log(
+        `Product image optimized: ${uploadResult.compressionRatio}% reduction`
+      );
     }
     const productData = {
       image_key,
@@ -134,13 +142,15 @@ export async function updateProductAction(
     let image_key = parsedData.image_key || currentProduct?.image_key || "";
     if (image instanceof File) {
       const buffer = Buffer.from(await image.arrayBuffer());
-      image_key = await fileUploadService.upload(
+
+      const uploadResult = await fileUploadService.uploadOptimizedImage(
         image.name,
         image.type,
         image.size,
         buffer,
         { prefix: "product-images" }
       );
+      image_key = uploadResult.key;
 
       if (currentProduct?.image_key && currentProduct.image_key !== image_key) {
         await fileUploadService.deleteFile(currentProduct.image_key);

@@ -25,13 +25,14 @@ export async function updateProfileImageAction(
     });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const image_key = await fileUploadService.upload(
+    const uploadResult = await fileUploadService.uploadOptimizedImage(
       file.name,
       file.type,
       file.size,
       buffer,
       { prefix: "profile-images" }
     );
+    const image_key = uploadResult.key;
 
     if (user?.image && isUploadedImage(user.image)) {
       try {

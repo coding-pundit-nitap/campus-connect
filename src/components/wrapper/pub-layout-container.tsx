@@ -13,7 +13,7 @@ interface LayoutContainerProps {
 
 export function PubLayoutContainer({ children }: LayoutContainerProps) {
   const pathname = usePathname();
-  const navigation = navigationUIService.getNavigationItems();
+  const groups = navigationUIService.getNavigationGroups();
 
   if (authRoutes.includes(pathname)) {
     return <>{children}</>;
@@ -21,7 +21,7 @@ export function PubLayoutContainer({ children }: LayoutContainerProps) {
 
   return (
     <>
-      <PubLayout navigation={navigation}>{children}</PubLayout>
+      <PubLayout groups={groups}>{children}</PubLayout>
     </>
   );
 }

@@ -26,6 +26,13 @@ if (process.env.NODE_ENV === "production") {
   }
 }
 
+function matchRoute(path: string, route: string) {
+  const regex = new RegExp(
+    "^" + route.replace(/:[^/]+/g, "[^/]+").replace(/\//g, "\\/") + "$"
+  );
+  return regex.test(path);
+}
+
 export async function proxy(req: NextRequest) {
   const startTime = Date.now();
 
@@ -36,40 +43,58 @@ export async function proxy(req: NextRequest) {
 
     const { nextUrl } = req;
     const path = nextUrl.pathname;
+
     const isLoggedIn = !!session?.user;
     const userRole = session?.user?.role;
+
     const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
-    const isPublicRoute =
-      path === "/" || publicRoutes.some((p) => path.startsWith(p));
-    const isAuthRoute = authRoutes.some((p) => path.startsWith(p));
-    const isAdminRoute = adminRoutes.some((p) => path.startsWith(p));
-    const isApiRoute = path.startsWith("/api/");
+
+    const isPublicRoute = publicRoutes.some((route) => matchRoute(path, route));
+
+    const isAuthRoute = authRoutes.some((route) => matchRoute(path, route));
+
+    const isAdminRoute = adminRoutes.some((route) => matchRoute(path, route));
 
     const isMetricsRoute = path === "/api/metrics";
 
     let response: NextResponse;
 
+    /**
+     * 1️⃣ Allow metrics (nginx should protect in prod)
+     */
     if (isMetricsRoute) {
-      // Metrics endpoint is handled by nginx ACL in production
-      // Just allow it through - nginx will restrict access
       response = NextResponse.next();
-    } else if (isApiAuthRoute || isPublicRoute || isApiRoute) {
-      // Always allow access to API auth routes and public routes
+    } else if (isApiAuthRoute) {
+
+    /**
+     * 2️⃣ Allow auth API routes
+     */
+      response = NextResponse.next();
+    } else if (isPublicRoute) {
+
+    /**
+     * 3️⃣ Allow public pages
+     */
       response = NextResponse.next();
     } else if (isAuthRoute && isLoggedIn) {
-      // Redirect logged-in users away from auth routes to the default redirect path
+
+    /**
+     * 4️⃣ Redirect logged-in users away from login/register
+     */
       const redirectUrl = nextUrl.clone();
       redirectUrl.pathname = DEFAULT_LOGIN_REDIRECT;
       response = NextResponse.redirect(redirectUrl);
     } else if (isAdminRoute) {
-      // Admin routes require both authentication and ADMIN role
+
+    /**
+     * 5️⃣ Admin routes protection
+     */
       if (!isLoggedIn) {
         const redirectUrl = nextUrl.clone();
         redirectUrl.pathname = "/";
-        redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+        redirectUrl.searchParams.set("callbackUrl", path);
         response = NextResponse.redirect(redirectUrl);
       } else if (userRole !== "ADMIN") {
-        // Redirect non-admin users to homepage with error
         const redirectUrl = nextUrl.clone();
         redirectUrl.pathname = "/";
         redirectUrl.searchParams.set("error", "unauthorized");
@@ -77,29 +102,40 @@ export async function proxy(req: NextRequest) {
       } else {
         response = NextResponse.next();
       }
-    } else if (!isAuthRoute && !isLoggedIn) {
-      // Redirect unauthenticated users trying to access protected routes to login
+    } else if (!isLoggedIn) {
+
+    /**
+     * 6️⃣ All other routes require authentication
+     */
       const redirectUrl = nextUrl.clone();
       redirectUrl.pathname = "/";
-      redirectUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+      redirectUrl.searchParams.set("callbackUrl", path);
       response = NextResponse.redirect(redirectUrl);
     } else {
-      // Allow access in all other cases (e.g., logged-in users accessing non-auth routes)
+
+    /**
+     * 7️⃣ Default allow
+     */
       response = NextResponse.next();
     }
 
+    /**
+     * 📊 Metrics Tracking (Production Only)
+     */
     if (
       process.env.NODE_ENV === "production" &&
       httpRequestDuration &&
       httpRequestTotal
     ) {
       trackMetrics(req, response, startTime).catch((err) => {
-        console.error("[Proxy] Error tracking metrics:", err);
+        console.error("[Proxy] Metrics error:", err);
       });
     }
 
-    const duration = Date.now() - startTime;
-    response.headers.set("x-middleware-duration", String(duration));
+    response.headers.set(
+      "x-middleware-duration",
+      String(Date.now() - startTime)
+    );
 
     return response;
   } catch (error) {

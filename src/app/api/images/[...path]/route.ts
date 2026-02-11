@@ -41,6 +41,12 @@ export async function GET(
       headers: {
         "Content-Type": contentType,
         "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Content-Type-Options": "nosniff",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+        "Access-Control-Allow-Headers": "*",
+        "Cross-Origin-Resource-Policy": "cross-origin",
+        "Timing-Allow-Origin": "*",
       },
     });
   } catch (error) {

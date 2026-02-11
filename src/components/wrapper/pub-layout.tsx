@@ -4,7 +4,8 @@ import { Toaster } from "sonner";
 
 import SearchBarContainer from "@/components/navigation/search-bar-container";
 import ThemeToggleContainer from "@/components/navigation/theme-toggle-container";
-import { NavigationItem } from "@/components/shared/shared-sidebar";
+import { Footer } from "@/components/shared/footer";
+import { NavigationGroup } from "@/components/shared/shared-sidebar";
 import AppSidebar from "@/components/sidebar/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -30,21 +31,21 @@ const CartDrawer = dynamic(
 
 interface LayoutProps {
   children: React.ReactNode;
-  navigation: NavigationItem[];
+  groups?: NavigationGroup[];
   isNavigationLoading?: boolean;
   navigationError?: string;
 }
 
 export function PubLayout({
   children,
-  navigation,
+  groups,
   isNavigationLoading = false,
   navigationError,
 }: LayoutProps) {
   return (
     <SidebarProvider>
       <AppSidebar
-        navigation={navigation}
+        groups={groups}
         isLoading={isNavigationLoading}
         error={navigationError}
         footer={<SidebarFooter />}
@@ -70,6 +71,7 @@ export function PubLayout({
               closeButton
             />
           </main>
+          <Footer />
         </div>
       </SidebarInset>
     </SidebarProvider>

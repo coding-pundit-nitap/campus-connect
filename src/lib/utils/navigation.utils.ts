@@ -1,6 +1,9 @@
 import {
   Bell,
+  HelpCircle,
   Home,
+  Info,
+  Mail,
   Package,
   Settings,
   ShoppingBag,
@@ -33,6 +36,57 @@ class NavigationUIService {
         title: "My Orders",
         url: "/orders",
         icon: ShoppingBag,
+      },
+    ];
+  }
+
+  getNavigationGroups(): NavigationGroup[] {
+    return [
+      {
+        label: "Main",
+        items: [
+          {
+            id: "home",
+            title: "Home",
+            url: "/",
+            icon: Home,
+          },
+          {
+            id: "shops",
+            title: "Shops",
+            url: "/shops",
+            icon: Store,
+          },
+          {
+            id: "orders",
+            title: "My Orders",
+            url: "/orders",
+            icon: ShoppingBag,
+          },
+        ],
+      },
+      {
+        label: "Information",
+        items: [
+          {
+            id: "about",
+            title: "About Us",
+            url: "/about",
+            icon: Info,
+          },
+          {
+            id: "faq",
+            title: "FAQ",
+            url: "/faq",
+            icon: HelpCircle,
+          },
+          {
+            id: "contact",
+            title: "Contact Us",
+            url: "/contact",
+            icon: Mail,
+          },
+        ],
       },
     ];
   }
