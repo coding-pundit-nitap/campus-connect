@@ -20,7 +20,7 @@ const s3Client = new S3Client({
   forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET!;
+const BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 const BATCH_SIZE = 100;
 
 interface CleanupResult {

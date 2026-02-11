@@ -261,6 +261,10 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
+      args:
+        - NEXT_PUBLIC_MINIO_BUCKET=${NEXT_PUBLIC_MINIO_BUCKET:-campus-connect}
+        - NEXT_PUBLIC_MINIO_ENDPOINT=${NEXT_PUBLIC_MINIO_ENDPOINT:-http://localhost:9000}
+        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
     container_name: campus_connect_app_prod
     restart: always
     depends_on:
