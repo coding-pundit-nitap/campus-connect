@@ -31,6 +31,12 @@ FROM deps AS dev
 
 FROM base AS app-builder
 ENV NODE_ENV=production
+ARG NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+ARG NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
+ARG NEXT_PUBLIC_APP_URL=http://localhost
+ENV NEXT_PUBLIC_MINIO_BUCKET=${NEXT_PUBLIC_MINIO_BUCKET}
+ENV NEXT_PUBLIC_MINIO_ENDPOINT=${NEXT_PUBLIC_MINIO_ENDPOINT}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/src/generated ./src/generated

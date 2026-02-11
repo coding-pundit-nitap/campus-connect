@@ -81,7 +81,8 @@ class FileUploadService {
     forcePathStyle: true,
   });
 
-  private BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET!;
+  private BUCKET_NAME =
+    process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 
   private validateFileSecurity(
     fileName: string,
