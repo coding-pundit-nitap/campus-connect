@@ -60,35 +60,31 @@ export async function proxy(req: NextRequest) {
     let response: NextResponse;
 
     /**
-     * 1️⃣ Allow metrics (nginx should protect in prod)
+     * Allow metrics (nginx should protect in prod)
      */
     if (isMetricsRoute) {
       response = NextResponse.next();
     } else if (isApiAuthRoute) {
-
-    /**
-     * 2️⃣ Allow auth API routes
-     */
+      /**
+       * Allow auth API routes
+       */
       response = NextResponse.next();
     } else if (isPublicRoute) {
-
-    /**
-     * 3️⃣ Allow public pages
-     */
+      /**
+       * Allow public pages
+       */
       response = NextResponse.next();
     } else if (isAuthRoute && isLoggedIn) {
-
-    /**
-     * 4️⃣ Redirect logged-in users away from login/register
-     */
+      /**
+       * Redirect logged-in users away from login/register
+       */
       const redirectUrl = nextUrl.clone();
       redirectUrl.pathname = DEFAULT_LOGIN_REDIRECT;
       response = NextResponse.redirect(redirectUrl);
     } else if (isAdminRoute) {
-
-    /**
-     * 5️⃣ Admin routes protection
-     */
+      /**
+       * Admin routes protection
+       */
       if (!isLoggedIn) {
         const redirectUrl = nextUrl.clone();
         redirectUrl.pathname = "/";
@@ -103,19 +99,17 @@ export async function proxy(req: NextRequest) {
         response = NextResponse.next();
       }
     } else if (!isLoggedIn) {
-
-    /**
-     * 6️⃣ All other routes require authentication
-     */
+      /**
+       * All other routes require authentication
+       */
       const redirectUrl = nextUrl.clone();
       redirectUrl.pathname = "/";
       redirectUrl.searchParams.set("callbackUrl", path);
       response = NextResponse.redirect(redirectUrl);
     } else {
-
-    /**
-     * 7️⃣ Default allow
-     */
+      /**
+       * Default allow
+       */
       response = NextResponse.next();
     }
 
