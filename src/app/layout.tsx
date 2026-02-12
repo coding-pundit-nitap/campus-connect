@@ -57,6 +57,30 @@ export default function RootLayout({
         <link rel="preconnect" href="//connect.nitap.ac.in" />
       </head>
       <body className={inter.className}>
+        <noscript>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: "100vh",
+              padding: "1rem",
+              textAlign: "center",
+            }}
+          >
+            <div>
+              <h1>Campus Connect</h1>
+              <p>
+                Hyper-local e-commerce platform connecting campus vendors with
+                students. Order from your favorite campus shops and get batch
+                delivery to your hostel.
+              </p>
+              <p style={{ marginTop: "1rem", color: "#666" }}>
+                Please enable JavaScript to use Campus Connect.
+              </p>
+            </div>
+          </div>
+        </noscript>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

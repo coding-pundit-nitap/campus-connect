@@ -1,3 +1,20 @@
+import {
+  Briefcase,
+  Clock,
+  Copy,
+  FileText,
+  HelpCircle,
+  Lock,
+  Mail,
+  MapPin,
+  MessageSquare,
+  RefreshCcw,
+  ScrollText,
+  ShieldAlert,
+  ShoppingBag,
+  Store,
+  UserCog,
+} from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 
@@ -5,332 +22,362 @@ import { InfoCard, InfoSection } from "@/components/shared/info-components";
 import LegalPageLayout from "@/components/shared/legal-page-layout";
 
 export const metadata: Metadata = {
-  title: "Contact Us",
+  title: "Contact Us - Campus Connect | Support & Help Center",
   description:
-    "Get in touch with Campus Connect support team for help with orders, vendor inquiries, or general questions.",
+    "Get in touch with Campus Connect support team at NIT Arunachal Pradesh. Email us at codingclub@nitap.ac.in for order issues, vendor inquiries, account help, and general questions.",
+  keywords: [
+    "campus connect contact",
+    "support email",
+    "customer service",
+    "coding club NIT AP",
+    "order help",
+    "vendor support",
+    "account assistance",
+    "campus connect help",
+    "NIT AP contact",
+    "student support",
+  ],
+  authors: [{ name: "Coding Club @ NIT Arunachal Pradesh" }],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "Contact Campus Connect Support",
+    description:
+      "Need help with orders, account, or vendor inquiries? Contact Campus Connect support at codingclub@nitap.ac.in. We're here to help NIT AP students and vendors.",
+    type: "website",
+    locale: "en_IN",
+    siteName: "Campus Connect",
+  },
+  twitter: {
+    card: "summary",
+    title: "Contact Campus Connect",
+    description:
+      "Get support for Campus Connect - NIT AP's batch delivery platform. Email: codingclub@nitap.ac.in",
+  },
+  alternates: {
+    canonical: "/contact",
+  },
 };
 
+const TOC_LINKS = [
+  { id: "primary", title: "Primary Contact" },
+  { id: "quick-links", title: "Quick Links" },
+  { id: "support-areas", title: "Support Areas" },
+  { id: "template", title: "Email Template" },
+  { id: "hours", title: "Support Hours" },
+  { id: "security", title: "Security & Business" },
+  { id: "location", title: "Location" },
+];
+
 export default function ContactPage() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    name: "Contact Campus Connect",
+    url: "https://campusconnect.nitap.ac.in/contact",
+    mainEntity: {
+      "@type": "Organization",
+      name: "Campus Connect - Coding Club @ NIT Arunachal Pradesh",
+      email: "codingclub@nitap.ac.in",
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "NIT Arunachal Pradesh",
+        addressLocality: "Yupia",
+        addressRegion: "Arunachal Pradesh",
+        postalCode: "791112",
+        addressCountry: "IN",
+      },
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: "codingclub@nitap.ac.in",
+        contactType: "Customer Support",
+        areaServed: "IN",
+        availableLanguage: ["English", "Hindi"],
+      },
+    },
+  };
+
   return (
-    <LegalPageLayout
-      title="Contact Us"
-      description="Have questions or need assistance? We're here to help!"
-      lastUpdated=""
-    >
-      <div className="grid md:grid-cols-2 gap-6 mb-12">
-        <InfoCard variant="primary">
-          <h2 className="text-xl font-semibold mb-4">📬 Primary Contact</h2>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Email</p>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <LegalPageLayout
+        title="Contact Us"
+        description="Have questions or need assistance? We're here to help!"
+        toc={TOC_LINKS}
+      >
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          <div id="primary">
+            <InfoCard
+              title="Primary Contact"
+              variant="primary"
+              icon={<Mail className="text-primary" />}
+            >
+              <div className="space-y-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Support Email
+                  </p>
+                  <Link
+                    href="mailto:codingclub@nitap.ac.in"
+                    className="text-xl font-semibold text-primary hover:underline flex items-center gap-2"
+                  >
+                    codingclub@nitap.ac.in
+                  </Link>
+                </div>
+
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Organization
+                  </p>
+                  <p className="font-medium text-foreground">
+                    Coding Club @ NIT Arunachal Pradesh
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    (Coding Pundit)
+                  </p>
+                </div>
+              </div>
+            </InfoCard>
+          </div>
+
+          <div id="quick-links">
+            <InfoCard title="Quick Links" icon={<FileText />}>
+              <ul className="space-y-3">
+                {[
+                  {
+                    href: "/faq",
+                    icon: HelpCircle,
+                    label: "Frequently Asked Questions",
+                  },
+                  {
+                    href: "/terms",
+                    icon: ScrollText,
+                    label: "Terms & Conditions",
+                  },
+                  { href: "/privacy", icon: Lock, label: "Privacy Policy" },
+                  {
+                    href: "/refund-policy",
+                    icon: RefreshCcw,
+                    label: "Refund & Cancellation Policy",
+                  },
+                ].map((link, idx) => (
+                  <li key={idx}>
+                    <Link
+                      href={{ pathname: link.href }}
+                      className="flex items-center gap-3 p-2 rounded-md hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-primary"
+                    >
+                      <link.icon className="w-4 h-4" />
+                      <span>{link.label}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </InfoCard>
+          </div>
+        </div>
+
+        {/* Support Areas Grid */}
+        <InfoSection title="What Can We Help You With?" id="support-areas">
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              {
+                icon: <ShoppingBag className="text-blue-500" />,
+                title: "Order Issues",
+                items: [
+                  "Order not delivered",
+                  "Wrong item received",
+                  "Missing items",
+                  "Refund status",
+                ],
+                subject: "Order Issue - #[ORDER_ID]",
+              },
+              {
+                icon: <UserCog className="text-purple-500" />,
+                title: "Account Problems",
+                items: [
+                  "Login issues",
+                  "Account verification",
+                  "Profile updates",
+                  "Deletion requests",
+                ],
+                subject: "Account Help - [ISSUE]",
+              },
+              {
+                icon: <Store className="text-amber-500" />,
+                title: "Vendor Inquiries",
+                items: [
+                  "Register as a vendor",
+                  "Shop management",
+                  "Payment queries",
+                  "Dashboard help",
+                ],
+                subject: "Vendor Support - [SHOP_NAME]",
+              },
+              {
+                icon: <MessageSquare className="text-green-500" />,
+                title: "General Questions",
+                items: [
+                  "Platform features",
+                  "Feedback",
+                  "Bug reports",
+                  "Partnerships",
+                ],
+                subject: "General Inquiry",
+              },
+            ].map((category, idx) => (
+              <div
+                key={idx}
+                className="border rounded-xl p-5 bg-card hover:border-primary/40 transition-colors"
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-muted rounded-full">
+                    {category.icon}
+                  </div>
+                  <h3 className="font-semibold text-lg">{category.title}</h3>
+                </div>
+                <ul className="text-sm space-y-1 text-muted-foreground mb-4 pl-1">
+                  {category.items.map((item, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <div className="w-1 h-1 rounded-full bg-muted-foreground" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <div className="text-xs bg-muted/50 p-2 rounded border border-dashed text-muted-foreground">
+                  <strong>Subject:</strong> {category.subject}
+                </div>
+              </div>
+            ))}
+          </div>
+        </InfoSection>
+
+        <InfoSection title="How to Contact Us Effectively" id="template">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <InfoCard
+              variant="info"
+              title="Checklist"
+              icon={<FileText className="text-blue-600" />}
+            >
+              <p className="mb-4 text-sm text-muted-foreground">
+                For faster resolution, please include:
+              </p>
+              <ul className="space-y-2 text-sm">
+                {[
+                  "Order ID (if applicable)",
+                  "Account Email / Phone",
+                  "Detailed description",
+                  "Screenshots (if visual bug)",
+                  "Time/Date of issue",
+                ].map((item, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="text-blue-600 font-bold">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </InfoCard>
+
+            <div className="rounded-xl border bg-muted/30 p-5 relative group">
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span className="text-xs bg-background border px-2 py-1 rounded flex items-center gap-1 text-muted-foreground">
+                  <Copy className="w-3 h-3" /> Copy Template
+                </span>
+              </div>
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Mail className="w-4 h-4" /> Email Template
+              </h3>
+              <div className="font-mono text-xs md:text-sm bg-card p-4 rounded-lg border text-muted-foreground leading-relaxed">
+                <p>
+                  <strong>To:</strong> codingclub@nitap.ac.in
+                </p>
+                <p>
+                  <strong>Subject:</strong> [Issue Type] - [Brief Description]
+                </p>
+                <div className="my-4 h-px bg-border" />
+                <p>Hello Team,</p>
+                <br />
+                <p>[Describe your issue here...]</p>
+                <br />
+                <p>Order ID: #12345</p>
+                <p>My Email: example@nitap.ac.in</p>
+                <br />
+                <p>Thanks,</p>
+                <p>[Your Name]</p>
+              </div>
+            </div>
+          </div>
+        </InfoSection>
+
+        <InfoSection title="Other Inquiries" id="security">
+          <div className="grid gap-6">
+            <InfoCard
+              variant="danger"
+              title="Report Security Issues"
+              icon={<ShieldAlert className="text-red-600" />}
+            >
+              <p className="text-sm text-muted-foreground mb-4">
+                If you discover a vulnerability, please report it immediately.
+                Do not disclose publically.
+              </p>
               <Link
-                href={{ pathname: "mailto:codingclub@nitap.ac.in" }}
-                className="text-lg font-medium text-primary hover:underline"
+                href="mailto:codingclub@nitap.ac.in?subject=SECURITY%20ALERT"
+                className="text-sm font-bold text-red-600 underline hover:text-red-700"
               >
                 codingclub@nitap.ac.in
               </Link>
-            </div>
-
-            <div>
-              <p className="text-sm text-muted-foreground">Organization</p>
-              <p className="font-medium">Coding Club @ NIT Arunachal Pradesh</p>
-              <p className="text-sm">(Coding Pundit)</p>
-            </div>
-          </div>
-        </InfoCard>
-
-        <InfoCard variant="default">
-          <h2 className="text-xl font-semibold mb-4">🔗 Quick Links</h2>
-          <ul className="space-y-3">
-            <li>
-              <Link
-                href={{ pathname: "/faq" }}
-                className="text-primary hover:underline flex items-center gap-2"
-              >
-                <span>❓</span>
-                <span>Frequently Asked Questions</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={{ pathname: "/terms" }}
-                className="text-primary hover:underline flex items-center gap-2"
-              >
-                <span>📜</span>
-                <span>Terms &amp; Conditions</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={{ pathname: "/privacy" }}
-                className="text-primary hover:underline flex items-center gap-2"
-              >
-                <span>🔒</span>
-                <span>Privacy Policy</span>
-              </Link>
-            </li>
-            <li>
-              <Link
-                href={{ pathname: "/refund-policy" }}
-                className="text-primary hover:underline flex items-center gap-2"
-              >
-                <span>💰</span>
-                <span>Refund &amp; Cancellation Policy</span>
-              </Link>
-            </li>
-          </ul>
-        </InfoCard>
-      </div>
-
-      <InfoSection title="What Can We Help You With?">
-        <div className="grid md:grid-cols-2 gap-4">
-          {[
-            {
-              icon: "🛒",
-              title: "Order-Related Issues",
-              items: [
-                "Order not delivered",
-                "Wrong item received",
-                "Missing items",
-                "Cancellation requests",
-                "Refund status inquiries",
-              ],
-              subject: "Order Issue - #[ORDER_ID]",
-            },
-            {
-              icon: "👤",
-              title: "Account Problems",
-              items: [
-                "Login issues",
-                "Account verification",
-                "Profile update problems",
-                "Account deletion requests",
-              ],
-              subject: "Account Help - [ISSUE]",
-            },
-            {
-              icon: "🏪",
-              title: "Vendor Inquiries",
-              items: [
-                "Register as a vendor",
-                "Shop management help",
-                "Batch delivery questions",
-                "Payment/earnings queries",
-                "Vendor dashboard issues",
-              ],
-              subject: "Vendor Support - [SHOP_NAME]",
-            },
-            {
-              icon: "💡",
-              title: "General Questions",
-              items: [
-                "How Campus Connect works",
-                "Platform features",
-                "Partnership opportunities",
-                "Feedback and suggestions",
-                "Technical issues/bugs",
-              ],
-              subject: "General Inquiry",
-            },
-          ].map((category, idx) => (
-            <InfoCard key={idx} variant="default">
-              <h3 className="font-semibold text-lg mb-2">
-                {category.icon} {category.title}
-              </h3>
-              <ul className="text-sm space-y-1 text-muted-foreground">
-                {category.items.map((item, i) => (
-                  <li key={i}>• {item}</li>
-                ))}
-              </ul>
-              <p className="text-sm text-muted-foreground mt-3">
-                <strong>Subject:</strong> &quot;{category.subject}&quot;
-              </p>
             </InfoCard>
-          ))}
-        </div>
-      </InfoSection>
 
-      <InfoSection title="📧 How to Contact Us Effectively">
-        <InfoCard variant="info">
-          <p className="font-semibold mb-2">
-            For Faster Responses, Please Include:
-          </p>
-          <ul className="text-sm space-y-1">
-            <li>
-              ✅ <strong>Order ID</strong> (if order-related)
-            </li>
-            <li>
-              ✅ <strong>Account email</strong> or phone number
-            </li>
-            <li>
-              ✅ <strong>Detailed description</strong> of the issue
-            </li>
-            <li>
-              ✅ <strong>Screenshots</strong> (if applicable)
-            </li>
-            <li>
-              ✅ <strong>Time/date</strong> when the issue occurred
-            </li>
-          </ul>
-        </InfoCard>
-
-        <h3 className="text-xl font-semibold mb-3 mt-6">Email Template:</h3>
-        <InfoCard variant="default" className="font-mono text-sm">
-          <p>
-            <strong>To:</strong> codingclub@nitap.ac.in
-          </p>
-          <p>
-            <strong>Subject:</strong> [Type of Issue] - [Brief Description]
-          </p>
-          <p className="mt-3">
-            <strong>Body:</strong>
-          </p>
-          <div className="mt-2 space-y-2">
-            <p>Hello Campus Connect Team,</p>
-            <p>[Describe your issue in detail]</p>
-            <p>Order ID (if applicable): [#12345]</p>
-            <p>My account email: [your-email@example.com]</p>
-            <p>
-              Additional details: [Any relevant information, screenshots, etc.]
-            </p>
-            <p className="mt-3">Thank you,</p>
-            <p>[Your Name]</p>
-          </div>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="🕒 Support Hours & Response Times">
-        <div className="grid md:grid-cols-2 gap-4">
-          <InfoCard variant="default">
-            <h3 className="font-semibold mb-2">📧 Email Support</h3>
-            <ul className="text-sm space-y-2">
-              <li>
-                <strong>Hours:</strong> 24/7 (Email anytime)
-              </li>
-              <li>
-                <strong>Response Time:</strong> Within 24-48 hours
-              </li>
-              <li>
-                <strong>Urgent Issues:</strong> Within 12 hours
-              </li>
-            </ul>
-          </InfoCard>
-
-          <InfoCard variant="default">
-            <h3 className="font-semibold mb-2">🏫 Campus Hours</h3>
-            <ul className="text-sm space-y-2">
-              <li>
-                <strong>Active Support:</strong> Monday - Friday
-              </li>
-              <li>
-                <strong>Time:</strong> 9:00 AM - 6:00 PM IST
-              </li>
-              <li>
-                <strong>Weekend:</strong> Limited support
-              </li>
-            </ul>
-          </InfoCard>
-        </div>
-      </InfoSection>
-
-      <InfoSection title="🔐 Report Security Issues">
-        <p>
-          If you discover a security vulnerability or privacy concern on Campus
-          Connect, please report it immediately:
-        </p>
-        <InfoCard variant="danger">
-          <p className="font-semibold mb-2">🚨 Security Contact</p>
-          <p className="text-sm">
-            Email:{" "}
-            <Link
-              href={{
-                pathname:
-                  "mailto:codingclub@nitap.ac.in?subject=SECURITY%20ALERT",
-              }}
-              className="underline"
+            <InfoCard
+              variant="default"
+              title="Business Inquiries"
+              icon={<Briefcase />}
             >
-              codingclub@nitap.ac.in
-            </Link>
-          </p>
-          <p className="text-sm">
-            Subject: <strong>&quot;SECURITY ALERT - [Description]&quot;</strong>
-          </p>
-          <p className="text-xs mt-2">
-            Please include details of the vulnerability but do not disclose it
-            publicly until we&apos;ve had a chance to address it.
-          </p>
-        </InfoCard>
-      </InfoSection>
+              <p className="text-sm text-muted-foreground mb-4">
+                For vendor partnerships, sponsorships, or collaborations.
+              </p>
+              <Link
+                href="mailto:codingclub@nitap.ac.in?subject=Business%20Inquiry"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Email us with subject "Business Inquiry"
+              </Link>
+            </InfoCard>
+          </div>
+        </InfoSection>
 
-      <InfoSection title="💼 Business Inquiries">
-        <p>
-          Interested in partnering with Campus Connect or have a business
-          proposal?
-        </p>
-        <ul className="list-disc pl-6 mt-3 space-y-2">
-          <li>
-            <strong>Vendor Partnerships:</strong> Want to list your shop on
-            Campus Connect
-          </li>
-          <li>
-            <strong>Sponsorships:</strong> Marketing or sponsorship
-            opportunities
-          </li>
-          <li>
-            <strong>Collaborations:</strong> Campus events, student
-            organizations, or tech partnerships
-          </li>
-        </ul>
-        <p className="mt-4">
-          Email us at{" "}
+        <InfoSection title="Location" id="location">
+          <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-xl border">
+            <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+            <div>
+              <h4 className="font-semibold mb-1">NIT Arunachal Pradesh</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Yupia, Papum Pare District
+                <br />
+                Arunachal Pradesh, India - 791112
+              </p>
+              <p className="text-xs text-muted-foreground mt-4 italic">
+                Note: Campus Connect is an online platform. Please email us to
+                schedule in-person meetings.
+              </p>
+            </div>
+          </div>
+        </InfoSection>
+
+        <div className="mt-12 text-center">
+          <h3 className="text-lg font-semibold mb-2">Still need help?</h3>
           <Link
-            href={{
-              pathname:
-                "mailto:codingclub@nitap.ac.in?subject=Business%20Inquiry",
-            }}
-            className="text-primary hover:underline"
+            href="mailto:codingclub@nitap.ac.in"
+            className="inline-flex items-center justify-center h-10 px-8 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors"
           >
-            codingclub@nitap.ac.in
-          </Link>{" "}
-          with subject line:{" "}
-          <strong>&quot;Business Inquiry - [Topic]&quot;</strong>
-        </p>
-      </InfoSection>
-
-      <InfoSection title="📍 Location">
-        <InfoCard variant="default">
-          <p className="font-semibold">NIT Arunachal Pradesh</p>
-          <p className="text-sm text-muted-foreground">
-            Yupia, Papum Pare District
-            <br />
-            Arunachal Pradesh, India - 791112
-          </p>
-          <p className="text-xs text-muted-foreground mt-3">
-            <em>
-              Note: Campus Connect is an online platform. For in-person
-              assistance, please contact us via email first to schedule a
-              meeting.
-            </em>
-          </p>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoCard variant="primary" className="text-center">
-        <h3 className="text-lg font-semibold mb-2">
-          We&apos;re Here to Help! 💙
-        </h3>
-        <p className="text-sm mb-4">
-          Whether you&apos;re a student, vendor, or just curious about Campus
-          Connect, we&apos;re always happy to hear from you. Don&apos;t hesitate
-          to reach out!
-        </p>
-        <Link
-          href={{ pathname: "mailto:codingclub@nitap.ac.in" }}
-          className="inline-block mt-2 px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-        >
-          Send Us an Email
-        </Link>
-      </InfoCard>
-    </LegalPageLayout>
+            Send us an Email
+          </Link>
+        </div>
+      </LegalPageLayout>
+    </>
   );
 }
