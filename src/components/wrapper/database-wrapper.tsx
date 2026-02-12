@@ -26,8 +26,8 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
     error,
     isConnected,
     lastChecked,
-    isLoading,
     latency,
+    isError,
   } = useDatabaseStatus({
     refetchInterval: isDevelopment ? undefined : 300000,
   });
@@ -52,16 +52,22 @@ export function DatabaseWrapper({ children }: DatabaseWrapperProps) {
     return <>{children}</>;
   }
 
+  // Show reconnecting screen when connection is restored
   if (isConnected && showReconnecting) {
     return <DatabaseReconnectingPage latency={latency} />;
   }
 
-  if (!isLoading && !isConnected) {
+  // Show children if connected (skip initial loading state to avoid flash)
+  if (isConnected) {
+    return <>{children}</>;
+  }
+
+  if (!isConnected && !isChecking) {
     return (
       <DatabaseErrorPage
         error={error}
         lastChecked={lastChecked}
-        isChecking={isChecking || isLoading}
+        isChecking={isChecking}
         onRetry={() => {
           setShowReconnecting(true);
           retry();
