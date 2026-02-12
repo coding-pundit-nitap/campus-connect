@@ -7,11 +7,11 @@ import { useDatabase } from "../queries/useDatabase";
 export const useDatabaseStatus = ({ refetchInterval = 60000 } = {}) => {
   const {
     data: statusData,
-    isLoading,
     isError,
-    isFetching,
     refetch,
+    isPending,
     dataUpdatedAt,
+    isFetching,
   } = useDatabase({ refetchInterval });
 
   const data = useMemo(() => {
@@ -20,13 +20,12 @@ export const useDatabaseStatus = ({ refetchInterval = 60000 } = {}) => {
       latency: statusData?.latency,
       error: statusData?.status !== "healthy" ? statusData?.details : undefined,
       lastChecked: dataUpdatedAt ? new Date(dataUpdatedAt) : undefined,
-      isChecking: isFetching,
+      isChecking: isFetching || isPending,
     };
-  }, [statusData, isFetching, dataUpdatedAt]);
+  }, [statusData, isFetching, isPending, dataUpdatedAt]);
 
   return {
     ...data,
-    isLoading,
     isError,
     retry: refetch,
   };
