@@ -16,6 +16,23 @@ export const publicRoutes: string[] = [
   "/product/:product_id",
 ];
 
+// Public API routes that don't require authentication
+export const publicApiRoutes: string[] = [
+  "/api/health/status",
+  "/api/health/database",
+  "/api/metrics",
+  "/api/images/:path",
+  "/api/shops/all",
+  "/api/shops/:shop_id",
+  "/api/shops/:shop_id/products",
+  "/api/shops/:shop_id/next-slot",
+  "/api/shops/:shop_id/batch-slots",
+  "/api/products",
+  "/api/products/:product_id",
+  "/api/reviews/:product_id",
+  "/api/search",
+];
+
 // Routes related to authentication (login, register, error pages).
 // These routes redirect logged-in users to the default redirect path.
 export const authRoutes = ["/error"];
