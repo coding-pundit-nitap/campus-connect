@@ -1,375 +1,382 @@
+import {
+  AlertOctagon,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Mail,
+  RefreshCcw,
+  Scale,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react";
 import { Metadata } from "next";
+import Link from "next/link";
 
 import { InfoCard, InfoSection } from "@/components/shared/info-components";
 import LegalPageLayout from "@/components/shared/legal-page-layout";
 
 export const metadata: Metadata = {
-  title: "Refund & Cancellation Policy",
+  title: "Refund & Cancellation Policy - Campus Connect | Order Returns",
   description:
-    "Learn about Campus Connect's refund and order cancellation policy.",
+    "Fair refund and cancellation policies for Campus Connect at NIT AP. Learn about order cancellation deadlines, refund eligibility, processing timelines, and dispute resolution.",
+  keywords: [
+    "campus connect refund",
+    "cancellation policy",
+    "order cancellation",
+    "refund policy",
+    "return policy",
+    "money back",
+    "order issues",
+    "dispute resolution",
+    "NIT AP refunds",
+    "batch cancellation",
+  ],
+  authors: [{ name: "Coding Club @ NIT Arunachal Pradesh" }],
+  robots: {
+    index: true,
+    follow: true,
+  },
+  openGraph: {
+    title: "Refund & Cancellation Policy - Campus Connect",
+    description:
+      "Clear policies for order cancellations and refunds. Learn when you can cancel, how to request refunds, and dispute resolution procedures.",
+    type: "website",
+    locale: "en_IN",
+    siteName: "Campus Connect",
+  },
+  twitter: {
+    card: "summary",
+    title: "Campus Connect Refund Policy",
+    description:
+      "Fair refund and cancellation policies for students and vendors at NIT AP.",
+  },
+  alternates: {
+    canonical: "/refund-policy",
+  },
 };
 
+const TOC_LINKS = [
+  { id: "overview", title: "Overview" },
+  { id: "cancellation", title: "Cancellation Policy" },
+  { id: "refund", title: "Refund Policy" },
+  { id: "request", title: "How to Request" },
+  { id: "timeline", title: "Processing Timeline" },
+  { id: "dispute", title: "Disputes" },
+];
+
 export default function RefundPolicyPage() {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "Refund & Cancellation Policy",
+    description:
+      "Comprehensive refund and cancellation policy covering order cancellations, refund eligibility, and dispute resolution",
+    url: "https://campusconnect.nitap.ac.in/refund-policy",
+    inLanguage: "en-IN",
+    datePublished: "2026-02-12",
+    dateModified: "2026-02-12",
+    publisher: {
+      "@type": "Organization",
+      name: "Coding Club @ NIT Arunachal Pradesh",
+      email: "codingclub@nitap.ac.in",
+    },
+    mainEntity: {
+      "@type": "DigitalDocument",
+      name: "Refund & Cancellation Policy",
+      about: "Order cancellation rules and refund procedures",
+    },
+  };
+
   return (
-    <LegalPageLayout
-      title="Refund & Cancellation Policy"
-      description="Learn about Campus Connect's refund and order cancellation policy."
-      lastUpdated="February 12, 2026"
-    >
-      <InfoSection title="1. Overview">
-        <InfoCard variant="default">
-          <p className="mb-3">
-            Campus Connect operates as a platform facilitator between campus
-            vendors and students. Our refund and cancellation policies are
-            designed to be fair to both buyers and vendors while considering the
-            unique nature of our batch delivery system.
-          </p>
-          <p>
-            <strong>General Approach:</strong> Refund and cancellation requests
-            are evaluated on a <strong>case-by-case basis</strong>, taking into
-            account order status, vendor preparation time, and the reason for
-            the request.
-          </p>
-        </InfoCard>
-      </InfoSection>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <LegalPageLayout
+        title="Refund & Cancellation Policy"
+        description="Fair policies designed for both students and campus vendors."
+        lastUpdated="February 12, 2026"
+        toc={TOC_LINKS}
+      >
+        <InfoSection title="1. Overview" id="overview">
+          <InfoCard variant="default" icon={<Scale className="text-primary" />}>
+            <p className="mb-3 text-muted-foreground leading-relaxed">
+              Campus Connect operates as a platform facilitator. Our policies
+              are designed to be fair to both buyers (Students) and vendors
+              (Lower Market Shops), considering the unique nature of our batch
+              delivery system.
+            </p>
+            <div className="bg-muted/50 p-4 rounded-lg border text-sm text-muted-foreground">
+              <strong>General Approach:</strong> Requests are evaluated on a{" "}
+              <strong>case-by-case basis</strong>, taking into account order
+              status, preparation time, and proof of issue.
+            </div>
+          </InfoCard>
+        </InfoSection>
 
-      <InfoSection title="2. Cancellation Policy">
-        <InfoCard variant="success">
-          <h3 className="text-xl font-semibold mb-3">
-            2.1 Before Batch Closes
-          </h3>
-          <p className="font-semibold mb-2">✅ Cancellation Usually Allowed</p>
-          <p className="text-sm">
-            If you cancel before the batch closes and the order hasn&apos;t been
-            batched yet, cancellation is typically granted without penalty.
-          </p>
-        </InfoCard>
+        <InfoSection title="2. Cancellation Policy" id="cancellation">
+          <div className="grid gap-4">
+            <InfoCard
+              title="2.1 Before Batch Closes"
+              variant="success"
+              icon={<CheckCircle2 className="text-green-600" />}
+            >
+              <p className="text-sm font-medium text-green-800 dark:text-green-300 mb-1">
+                ✅ Cancellation Usually Allowed
+              </p>
+              <p className="text-sm text-muted-foreground">
+                If you cancel before the batch closes and the order hasn't been
+                batched yet, cancellation is typically granted instantly without
+                penalty.
+              </p>
+            </InfoCard>
 
-        <InfoCard variant="warning">
-          <h3 className="text-xl font-semibold mb-3">
-            2.2 After Batch Closes (Before Preparation)
-          </h3>
-          <p className="font-semibold mb-2">⚠️ Requires Vendor Approval</p>
-          <p className="text-sm">
-            Once the batch closes, cancellation depends on vendor approval. If
-            the vendor hasn&apos;t started preparing your order, cancellation
-            may be possible.
-          </p>
-        </InfoCard>
+            <InfoCard
+              title="2.2 After Batch Closes"
+              variant="warning"
+              icon={<AlertTriangle className="text-amber-600" />}
+            >
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300 mb-1">
+                ⚠️ Requires Vendor Approval
+              </p>
+              <p className="text-sm text-muted-foreground">
+                The vendor may have already started preparing your food.
+                Cancellation depends entirely on their approval.
+              </p>
+            </InfoCard>
 
-        <InfoCard variant="danger">
-          <h3 className="text-xl font-semibold mb-3">
-            2.3 After Preparation/Out for Delivery
-          </h3>
-          <p className="font-semibold mb-2">❌ Cancellation Not Allowed</p>
-          <p className="text-sm">
-            Once the vendor has prepared your order or is out for delivery,
-            cancellation is not permitted. You are responsible for accepting and
-            paying for the order.
-          </p>
-        </InfoCard>
+            <InfoCard
+              title="2.3 Out for Delivery"
+              variant="danger"
+              icon={<XCircle className="text-red-600" />}
+            >
+              <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
+                ❌ Cancellation Not Allowed
+              </p>
+              <p className="text-sm text-muted-foreground">
+                The vendor has already climbed the hill. You are responsible for
+                accepting and paying for the order.
+              </p>
+            </InfoCard>
+          </div>
+        </InfoSection>
 
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">
-            2.4 How to Cancel an Order
-          </h3>
-          <ul className="list-decimal pl-6 mb-4 space-y-2">
-            <li>Go to &quot;My Orders&quot; in your account dashboard.</li>
-            <li>Find the order you want to cancel.</li>
-            <li>Click &quot;Request Cancellation&quot; (if available).</li>
-            <li>Provide a reason for cancellation and submit your request.</li>
-            <li>
-              Wait for vendor/admin approval (you&apos;ll be notified via
-              email).
-            </li>
-          </ul>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="3. Refund Policy">
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">
-            3.1 Eligible Refund Scenarios
-          </h3>
-          <p className="mb-3">
-            You may be eligible for a refund in the following cases:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Order Not Delivered:</strong> If the vendor fails to
-              deliver your order within the batch window and you haven&apos;t
-              received it.
-            </li>
-            <li>
-              <strong>Wrong Item Delivered:</strong> If you received a
-              completely different product than what you ordered.
-            </li>
-            <li>
-              <strong>Spoiled/Damaged Products:</strong> If food items are
-              spoiled, expired, or significantly damaged upon delivery.
-            </li>
-            <li>
-              <strong>Incomplete Order:</strong> If items are missing from your
-              order.
-            </li>
-            <li>
-              <strong>Vendor Cancellation:</strong> If the vendor cancels your
-              order after payment (if applicable).
-            </li>
-            <li>
-              <strong>Duplicate Payment:</strong> If you were charged multiple
-              times for the same order.
-            </li>
-          </ul>
-        </InfoCard>
-
-        <InfoCard variant="danger">
-          <h3 className="text-xl font-semibold mb-3">
-            3.2 Non-Refundable Scenarios
-          </h3>
-          <p className="mb-3">
-            Refunds will <strong>NOT be provided</strong> in these cases:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Change of Mind:</strong> If you simply changed your mind
-              after the order was prepared/delivered.
-            </li>
-            <li>
-              <strong>Taste Preferences:</strong> If you didn&apos;t like the
-              taste or quality (unless the product is spoiled or inedible).
-            </li>
-            <li>
-              <strong>Missed Delivery:</strong> If you weren&apos;t available to
-              collect your order during the batch window and didn&apos;t inform
-              us in advance.
-            </li>
-            <li>
-              <strong>Incorrect Address:</strong> If you provided wrong delivery
-              information and the vendor couldn&apos;t deliver.
-            </li>
-            <li>
-              <strong>OTP Already Verified:</strong> Once you&apos;ve verified
-              the delivery OTP, the order is considered complete and refunds are
-              generally not available.
-            </li>
-          </ul>
-        </InfoCard>
-
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">3.3 Partial Refunds</h3>
-          <p>
-            If only part of your order is problematic (e.g., one item spoiled,
-            others fine), we may issue a <strong>partial refund</strong> for the
-            affected items only.
-          </p>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="4. How to Request a Refund">
-        <InfoCard variant="info">
-          <p className="font-semibold mb-3">📱 Report Issues Immediately</p>
-          <p className="text-sm">
-            For the best chance of a successful refund, report issues{" "}
-            <strong>within 24 hours</strong> of delivery.
-          </p>
-        </InfoCard>
-
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">Steps to Request:</h3>
-          <ul className="list-decimal pl-6 mb-4 space-y-2">
-            <li>Go to &quot;My Orders&quot; and find the problematic order.</li>
-            <li>
-              Click &quot;Report Issue&quot; or &quot;Request Refund&quot;.
-            </li>
-            <li>
-              Select the reason for your refund request:
-              <ul className="list-disc pl-6 mt-2 space-y-1">
-                <li>Order not delivered</li>
-                <li>Wrong item received</li>
-                <li>Item damaged/spoiled</li>
-                <li>Incomplete order</li>
-                <li>Other (please specify)</li>
+        <InfoSection title="3. Refund Policy" id="refund">
+          <div className="grid md:grid-cols-2 gap-6">
+            <InfoCard
+              title="Eligible for Refund"
+              icon={<CheckCircle2 className="text-green-500" />}
+            >
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex gap-2">
+                  <span className="text-green-500">●</span> Order not delivered
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-green-500">●</span> Wrong item received
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-green-500">●</span> Spoiled/Damaged food
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-green-500">●</span> Missing items
+                  (Partial refund)
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-green-500">●</span> Duplicate payment
+                  charged
+                </li>
               </ul>
-            </li>
-            <li>
-              <strong>Upload Evidence (if applicable):</strong> Photos of
-              spoiled/wrong products help process your request faster.
-            </li>
-            <li>Submit your request.</li>
-            <li>
+            </InfoCard>
+
+            <InfoCard
+              title="Not Eligible"
+              variant="default"
+              icon={<XCircle className="text-red-500" />}
+            >
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex gap-2">
+                  <span className="text-red-500">●</span> Change of mind after
+                  prep
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500">●</span> Personal taste
+                  preference
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500">●</span> You were unavailable
+                  to collect
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500">●</span> Incorrect hostel
+                  address provided
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-red-500">●</span> OTP already verified
+                </li>
+              </ul>
+            </InfoCard>
+          </div>
+        </InfoSection>
+
+        <InfoSection title="4. How to Request a Refund" id="request">
+          <InfoCard variant="info" icon={<Clock className="text-blue-600" />}>
+            <p className="font-semibold text-blue-800 dark:text-blue-300 mb-1">
+              Time Limit: 24 Hours
+            </p>
+            <p className="text-sm text-muted-foreground">
+              For food quality issues, you must report the issue within 24 hours
+              of delivery for a valid claim.
+            </p>
+          </InfoCard>
+
+          <div className="mt-6 space-y-4">
+            <h3 className="font-semibold text-lg">Steps to Follow:</h3>
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                { step: "1", text: "Go to 'My Orders' & find the order." },
+                { step: "2", text: "Click 'Report Issue' button." },
+                { step: "3", text: "Select reason & upload photos." },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className="flex flex-col items-center text-center p-4 border rounded-lg bg-card"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold mb-2">
+                    {item.step}
+                  </div>
+                  <p className="text-sm">{item.text}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mt-2">
               Our support team will review your request and respond within{" "}
               <strong>2-3 business days</strong>.
-            </li>
-          </ul>
-          <p className="mt-4">
-            <strong>Email Support:</strong> You can also email{" "}
-            <a
+            </p>
+          </div>
+        </InfoSection>
+
+        <InfoSection title="5. Refund Processing Timeline" id="timeline">
+          <InfoCard
+            title="Current Method: Cash on Delivery"
+            icon={<RefreshCcw className="text-gray-500" />}
+          >
+            <p className="text-sm text-muted-foreground mb-2">
+              Since we use COD, "refunds" are processed as:
+            </p>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+              <li>
+                <strong>Wallet Credit:</strong> Added to your Campus Connect
+                account for next time.
+              </li>
+              <li>
+                <strong>Manual Transfer:</strong> In rare cases, via UPI from
+                the admin.
+              </li>
+            </ul>
+          </InfoCard>
+        </InfoSection>
+
+        <InfoSection title="6. Dispute Resolution" id="dispute">
+          <InfoCard icon={<ShieldCheck className="text-primary" />}>
+            <p className="text-sm text-muted-foreground mb-4">
+              If your request is denied and you feel it was unfair, you can
+              escalate the issue.
+            </p>
+            <ol className="list-decimal pl-5 text-sm text-muted-foreground space-y-2">
+              <li>
+                <strong>Contact Support:</strong> Email{" "}
+                <a
+                  href="mailto:codingclub@nitap.ac.in"
+                  className="text-primary hover:underline"
+                >
+                  codingclub@nitap.ac.in
+                </a>{" "}
+                with Order ID.
+              </li>
+              <li>
+                <strong>Mediation:</strong> Our team will talk to the vendor on
+                your behalf.
+              </li>
+              <li>
+                <strong>Final Decision:</strong> Campus Connect admin decision
+                is final based on evidence.
+              </li>
+            </ol>
+          </InfoCard>
+        </InfoSection>
+
+        <InfoSection title="7. Prevention Tips" id="tips">
+          <InfoCard
+            variant="default"
+            title="Avoid Issues"
+            icon={<AlertOctagon className="text-purple-500" />}
+          >
+            <div className="grid sm:grid-cols-2 gap-4 text-sm text-muted-foreground">
+              <div className="flex gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                <span>
+                  <strong>Be Available:</strong> Don't make the vendor wait at
+                  the drop point.
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                <span>
+                  <strong>Check Address:</strong> Ensure Hostel Block & Room No
+                  are correct.
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                <span>
+                  <strong>Verify Items:</strong> Check food before sharing OTP.
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                <span>
+                  <strong>Order Early:</strong> Give vendors time to prep.
+                </span>
+              </div>
+            </div>
+          </InfoCard>
+        </InfoSection>
+
+        <InfoSection title="8. Contact Us" id="contact">
+          <div className="bg-muted/30 border rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-background rounded-full border shadow-sm">
+                <Mail className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">
+                  Have questions about a refund?
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Email us with Subject: "Refund Request - Order #[ID]"
+                </p>
+              </div>
+            </div>
+            <Link
               href="mailto:codingclub@nitap.ac.in"
-              className="text-primary hover:underline"
+              className="px-6 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
             >
-              codingclub@nitap.ac.in
-            </a>{" "}
-            with your order ID and issue details.
-          </p>
-        </InfoCard>
-      </InfoSection>
+              Email Support
+            </Link>
+          </div>
+        </InfoSection>
 
-      <InfoSection title="5. Refund Processing Timeline">
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">
-            5.1 Currently (Cash on Delivery)
-          </h3>
-          <p className="mb-3">
-            Since Campus Connect currently uses{" "}
-            <strong>Cash on Delivery</strong>, refunds (if approved) may be
-            processed as:
-          </p>
-          <ul className="list-disc pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Account Credit:</strong> Refund amount added to your
-              Campus Connect wallet for future orders.
-            </li>
-            <li>
-              <strong>Manual Refund:</strong> Coordinated directly with the
-              vendor for cash return.
-            </li>
-          </ul>
-        </InfoCard>
-
-        <InfoCard variant="default">
-          <h3 className="text-xl font-semibold mb-3">
-            5.2 Future (UPI/Online Payments)
-          </h3>
-          <p>
-            When UPI/online payments are introduced, refunds will be processed
-            back to the original payment method within{" "}
-            <strong>5-7 business days</strong> after approval.
-          </p>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="6. Vendor-Specific Policies">
-        <InfoCard variant="default">
-          <p>
-            Individual vendors on Campus Connect may have their own additional
-            policies regarding cancellations and refunds. These will be
-            displayed on the vendor&apos;s shop page. In case of conflict,
-            vendor-specific policies take precedence for that vendor&apos;s
-            orders.
-          </p>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="7. Dispute Resolution Process">
-        <InfoCard variant="default">
-          <p className="mb-3">
-            If your refund/cancellation request is denied and you believe it was
-            unfair:
-          </p>
-          <ul className="list-decimal pl-6 mb-4 space-y-2">
-            <li>
-              <strong>Step 1: Contact Support</strong> - Email{" "}
-              <a
-                href="mailto:codingclub@nitap.ac.in"
-                className="text-primary hover:underline"
-              >
-                codingclub@nitap.ac.in
-              </a>{" "}
-              with your order ID and explanation.
-            </li>
-            <li>
-              <strong>Step 2: Mediation</strong> - Our team will mediate between
-              you and the vendor to find a fair resolution.
-            </li>
-            <li>
-              <strong>Step 3: Final Decision</strong> - If unresolved, the
-              Campus Connect admin team will make a final binding decision based
-              on evidence and policies.
-            </li>
-          </ul>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="8. Prevention Tips (Avoid Issues)">
-        <InfoCard variant="info">
-          <p className="font-semibold mb-3">
-            🛡️ How to Avoid Refund/Cancellation Issues:
-          </p>
-          <ul className="list-disc pl-6 text-sm space-y-2">
-            <li>
-              <strong>Order Early:</strong> Place orders well before batch
-              closure to allow time for changes.
-            </li>
-            <li>
-              <strong>Double-Check Items:</strong> Review your cart carefully
-              before confirming.
-            </li>
-            <li>
-              <strong>Be Available:</strong> Ensure you&apos;re reachable during
-              the delivery window.
-            </li>
-            <li>
-              <strong>Verify Delivery:</strong> Check your order before entering
-              the OTP.
-            </li>
-            <li>
-              <strong>Report Immediately:</strong> If there&apos;s an issue,
-              report it right away (don&apos;t wait days).
-            </li>
-          </ul>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="9. Policy Updates">
-        <InfoCard variant="default">
-          <p>
-            Campus Connect may update this Refund &amp; Cancellation Policy from
-            time to time. Changes will be indicated by the &quot;Last
-            Updated&quot; date at the top of this page. Continued use of the
-            Platform after changes constitutes acceptance of the updated policy.
-          </p>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoSection title="10. Contact Us">
-        <InfoCard variant="default">
-          <p className="mb-3">
-            For refund/cancellation requests or questions about this policy:
-          </p>
-          <ul className="list-none pl-0 mb-4 space-y-1">
-            <li>
-              <strong>Email:</strong>{" "}
-              <a
-                href="mailto:codingclub@nitap.ac.in"
-                className="text-primary hover:underline"
-              >
-                codingclub@nitap.ac.in
-              </a>
-            </li>
-            <li>
-              <strong>Organization:</strong> Coding Club @ NIT Arunachal Pradesh
-              (Coding Pundit)
-            </li>
-            <li>
-              <strong>Subject Line:</strong> &quot;Refund Request - Order
-              #[YOUR_ORDER_ID]&quot;
-            </li>
-          </ul>
-        </InfoCard>
-      </InfoSection>
-
-      <InfoCard variant="warning" className="mt-8">
-        <p className="text-sm text-center">
-          <strong>Important Note:</strong> By placing an order on Campus
-          Connect, you acknowledge that you have read and understood this Refund
-          &amp; Cancellation Policy. This policy is subject to our{" "}
-          <a href="/terms" className="text-primary hover:underline">
-            Terms &amp; Conditions
-          </a>
+        <div className="mt-8 text-center text-xs text-muted-foreground max-w-2xl mx-auto">
+          By placing an order on Campus Connect, you acknowledge that you have
+          read and understood this Refund & Cancellation Policy. This policy is
+          subject to our{" "}
+          <Link href="/terms" className="underline hover:text-primary">
+            Terms & Conditions
+          </Link>
           .
-        </p>
-      </InfoCard>
-    </LegalPageLayout>
+        </div>
+      </LegalPageLayout>
+    </>
   );
 }
