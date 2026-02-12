@@ -8,6 +8,7 @@ import {
   apiAuthPrefix,
   authRoutes,
   DEFAULT_LOGIN_REDIRECT,
+  publicApiRoutes,
   publicRoutes,
 } from "@/rbac";
 
@@ -51,6 +52,10 @@ export async function proxy(req: NextRequest) {
 
     const isPublicRoute = publicRoutes.some((route) => matchRoute(path, route));
 
+    const isPublicApiRoute = publicApiRoutes.some((route) =>
+      matchRoute(path, route)
+    );
+
     const isAuthRoute = authRoutes.some((route) => matchRoute(path, route));
 
     const isAdminRoute = adminRoutes.some((route) => matchRoute(path, route));
@@ -72,6 +77,11 @@ export async function proxy(req: NextRequest) {
     } else if (isPublicRoute) {
       /**
        * Allow public pages
+       */
+      response = NextResponse.next();
+    } else if (isPublicApiRoute) {
+      /**
+       * Allow public API routes
        */
       response = NextResponse.next();
     } else if (isAuthRoute && isLoggedIn) {
