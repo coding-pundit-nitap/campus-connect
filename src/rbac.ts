@@ -14,6 +14,10 @@ export const publicRoutes: string[] = [
   "/shops",
   "/shops/:shop_id",
   "/product/:product_id",
+  "/manifest.json",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/favicon.ico",
 ];
 
 // Public API routes that don't require authentication
