@@ -395,6 +395,8 @@ services:
     command: server --console-address ":9001" /data
     env_file:
       - .env
+    environment:
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
     expose:
       - "9000"
       - "9001"
@@ -753,33 +755,6 @@ services:
     cpus: "0.1"
     logging: *default-logging
 
-  uptime-kuma:
-    image: louislam/uptime-kuma:1
-    container_name: campus_connect_uptime_kuma
-    restart: always
-    volumes:
-      - uptime_kuma_data:/app/data
-    expose:
-      - "3001"
-    networks:
-      - campus_connect_net
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "require('http').get('http://localhost:3001/api/health', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    profiles:
-      - prod
-    mem_limit: 256m
-    cpus: "0.5"
-    logging: *default-logging
-
 networks:
   campus_connect_net:
     driver: bridge
@@ -798,5 +773,4 @@ volumes:
   alertmanager_data:
   grafana_data:
   loki_data:
-  uptime_kuma_data:
   promtail_positions:
