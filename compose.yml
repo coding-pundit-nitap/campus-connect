@@ -605,7 +605,7 @@ services:
       retries: 3
     profiles:
       - prod
-    mem_limit: 256m
+    mem_limit: 512m
     cpus: "0.5"
     logging: *default-logging
 
@@ -636,7 +636,7 @@ services:
       retries: 3
     profiles:
       - prod
-    mem_limit: 256m
+    mem_limit: 512m
     cpus: "0.5"
     logging: *default-logging
 
@@ -656,7 +656,7 @@ services:
       - loki
     profiles:
       - prod
-    mem_limit: 64m
+    mem_limit: 128m
     cpus: "0.25"
     logging: *default-logging
 
