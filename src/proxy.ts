@@ -29,7 +29,12 @@ if (process.env.NODE_ENV === "production") {
 
 function matchRoute(path: string, route: string) {
   const regex = new RegExp(
-    "^" + route.replace(/:[^/]+/g, "[^/]+").replace(/\//g, "\\/") + "$"
+    "^" +
+      route
+        .replace(/:[^/]+\*/g, ".+")
+        .replace(/:[^/]+/g, "[^/]+")
+        .replace(/\//g, "\\/") +
+      "$"
   );
   return regex.test(path);
 }

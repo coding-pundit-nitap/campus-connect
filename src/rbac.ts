@@ -18,6 +18,7 @@ export const publicRoutes: string[] = [
   "/robots.txt",
   "/sitemap.xml",
   "/favicon.ico",
+  "/api/images/:path*",
 ];
 
 // Public API routes that don't require authentication
@@ -25,7 +26,7 @@ export const publicApiRoutes: string[] = [
   "/api/health/status",
   "/api/health/database",
   "/api/metrics",
-  "/api/images/:path",
+  "/api/images/:path*",
   "/api/shops/all",
   "/api/shops/:shop_id",
   "/api/shops/:shop_id/products",

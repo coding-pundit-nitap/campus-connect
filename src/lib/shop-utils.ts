@@ -1,3 +1,4 @@
+import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import { ShopWithOwner } from "@/types";
 
 type MoneyLike = { toString(): string };
@@ -51,19 +52,20 @@ export function formatShopData(shop: ShopWithOwner): ShopWithOwnerSerialized & {
   openingFormatted: string;
   closingFormatted: string;
 } {
-  const ownerName = shop.user ? shop.user.name : "Unknown Owner";
+  const normalized = convertPrismaDecimals(shop) as ShopWithOwner;
+  const ownerName = normalized.user ? normalized.user.name : "Unknown Owner";
 
   return {
-    ...shop,
-    min_order_value: serializeMoney(shop.min_order_value),
-    default_delivery_fee: serializeMoney(shop.default_delivery_fee),
-    direct_delivery_fee: serializeMoney(shop.direct_delivery_fee),
+    ...normalized,
+    min_order_value: serializeMoney(normalized.min_order_value),
+    default_delivery_fee: serializeMoney(normalized.default_delivery_fee),
+    direct_delivery_fee: serializeMoney(normalized.direct_delivery_fee),
     user: {
       name: ownerName,
-      email: shop.user ? shop.user.email : "Unknown Email",
+      email: normalized.user ? normalized.user.email : "Unknown Email",
     },
-    openingFormatted: formatTime(shop.opening),
-    closingFormatted: formatTime(shop.closing),
+    openingFormatted: formatTime(normalized.opening),
+    closingFormatted: formatTime(normalized.closing),
   };
 }
 
