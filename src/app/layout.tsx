@@ -7,8 +7,6 @@ import { ThemeProvider } from "next-themes";
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import ViewportVhSetter from "@/components/ui/viewport-vh";
-import { DatabaseWrapper } from "@/components/wrapper/database-wrapper";
-import { OfflineWrapper } from "@/components/wrapper/offline-wrapper";
 import { defaultMetadata } from "@/lib/metadata/site-metadata";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -82,14 +80,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <OfflineWrapper>
-              <DatabaseWrapper>
-                <QueryErrorBoundary>
-                  <ViewportVhSetter />
-                  {children}
-                </QueryErrorBoundary>
-              </DatabaseWrapper>
-            </OfflineWrapper>
+            <QueryErrorBoundary>
+              <ViewportVhSetter />
+              {children}
+            </QueryErrorBoundary>
           </QueryProvider>
         </ThemeProvider>
       </body>

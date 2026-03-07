@@ -32,6 +32,7 @@ x-dev-build: &dev-build
 
 x-dev-env: &dev-env
   env_file:
+    - .env
     - .env.local
 
 x-prod-env: &prod-env
@@ -92,7 +93,7 @@ services:
     <<: [*dev-build, *dev-env]
     container_name: campus_connect_app_dev
     restart: unless-stopped
-    command: ["pnpm", "dev"]
+    command: sh -c "pnpm prisma generate && pnpm dev"
     depends_on:
       db:
         condition: service_healthy
@@ -133,7 +134,7 @@ services:
     logging: *default-logging
 
   worker-dev:
-    <<: *dev-build
+    <<:  [*dev-build, *dev-env]
     container_name: campus_connect_worker_dev
     command: npx tsx workers/index.ts
     volumes:
