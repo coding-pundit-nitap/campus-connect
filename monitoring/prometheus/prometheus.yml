@@ -27,8 +27,13 @@ scrape_configs:
     scrape_timeout: 10s
 
   - job_name: "cadvisor"
+    honor_timestamps: false
     static_configs:
       - targets: ["cadvisor:8080"]
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: "container_(tasks_state|memory_failures_total|blkio_device_usage_total)"
+        action: drop
 
   - job_name: "node-exporter"
     static_configs:
