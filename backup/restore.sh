@@ -16,10 +16,11 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
 
-BACKUP_ROOT="${BACKUP_ROOT:-/backups/campus_connect}"
+BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
 MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
 PG_USER="${POSTGRES_USER:-connect}"
 PG_DB="${POSTGRES_DB:-campus_connect}"
 PG_PASSWORD="${POSTGRES_PASSWORD:-}"
@@ -75,7 +76,6 @@ list_backups() {
 # ── Find backup dir ───────────────────────────────────────────────────────────
 find_backup_dir() {
   if [[ "$BACKUP_TS" == "latest" ]]; then
-    # Find newest backup across all tiers
     BACKUP_DIR=$(find "$BACKUP_ROOT" -maxdepth 2 -type d -name "2*" | sort -r | head -1)
     [[ -z "$BACKUP_DIR" ]] && fail "No backups found in $BACKUP_ROOT"
   else
@@ -114,22 +114,27 @@ restore_postgres() {
     return
   fi
 
-  # Stop app to prevent writes during restore
   log "   Stopping app containers …"
-  docker stop campus_connect_app_prod  2>/dev/null || true
-  docker stop campus_connect_app_dev   2>/dev/null || true
+  docker stop campus_connect_app_prod   2>/dev/null || true
+  docker stop campus_connect_app_dev    2>/dev/null || true
   docker stop campus_connect_worker_prod 2>/dev/null || true
   docker stop campus_connect_worker_dev  2>/dev/null || true
 
-  # Drop and recreate DB
+  # Terminate active connections
   docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
-    psql -U "$PG_USER" -d postgres -c "
-      SELECT pg_terminate_backend(pid)
-      FROM pg_stat_activity
-      WHERE datname = '${PG_DB}' AND pid <> pg_backend_pid();
-      DROP DATABASE IF EXISTS ${PG_DB};
-      CREATE DATABASE ${PG_DB} OWNER ${PG_USER};
-    " || fail "Failed to recreate database"
+    psql -U "$PG_USER" -d postgres -c \
+    "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${PG_DB}' AND pid <> pg_backend_pid();" \
+  || fail "Failed to terminate connections"
+
+  # Drop database (must be separate — cannot run inside a transaction block)
+  docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    psql -U "$PG_USER" -d postgres -c "DROP DATABASE IF EXISTS ${PG_DB};" \
+  || fail "Failed to drop database"
+
+  # Recreate database
+  docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    psql -U "$PG_USER" -d postgres -c "CREATE DATABASE ${PG_DB} OWNER ${PG_USER};" \
+  || fail "Failed to create database"
 
   # Restore
   zcat "$dump_file" \
@@ -140,7 +145,7 @@ restore_postgres() {
   ok "PostgreSQL restored ← $(basename "$dump_file")"
 
   log "   Restarting app containers …"
-  docker start campus_connect_app_prod  2>/dev/null || true
+  docker start campus_connect_app_prod   2>/dev/null || true
   docker start campus_connect_worker_prod 2>/dev/null || true
 }
 
@@ -159,14 +164,12 @@ restore_minio() {
   fi
 
   docker run --rm \
-    --network campus_connect_net \
+    --network "${DOCKER_NETWORK}" \
     -v "${minio_dir}:/restore:ro" \
+    --entrypoint /bin/sh \
     minio/mc:latest \
-    /bin/sh -c "
-      mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet &&
-      mc mb --ignore-existing dst/${MINIO_BUCKET} &&
-      mc mirror --quiet /restore dst/${MINIO_BUCKET}
-    " || fail "MinIO restore failed"
+    -c "mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mb --ignore-existing dst/${MINIO_BUCKET} && mc mirror --quiet /restore dst/${MINIO_BUCKET}" \
+  || fail "MinIO restore failed"
 
   ok "MinIO restored ← $minio_dir (${count} objects)"
 }
@@ -184,10 +187,8 @@ restore_redis() {
     return
   fi
 
-  # Stop redis, replace dump.rdb, restart
   docker stop "$REDIS_CONTAINER" || fail "Could not stop Redis"
 
-  # Get the volume path
   REDIS_VOLUME=$(docker inspect "$REDIS_CONTAINER" \
     --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "")
 
@@ -195,7 +196,6 @@ restore_redis() {
     zcat "$rdb_file" > "${REDIS_VOLUME}/dump.rdb"
     ok "Redis RDB restored via volume mount"
   else
-    # Fallback: copy via docker cp
     zcat "$rdb_file" > /tmp/dump.rdb
     docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
     rm /tmp/dump.rdb
