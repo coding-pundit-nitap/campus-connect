@@ -134,7 +134,7 @@ services:
     logging: *default-logging
 
   worker-dev:
-    <<:  [*dev-build, *dev-env]
+    <<: [*dev-build, *dev-env]
     container_name: campus_connect_worker_dev
     command: npx tsx workers/index.ts
     volumes:
@@ -657,7 +657,7 @@ services:
       - loki
     profiles:
       - prod
-    mem_limit: 128m
+    mem_limit: 256m
     cpus: "0.25"
     logging: *default-logging
 

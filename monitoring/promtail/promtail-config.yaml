@@ -9,7 +9,11 @@ positions:
 clients:
   - url: http://loki:3100/loki/api/v1/push
     batchwait: 1s
-    batchsize: 1048576
+    batchsize: 524288
+    backoff_config:
+      min_period: 500ms
+      max_period: 5m
+      max_retries: 10
 
 scrape_configs:
   - job_name: docker
@@ -36,10 +40,14 @@ scrape_configs:
             level: level
             message: msg
             timestamp: time
-          source: output
       - regex:
           expression: "(?P<level>INFO|WARN|ERROR|DEBUG|FATAL)"
-          source: output
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+          fallback_formats:
+            - RFC3339
+            - UnixMs
       - labels:
           level:
       - static_labels:
