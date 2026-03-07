@@ -55,3 +55,4 @@ src/app/api/debug/*
 /monitoring/loki/data/
 /monitoring/alertmanager/data/
 /monitoring/alertmanager/alertmanager.yml
+backup.env
