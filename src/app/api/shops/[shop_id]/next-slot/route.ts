@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { batchService } from "@/services/batch";
 import { createSuccessResponse } from "@/types";
 
@@ -12,14 +13,15 @@ export async function GET(
     const result = await batchService.getNextSlot(shop_id);
 
     if (!result.enabled) {
-      return NextResponse.json(
+      return jsonResponse(
         createSuccessResponse({
           enabled: false,
           cutoff_time: null,
           batch_id: null,
           minutes_remaining: null,
           is_open: false,
-        })
+        }),
+        200
       );
     }
 
@@ -27,23 +29,24 @@ export async function GET(
     const msRemaining = result.cutoff_time.getTime() - now.getTime();
     const minutesRemaining = Math.max(0, Math.ceil(msRemaining / 60000));
 
-    return NextResponse.json(
+    return jsonResponse(
       createSuccessResponse({
         enabled: true,
         cutoff_time: result.cutoff_time.toISOString(),
         batch_id: result.batch_id,
         minutes_remaining: minutesRemaining,
         is_open: result.batch_id !== null,
-      })
+      }),
+      200
     );
   } catch (error) {
     console.error("GET next-slot error:", error);
-    return NextResponse.json(
+    return jsonResponse(
       {
         error:
           error instanceof Error ? error.message : "Failed to get next slot",
       },
-      { status: 500 }
+      500
     );
   }
 }

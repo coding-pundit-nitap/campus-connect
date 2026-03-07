@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import {
@@ -29,34 +30,30 @@ export async function DELETE(request: NextRequest) {
   try {
     const isAuthenticated = await authUtils.isAuthenticated();
     if (!isAuthenticated) {
-      return NextResponse.json(createErrorResponse("Unauthorized"), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse("Unauthorized"), 401);
     }
 
     const body = await request.json();
     const validation = deleteSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(
           "Invalid input: " + validation.error.issues[0].message
         ),
-        { status: 400 }
+        400
       );
     }
 
     await fileUploadService.deleteFile(validation.data.objectKey);
 
-    return NextResponse.json(
-      createSuccessResponse(null, "File deleted successfully.")
+    return jsonResponse(
+      createSuccessResponse(null, "File deleted successfully."),
+      200
     );
   } catch (error) {
     console.error("Delete File API Error:", error);
-
-    return NextResponse.json(createErrorResponse("File deletion failed."), {
-      status: 500,
-    });
+    return jsonResponse(createErrorResponse("File deletion failed."), 500);
   }
 }
 
@@ -64,20 +61,18 @@ export async function POST(request: Request) {
   try {
     const isAuthenticated = await authUtils.isAuthenticated();
     if (!isAuthenticated) {
-      return NextResponse.json(createErrorResponse("Unauthorized"), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse("Unauthorized"), 401);
     }
 
     const body = await request.json();
     const validation = uploadSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(
           "Invalid input: " + validation.error.issues[0].message
         ),
-        { status: 400 }
+        400
       );
     }
 
@@ -92,15 +87,12 @@ export async function POST(request: Request) {
       }
     );
 
-    return NextResponse.json(
-      createSuccessResponse(data, "Pre-signed URL created successfully.")
+    return jsonResponse(
+      createSuccessResponse(data, "Pre-signed URL created successfully."),
+      200
     );
   } catch (error) {
     console.error("Upload API Error:", error);
-
-    return NextResponse.json(
-      createErrorResponse("Upload preparation failed."),
-      { status: 500 }
-    );
+    return jsonResponse(createErrorResponse("Upload preparation failed."), 500);
   }
 }

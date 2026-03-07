@@ -16,9 +16,7 @@ import { useVendorDashboard } from "@/hooks/queries/useBatch";
 
 import { ActiveBatchCard } from "./active-batch-card";
 import { DirectOrdersSection } from "./direct-orders-section";
-import { OpenBatchCard } from "./open-batch-card";
 
-// New Component: Quick Stats Header
 function DashboardStats({
   activeCount,
   totalEarnings,
@@ -85,15 +83,23 @@ export function VendorDashboard() {
   if (!data) return null;
 
   const { open_batch, active_batches = [], direct_orders = [] } = data;
+  const statusOrder: Record<string, number> = {
+    IN_TRANSIT: 0,
+    LOCKED: 1,
+    OPEN: 2,
+  };
+  const allBatches = [
+    ...(open_batch ? [open_batch] : []),
+    ...active_batches,
+  ].sort(
+    (a, b) => (statusOrder[a.status] ?? 99) - (statusOrder[b.status] ?? 99)
+  );
 
-  // Calculate total potential earnings visible on screen
   const totalVisibleEarnings =
-    (open_batch?.total_earnings || 0) +
-    active_batches.reduce((acc, b) => acc + b.total_earnings, 0) +
+    allBatches.reduce((acc, b) => acc + b.total_earnings, 0) +
     direct_orders.reduce((acc, o) => acc + o.total_earnings, 0);
 
-  const totalActiveCount =
-    (open_batch ? 1 : 0) + active_batches.length + direct_orders.length;
+  const totalActiveCount = allBatches.length + direct_orders.length;
 
   return (
     <div className="space-y-6 pb-20 max-w-lg mx-auto">
@@ -121,35 +127,22 @@ export function VendorDashboard() {
         totalEarnings={totalVisibleEarnings}
       />
 
-      {/* SECTION 1: ACTIVE BATCHES (Urgent) */}
-      {active_batches.length > 0 && (
+      {/* All batches through one component — handles OPEN, LOCKED, IN_TRANSIT */}
+      {allBatches.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
             <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
-              In Progress
+              Batches
             </h3>
           </div>
-          {active_batches.map((batch) => (
+          {allBatches.map((batch) => (
             <ActiveBatchCard key={batch.id} batch={batch} />
           ))}
         </section>
       )}
 
-      {/* SECTION 2: OPEN BATCH (Collecting) */}
-      {open_batch && (
-        <section className="space-y-3">
-          <div className="flex items-center gap-2 mt-6">
-            <div className="h-2 w-2 rounded-full bg-amber-500" />
-            <h3 className="text-sm font-bold uppercase text-muted-foreground tracking-wider">
-              Collecting Orders
-            </h3>
-          </div>
-          <OpenBatchCard batch={open_batch} />
-        </section>
-      )}
-
-      {/* SECTION 3: DIRECT ORDERS */}
+      {/* Direct orders */}
       {direct_orders.length > 0 && (
         <div className="mt-8">
           <DirectOrdersSection orders={direct_orders} />

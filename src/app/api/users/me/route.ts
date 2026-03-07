@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { userRepository } from "@/repositories";
 import { updateUserSchema } from "@/validations/user.validation";
@@ -12,10 +13,10 @@ export async function GET() {
       include: { addresses: true },
     });
 
-    return NextResponse.json(userWithAddress, { status: 200 });
+    return jsonResponse(userWithAddress, 200);
   } catch (error) {
     console.error("[USER_GET]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return jsonResponse({ error: "Internal error" }, 500);
   }
 }
 
@@ -36,9 +37,9 @@ export async function PUT(req: Request) {
       validatedFields.data
     );
 
-    return NextResponse.json(updatedUser);
+    return jsonResponse(updatedUser, 200);
   } catch (error) {
     console.error("[USER_UPDATE]", error);
-    return new NextResponse("Internal error", { status: 500 });
+    return jsonResponse({ error: "Internal error" }, 500);
   }
 }

@@ -1,7 +1,6 @@
-import { NextResponse } from "next/server";
-
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { dbSearchService } from "@/services/search/db-search.service";
+import dbSearchService from "@/services/search/db-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -17,7 +16,7 @@ export async function GET(request: Request) {
 
     if (!query || query.trim().length === 0) {
       const errorResponse = createErrorResponse("Search query is required");
-      return NextResponse.json(errorResponse, { status: 400 });
+      return jsonResponse(errorResponse, 400);
     }
 
     const shopId = await authUtils.getOwnedShopId();
@@ -37,14 +36,12 @@ export async function GET(request: Request) {
       shop_id: category.shop_id,
     }));
 
-    return NextResponse.json(
-      createSuccessResponse(searchResults, "Categories fetched successfully")
+    return jsonResponse(
+      createSuccessResponse(searchResults, "Categories fetched successfully"),
+      200
     );
   } catch (error) {
     console.error("Error fetching categories:", error);
-    return NextResponse.json(
-      createErrorResponse("Failed to fetch categories"),
-      { status: 500 }
-    );
+    return jsonResponse(createErrorResponse("Failed to fetch categories"), 500);
   }
 }

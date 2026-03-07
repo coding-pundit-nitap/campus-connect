@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
@@ -12,18 +11,14 @@ export async function GET() {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      return NextResponse.json(createErrorResponse("User not authenticated"), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse("User not authenticated"), 401);
     }
     const shopWithUser = await shopRepository.findByOwnerId(user_id, {
       include: { user: { select: { name: true, email: true } } },
     });
 
     if (!shopWithUser) {
-      return NextResponse.json(createSuccessResponse(null, "Shop not found"), {
-        status: 200,
-      });
+      return jsonResponse(createSuccessResponse(null, "Shop not found"), 200);
     }
 
     const shop = formatShopData(shopWithUser);
@@ -32,10 +27,10 @@ export async function GET() {
       shop,
       "Shop fetched successfully"
     );
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("GET SHOPS ERROR:", error);
     const errorResponse = createErrorResponse("Internal Server Error");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

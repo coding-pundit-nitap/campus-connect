@@ -1,4 +1,3 @@
-import type { BatchSlot } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
 import type { ActionResponse } from "@/types";
 
@@ -35,7 +34,6 @@ class VendorApiService {
       await axiosInstance.get<ActionResponse<VendorDashboardResponse>>(
         "/vendor/dashboard"
       );
-    console.log(response.data.data);
     return response.data.data;
   }
 

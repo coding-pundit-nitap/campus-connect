@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -19,10 +18,10 @@ export async function GET() {
       },
       "Database connection is healthy."
     );
-    return NextResponse.json(response);
+    return jsonResponse(response, 200);
   } catch (error) {
     console.error("Database health check failed:", error);
     const response = createErrorResponse("Database is not accessible");
-    return NextResponse.json(response, { status: 503 });
+    return jsonResponse(response, 503);
   }
 }

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
 import z from "zod";
 
 import { Prisma } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
 import { prisma } from "@/lib/prisma";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeProducts } from "@/lib/utils/product.utils";
 import {
   createErrorResponse,
@@ -35,7 +35,7 @@ export async function GET(
 
     if (!shop_id) {
       const errorResponse = createErrorResponse("Shop ID is required.");
-      return NextResponse.json(errorResponse, { status: 400 });
+      return jsonResponse(errorResponse, 400);
     }
 
     const searchParams = Object.fromEntries(new URL(request.url).searchParams);
@@ -97,18 +97,18 @@ export async function GET(
       },
       "Products retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        { status: 400 }
+        400
       );
     }
     console.error("GET PRODUCTS ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

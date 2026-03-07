@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
 import {
@@ -15,10 +16,10 @@ export async function GET() {
       orders,
       "Seller orders retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("GET SELLER ORDERS ERROR:", error);
     const errorResponse = createErrorResponse("Failed to fetch orders");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

@@ -3,6 +3,7 @@ import z from "zod";
 
 import { Prisma } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import reviewRepository from "@/repositories/reviews.repository";
 import {
   createErrorResponse,
@@ -52,17 +53,15 @@ export async function GET(
       },
       "Reviews retrieved successfully"
     );
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        { status: 400 }
+        400
       );
     }
     console.error("Error fetching paginated reviews:", error);
-    return NextResponse.json(createErrorResponse("Failed to fetch reviews"), {
-      status: 500,
-    });
+    return jsonResponse(createErrorResponse("Failed to fetch reviews"), 500);
   }
 }

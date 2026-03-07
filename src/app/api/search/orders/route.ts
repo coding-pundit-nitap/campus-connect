@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { OrderStatus } from "@/generated/client";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { serializeOrderWithDetails } from "@/lib/utils/order.utils";
 import { orderRepository } from "@/repositories";
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     if (!shop_id) {
       const errorResponse = createErrorResponse("Unauthorized");
-      return NextResponse.json(errorResponse, { status: 401 });
+      return jsonResponse(errorResponse, 401);
     }
 
     const { orders, nextCursor } = await orderRepository.getPaginatedShopOrders(
@@ -42,10 +43,10 @@ export async function GET(request: NextRequest) {
       orders: orders.map((order) => serializeOrderWithDetails(order)),
       nextCursor,
     });
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("Error fetching orders:", error);
     const errorResponse = createErrorResponse("Internal Server Error");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

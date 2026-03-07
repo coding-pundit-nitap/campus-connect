@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 import {
@@ -19,7 +20,7 @@ export async function GET(
 
     if (!shopData) {
       const errorResponse = createErrorResponse("Shop not found");
-      return NextResponse.json(errorResponse, { status: 404 });
+      return jsonResponse(errorResponse, 404);
     }
 
     const shop = formatShopData(shopData);
@@ -27,12 +28,12 @@ export async function GET(
       shop,
       "Shop retrieved successfully"
     );
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("GET SHOP ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

@@ -40,6 +40,27 @@ export async function startBatchDeliveryAction(batchId: string) {
   );
 }
 
+export async function unlockBatchAction(batchId: string) {
+  const shopId = await authUtils.getOwnedShopId();
+  if (!shopId) {
+    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
+  }
+
+  const batch = await prisma.batch.findUnique({
+    where: { id: batchId },
+    select: { shop_id: true },
+  });
+  if (!batch || batch.shop_id !== shopId) {
+    throw new ValidationError("Batch not found or unauthorized");
+  }
+
+  await batchService.unlockBatch(batchId);
+  return createSuccessResponse(
+    null,
+    "Batch unlocked. Orders moved back to PREP MODE."
+  );
+}
+
 export async function completeBatchAction(batchId: string) {
   const shopId = await authUtils.getOwnedShopId();
   if (!shopId) {

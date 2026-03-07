@@ -31,11 +31,14 @@ export function OpenBatchCard({ batch }: OpenBatchCardProps) {
     return () => clearInterval(interval);
   }, [batch.cutoff_time]);
 
-  const cutoffTime = new Date(batch.cutoff_time);
-  const formattedTime = cutoffTime.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const cutoffDate = batch.cutoff_time ? new Date(batch.cutoff_time) : null;
+  const formattedTime =
+    cutoffDate && !isNaN(cutoffDate.getTime())
+      ? cutoffDate.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "—";
 
   return (
     <Card className="border-dashed border-muted-foreground/30">

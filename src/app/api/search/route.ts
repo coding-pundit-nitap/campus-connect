@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { dbSearchService } from "@/services/search/db-search.service";
 import {
   createErrorResponse,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
 
     if (!query || query.trim().length === 0) {
       const errorResponse = createErrorResponse("Search query is required");
-      return NextResponse.json(errorResponse, { status: 400 });
+      return jsonResponse(errorResponse, 400);
     }
 
     const results = await dbSearchService.globalSearch(query.trim());
@@ -24,12 +25,12 @@ export async function GET(request: NextRequest) {
       results,
       "Search completed successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("SEARCH ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred during search."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

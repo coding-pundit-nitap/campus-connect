@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import z from "zod";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
@@ -21,21 +22,19 @@ export async function GET(request: NextRequest) {
         parsed.cursor
       );
     const successResponse = createSuccessResponse(notifications);
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        { status: 400 }
+        400
       );
     }
     console.error("Error fetching notifications:", error);
     if (error instanceof UnauthenticatedError) {
-      return NextResponse.json(createErrorResponse(error.message), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse(error.message), 401);
     }
     const errorResponse = createErrorResponse("Failed to fetch notifications");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }
