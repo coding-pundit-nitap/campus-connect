@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
 import z from "zod";
 
 import { Prisma } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
 import {
@@ -41,18 +41,18 @@ export async function GET(request: Request) {
       formattedResult,
       "Shops retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        { status: 400 }
+        400
       );
     }
     console.error("GET SHOPS ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

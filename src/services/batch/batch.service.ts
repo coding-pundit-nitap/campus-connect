@@ -32,6 +32,7 @@ export interface BatchInfo {
     id: string;
     display_id: string;
     status: string;
+    phone?: string | null;
     delivery_address?: {
       hostel_block: string | null;
       label: string;
@@ -45,6 +46,7 @@ export interface DirectOrderInfo {
   id: string;
   display_id: string;
   status: string;
+  phone?: string | null; // <-- ADDED: customer phone for quick-call
   item_total: number;
   delivery_fee: number;
   platform_fee: number;
@@ -248,51 +250,33 @@ class BatchService {
     active_batches: BatchInfo[];
     direct_orders: DirectOrderInfo[];
   }> {
-    const openBatch = await batchRepository.findOpenBatchByShopId(shopId, {
-      include: {
-        orders: {
-          select: {
-            id: true,
-            display_id: true,
-            order_status: true,
-            item_total: true,
-            delivery_fee: true,
-            platform_fee: true,
-            delivery_address: {
-              select: {
-                hostel_block: true,
-                label: true,
-                building: true,
-                room_number: true,
-              },
-            },
-          },
+    const orderSelect = {
+      id: true,
+      display_id: true,
+      order_status: true,
+      item_total: true,
+      delivery_fee: true,
+      platform_fee: true,
+      user: { select: { phone: true } },
+      delivery_address: {
+        select: {
+          hostel_block: true,
+          label: true,
+          building: true,
+          room_number: true,
         },
       },
-    });
+    };
 
-    const activeBatches = await batchRepository.findActiveBatches(shopId, {
-      include: {
-        orders: {
-          select: {
-            id: true,
-            display_id: true,
-            item_total: true,
-            order_status: true,
-            delivery_fee: true,
-            platform_fee: true,
-            delivery_address: {
-              select: {
-                hostel_block: true,
-                label: true,
-                building: true,
-                room_number: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const [openBatches, activeBatches] = await Promise.all([
+      batchRepository.findOpenBatches(shopId, {
+        include: { orders: { select: orderSelect } },
+      }),
+      batchRepository.findActiveBatches(shopId, {
+        include: { orders: { select: orderSelect } },
+      }),
+    ]);
+    const [openBatch = null, ...extraOpenBatches] = openBatches;
 
     const formatBatch = async (
       batch: typeof openBatch
@@ -320,6 +304,7 @@ class BatchService {
         id: order.id,
         display_id: order.display_id,
         status: order.order_status,
+        phone: order.user?.phone ?? null,
         delivery_address: order.delivery_address,
       }));
 
@@ -332,8 +317,8 @@ class BatchService {
     const formattedOpenBatch = await formatBatch(openBatch);
     const formattedActiveBatches: BatchInfo[] = [];
 
-    for (const batch of activeBatches) {
-      const formatted = await formatBatch(batch);
+    for (const batch of [...extraOpenBatches, ...activeBatches]) {
+      const formatted = await formatBatch(batch as typeof openBatch);
       if (formatted) {
         formattedActiveBatches.push(formatted);
       }
@@ -353,6 +338,7 @@ class BatchService {
         delivery_fee: true,
         platform_fee: true,
         created_at: true,
+        user: { select: { phone: true } }, // <-- ADDED
         delivery_address: {
           select: {
             hostel_block: true,
@@ -369,6 +355,7 @@ class BatchService {
       id: order.id,
       display_id: order.display_id,
       status: order.order_status,
+      phone: order.user?.phone ?? null, // <-- ADDED
       item_total: Number(order.item_total),
       delivery_fee: Number(order.delivery_fee),
       platform_fee: Number(order.platform_fee),
@@ -388,6 +375,33 @@ class BatchService {
       active_batches: formattedActiveBatches,
       direct_orders: directOrders,
     };
+  }
+
+  async unlockBatch(batchId: string): Promise<void> {
+    const batch = await batchRepository.findById(batchId);
+
+    if (!batch) {
+      throw new NotFoundError("Batch not found");
+    }
+
+    if (batch.status !== "LOCKED") {
+      throw new Error("Only LOCKED batches can be unlocked");
+    }
+
+    await batchRepository.updateStatus(batchId, "OPEN");
+
+    const orders = await orderRepository.getOrdersByIds([], {
+      where: { batch_id: batchId },
+      select: { id: true },
+    });
+    const orderIds = orders.map((o) => o.id);
+
+    if (orderIds.length > 0) {
+      await orderRepository.batchUpdateOrders(orderIds, {
+        order_status: "NEW",
+        delivery_otp: null,
+      });
+    }
   }
 
   async startDelivery(batchId: string): Promise<void> {

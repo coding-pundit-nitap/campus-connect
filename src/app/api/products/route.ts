@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { productService } from "@/services/product/product.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
@@ -15,10 +16,7 @@ export async function GET(request: NextRequest) {
     const validation = paginatedSchema.safeParse(params);
 
     if (!validation.success) {
-      return NextResponse.json(
-        createErrorResponse("Invalid query parameters"),
-        { status: 400 }
-      );
+      return jsonResponse(createErrorResponse("Invalid query parameters"), 400);
     }
 
     const { limit, cursor } = validation.data;
@@ -29,16 +27,14 @@ export async function GET(request: NextRequest) {
     });
 
     const successResponse = createSuccessResponse(response);
-    return NextResponse.json(successResponse, { status: 200 });
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("Error fetching Products: ", error);
 
     if (error instanceof UnauthenticatedError) {
-      return NextResponse.json(createErrorResponse(error.message), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse(error.message), 401);
     }
     const errorResponse = createErrorResponse("Failed to fetch products");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { batchService } from "@/services/batch";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
@@ -11,13 +12,14 @@ export async function GET(
 
   try {
     const batchSlots = await batchService.getBatchSlotsWithAvailability(shopId);
-    return NextResponse.json(
-      createSuccessResponse(batchSlots, "Batch slots fetched successfully")
+    return jsonResponse(
+      createSuccessResponse(batchSlots, "Batch slots fetched successfully"),
+      200
     );
   } catch {
-    return NextResponse.json(
+    return jsonResponse(
       createErrorResponse("Failed to fetch batch slots"),
-      { status: 500 }
+      500
     );
   }
 }

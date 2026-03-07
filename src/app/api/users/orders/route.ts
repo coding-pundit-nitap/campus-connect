@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
 import {
@@ -11,21 +10,19 @@ export async function GET() {
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      return NextResponse.json(createErrorResponse("User not authenticated"), {
-        status: 401,
-      });
+      return jsonResponse(createErrorResponse("User not authenticated"), 401);
     }
 
     const orders = await orderRepository.getOrdersByUserId(user_id, {
       include: { items: true, shop: true },
     });
 
-    return NextResponse.json(createSuccessResponse(orders));
+    return jsonResponse(createSuccessResponse(orders), 200);
   } catch (error) {
     console.error("GET USER ORDERS ERROR:", error);
-    return NextResponse.json(
+    return jsonResponse(
       createErrorResponse("An internal server error occurred."),
-      { status: 500 }
+      500
     );
   }
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Counter, Histogram, Registry } from "prom-client";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
+
 let register: Registry | null = null;
 export let httpRequestDuration: Histogram | null = null;
 export let httpRequestTotal: Counter | null = null;
@@ -64,9 +66,9 @@ async function initializeMetrics() {
 
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV !== "production") {
-    return NextResponse.json(
+    return jsonResponse(
       { error: "Metrics endpoint only available in production" },
-      { status: 404 }
+      404
     );
   }
 
@@ -79,10 +81,7 @@ export async function GET(request: NextRequest) {
     await initializeMetrics();
 
     if (!register) {
-      return NextResponse.json(
-        { error: "Metrics not initialized" },
-        { status: 500 }
-      );
+      return jsonResponse({ error: "Metrics not initialized" }, 500);
     }
 
     const metrics = await register.metrics();
@@ -94,10 +93,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("[Metrics] Error generating metrics:", error);
-    return NextResponse.json(
-      { error: "Failed to generate metrics" },
-      { status: 500 }
-    );
+    return jsonResponse({ error: "Failed to generate metrics" }, 500);
   }
 }
 

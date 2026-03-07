@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import cartRepository from "@/repositories/cart.repository";
@@ -18,7 +17,7 @@ export async function GET(request: Request) {
       const errorResponse = createErrorResponse(
         "shop_id query parameter is required"
       );
-      return NextResponse.json(errorResponse, { status: 400 });
+      return jsonResponse(errorResponse, 400);
     }
 
     const cart = await cartRepository.findOrCreate(user_id, shop_id);
@@ -26,12 +25,12 @@ export async function GET(request: Request) {
       serializeFullCart(cart),
       "Cart retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("GET CART ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

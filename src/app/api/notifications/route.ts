@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { MAX_PAGE_SIZE } from "@/config/constants";
 import { Notification } from "@/generated/client";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
 import {
@@ -25,13 +26,11 @@ export async function GET(request: NextRequest) {
     const paginatedNotifications: CursorPaginatedResponse<Notification> =
       await notificationService.getUserNotifications(user_id, limit, cursor);
 
-    return NextResponse.json(createSuccessResponse(paginatedNotifications), {
-      status: 200,
-    });
+    return jsonResponse(createSuccessResponse(paginatedNotifications), 200);
   } catch (error) {
     console.error("Error fetching notifications:", error);
     const errorResponse = createErrorResponse("Failed to fetch notifications");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }
 
@@ -55,15 +54,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
+    return jsonResponse(
       createSuccessResponse(null, "Notifications marked as read"),
-      { status: 200 }
+      200
     );
   } catch (error) {
     console.error("Error marking notifications as read:", error);
-    return NextResponse.json(
+    return jsonResponse(
       createErrorResponse("Failed to mark notifications as read"),
-      { status: 500 }
+      500
     );
   }
 }

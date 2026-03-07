@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import reviewRepository from "@/repositories/reviews.repository";
 import { createErrorResponse, createSuccessResponse } from "@/types";
@@ -29,16 +30,12 @@ export async function GET(
     });
 
     if (!review || review.user_id !== user_id) {
-      return NextResponse.json(createErrorResponse("Review not found"), {
-        status: 404,
-      });
+      return jsonResponse(createErrorResponse("Review not found"), 404);
     }
 
-    return NextResponse.json(createSuccessResponse(review));
+    return jsonResponse(createSuccessResponse(review), 200);
   } catch (error) {
     console.error("Error fetching review:", error);
-    return NextResponse.json(createErrorResponse("Failed to fetch review"), {
-      status: 500,
-    });
+    return jsonResponse(createErrorResponse("Failed to fetch review"), 500);
   }
 }

@@ -6,6 +6,7 @@ import {
   OrderReceiptPDF,
 } from "@/components/pdf/order-receipt-pdf";
 import { prisma } from "@/lib/prisma";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createErrorResponse } from "@/types";
 
@@ -16,7 +17,7 @@ export async function GET(
   try {
     const userId = await authUtils.getUserId();
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
     const { order_id } = await params;
@@ -51,7 +52,7 @@ export async function GET(
 
     if (!order) {
       const errorResponse = createErrorResponse("Order not found");
-      return NextResponse.json(errorResponse, { status: 404 });
+      return jsonResponse(errorResponse, 404);
     }
 
     const isOwner = order.user_id === userId;
@@ -64,7 +65,7 @@ export async function GET(
 
     if (!isOwner && !isShopOwner) {
       const errorResponse = createErrorResponse("Forbidden");
-      return NextResponse.json(errorResponse, { status: 403 });
+      return jsonResponse(errorResponse, 403);
     }
 
     const items = order.items.map((item) => ({
@@ -128,6 +129,6 @@ export async function GET(
   } catch (error) {
     console.error("PDF Generation Error:", error);
     const errorResponse = createErrorResponse("Failed to generate PDF");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

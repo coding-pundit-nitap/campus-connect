@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { serializeFullCarts } from "@/lib/utils/product.utils";
 import { cartService } from "@/services/cart/cart.service";
@@ -14,14 +13,14 @@ export async function GET() {
     const carts = await cartService.getAllUserCarts(user_id);
     const successResponse = createSuccessResponse(
       serializeFullCarts(carts),
-      "All carts retrieved successfully"
+      "Carts retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     console.error("GET ALL CARTS ERROR:", error);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 
 export async function GET() {
-  return NextResponse.json({ status: "healthy" });
+  return jsonResponse({ status: "healthy" }, 200);
 }
 
 export async function HEAD() {
-  return new NextResponse(null, { status: 200 });
+  return jsonResponse(null, 200);
 }

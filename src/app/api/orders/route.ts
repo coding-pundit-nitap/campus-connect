@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import z from "zod";
 
 import { OrderStatus } from "@/generated/client";
 import { paginateCursor } from "@/lib/paginate";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
@@ -60,16 +61,16 @@ export async function GET(request: NextRequest) {
       },
       "Orders retrieved successfully"
     );
-    return NextResponse.json(successResponse);
+    return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
+      return jsonResponse(
         createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        { status: 400 }
+        400
       );
     }
     console.error("GET ORDERS ERROR:", error);
     const errorResponse = createErrorResponse("Failed to fetch orders");
-    return NextResponse.json(errorResponse, { status: 500 });
+    return jsonResponse(errorResponse, 500);
   }
 }

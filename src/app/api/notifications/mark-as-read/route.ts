@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import z from "zod";
 
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
@@ -17,9 +18,7 @@ export async function PATCH(request: NextRequest) {
     const validation = markAsReadSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json(createErrorResponse("Invalid input"), {
-        status: 400,
-      });
+      return jsonResponse(createErrorResponse("Invalid input"), 400);
     }
 
     const { notificationIds, broadcastIds } = validation.data;
@@ -35,15 +34,15 @@ export async function PATCH(request: NextRequest) {
       await notificationService.markBroadcastsAsRead(user_id, broadcastIds);
     }
 
-    return NextResponse.json(
+    return jsonResponse(
       createSuccessResponse(null, "Notifications marked as read"),
-      { status: 200 }
+      200
     );
   } catch (error) {
     console.error("Error marking notifications as read:", error);
-    return NextResponse.json(
+    return jsonResponse(
       createErrorResponse("Failed to mark notifications as read"),
-      { status: 500 }
+      500
     );
   }
 }

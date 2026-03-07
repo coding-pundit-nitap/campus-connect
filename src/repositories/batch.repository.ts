@@ -57,6 +57,23 @@ class BatchRepository {
     return prisma.batch.findFirst(query);
   }
 
+  async findOpenBatches(shop_id: string): Promise<Batch[]>;
+  async findOpenBatches<T extends BatchFindManyOptions>(
+    shop_id: string,
+    options: T
+  ): Promise<Prisma.BatchGetPayload<T>[]>;
+  async findOpenBatches<T extends BatchFindManyOptions>(
+    shop_id: string,
+    options?: T
+  ): Promise<Prisma.BatchGetPayload<T>[] | Batch[]> {
+    const query = {
+      where: { shop_id, status: "OPEN" },
+      orderBy: { cutoff_time: "asc" },
+      ...(options ?? {}),
+    } as Prisma.BatchFindManyArgs;
+    return prisma.batch.findMany(query);
+  }
+
   async findActiveBatches(shop_id: string): Promise<Batch[]>;
   async findActiveBatches<T extends BatchFindManyOptions>(
     shop_id: string,

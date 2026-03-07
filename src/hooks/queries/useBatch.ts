@@ -8,6 +8,7 @@ import {
   completeBatchAction,
   lockBatchAction,
   startBatchDeliveryAction,
+  unlockBatchAction,
   verifyOrderOtpAction,
 } from "@/actions";
 import { queryKeys } from "@/lib/query-keys";
@@ -17,6 +18,9 @@ export function useVendorDashboard() {
   return useQuery({
     queryKey: queryKeys.batch.vendorDashboard(),
     queryFn: vendorApiService.getVendorDetails,
+    refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    staleTime: 15_000,
   });
 }
 
@@ -75,6 +79,25 @@ export function useLockBatch() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to lock batch");
+    },
+  });
+}
+
+export function useUnlockBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: unlockBatchAction,
+    onSuccess: () => {
+      toast.success("Batch unlocked. Orders are accepting again.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.batch.vendorDashboard(),
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to unlock batch");
     },
   });
 }

@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
-
 import { prisma } from "@/lib/prisma";
+import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
 
@@ -8,10 +7,7 @@ export async function GET() {
   try {
     const shopId = await authUtils.getOwnedShopId();
     if (!shopId) {
-      return NextResponse.json(
-        { error: "You do not own a shop" },
-        { status: 403 }
-      );
+      return jsonResponse({ error: "You do not own a shop" }, 403);
     }
 
     const [
@@ -62,25 +58,26 @@ export async function GET() {
       );
     }, 0);
 
-    return NextResponse.json(
+    return jsonResponse(
       createSuccessResponse({
         productCount,
         categoryCount,
         totalOrders,
         pendingOrders,
         todayEarnings: Math.round(todayEarnings * 100) / 100,
-      })
+      }),
+      200
     );
   } catch (error) {
     console.error("GET vendor overview error:", error);
-    return NextResponse.json(
+    return jsonResponse(
       {
         error:
           error instanceof Error
             ? error.message
             : "Failed to get vendor overview",
       },
-      { status: 500 }
+      500
     );
   }
 }
