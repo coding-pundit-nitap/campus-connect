@@ -192,15 +192,10 @@ restore_redis() {
   REDIS_VOLUME=$(docker inspect "$REDIS_CONTAINER" \
     --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "")
 
-  if [[ -n "$REDIS_VOLUME" ]]; then
-    zcat "$rdb_file" > "${REDIS_VOLUME}/dump.rdb"
-    ok "Redis RDB restored via volume mount"
-  else
-    zcat "$rdb_file" > /tmp/dump.rdb
-    docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
-    rm /tmp/dump.rdb
-    ok "Redis RDB restored via docker cp"
-  fi
+  zcat "$rdb_file" > /tmp/dump.rdb
+  sudo docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
+  rm /tmp/dump.rdb
+  ok "Redis RDB restored via docker cp"
 
   docker start "$REDIS_CONTAINER" || fail "Could not restart Redis"
   ok "Redis restored ← $(basename "$rdb_file")"
