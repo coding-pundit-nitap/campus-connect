@@ -1,155 +1,234 @@
 #!/usr/bin/env bash
 # =============================================================================
-# campus_connect — Backup Verification Script
-# Tests integrity of backups WITHOUT restoring to production
-# Usage: ./verify.sh [--latest | --backup TIMESTAMP]
+# campus_connect — Restore Script
+# Usage:
+#   ./restore.sh --list                          # list available backups
+#   ./restore.sh --backup 20240115_020000        # restore specific timestamp
+#   ./restore.sh --latest                        # restore most recent backup
+#   ./restore.sh --latest --only postgres        # restore only postgres
+#   ./restore.sh --latest --only minio
+#   ./restore.sh --latest --only redis
+#   ./restore.sh --dry-run --latest              # preview without restoring
 # =============================================================================
 set -euo pipefail
+IFS=$'\n\t'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
 
-BACKUP_ROOT="${BACKUP_ROOT:-/backups/campus_connect}"
+BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
+DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
+MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
+REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
 PG_USER="${POSTGRES_USER:-connect}"
 PG_DB="${POSTGRES_DB:-campus_connect}"
 PG_PASSWORD="${POSTGRES_PASSWORD:-}"
-BACKUP_TS="${1:-latest}"
-PASS=0; FAIL=0
+MINIO_URL="${MINIO_URL:-http://minio:9000}"
+MINIO_USER="${MINIO_ROOT_USER:-}"
+MINIO_PASS="${MINIO_ROOT_PASSWORD:-}"
+MINIO_BUCKET="${NEXT_PUBLIC_MINIO_BUCKET:-campus-connect}"
+
+DRY_RUN=false
+ONLY=""
+BACKUP_TS=""
+ACTION=""
 
 log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
-ok()   { log "✅ PASS — $*"; (( PASS++ )); }
-fail() { log "❌ FAIL — $*"; (( FAIL++ )); }
+ok()   { log "✅ $*"; }
+warn() { log "⚠️  $*"; }
+fail() { log "❌ $*"; exit 1; }
 
-# ── Find backup ───────────────────────────────────────────────────────────────
-if [[ "$BACKUP_TS" == "latest" || "$BACKUP_TS" == "--latest" ]]; then
-  BACKUP_DIR=$(find "$BACKUP_ROOT" -maxdepth 2 -type d -name "2*" | sort -r | head -1)
-else
-  BACKUP_DIR=$(find "$BACKUP_ROOT" -maxdepth 2 -type d -name "${BACKUP_TS}" | head -1)
-fi
-[[ -z "$BACKUP_DIR" ]] && { log "❌ No backup found"; exit 1; }
+# ── Parse args ────────────────────────────────────────────────────────────────
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --list)      ACTION="list" ;;
+    --latest)    ACTION="restore"; BACKUP_TS="latest" ;;
+    --backup)    ACTION="restore"; BACKUP_TS="${2:-}"; shift ;;
+    --only)      ONLY="${2:-}"; shift ;;
+    --dry-run)   DRY_RUN=true ;;
+    *) fail "Unknown argument: $1" ;;
+  esac
+  shift
+done
 
-log "Verifying: $BACKUP_DIR"
-echo "────────────────────────────────────────────────────────────"
+[[ -z "$ACTION" ]] && { echo "Usage: $0 --list | --latest | --backup TIMESTAMP [--only postgres|minio|redis] [--dry-run]"; exit 1; }
 
-# ── 1. Manifest ───────────────────────────────────────────────────────────────
-verify_manifest() {
-  local manifest="${BACKUP_DIR}/MANIFEST.txt"
-  if [[ -f "$manifest" ]]; then
-    ok "Manifest exists"
-    grep -q "Timestamp" "$manifest" && ok "Manifest has timestamp" || fail "Manifest missing timestamp"
-  else
-    fail "No MANIFEST.txt found"
-  fi
+# ── List backups ──────────────────────────────────────────────────────────────
+list_backups() {
+  echo ""
+  echo "Available backups in ${BACKUP_ROOT}:"
+  echo "────────────────────────────────────────────────────────────"
+  for tier in monthly weekly daily; do
+    [[ -d "${BACKUP_ROOT}/${tier}" ]] || continue
+    echo ""
+    echo "  ${tier^^}:"
+    find "${BACKUP_ROOT}/${tier}" -maxdepth 1 -type d -name "2*" | sort -r | while read -r d; do
+      ts=$(basename "$d")
+      size=$(du -sh "$d" | cut -f1)
+      manifest="${d}/MANIFEST.txt"
+      [[ -f "$manifest" ]] && echo "    📦 ${ts}  (${size})" || echo "    📦 ${ts}  (${size}) ⚠️ no manifest"
+    done
+  done
+  echo ""
 }
 
-# ── 2. PostgreSQL dump ────────────────────────────────────────────────────────
-verify_postgres() {
+# ── Find backup dir ───────────────────────────────────────────────────────────
+find_backup_dir() {
+  if [[ "$BACKUP_TS" == "latest" ]]; then
+    BACKUP_DIR=$(find "$BACKUP_ROOT" -maxdepth 2 -type d -name "2*" | sort -r | head -1)
+    [[ -z "$BACKUP_DIR" ]] && fail "No backups found in $BACKUP_ROOT"
+  else
+    BACKUP_DIR=$(find "$BACKUP_ROOT" -maxdepth 2 -type d -name "${BACKUP_TS}" | head -1)
+    [[ -z "$BACKUP_DIR" ]] && fail "Backup not found: $BACKUP_TS"
+  fi
+  log "Using backup: $BACKUP_DIR"
+}
+
+# ── Safety confirmation ───────────────────────────────────────────────────────
+confirm() {
+  if [[ "$DRY_RUN" == "true" ]]; then
+    warn "DRY RUN — no changes will be made"
+    return
+  fi
+  echo ""
+  warn "⚠️  This will OVERWRITE live data!"
+  warn "   Target: $(hostname)"
+  warn "   Backup: $BACKUP_DIR"
+  [[ -n "$ONLY" ]] && warn "   Scope : $ONLY only"
+  echo ""
+  read -rp "Type 'yes I am sure' to proceed: " answer
+  [[ "$answer" == "yes I am sure" ]] || fail "Aborted"
+}
+
+# ── Restore PostgreSQL ────────────────────────────────────────────────────────
+restore_postgres() {
   local dump_file
   dump_file=$(find "$BACKUP_DIR" -name "postgres_*.sql.gz" | head -1)
+  [[ -z "$dump_file" ]] && fail "No postgres dump found in $BACKUP_DIR"
 
-  [[ -z "$dump_file" ]] && { fail "No postgres dump file found"; return; }
+  log "── Restoring PostgreSQL from $(basename "$dump_file") …"
 
-  # Check file exists and is not empty
-  local size
-  size=$(stat -c%s "$dump_file" 2>/dev/null || stat -f%z "$dump_file")
-  (( size > 1024 )) && ok "Postgres dump size OK ($(numfmt --to=iec-i --suffix=B "$size" 2>/dev/null || echo ${size}B))" \
-                     || fail "Postgres dump too small: ${size} bytes"
-
-  # Check gzip integrity
-  gzip -t "$dump_file" 2>/dev/null \
-    && ok "Postgres gzip integrity OK" \
-    || fail "Postgres dump is corrupted (gzip check failed)"
-
-  # Restore into a temporary test database
-  log "   Testing pg_restore into temp DB …"
-  local test_db="verify_${RANDOM}"
-
-  # Create test DB and restore
-  docker exec campus_connect_db \
-    psql -U "$PG_USER" -c "CREATE DATABASE ${test_db};" >/dev/null 2>&1 && \
-  zcat "$dump_file" | \
-    docker exec -i campus_connect_db \
-    pg_restore -U "$PG_USER" -d "$test_db" --no-owner 2>/dev/null && \
-  TABLE_COUNT=$(docker exec campus_connect_db \
-    psql -U "$PG_USER" -d "$test_db" -t -c \
-    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='public';" | tr -d ' ') && \
-  docker exec campus_connect_db \
-    psql -U "$PG_USER" -c "DROP DATABASE ${test_db};" >/dev/null 2>&1
-
-  if (( TABLE_COUNT > 0 )); then
-    ok "Postgres restore test: ${TABLE_COUNT} tables found"
-  else
-    fail "Postgres restore test: no tables found"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    ok "DRY RUN: would restore $dump_file → ${DB_CONTAINER}:${PG_DB}"
+    return
   fi
+
+  log "   Stopping app containers …"
+  docker stop campus_connect_app_prod   2>/dev/null || true
+  docker stop campus_connect_app_dev    2>/dev/null || true
+  docker stop campus_connect_worker_prod 2>/dev/null || true
+  docker stop campus_connect_worker_dev  2>/dev/null || true
+
+  # Terminate active connections
+  docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    psql -U "$PG_USER" -d postgres -c \
+    "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${PG_DB}' AND pid <> pg_backend_pid();" \
+  || fail "Failed to terminate connections"
+
+  # Drop database (must be separate — cannot run inside a transaction block)
+  docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    psql -U "$PG_USER" -d postgres -c "DROP DATABASE IF EXISTS ${PG_DB};" \
+  || fail "Failed to drop database"
+
+  # Recreate database
+  docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    psql -U "$PG_USER" -d postgres -c "CREATE DATABASE ${PG_DB} OWNER ${PG_USER};" \
+  || fail "Failed to create database"
+
+  # Restore
+  zcat "$dump_file" \
+  | docker exec -i -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
+    pg_restore -U "$PG_USER" -d "$PG_DB" --no-owner --role="$PG_USER" \
+  || fail "pg_restore failed"
+
+  ok "PostgreSQL restored ← $(basename "$dump_file")"
+
+  log "   Restarting app containers …"
+  docker start campus_connect_app_prod   2>/dev/null || true
+  docker start campus_connect_worker_prod 2>/dev/null || true
 }
 
-# ── 3. MinIO objects ──────────────────────────────────────────────────────────
-verify_minio() {
+# ── Restore MinIO ─────────────────────────────────────────────────────────────
+restore_minio() {
   local minio_dir="${BACKUP_DIR}/minio"
-
-  [[ -d "$minio_dir" ]] || { fail "No minio backup directory found"; return; }
+  [[ -d "$minio_dir" ]] || fail "No minio backup found in $BACKUP_DIR"
 
   local count
   count=$(find "$minio_dir" -type f | wc -l)
-  (( count > 0 )) && ok "MinIO backup has ${count} objects" || fail "MinIO backup is empty"
+  log "── Restoring MinIO (${count} objects) …"
 
-  # Check a sample of files are readable
-  local sample
-  sample=$(find "$minio_dir" -type f | head -5)
-  local bad=0
-  while IFS= read -r f; do
-    [[ -r "$f" && -s "$f" ]] || (( bad++ ))
-  done <<< "$sample"
-  (( bad == 0 )) && ok "MinIO sample files readable" || fail "${bad} unreadable MinIO files"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    ok "DRY RUN: would restore ${count} objects from $minio_dir → ${MINIO_BUCKET}"
+    return
+  fi
+
+  docker run --rm \
+    --network "${DOCKER_NETWORK}" \
+    -v "${minio_dir}:/restore:ro" \
+    --entrypoint /bin/sh \
+    minio/mc:latest \
+    -c "mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mb --ignore-existing dst/${MINIO_BUCKET} && mc mirror --quiet /restore dst/${MINIO_BUCKET}" \
+  || fail "MinIO restore failed"
+
+  ok "MinIO restored ← $minio_dir (${count} objects)"
 }
 
-# ── 4. Redis RDB ──────────────────────────────────────────────────────────────
-verify_redis() {
+# ── Restore Redis ─────────────────────────────────────────────────────────────
+restore_redis() {
   local rdb_file
   rdb_file=$(find "$BACKUP_DIR" -name "redis_*.rdb.gz" | head -1)
+  [[ -z "$rdb_file" ]] && fail "No redis backup found in $BACKUP_DIR"
 
-  [[ -z "$rdb_file" ]] && { fail "No redis backup found"; return; }
+  log "── Restoring Redis from $(basename "$rdb_file") …"
 
-  gzip -t "$rdb_file" 2>/dev/null \
-    && ok "Redis gzip integrity OK" \
-    || fail "Redis backup is corrupted (gzip check failed)"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    ok "DRY RUN: would restore $rdb_file → $REDIS_CONTAINER"
+    return
+  fi
 
-  # Check RDB magic bytes (REDIS in header)
-  local magic
-  magic=$(zcat "$rdb_file" | head -c 5)
-  [[ "$magic" == "REDIS" ]] \
-    && ok "Redis RDB magic bytes valid" \
-    || fail "Redis RDB magic bytes invalid — file may be corrupt"
+  docker stop "$REDIS_CONTAINER" || fail "Could not stop Redis"
+
+  REDIS_VOLUME=$(docker inspect "$REDIS_CONTAINER" \
+    --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "")
+
+  if [[ -n "$REDIS_VOLUME" ]]; then
+    zcat "$rdb_file" > "${REDIS_VOLUME}/dump.rdb"
+    ok "Redis RDB restored via volume mount"
+  else
+    zcat "$rdb_file" > /tmp/dump.rdb
+    docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
+    rm /tmp/dump.rdb
+    ok "Redis RDB restored via docker cp"
+  fi
+
+  docker start "$REDIS_CONTAINER" || fail "Could not restart Redis"
+  ok "Redis restored ← $(basename "$rdb_file")"
 }
 
-# ── 5. Age check ──────────────────────────────────────────────────────────────
-verify_age() {
-  local max_age_hours=25  # alert if backup older than 25 hours
-  local now
-  now=$(date +%s)
-  local dir_ts
-  dir_ts=$(basename "$BACKUP_DIR" | sed 's/_/ /')
-  local backup_epoch
-  backup_epoch=$(date -d "${dir_ts}" +%s 2>/dev/null || date -j -f "%Y%m%d %H%M%S" "${dir_ts}" +%s 2>/dev/null || echo 0)
-  local age_hours=$(( (now - backup_epoch) / 3600 ))
-
-  (( age_hours < max_age_hours )) \
-    && ok "Backup age: ${age_hours}h (under ${max_age_hours}h limit)" \
-    || fail "Backup is ${age_hours}h old — may be stale"
-}
-
-# ── Summary ───────────────────────────────────────────────────────────────────
+# ── Main ──────────────────────────────────────────────────────────────────────
 main() {
-  verify_manifest
-  verify_postgres
-  verify_minio
-  verify_redis
-  verify_age
+  if [[ "$ACTION" == "list" ]]; then
+    list_backups
+    exit 0
+  fi
 
-  echo "────────────────────────────────────────────────────────────"
-  echo "Results: ${PASS} passed, ${FAIL} failed"
-  (( FAIL == 0 )) && echo "🟢 Backup is VALID" || echo "🔴 Backup has ISSUES — do not rely on it"
-  (( FAIL == 0 ))
+  find_backup_dir
+  confirm
+
+  log "════════════════════════════════════════════════════"
+  log "Campus Connect Restore — $(date)"
+  log "════════════════════════════════════════════════════"
+
+  if [[ -z "$ONLY" || "$ONLY" == "postgres" ]]; then restore_postgres; fi
+  if [[ -z "$ONLY" || "$ONLY" == "minio"    ]]; then restore_minio;    fi
+  if [[ -z "$ONLY" || "$ONLY" == "redis"    ]]; then restore_redis;    fi
+
+  if [[ "$DRY_RUN" == "true" ]]; then
+    ok "DRY RUN complete — no data was modified"
+  else
+    ok "Restore complete ✓"
+  fi
 }
 
 main "$@"
