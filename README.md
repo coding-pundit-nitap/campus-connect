@@ -159,10 +159,6 @@ The schema generates two completely separate Prisma clients — one at `src/gene
 
 The workers run as an entirely separate Node.js process (`workers/index.ts`), built with its own `tsconfig.worker.json` and deployed as its own Docker container (`worker-runner`). A crash in the worker never takes down the web app, and each can be scaled or restarted independently.
 
-### Graceful Shutdown
-
-The worker entrypoint intercepts `SIGINT` and `SIGTERM`, awaits `notificationWorker.close()` and `auditWorker.close()` before exiting — ensuring in-flight BullMQ jobs are not abandoned mid-execution. The `docker-compose` `stop_grace_period: 60s` on `worker-prod` gives jobs time to finish before the container is forcibly killed.
-
 ### Multi-Stage Docker Build
 
 Seven named build stages produce lean, secure runtime images:
