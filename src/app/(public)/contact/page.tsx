@@ -1,6 +1,5 @@
 import {
   Briefcase,
-  Clock,
   Copy,
   FileText,
   HelpCircle,
@@ -181,7 +180,6 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Support Areas Grid */}
         <InfoSection title="What Can We Help You With?" id="support-areas">
           <div className="grid md:grid-cols-2 gap-4">
             {[
@@ -352,7 +350,7 @@ export default function ContactPage() {
 
         <InfoSection title="Location" id="location">
           <div className="flex items-start gap-4 p-6 bg-muted/30 rounded-xl border">
-            <MapPin className="w-6 h-6 text-primary flex-shrink-0 mt-1" />
+            <MapPin className="w-6 h-6 text-primary shrink-0 mt-1" />
             <div>
               <h4 className="font-semibold mb-1">NIT Arunachal Pradesh</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">

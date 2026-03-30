@@ -131,7 +131,6 @@ export function BatchSlotSelector({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Direct Delivery Option */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-muted-foreground">
             Delivery Options
@@ -152,7 +151,6 @@ export function BatchSlotSelector({
           </Button>
         </div>
 
-        {/* Separator */}
         {slots.length > 0 && (
           <div className="relative">
             <div className="absolute inset-0 flex items-center">

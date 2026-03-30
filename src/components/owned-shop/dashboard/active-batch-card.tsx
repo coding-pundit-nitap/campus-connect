@@ -487,7 +487,6 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
 
   return (
     <Card className={cn("overflow-hidden shadow-md", ui.color)}>
-      {/* Header */}
       <div className="bg-muted/30 p-4 flex justify-between items-start border-b">
         <div className="flex gap-3">
           <div className={cn("p-2 rounded-lg h-fit", ui.badge)}>
@@ -513,12 +512,10 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
       </div>
 
       <CardContent className="p-4 space-y-6">
-        {/* Shopping list (LOCKED + IN_TRANSIT only) */}
         {batch.item_summary && batch.item_summary.length > 0 && (
           <ShoppingListAccordion items={batch.item_summary} />
         )}
 
-        {/* OPEN: order summary grouped by block */}
         {isOpen && batch.orders && batch.orders.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
@@ -528,21 +525,18 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
           </div>
         )}
 
-        {/* OPEN: empty state */}
         {isOpen && (!batch.orders || batch.orders.length === 0) && (
           <div className="text-center py-6 text-sm text-muted-foreground border rounded-lg bg-muted/20">
             No orders yet — waiting for customers.
           </div>
         )}
 
-        {/* IN_TRANSIT: delivery checklist */}
         {isInTransit && (
           <DeliveryChecklist batchId={batch.id} orders={batch.orders} />
         )}
       </CardContent>
 
       <CardFooter className="p-4 bg-muted/20 border-t flex flex-col gap-2">
-        {/* ── OPEN state ── */}
         {isOpen && (
           <>
             <Button
@@ -566,7 +560,6 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
           </>
         )}
 
-        {/* ── LOCKED / prep state ── */}
         {isPrep && (
           <>
             <Button
@@ -576,7 +569,6 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
             >
               <Navigation className="mr-2 h-4 w-4" /> Start Delivery Route
             </Button>
-            {/* Both secondary actions as equal-width outlined buttons */}
             <div className="flex gap-2 w-full">
               <UnlockBatchDialog batchId={batch.id} />
               <CancelBatchDialog
@@ -587,7 +579,6 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
           </>
         )}
 
-        {/* ── IN_TRANSIT state ── */}
         {isInTransit && (
           <>
             <Button

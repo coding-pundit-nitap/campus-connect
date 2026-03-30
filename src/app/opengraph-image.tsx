@@ -1,5 +1,3 @@
-import { MetadataRoute } from "next";
-
 export default function opengraphImage() {
   return new Response(null, {
     status: 307,
