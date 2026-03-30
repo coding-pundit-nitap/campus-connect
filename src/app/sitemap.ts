@@ -63,8 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
     return [...staticPages, ...shopPages, ...productPages];
-  } catch (error) {
-    console.error("Error generating sitemap:", error);
+  } catch {
     return staticPages;
   }
 }

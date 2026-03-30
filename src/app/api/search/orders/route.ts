@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
 import { OrderStatus } from "@/generated/client";
 import { jsonResponse } from "@/lib/serializers/response-serializer";

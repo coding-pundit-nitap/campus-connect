@@ -130,7 +130,7 @@
     "@typescript-eslint/parser": "^8.56.1",
     "baseline-browser-mapping": "^2.10.0",
     "depcheck": "^1.4.7",
-    "eslint": "^10.0.3",
+    "eslint": "^9.39.4",
     "eslint-config-next": "^16.1.6",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",

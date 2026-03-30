@@ -28,7 +28,6 @@ function DirectOrderCard({ order }: { order: DirectOrderInfo }) {
 
   return (
     <Card className="flex flex-col relative overflow-hidden group">
-      {/* Quick Status Strip */}
       <div
         className={cn(
           "h-1 w-full absolute top-0 left-0",
@@ -37,7 +36,6 @@ function DirectOrderCard({ order }: { order: DirectOrderInfo }) {
       />
 
       <div className="p-4 flex flex-col h-full">
-        {/* Header */}
         <div className="flex justify-between items-start mb-3">
           <div>
             <div className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
@@ -52,7 +50,6 @@ function DirectOrderCard({ order }: { order: DirectOrderInfo }) {
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 ml-2">
-            {/* Call button — only shown when phone is present */}
             {order.phone && (
               <a href={`tel:${order.phone}`}>
                 <Button
@@ -71,7 +68,6 @@ function DirectOrderCard({ order }: { order: DirectOrderInfo }) {
           </div>
         </div>
 
-        {/* Action Area */}
         <div className="mt-auto w-full pt-2 space-y-3">
           <div className="flex justify-between items-center bg-muted/30 p-2 rounded text-sm">
             <span className="text-muted-foreground">Earning:</span>
@@ -91,11 +87,6 @@ function DirectOrderCard({ order }: { order: DirectOrderInfo }) {
             </Button>
           ) : (
             <div className="flex w-full gap-2 items-center">
-              {/*
-                FIX: InputOTPSlot must use explicit fixed sizes (e.g. h-9 w-9),
-                NOT w-full — w-full inside a flex group collapses the slots.
-                The InputOTPGroup itself is set to flex so slots share space evenly.
-              */}
               <InputOTP maxLength={4} value={otp} onChange={setOtp}>
                 <InputOTPGroup className="flex flex-1 gap-1">
                   <InputOTPSlot

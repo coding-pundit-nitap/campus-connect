@@ -127,7 +127,6 @@ export function VendorDashboard() {
         totalEarnings={totalVisibleEarnings}
       />
 
-      {/* All batches through one component — handles OPEN, LOCKED, IN_TRANSIT */}
       {allBatches.length > 0 && (
         <section className="space-y-4">
           <div className="flex items-center gap-2">
@@ -142,7 +141,6 @@ export function VendorDashboard() {
         </section>
       )}
 
-      {/* Direct orders */}
       {direct_orders.length > 0 && (
         <div className="mt-8">
           <DirectOrdersSection orders={direct_orders} />

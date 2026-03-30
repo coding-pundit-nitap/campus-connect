@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import reviewRepository from "@/repositories/reviews.repository";
