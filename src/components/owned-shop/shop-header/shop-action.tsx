@@ -7,13 +7,11 @@ import { Button } from "@/components/ui/button";
 
 export function ShopAction() {
   return (
-    <div className="flex flex-row gap-2 justify-end">
-      <Link href={"/owner-shops/products/new"}>
-        <Button className="gap-2 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
-          <Plus className="h-4 w-4" />
-          Add Product
-        </Button>
+    <Button asChild className="gap-2 shadow-sm transition-all hover:shadow-md">
+      <Link href="/owner-shops/products/new">
+        <Plus className="h-4 w-4" />
+        <span className="font-medium">Add Product</span>
       </Link>
-    </div>
+    </Button>
   );
 }

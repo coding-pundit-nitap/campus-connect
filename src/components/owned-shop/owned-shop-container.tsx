@@ -6,16 +6,10 @@ import {
   NoMatchFilter,
   ProductFiltersContainer,
 } from "@/components/shared/product-filters";
+import { Card, CardContent } from "@/components/ui/card";
 import { useSharedInfiniteProducts } from "@/hooks";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
 import { ProductListContainer } from "./product-list";
 import { ShopAction } from "./shop-header/shop-action";
 
@@ -67,18 +61,23 @@ export function OwnedShopContainer({
   });
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between mt-6">
-          <div>
-            <CardTitle>Product Management</CardTitle>
-            <CardDescription>
-              View, filter, and manage your products.
-            </CardDescription>
-          </div>
-          <ShopAction />
-        </CardHeader>
-        <CardContent className="space-y-4">
+    <div className="container mx-auto space-y-6 p-4 md:p-6">
+      {/* Page Header (Flattened) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Product Management
+          </h1>
+          <p className="text-muted-foreground">
+            View, filter, and manage your products.
+          </p>
+        </div>
+        <ShopAction />
+      </div>
+
+      {/* Filter Panel (Isolated) */}
+      <Card className="shadow-sm">
+        <CardContent className="p-4">
           <ProductFiltersContainer
             filters={filters}
             hasActiveFilters={hasActiveFilters}
@@ -91,27 +90,32 @@ export function OwnedShopContainer({
             clearPriceFilter={clearPriceFilter}
             clearStockFilter={clearStockFilter}
           />
-          <ProductListContainer
-            onDeleteProduct={onDeleteProduct || (() => Promise.resolve())}
-            shopData={{
-              displayProducts,
-              error,
-              hasActiveFilters,
-              isInitialLoading: isLoading && initialProducts.length === 0,
-              hasError: isError && !!error,
-              isLoading,
-              isError,
-              hasNextPage,
-              isFetchingNextPage,
-              fetchNextPage,
-            }}
-          />
-
-          {showNoMatchMessage && (
-            <NoMatchFilter onClearFilters={onResetFilters} />
-          )}
         </CardContent>
       </Card>
+
+      <div className="space-y-4">
+        <ProductListContainer
+          onDeleteProduct={onDeleteProduct || (() => Promise.resolve())}
+          shopData={{
+            displayProducts,
+            error,
+            hasActiveFilters,
+            isInitialLoading: isLoading && initialProducts.length === 0,
+            hasError: isError && !!error,
+            isLoading,
+            isError,
+            hasNextPage,
+            isFetchingNextPage,
+            fetchNextPage,
+          }}
+        />
+
+        {showNoMatchMessage && (
+          <div className="pt-8">
+            <NoMatchFilter onClearFilters={onResetFilters} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

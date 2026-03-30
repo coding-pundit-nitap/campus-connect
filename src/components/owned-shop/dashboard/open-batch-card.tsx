@@ -3,10 +3,10 @@
 import { Clock, ShoppingCart } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useLockBatch } from "@/hooks/queries/useBatch";
+import { cn } from "@/lib/cn";
 import { BatchInfo } from "@/services/batch";
 
 interface OpenBatchCardProps {
@@ -41,47 +41,66 @@ export function OpenBatchCard({ batch }: OpenBatchCardProps) {
       : "—";
 
   return (
-    <Card className="border-dashed border-muted-foreground/30">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg text-muted-foreground">
+    <Card className="flex flex-col overflow-hidden shadow-sm hover:shadow-md transition-all border-l-4 border-l-emerald-500">
+      <div className="bg-muted/30 p-4 flex justify-between items-start border-b shrink-0">
+        <div className="flex gap-3">
+          <div className="p-2 rounded-lg h-fit bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
+            <ShoppingCart className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-base leading-tight">
               Collecting Orders
-            </CardTitle>
-          </div>
-          <Badge variant="secondary">
-            <Clock className="mr-1 h-3 w-3" />
-            Closes at {formattedTime}
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <div className="text-2xl font-bold">{batch.order_count}</div>
-            <div className="text-xs text-muted-foreground">Orders so far</div>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-3 text-center">
-            <div className="text-2xl font-bold">{timeRemaining}</div>
-            <div className="text-xs text-muted-foreground">mins remaining</div>
+            </h3>
+            <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
+              <Clock className="h-3 w-3" />
+              <span>Closes at {formattedTime}</span>
+            </div>
           </div>
         </div>
+      </div>
 
-        <p className="text-center text-sm text-muted-foreground">
-          This batch will auto-close and become ready for delivery.
+      <CardContent className="p-6 flex-1">
+        <div className="flex justify-evenly items-center">
+          <div className="flex flex-col items-center">
+            <span className="text-4xl font-bold tracking-tight text-foreground">
+              {batch.order_count}
+            </span>
+            <span className="text-sm font-medium text-muted-foreground mt-1 uppercase tracking-wider">
+              Orders
+            </span>
+          </div>
+
+          {/* Subtle Vertical Divider */}
+          <div className="w-px h-12 bg-border"></div>
+
+          <div className="flex flex-col items-center">
+            <span className="text-4xl font-bold tracking-tight text-emerald-600">
+              {timeRemaining}
+            </span>
+            <span className="text-sm font-medium text-muted-foreground mt-1 uppercase tracking-wider">
+              Mins Left
+            </span>
+          </div>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          This batch will auto-close and become ready for delivery at the cutoff
+          time.
         </p>
+      </CardContent>
 
+      <CardFooter className="p-4 bg-muted/10 border-t mt-auto">
         <Button
-          className="w-full"
-          variant="secondary"
+          className={cn(
+            "w-full text-sm font-medium h-10 shadow-sm transition-colors",
+            "bg-emerald-600 hover:bg-emerald-700 text-white"
+          )}
           disabled={lockBatch.isPending}
           onClick={() => lockBatch.mutate(batch.id)}
         >
-          {lockBatch.isPending ? "Locking..." : "Lock Batch Now (Start Prep)"}
+          {lockBatch.isPending ? "Locking..." : "Lock Batch Early (Start Prep)"}
         </Button>
-      </CardContent>
+      </CardFooter>
     </Card>
   );
 }

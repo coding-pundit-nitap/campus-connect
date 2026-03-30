@@ -9,7 +9,11 @@ export function convertPrismaDecimals<T>(value: T): T {
   }
 
   if (typeof value === "object") {
-    const obj = value;
+    if (value instanceof Date) {
+      return value.toISOString() as T;
+    }
+
+    const obj = value as Record<string, unknown>;
 
     const ctorName = value?.constructor?.name;
     if (ctorName === "Decimal") {
@@ -17,6 +21,21 @@ export function convertPrismaDecimals<T>(value: T): T {
         return value.toString() as T;
       } catch {
         return String(value) as T;
+      }
+    }
+    if (
+      "toJSON" in obj &&
+      typeof obj.toJSON === "function" &&
+      ctorName &&
+      ctorName !== "Object"
+    ) {
+      try {
+        const serialized = obj.toJSON();
+        if (serialized === null || typeof serialized !== "object") {
+          return serialized as T;
+        }
+      } catch {
+        // Fall through to recursive conversion.
       }
     }
 

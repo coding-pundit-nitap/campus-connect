@@ -327,8 +327,8 @@ class BatchService {
     const directOrdersRaw = await orderRepository.getOrdersByIds([], {
       where: {
         shop_id: shopId,
-        is_direct_delivery: true,
-        order_status: { in: ["NEW", "OUT_FOR_DELIVERY"] },
+        order_status: { notIn: ["COMPLETED", "CANCELLED"] },
+        OR: [{ is_direct_delivery: true }, { batch_id: null }],
       },
       select: {
         id: true,
@@ -338,7 +338,7 @@ class BatchService {
         delivery_fee: true,
         platform_fee: true,
         created_at: true,
-        user: { select: { phone: true } }, // <-- ADDED
+        user: { select: { phone: true } },
         delivery_address: {
           select: {
             hostel_block: true,
@@ -355,7 +355,7 @@ class BatchService {
       id: order.id,
       display_id: order.display_id,
       status: order.order_status,
-      phone: order.user?.phone ?? null, // <-- ADDED
+      phone: order.user?.phone ?? null,
       item_total: Number(order.item_total),
       delivery_fee: Number(order.delivery_fee),
       platform_fee: Number(order.platform_fee),
