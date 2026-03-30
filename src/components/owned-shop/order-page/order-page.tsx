@@ -10,7 +10,7 @@ import { DateRangePicker } from "@/components/shared/date-range-picker";
 import { SharedSearchBar } from "@/components/shared/shared-search-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -26,6 +26,16 @@ import HostelBlockFilter from "./hostel-block-filter";
 import OrderCard from "./order-card";
 import { OrderCardSkeletonList } from "./order-card-skeleton";
 import OrderFilter from "./order-filter";
+
+function extractHostelBlock(snapshot: string): string | null {
+  try {
+    const parsed = JSON.parse(snapshot) as { hostel_block?: unknown };
+    const block = parsed?.hostel_block;
+    return typeof block === "string" && block.trim() !== "" ? block : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function OrderPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,50 +56,25 @@ export default function OrderPage() {
     []
   );
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newSearchTerm = e.target.value;
-    setSearchTerm(newSearchTerm);
-    debouncedSetQuery(newSearchTerm);
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
-    setSelectedOrders([]);
-  };
-
-  const handleStatusChange = (status?: OrderStatus) => {
-    setFilters((prev) => ({ ...prev, status }));
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
-    setSelectedOrders([]);
-  };
-
-  const handleDateChange = (dateRange?: DateRange) => {
-    setFilters((prev) => ({ ...prev, dateRange }));
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
-    setSelectedOrders([]);
-  };
-
-  const handleHostelBlockChange = (hostelBlock?: string) => {
-    setFilters((prev) => ({ ...prev, hostelBlock }));
-    if (selectedOrders.length > 0) {
-      toast.info("Selection cleared due to filter change");
-    }
-    setSelectedOrders([]);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setDebouncedSearchTerm("");
-    setFilters({});
-  };
-
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useOrderSearchQuery(debouncedSearchTerm, filters);
 
   const orders = data?.pages.flatMap((page) => page.orders) || [];
+
+  // Derive available blocks from the current dataset dynamically
+  const pages = data?.pages;
+
+  const availableBlocks = useMemo(() => {
+    if (!pages) return [];
+    const blocks = pages
+      .flatMap((page) => page.orders)
+      .map((o) => extractHostelBlock(o.delivery_address_snapshot))
+      .filter(
+        (block): block is string =>
+          typeof block === "string" && block.trim() !== ""
+      );
+    return Array.from(new Set(blocks)).sort();
+  }, [pages]);
 
   const { lastElementRef } = useInfiniteScroll({
     isFetchingNextPage,
@@ -97,6 +82,60 @@ export default function OrderPage() {
     fetchNextPage,
   });
 
+  // --- Filter Guard Logic ---
+  const handleFilterChange = (setterFn: () => void) => {
+    if (selectedOrders.length > 0) {
+      toast.warning(
+        "Changing filters will clear your order selection. Continue?",
+        {
+          duration: Infinity,
+          action: {
+            label: "Continue",
+            onClick: () => {
+              setSelectedOrders([]);
+              setterFn();
+            },
+          },
+          cancel: {
+            label: "Cancel",
+            onClick: () => {},
+          },
+        }
+      );
+    } else {
+      setterFn();
+    }
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = e.target.value;
+    handleFilterChange(() => {
+      setSearchTerm(newSearchTerm);
+      debouncedSetQuery(newSearchTerm);
+    });
+  };
+
+  const handleStatusChange = (status?: OrderStatus) => {
+    handleFilterChange(() => setFilters((prev) => ({ ...prev, status })));
+  };
+
+  const handleDateChange = (dateRange?: DateRange) => {
+    handleFilterChange(() => setFilters((prev) => ({ ...prev, dateRange })));
+  };
+
+  const handleHostelBlockChange = (hostelBlock?: string) => {
+    handleFilterChange(() => setFilters((prev) => ({ ...prev, hostelBlock })));
+  };
+
+  const clearFilters = () => {
+    handleFilterChange(() => {
+      setSearchTerm("");
+      setDebouncedSearchTerm("");
+      setFilters({});
+    });
+  };
+
+  // --- Selection Logic ---
   const handleSelectionChange = (orderId: string, isSelected: boolean) => {
     setSelectedOrders((prev) =>
       isSelected ? [...prev, orderId] : prev.filter((id) => id !== orderId)
@@ -132,7 +171,12 @@ export default function OrderPage() {
   ].filter(Boolean).length;
 
   return (
-    <div className="container mx-auto space-y-6 p-4 md:p-6">
+    <div
+      className={cn(
+        "container mx-auto space-y-6 p-4 md:p-6",
+        selectedOrders.length > 0 && "pb-24"
+      )}
+    >
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold tracking-tight">Shop Orders</h1>
         <p className="text-muted-foreground">
@@ -140,7 +184,8 @@ export default function OrderPage() {
         </p>
       </div>
 
-      <Card>
+      {/* Filter Panel */}
+      <Card className="shadow-sm">
         <CardContent className="p-4">
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
@@ -167,6 +212,7 @@ export default function OrderPage() {
                 <HostelBlockFilter
                   selectedHostelBlock={filters.hostelBlock}
                   onHostelBlockChange={handleHostelBlockChange}
+                  availableBlocks={availableBlocks}
                 />
                 <DateRangePicker
                   date={filters.dateRange}
@@ -175,17 +221,17 @@ export default function OrderPage() {
               </div>
             </div>
             {hasActiveFilters && (
-              <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                <p className="text-sm text-muted-foreground">
+              <div className="flex items-center justify-between pt-2 border-t border-border/50 mt-2">
+                <p className="text-sm font-medium text-muted-foreground">
                   {orders.length} order{orders.length !== 1 ? "s" : ""} found
                 </p>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearFilters}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="h-8 text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-4 w-4 mr-1" />
+                  <X className="h-4 w-4 mr-1.5" />
                   Clear filters
                 </Button>
               </div>
@@ -194,53 +240,17 @@ export default function OrderPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader className={cn("sticky top-0 z-10 border-b")}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Checkbox
-                checked={areAllSelected}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                aria-label="Select all orders on this page"
-                disabled={orders.length === 0}
-              />
-              <div className="text-sm">
-                {selectedOrders.length > 0 ? (
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">
-                      {selectedOrders.length} selected
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedOrders([])}
-                      className="h-6 px-2 text-xs text-muted-foreground"
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {orders.length > 0
-                      ? `${orders.length} order${orders.length !== 1 ? "s" : ""}`
-                      : "Select orders"}
-                  </span>
-                )}
-              </div>
+      {/* Order List */}
+      <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+        <div className="space-y-0">
+          {isLoading && (
+            <div className="p-4">
+              <OrderCardSkeletonList count={4} />
             </div>
-            {selectedOrders.length > 0 && (
-              <BatchOrderStatusUpdater
-                onUpdate={handleBatchUpdate}
-                isUpdating={isPending}
-              />
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="space-y-4">
-            {isLoading && <OrderCardSkeletonList count={4} />}
+          )}
 
-            {!isLoading && orders.length === 0 && (
+          {!isLoading && orders.length === 0 && (
+            <div className="p-8">
               <EmptyState
                 title={
                   hasActiveFilters ? "No matching orders" : "No orders yet"
@@ -250,7 +260,9 @@ export default function OrderPage() {
                     ? "Try adjusting your filters to find what you're looking for."
                     : "When customers place orders, they'll appear here."
                 }
-                icon={<Package className="h-12 w-12 text-muted-foreground" />}
+                icon={
+                  <Package className="h-12 w-12 text-muted-foreground/50" />
+                }
                 action={
                   hasActiveFilters ? (
                     <Button variant="outline" onClick={clearFilters}>
@@ -259,30 +271,62 @@ export default function OrderPage() {
                   ) : undefined
                 }
               />
-            )}
+            </div>
+          )}
 
-            {!isLoading &&
-              orders.map((order, index) => {
-                const isLastElement = index === orders.length - 1;
-                return (
-                  <OrderCard
-                    key={order.id}
-                    order={order}
-                    isSelected={selectedOrders.includes(order.id)}
-                    onSelectionChange={handleSelectionChange}
-                    lastElementRef={isLastElement ? lastElementRef : undefined}
-                  />
-                );
-              })}
+          {!isLoading &&
+            orders.map((order, index) => {
+              const isLastElement = index === orders.length - 1;
+              return (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  isSelected={selectedOrders.includes(order.id)}
+                  onSelectionChange={handleSelectionChange}
+                  lastElementRef={isLastElement ? lastElementRef : undefined}
+                />
+              );
+            })}
 
-            {isFetchingNextPage && (
-              <div className="py-4">
-                <OrderCardSkeletonList count={2} />
-              </div>
-            )}
+          {isFetchingNextPage && (
+            <div className="p-4">
+              <OrderCardSkeletonList count={2} />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Sticky Bottom Selection Bar */}
+      {selectedOrders.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur border-t shadow-[0_-8px_16px_-4px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom-full duration-300 ease-out">
+          <div className="container mx-auto p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={areAllSelected}
+                onChange={(checked) => handleSelectAll(!!checked)}
+                aria-label="Select all orders"
+                className="shadow-sm"
+              />
+              <span className="font-semibold text-sm">
+                {selectedOrders.length} Selected
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedOrders([])}
+                className="h-8 px-2.5 text-muted-foreground hover:text-foreground"
+              >
+                Clear
+              </Button>
+            </div>
+
+            <BatchOrderStatusUpdater
+              onUpdate={handleBatchUpdate}
+              isUpdating={isPending}
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }

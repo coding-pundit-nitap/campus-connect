@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Send } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -50,14 +50,14 @@ export function BatchOrderStatusUpdater({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+    <div className="flex items-center gap-2">
       <Select
         value={selectedStatus ?? ""}
         onValueChange={(value) => setSelectedStatus(value as OrderStatus)}
         disabled={isUpdating}
       >
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Select status" />
+        <SelectTrigger className="h-9 w-32.5 sm:w-40 bg-background border-muted-foreground/30 shadow-sm focus:ring-1 focus:ring-primary">
+          <SelectValue placeholder="Set status..." />
         </SelectTrigger>
         <SelectContent>
           {ACTIONABLE_STATUSES.map((status) => (
@@ -67,25 +67,26 @@ export function BatchOrderStatusUpdater({
           ))}
         </SelectContent>
       </Select>
+
       <Button
+        size="sm"
         onClick={handleUpdate}
         disabled={!selectedStatus || isUpdating}
         className={cn(
-          "gap-2 transition-all",
-          selectedStatus && !isUpdating && "bg-primary hover:bg-primary/90"
+          "h-9 px-3 transition-all shadow-sm",
+          selectedStatus && !isUpdating
+            ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+            : "bg-muted text-muted-foreground hover:bg-muted"
         )}
       >
         {isUpdating ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Updating...
-          </>
+          <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <>
-            <Send className="h-4 w-4" />
-            Apply Status
-          </>
+          <Check className="h-4 w-4" />
         )}
+        <span className="hidden sm:inline-block ml-1.5 font-medium">
+          {isUpdating ? "Saving..." : "Apply"}
+        </span>
       </Button>
     </div>
   );

@@ -3,6 +3,8 @@ import { authUtils } from "@/lib/utils/auth.utils.server";
 import { batchService } from "@/services/batch";
 import { createSuccessResponse } from "@/types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const shopId = await authUtils.getOwnedShopId();

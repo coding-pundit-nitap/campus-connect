@@ -1,3 +1,5 @@
+"use client";
+
 import {
   CheckCircle2,
   CircleDot,
@@ -35,7 +37,7 @@ const STATUS_CONFIG: Record<
   COMPLETED: {
     label: "Completed",
     icon: CheckCircle2,
-    color: "text-green-500",
+    color: "text-emerald-500", // Tweaked to emerald to match new success states
   },
   CANCELLED: { label: "Cancelled", icon: XCircle, color: "text-red-500" },
 };
@@ -48,19 +50,21 @@ export default function OrderFilter({ selectedStatus, onStatusChange }: Props) {
   return (
     <div className="w-full">
       <Select value={selectedStatus ?? "ALL"} onValueChange={handleChange}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full h-9 bg-background border-muted-foreground/30 shadow-sm focus:ring-1 focus:ring-primary transition-shadow">
           <SelectValue placeholder="Filter by status" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL">
-            <span className="text-muted-foreground">All Statuses</span>
+            <span className="text-muted-foreground font-medium">
+              All Statuses
+            </span>
           </SelectItem>
           {Object.entries(STATUS_CONFIG).map(
             ([status, { label, icon: Icon, color }]) => (
               <SelectItem key={status} value={status}>
                 <div className="flex items-center gap-2">
                   <Icon className={cn("h-4 w-4", color)} />
-                  <span>{label}</span>
+                  <span className="font-medium">{label}</span>
                 </div>
               </SelectItem>
             )

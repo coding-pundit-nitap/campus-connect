@@ -3,6 +3,8 @@
 import {
   AlertTriangle,
   Check,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Lock,
   LockOpen,
@@ -54,6 +56,7 @@ import { BatchInfo, BatchSummaryItem } from "@/services/batch";
 
 // --- Sub-Component: Shopping List ---
 function ShoppingListAccordion({ items }: { items: BatchSummaryItem[] }) {
+  if (!items || items.length === 0) return null;
   return (
     <Accordion
       type="single"
@@ -261,13 +264,14 @@ function OpenOrderList({ orders }: { orders?: BatchInfo["orders"] }) {
   );
 }
 
-// --- Sub-Component: Delivery Checklist (grouped by hostel block) ---
+// --- Sub-Component: Delivery Checklist (One Block at a Time) ---
 function DeliveryChecklist({
   orders,
 }: {
   batchId: string;
   orders?: BatchInfo["orders"];
 }) {
+  const [currentBlockIdx, setCurrentBlockIdx] = useState(0);
   const [otpValues, setOtpValues] = useState<Record<string, string>>({});
   const [locallyVerified, setLocallyVerified] = useState<Set<string>>(
     new Set()
@@ -277,21 +281,55 @@ function DeliveryChecklist({
   const isOrderDone = (orderId: string, status: string) =>
     status === "COMPLETED" || locallyVerified.has(orderId);
 
-  const pendingOrders = (orders || []).filter(
-    (o) => !isOrderDone(o.id, o.status)
-  );
-  const completedCount = (orders || []).length - pendingOrders.length;
+  // Group ALL orders by block so we don't lose the block structure when items are verified
+  const groupedByBlock = (orders || []).reduce<
+    Record<string, NonNullable<BatchInfo["orders"]>>
+  >((acc, order) => {
+    const block = order.delivery_address?.hostel_block || "Other";
+    if (!acc[block]) acc[block] = [];
+    acc[block].push(order);
+    return acc;
+  }, {});
+
+  const sortedBlocks = Object.keys(groupedByBlock).sort();
+  const currentBlock = sortedBlocks[currentBlockIdx];
+  const currentBlockOrders = groupedByBlock[currentBlock] || [];
+
+  const completedCount = (orders || []).filter((o) =>
+    isOrderDone(o.id, o.status)
+  ).length;
   const totalCount = orders?.length || 0;
   const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
 
   const handleVerify = (orderId: string) => {
     const otp = otpValues[orderId];
     if (otp?.length !== 4) return;
+
     verifyOtp.mutate(
       { orderId, otp },
       {
         onSuccess: () => {
-          setLocallyVerified((prev) => new Set(prev).add(orderId));
+          setLocallyVerified((prev) => {
+            const next = new Set(prev).add(orderId);
+
+            // Auto-advance logic: check if the whole current block is now completed
+            const allCurrentBlockDone = currentBlockOrders.every(
+              (o) =>
+                o.id === orderId || o.status === "COMPLETED" || next.has(o.id)
+            );
+
+            if (
+              allCurrentBlockDone &&
+              currentBlockIdx < sortedBlocks.length - 1
+            ) {
+              // Slight delay so the user sees the success checkmark before it swipes
+              setTimeout(() => {
+                setCurrentBlockIdx((idx) => idx + 1);
+              }, 800);
+            }
+            return next;
+          });
+
           setOtpValues((prev) => {
             const next = { ...prev };
             delete next[orderId];
@@ -302,15 +340,22 @@ function DeliveryChecklist({
     );
   };
 
-  const groupedByBlock = pendingOrders.reduce<
-    Record<string, NonNullable<BatchInfo["orders"]>>
-  >((acc, order) => {
-    const block = order.delivery_address?.hostel_block || "Other";
-    if (!acc[block]) acc[block] = [];
-    acc[block].push(order);
-    return acc;
-  }, {});
-  const sortedBlocks = Object.keys(groupedByBlock).sort();
+  // If all orders are globally done
+  if (completedCount === totalCount && totalCount > 0) {
+    return (
+      <div className="text-center py-8 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 animate-in fade-in zoom-in-95">
+        <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
+        <p className="text-green-800 dark:text-green-300 font-medium">
+          All orders delivered!
+        </p>
+        <p className="text-xs text-green-700/70">
+          Complete the batch below to collect earnings.
+        </p>
+      </div>
+    );
+  }
+
+  if (!currentBlock) return null;
 
   return (
     <div className="space-y-4">
@@ -324,128 +369,266 @@ function DeliveryChecklist({
       </div>
       <Progress value={progress} className="h-2" />
 
-      <div className="space-y-5 mt-2">
-        {sortedBlocks.map((block) => (
-          <div key={block}>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full flex items-center gap-1.5">
-                <MapPin className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
-                <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300 tracking-wide uppercase">
-                  Block {block}
-                </span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {groupedByBlock[block].length} stop
-                {groupedByBlock[block].length !== 1 ? "s" : ""}
-              </span>
-            </div>
+      {/* Block Navigator Header */}
+      <div className="flex items-center justify-between bg-muted/40 p-2 rounded-lg border">
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="bg-background">
+            Block {currentBlockIdx + 1} of {sortedBlocks.length}
+          </Badge>
+        </div>
+        <div className="flex gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2"
+            disabled={currentBlockIdx === 0}
+            onClick={() => setCurrentBlockIdx((prev) => prev - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 px-2"
+            disabled={currentBlockIdx === sortedBlocks.length - 1}
+            onClick={() => setCurrentBlockIdx((prev) => prev + 1)}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
 
-            <div className="space-y-3 pl-1">
-              {groupedByBlock[block].map((order) => {
-                const address = order.delivery_address;
-                const currentOtp = otpValues[order.id] || "";
-                const isPendingVerify =
-                  verifyOtp.isPending && currentOtp.length === 4;
+      {/* Render Current Block Only */}
+      <div
+        className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-300"
+        key={currentBlock}
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <div className="bg-indigo-100 dark:bg-indigo-900/40 px-3 py-1 rounded-full flex items-center gap-1.5">
+            <MapPin className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300 tracking-wide uppercase">
+              Hostel Block {currentBlock}
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground">
+            {currentBlockOrders.length} stop
+            {currentBlockOrders.length !== 1 ? "s" : ""}
+          </span>
+        </div>
 
-                return (
-                  <div
-                    key={order.id}
-                    className="p-4 rounded-xl border bg-background border-border shadow-sm"
+        {currentBlockOrders.map((order) => {
+          const address = order.delivery_address;
+          const currentOtp = otpValues[order.id] || "";
+          const isPendingVerify =
+            verifyOtp.isPending && currentOtp.length === 4;
+          const isDone = isOrderDone(order.id, order.status);
+
+          return (
+            <div
+              key={order.id}
+              className={cn(
+                "p-4 rounded-xl border shadow-sm transition-all",
+                isDone
+                  ? "bg-muted/30 border-dashed opacity-75"
+                  : "bg-background border-border"
+              )}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h4
+                    className={cn(
+                      "font-bold text-base leading-none mb-1",
+                      isDone && "line-through text-muted-foreground"
+                    )}
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h4 className="font-bold text-base leading-none mb-1">
-                          {address
-                            ? `Room ${address.room_number}`
-                            : "No Location"}
-                        </h4>
-                        <p className="text-xs text-muted-foreground">
-                          {address?.building}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {order.phone && (
-                          <a href={`tel:${order.phone}`}>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              className="h-8 w-8 rounded-lg border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20"
-                              title={`Call ${order.phone}`}
-                            >
-                              <Phone className="h-3.5 w-3.5" />
-                            </Button>
-                          </a>
-                        )}
-                        <Badge variant="outline" className="font-mono text-xs">
-                          #{order.display_id}
-                        </Badge>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 items-center">
-                      <InputOTP
-                        maxLength={4}
-                        value={currentOtp}
-                        onChange={(val) =>
-                          setOtpValues((prev) => ({
-                            ...prev,
-                            [order.id]: val,
-                          }))
-                        }
-                      >
-                        <InputOTPGroup className="w-full bg-background">
-                          {[0, 1, 2, 3].map((i) => (
-                            <InputOTPSlot
-                              key={i}
-                              index={i}
-                              className="h-10 w-10 sm:h-12 sm:w-12 border-muted-foreground/30"
-                            />
-                          ))}
-                        </InputOTPGroup>
-                      </InputOTP>
+                    {address ? `Room ${address.room_number}` : "No Location"}
+                  </h4>
+                  <p className="text-xs text-muted-foreground">
+                    {address?.building}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {!isDone && order.phone && (
+                    <a href={`tel:${order.phone}`}>
                       <Button
                         size="icon"
-                        className={cn(
-                          "h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-lg transition-colors",
-                          currentOtp.length === 4
-                            ? "bg-green-600 hover:bg-green-700 animate-pulse"
-                            : "bg-muted text-muted-foreground hover:bg-muted"
-                        )}
-                        disabled={currentOtp.length < 4 || isPendingVerify}
-                        onClick={() => handleVerify(order.id)}
+                        variant="outline"
+                        className="h-8 w-8 rounded-lg border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/20"
+                        title={`Call ${order.phone}`}
                       >
-                        <Check className="h-6 w-6" />
+                        <Phone className="h-3.5 w-3.5" />
                       </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+                    </a>
+                  )}
+                  <Badge variant="outline" className="font-mono text-xs">
+                    #{order.display_id}
+                  </Badge>
+                </div>
+              </div>
 
-        {completedCount === totalCount && totalCount > 0 && (
-          <div className="text-center py-8 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800">
-            <Check className="h-10 w-10 text-green-600 mx-auto mb-2" />
-            <p className="text-green-800 dark:text-green-300 font-medium">
-              All orders delivered!
-            </p>
-            <p className="text-xs text-green-700/70">
-              Complete the batch below to get paid.
-            </p>
-          </div>
-        )}
+              {isDone ? (
+                <div className="flex items-center text-sm font-medium text-green-600 gap-1.5 py-1">
+                  <Check className="h-4 w-4" /> Verified
+                </div>
+              ) : (
+                <div className="flex gap-2 items-center">
+                  <InputOTP
+                    maxLength={4}
+                    value={currentOtp}
+                    onChange={(val) =>
+                      setOtpValues((prev) => ({
+                        ...prev,
+                        [order.id]: val,
+                      }))
+                    }
+                  >
+                    <InputOTPGroup className="w-full bg-background">
+                      {[0, 1, 2, 3].map((i) => (
+                        <InputOTPSlot
+                          key={i}
+                          index={i}
+                          className="h-10 w-10 sm:h-12 sm:w-12 border-muted-foreground/30"
+                        />
+                      ))}
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <Button
+                    size="icon"
+                    className={cn(
+                      "h-10 w-10 sm:h-12 sm:w-12 shrink-0 rounded-lg transition-colors",
+                      currentOtp.length === 4
+                        ? "bg-green-600 hover:bg-green-700 animate-pulse"
+                        : "bg-muted text-muted-foreground hover:bg-muted"
+                    )}
+                    disabled={currentOtp.length < 4 || isPendingVerify}
+                    onClick={() => handleVerify(order.id)}
+                  >
+                    <Check className="h-6 w-6" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// --- Main Component ---
-export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
+// --- Phase Component: Open ---
+function OpenBatchPhase({ batch }: { batch: BatchInfo }) {
   const lockBatch = useLockBatch();
+
+  return (
+    <>
+      <CardContent className="p-4 space-y-6 flex-1">
+        <ShoppingListAccordion items={batch.item_summary || []} />
+        {batch.orders && batch.orders.length > 0 ? (
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              Incoming Orders
+            </p>
+            <OpenOrderList orders={batch.orders} />
+          </div>
+        ) : (
+          <div className="text-center py-6 text-sm text-muted-foreground border rounded-lg bg-muted/20">
+            No orders yet — waiting for customers.
+          </div>
+        )}
+      </CardContent>
+
+      <CardFooter className="sticky bottom-0 z-10 bg-background/95 backdrop-blur border-t p-4 flex flex-col gap-2 mt-auto">
+        <Button
+          className="w-full text-base h-12 shadow-md bg-amber-600 hover:bg-amber-700"
+          onClick={() => lockBatch.mutate(batch.id)}
+          disabled={lockBatch.isPending || batch.order_count === 0}
+        >
+          <Lock className="mr-2 h-4 w-4" />
+          {batch.order_count === 0
+            ? "No orders to lock"
+            : "Lock Batch & Start Prep"}
+        </Button>
+        {batch.order_count > 0 && (
+          <div className="flex gap-2 w-full">
+            <CancelBatchDialog
+              batchId={batch.id}
+              orderCount={batch.order_count}
+            />
+          </div>
+        )}
+      </CardFooter>
+    </>
+  );
+}
+
+// --- Phase Component: Locked/Prep ---
+function LockedBatchPhase({ batch }: { batch: BatchInfo }) {
   const startDelivery = useStartDelivery();
+
+  return (
+    <>
+      <CardContent className="p-4 space-y-6 flex-1">
+        <ShoppingListAccordion items={batch.item_summary || []} />
+        <div className="text-center py-8">
+          <Package className="h-12 w-12 mx-auto text-amber-500 mb-3 opacity-80" />
+          <h3 className="text-lg font-bold">Preparation Phase</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Pack the items listed above. Once ready, start the delivery route.
+          </p>
+        </div>
+      </CardContent>
+
+      <CardFooter className="sticky bottom-0 z-10 bg-background/95 backdrop-blur border-t p-4 flex flex-col gap-2 mt-auto">
+        <Button
+          className="w-full text-base h-12 shadow-md bg-blue-600 hover:bg-blue-700"
+          onClick={() => startDelivery.mutate(batch.id)}
+          disabled={startDelivery.isPending}
+        >
+          <Navigation className="mr-2 h-4 w-4" /> Start Delivery Route
+        </Button>
+        <div className="flex gap-2 w-full">
+          <UnlockBatchDialog batchId={batch.id} />
+          <CancelBatchDialog
+            batchId={batch.id}
+            orderCount={batch.order_count}
+          />
+        </div>
+      </CardFooter>
+    </>
+  );
+}
+
+// --- Phase Component: In Transit ---
+function InTransitBatchPhase({ batch }: { batch: BatchInfo }) {
   const completeBatch = useCompleteBatch();
 
+  return (
+    <>
+      <CardContent className="p-4 flex-1">
+        <DeliveryChecklist batchId={batch.id} orders={batch.orders} />
+      </CardContent>
+
+      <CardFooter className="sticky bottom-0 z-10 bg-background/95 backdrop-blur border-t p-4 flex flex-col gap-2 mt-auto">
+        <Button
+          className="w-full text-base h-12 shadow-md bg-green-600 hover:bg-green-700"
+          onClick={() => completeBatch.mutate(batch.id)}
+          disabled={completeBatch.isPending}
+        >
+          <Check className="mr-2 h-4 w-4" /> Finish & Collect Earnings
+        </Button>
+        <div className="flex gap-2 w-full">
+          <CancelBatchDialog
+            batchId={batch.id}
+            orderCount={batch.order_count}
+          />
+        </div>
+      </CardFooter>
+    </>
+  );
+}
+
+// --- Main Component ---
+export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
   const cutoffDate = batch.cutoff_time ? new Date(batch.cutoff_time) : null;
   const formattedTime =
     cutoffDate && !isNaN(cutoffDate.getTime())
@@ -486,15 +669,21 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
   const StatusIcon = ui.icon;
 
   return (
-    <Card className={cn("overflow-hidden shadow-md", ui.color)}>
-      <div className="bg-muted/30 p-4 flex justify-between items-start border-b">
+    <Card
+      className={cn(
+        "overflow-hidden shadow-md flex flex-col relative",
+        ui.color
+      )}
+    >
+      {/* Universal Header */}
+      <div className="bg-muted/30 p-4 flex justify-between items-start border-b shrink-0">
         <div className="flex gap-3">
           <div className={cn("p-2 rounded-lg h-fit", ui.badge)}>
             <StatusIcon className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-lg">{ui.title}</h3>
-            <div className="flex items-center text-xs text-muted-foreground gap-2 mt-1">
+            <h3 className="font-bold text-lg leading-tight">{ui.title}</h3>
+            <div className="flex items-center text-xs text-muted-foreground gap-1.5 mt-1">
               <Clock className="h-3 w-3" />
               <span>Cutoff: {formattedTime}</span>
             </div>
@@ -511,92 +700,10 @@ export function ActiveBatchCard({ batch }: { batch: BatchInfo }) {
         </div>
       </div>
 
-      <CardContent className="p-4 space-y-6">
-        {batch.item_summary && batch.item_summary.length > 0 && (
-          <ShoppingListAccordion items={batch.item_summary} />
-        )}
-
-        {isOpen && batch.orders && batch.orders.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              Incoming Orders
-            </p>
-            <OpenOrderList orders={batch.orders} />
-          </div>
-        )}
-
-        {isOpen && (!batch.orders || batch.orders.length === 0) && (
-          <div className="text-center py-6 text-sm text-muted-foreground border rounded-lg bg-muted/20">
-            No orders yet — waiting for customers.
-          </div>
-        )}
-
-        {isInTransit && (
-          <DeliveryChecklist batchId={batch.id} orders={batch.orders} />
-        )}
-      </CardContent>
-
-      <CardFooter className="p-4 bg-muted/20 border-t flex flex-col gap-2">
-        {isOpen && (
-          <>
-            <Button
-              className="w-full text-base h-12 shadow-md bg-amber-600 hover:bg-amber-700"
-              onClick={() => lockBatch.mutate(batch.id)}
-              disabled={lockBatch.isPending || batch.order_count === 0}
-            >
-              <Lock className="mr-2 h-4 w-4" />
-              {batch.order_count === 0
-                ? "No orders to lock"
-                : "Lock Batch & Start Prep"}
-            </Button>
-            {batch.order_count > 0 && (
-              <div className="flex gap-2 w-full">
-                <CancelBatchDialog
-                  batchId={batch.id}
-                  orderCount={batch.order_count}
-                />
-              </div>
-            )}
-          </>
-        )}
-
-        {isPrep && (
-          <>
-            <Button
-              className="w-full text-base h-12 shadow-md bg-blue-600 hover:bg-blue-700"
-              onClick={() => startDelivery.mutate(batch.id)}
-              disabled={startDelivery.isPending}
-            >
-              <Navigation className="mr-2 h-4 w-4" /> Start Delivery Route
-            </Button>
-            <div className="flex gap-2 w-full">
-              <UnlockBatchDialog batchId={batch.id} />
-              <CancelBatchDialog
-                batchId={batch.id}
-                orderCount={batch.order_count}
-              />
-            </div>
-          </>
-        )}
-
-        {isInTransit && (
-          <>
-            <Button
-              className="w-full text-base h-12 shadow-md bg-green-600 hover:bg-green-700"
-              onClick={() => completeBatch.mutate(batch.id)}
-              disabled={completeBatch.isPending}
-            >
-              <Check className="mr-2 h-4 w-4" /> Finish & Collect Earnings
-            </Button>
-            <div className="flex gap-2 w-full">
-              <CancelBatchDialog
-                batchId={batch.id}
-                orderCount={batch.order_count}
-              />
-            </div>
-          </>
-        )}
-      </CardFooter>
+      {/* Conditionally Render Phase Data */}
+      {isOpen && <OpenBatchPhase batch={batch} />}
+      {isPrep && <LockedBatchPhase batch={batch} />}
+      {isInTransit && <InTransitBatchPhase batch={batch} />}
     </Card>
   );
 }

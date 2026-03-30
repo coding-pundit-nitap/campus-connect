@@ -1,19 +1,34 @@
 import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import { ShopWithOwner } from "@/types";
 
-type MoneyLike = { toString(): string };
-
 function serializeMoney(value: unknown): string {
   if (value === null || value === undefined) return "0";
   if (typeof value === "string") return value;
   if (typeof value === "number") return String(value);
   if (typeof value === "bigint") return value.toString();
 
-  if (typeof value === "object" && "toString" in value) {
-    return (value as MoneyLike).toString();
+  if (typeof value === "object") {
+    const maybeDecimal = value as {
+      toString?: () => string;
+      toJSON?: () => unknown;
+    };
+
+    if (typeof maybeDecimal.toJSON === "function") {
+      const jsonValue = maybeDecimal.toJSON();
+      if (typeof jsonValue === "string" || typeof jsonValue === "number") {
+        return String(jsonValue);
+      }
+    }
+
+    if (
+      typeof maybeDecimal.toString === "function" &&
+      maybeDecimal.toString !== Object.prototype.toString
+    ) {
+      return maybeDecimal.toString();
+    }
   }
 
-  return String(value);
+  return "0";
 }
 
 export type ShopWithOwnerSerialized = Omit<

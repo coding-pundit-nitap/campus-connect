@@ -92,7 +92,13 @@ class FileUploadService {
   ): void {
     const {
       maxSizeInMB = 5,
-      allowedTypes = ["image/jpeg", "image/png", "image/webp"],
+      allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/jpg",
+        "image/*",
+      ],
     } = options;
 
     // File size validation
@@ -103,7 +109,14 @@ class FileUploadService {
       );
     }
 
-    if (!allowedTypes.includes(fileType)) {
+    const isAllowed = allowedTypes.some((type) => {
+      if (type.endsWith("/*")) {
+        return fileType.startsWith(type.replace("/*", "/"));
+      }
+      return type === fileType;
+    });
+
+    if (!isAllowed) {
       throw new BadRequestError(
         "Invalid file type. Allowed types are: " + allowedTypes.join(", ")
       );
