@@ -36,8 +36,9 @@ class NotificationEmitter extends EventEmitter {
 
   unsubscribe(channel: string, handler: (message: string) => void) {
     this.removeListener(channel, handler);
-    const currentCount = this.listenerCounts.get(channel) || 1;
-    if (currentCount <= 1) {
+    const currentCount = this.listenerCounts.get(channel) ?? 0;
+    const newCount = Math.max(0, currentCount - 1);
+    if (newCount === 0) {
       redisSubscriber.unsubscribe(channel, (err) => {
         if (err) {
           console.error(`[Redis] Failed to unsubscribe from ${channel}`, err);
@@ -47,16 +48,14 @@ class NotificationEmitter extends EventEmitter {
       });
       this.listenerCounts.delete(channel);
     } else {
-      this.listenerCounts.set(channel, currentCount - 1);
+      this.listenerCounts.set(channel, newCount);
     }
   }
 }
 
 const notificationEmitter =
-  global.notificationEmitter || new NotificationEmitter();
+  global.notificationEmitter ?? new NotificationEmitter();
 
-if (process.env.NODE_ENV !== "production") {
-  global.notificationEmitter = notificationEmitter;
-}
+global.notificationEmitter = notificationEmitter;
 
 export default notificationEmitter;

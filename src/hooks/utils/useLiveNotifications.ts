@@ -16,6 +16,7 @@ interface NotificationEvent {
 const MAX_RETRY_DELAY = 30000;
 const INITIAL_RETRY_DELAY = 1000;
 const TOAST_THROTTLE_MS = 5000;
+const SSE_HEARTBEAT_INTERVAL_MS = 15_000;
 
 export function useLiveNotifications() {
   const session = useSession();
@@ -24,6 +25,8 @@ export function useLiveNotifications() {
   const retryCountRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastToastTimeRef = useRef(0);
+  const watchdogRef = useRef<NodeJS.Timeout | null>(null);
+  const lastEventIdRef = useRef<string | null>(null);
 
   const isAuthenticated = !!session.data;
 
@@ -88,22 +91,51 @@ export function useLiveNotifications() {
       return;
     }
 
+    let lastPingAt = Date.now();
+
     const connect = () => {
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
       }
 
-      const eventSource = new EventSource("/api/notifications/stream");
+      const url = lastEventIdRef.current
+        ? `/api/notifications/stream?lastEventId=${lastEventIdRef.current}`
+        : `/api/notifications/stream`;
+      const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
 
       eventSource.onopen = () => {
         retryCountRef.current = 0;
+        lastPingAt = Date.now();
       };
 
-      eventSource.addEventListener("new_notification", handleNewNotification);
-      eventSource.addEventListener("new_broadcast", handleNewNotification);
+      eventSource.addEventListener("new_notification", (event) => {
+        if (event.lastEventId) lastEventIdRef.current = event.lastEventId;
+        handleNewNotification(event);
+      });
+      eventSource.addEventListener("new_broadcast", (event) => {
+        if (event.lastEventId) lastEventIdRef.current = event.lastEventId;
+        handleNewNotification(event);
+      });
+      eventSource.addEventListener("ping", () => {
+        lastPingAt = Date.now();
+      });
+
+      watchdogRef.current = setInterval(() => {
+        if (Date.now() - lastPingAt > SSE_HEARTBEAT_INTERVAL_MS * 2) {
+          eventSource.close();
+          eventSourceRef.current = null;
+          if (watchdogRef.current) {
+            clearInterval(watchdogRef.current);
+          }
+          connect();
+        }
+      }, SSE_HEARTBEAT_INTERVAL_MS);
 
       eventSource.onerror = () => {
+        if (watchdogRef.current) {
+          clearInterval(watchdogRef.current);
+        }
         eventSource.close();
         eventSourceRef.current = null;
 
@@ -120,6 +152,10 @@ export function useLiveNotifications() {
     connect();
 
     return () => {
+      if (watchdogRef.current) {
+        clearInterval(watchdogRef.current);
+        watchdogRef.current = null;
+      }
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = null;

@@ -11,10 +11,8 @@ const redis =
   global.redis || new Redis(redisUrl, { maxRetriesPerRequest: null });
 const redisSubscriber = global.redisSubscriber || redis.duplicate();
 
-if (process.env.NODE_ENV !== "production") {
-  global.redis = redis;
-  global.redisSubscriber = redisSubscriber;
-}
+global.redis = redis;
+global.redisSubscriber = redisSubscriber;
 
 redis.setMaxListeners(0);
 redisSubscriber.setMaxListeners(0);
@@ -34,4 +32,5 @@ redisSubscriber.on("error", (error) =>
 );
 redis.on("connect", () => console.log("✅ Redis clients initialized."));
 
+export const redisSSE = redis;
 export { redis as redisPublisher, redisSubscriber };

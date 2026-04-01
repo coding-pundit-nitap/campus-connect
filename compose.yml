@@ -789,7 +789,7 @@ services:
 
     profiles:
       - prod
-      - dev                        
+      - dev
     mem_limit: 256m
     cpus: "0.25"
     logging: *default-logging
