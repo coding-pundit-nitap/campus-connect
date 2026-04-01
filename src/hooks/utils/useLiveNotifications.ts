@@ -13,10 +13,18 @@ interface NotificationEvent {
   data: string;
 }
 
+type ConnectedEventPayload = {
+  heartbeatIntervalMs?: number;
+  replay?: {
+    shouldRefetch?: boolean;
+  };
+};
+
 const MAX_RETRY_DELAY = 30000;
 const INITIAL_RETRY_DELAY = 1000;
 const TOAST_THROTTLE_MS = 5000;
-const SSE_HEARTBEAT_INTERVAL_MS = 15_000;
+const DEFAULT_HEARTBEAT_INTERVAL_MS = 15_000;
+const WATCHDOG_POLL_INTERVAL_MS = 1_000;
 
 export function useLiveNotifications() {
   const session = useSession();
@@ -27,6 +35,7 @@ export function useLiveNotifications() {
   const lastToastTimeRef = useRef(0);
   const watchdogRef = useRef<NodeJS.Timeout | null>(null);
   const lastEventIdRef = useRef<string | null>(null);
+  const heartbeatIntervalMsRef = useRef(DEFAULT_HEARTBEAT_INTERVAL_MS);
 
   const isAuthenticated = !!session.data;
 
@@ -109,6 +118,32 @@ export function useLiveNotifications() {
         lastPingAt = Date.now();
       };
 
+      eventSource.addEventListener("connected", (event) => {
+        try {
+          const payload = JSON.parse(
+            (event as MessageEvent).data
+          ) as ConnectedEventPayload;
+          const heartbeatIntervalMs = payload.heartbeatIntervalMs;
+
+          if (
+            Number.isFinite(heartbeatIntervalMs) &&
+            (heartbeatIntervalMs ?? 0) > 0
+          ) {
+            heartbeatIntervalMsRef.current = heartbeatIntervalMs as number;
+          }
+
+          if (payload.replay?.shouldRefetch) {
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.notifications.summary(),
+            });
+          }
+
+          lastPingAt = Date.now();
+        } catch {
+          // Ignore malformed handshake payloads and keep default watchdog settings.
+        }
+      });
+
       eventSource.addEventListener("new_notification", (event) => {
         if (event.lastEventId) lastEventIdRef.current = event.lastEventId;
         handleNewNotification(event);
@@ -122,7 +157,7 @@ export function useLiveNotifications() {
       });
 
       watchdogRef.current = setInterval(() => {
-        if (Date.now() - lastPingAt > SSE_HEARTBEAT_INTERVAL_MS * 2) {
+        if (Date.now() - lastPingAt > heartbeatIntervalMsRef.current * 2) {
           eventSource.close();
           eventSourceRef.current = null;
           if (watchdogRef.current) {
@@ -130,7 +165,7 @@ export function useLiveNotifications() {
           }
           connect();
         }
-      }, SSE_HEARTBEAT_INTERVAL_MS);
+      }, WATCHDOG_POLL_INTERVAL_MS);
 
       eventSource.onerror = () => {
         if (watchdogRef.current) {
@@ -165,5 +200,5 @@ export function useLiveNotifications() {
         eventSourceRef.current = null;
       }
     };
-  }, [isAuthenticated, handleNewNotification]);
+  }, [isAuthenticated, handleNewNotification, queryClient]);
 }

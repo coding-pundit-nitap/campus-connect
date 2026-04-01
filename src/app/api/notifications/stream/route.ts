@@ -4,12 +4,17 @@ import {
   MAX_SSE_CONNECTIONS_PER_USER,
   SSE_CONNECTION_TTL,
   SSE_HEARTBEAT_INTERVAL,
+  SSE_REPLAY_BROADCAST_LIMIT,
+  SSE_REPLAY_USER_LIMIT,
 } from "@/config/constants";
 import { BroadcastNotification, Notification } from "@/generated/client";
 import notificationEmitter from "@/lib/notification-emitter";
 import { prisma } from "@/lib/prisma";
 import { redisSSE } from "@/lib/redis";
-import { trackConnectionAtomic } from "@/lib/redis-script";
+import {
+  refreshConnectionHeartbeatAtomic,
+  trackConnectionAtomic,
+} from "@/lib/redis-script";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 
 const REPLAY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -156,56 +161,69 @@ export async function GET(req: NextRequest) {
     [];
 
   let missedNotifications: (Notification | BroadcastNotification)[] = [];
+  let replayTruncated = false;
+  let shouldRefetchOnConnect = false;
   const replayCursor = await resolveReplayCursor(lastEventId);
   const replayWindowStart = new Date(Date.now() - REPLAY_WINDOW_MS);
 
-  if (lastEventId) {
-    missedNotifications = await prisma.$transaction(async (tx) => {
+  if (lastEventId && !replayCursor) {
+    shouldRefetchOnConnect = true;
+  }
+
+  if (lastEventId && replayCursor) {
+    const replay = await prisma.$transaction(async (tx) => {
       const userNotifications = await tx.notification.findMany({
         where: {
           user_id,
           created_at: { gt: replayWindowStart },
-          ...(replayCursor
-            ? {
-                OR: [
-                  { created_at: { gt: replayCursor.createdAt } },
-                  {
-                    AND: [
-                      { created_at: replayCursor.createdAt },
-                      { id: { gt: replayCursor.id } },
-                    ],
-                  },
-                ],
-              }
-            : {}),
+          OR: [
+            { created_at: { gt: replayCursor.createdAt } },
+            {
+              AND: [
+                { created_at: replayCursor.createdAt },
+                { id: { gt: replayCursor.id } },
+              ],
+            },
+          ],
         },
         orderBy: [{ created_at: "asc" }, { id: "asc" }],
+        take: SSE_REPLAY_USER_LIMIT + 1,
       });
 
       const broadcastNotifications = await tx.broadcastNotification.findMany({
         where: {
           created_at: { gt: replayWindowStart },
-          ...(replayCursor
-            ? {
-                OR: [
-                  { created_at: { gt: replayCursor.createdAt } },
-                  {
-                    AND: [
-                      { created_at: replayCursor.createdAt },
-                      { id: { gt: replayCursor.id } },
-                    ],
-                  },
-                ],
-              }
-            : {}),
+          OR: [
+            { created_at: { gt: replayCursor.createdAt } },
+            {
+              AND: [
+                { created_at: replayCursor.createdAt },
+                { id: { gt: replayCursor.id } },
+              ],
+            },
+          ],
         },
         orderBy: [{ created_at: "asc" }, { id: "asc" }],
+        take: SSE_REPLAY_BROADCAST_LIMIT + 1,
       });
 
-      return [...userNotifications, ...broadcastNotifications].sort(
-        compareNotificationsByCursor
-      );
+      const userReplayTruncated =
+        userNotifications.length > SSE_REPLAY_USER_LIMIT;
+      const broadcastReplayTruncated =
+        broadcastNotifications.length > SSE_REPLAY_BROADCAST_LIMIT;
+
+      return {
+        notifications: [
+          ...userNotifications.slice(0, SSE_REPLAY_USER_LIMIT),
+          ...broadcastNotifications.slice(0, SSE_REPLAY_BROADCAST_LIMIT),
+        ].sort(compareNotificationsByCursor),
+        replayTruncated: userReplayTruncated || broadcastReplayTruncated,
+      };
     });
+
+    missedNotifications = replay.notifications;
+    replayTruncated = replay.replayTruncated;
+    shouldRefetchOnConnect = shouldRefetchOnConnect || replay.replayTruncated;
   }
 
   const stream = new ReadableStream({
@@ -214,7 +232,14 @@ export async function GET(req: NextRequest) {
 
       controller.enqueue(
         encoder.encode(
-          `event: connected\ndata: ${JSON.stringify({ message: "Connection established" })}\n\n`
+          `event: connected\ndata: ${JSON.stringify({
+            message: "Connection established",
+            heartbeatIntervalMs: SSE_HEARTBEAT_INTERVAL,
+            replay: {
+              truncated: replayTruncated,
+              shouldRefetch: shouldRefetchOnConnect,
+            },
+          })}\n\n`
         )
       );
 
@@ -251,8 +276,11 @@ export async function GET(req: NextRequest) {
         try {
           const pingData = `event: ping\ndata: ${JSON.stringify({ ts: Date.now() })}\n\n`;
           controller.enqueue(encoder.encode(pingData));
-          const key = `sse:connections:${user_id}`;
-          await redisSSE.zadd(key, Date.now(), connectionId);
+          await refreshConnectionHeartbeatAtomic(
+            user_id,
+            connectionId,
+            SSE_CONNECTION_TTL
+          );
         } catch (error) {
           console.error("Failed to refresh SSE connection TTL", error);
           controller.close();
