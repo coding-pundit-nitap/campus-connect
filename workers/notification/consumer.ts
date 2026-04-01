@@ -1,4 +1,4 @@
-import { Job, Worker } from "bullmq";
+import { Job, Queue, Worker } from "bullmq";
 
 import { loggers } from "../lib/logger";
 import { prisma } from "../lib/prisma";
@@ -68,11 +68,26 @@ export const notificationWorker = new Worker<NotificationJobData>(
     concurrency: 5,
   }
 );
+const dlqQueue = new Queue("notification-dlq", { connection: redisConnection });
 
 notificationWorker.on("completed", (job) => {
   logger.debug({ jobId: job.id }, "Notification job completed");
 });
 
-notificationWorker.on("failed", (job, err) => {
+notificationWorker.on("failed", async (job, err) => {
   logger.error({ err, jobId: job?.id }, "Notification job failed");
+
+  if (job && job.attemptsMade >= (job.opts.attempts ?? 3)) {
+    await dlqQueue.add(
+      "dead-notification",
+      {
+        originalJob: job.data,
+        error: err.message,
+        failedAt: new Date().toISOString(),
+        attempts: job.attemptsMade,
+      },
+      { removeOnComplete: false, removeOnFail: false }
+    );
+    logger.warn({ jobId: job.id }, "Job moved to DLQ");
+  }
 });
