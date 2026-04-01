@@ -70,6 +70,10 @@ export const notificationWorker = new Worker<NotificationJobData>(
 );
 const dlqQueue = new Queue("notification-dlq", { connection: redisConnection });
 
+export async function closeNotificationDlqQueue(): Promise<void> {
+  await dlqQueue.close();
+}
+
 notificationWorker.on("completed", (job) => {
   logger.debug({ jobId: job.id }, "Notification job completed");
 });
@@ -77,17 +81,24 @@ notificationWorker.on("completed", (job) => {
 notificationWorker.on("failed", async (job, err) => {
   logger.error({ err, jobId: job?.id }, "Notification job failed");
 
-  if (job && job.attemptsMade >= (job.opts.attempts ?? 3)) {
-    await dlqQueue.add(
-      "dead-notification",
-      {
-        originalJob: job.data,
-        error: err.message,
-        failedAt: new Date().toISOString(),
-        attempts: job.attemptsMade,
-      },
-      { removeOnComplete: false, removeOnFail: false }
-    );
-    logger.warn({ jobId: job.id }, "Job moved to DLQ");
+  if (job && job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    try {
+      await dlqQueue.add(
+        "dead-notification",
+        {
+          originalJob: job.data,
+          error: err.message,
+          failedAt: new Date().toISOString(),
+          attempts: job.attemptsMade,
+        },
+        { removeOnComplete: false, removeOnFail: false }
+      );
+      logger.warn({ jobId: job.id }, "Job moved to DLQ");
+    } catch (error) {
+      logger.error(
+        { err: error, jobId: job.id },
+        "Failed to enqueue job to DLQ"
+      );
+    }
   }
 });

@@ -43,5 +43,5 @@ export async function trackConnectionAtomic(
     String(ttlSeconds)
   );
 
-  return result === 1;
+  return Number(result) === 1;
 }

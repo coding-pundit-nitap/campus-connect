@@ -12,6 +12,95 @@ import { redisSSE } from "@/lib/redis";
 import { trackConnectionAtomic } from "@/lib/redis-script";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 
+const REPLAY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+type NotificationCursor = {
+  createdAt: Date;
+  id: string;
+};
+
+type NotificationStreamItem = {
+  id: string;
+  created_at: Date | string;
+};
+
+function createCursorId(createdAt: Date | string, id: string): string {
+  const createdAtMs = new Date(createdAt).getTime();
+
+  if (Number.isNaN(createdAtMs)) {
+    return `${Date.now()}:${id}`;
+  }
+
+  return `${createdAtMs}:${id}`;
+}
+
+function parseCursorId(cursorId: string | null): NotificationCursor | null {
+  if (!cursorId) {
+    return null;
+  }
+
+  const separatorIndex = cursorId.indexOf(":");
+  if (separatorIndex <= 0) {
+    return null;
+  }
+
+  const timestamp = Number(cursorId.slice(0, separatorIndex));
+  const id = cursorId.slice(separatorIndex + 1);
+  const createdAt = new Date(timestamp);
+
+  if (!Number.isFinite(timestamp) || !id || Number.isNaN(createdAt.getTime())) {
+    return null;
+  }
+
+  return { createdAt, id };
+}
+
+async function resolveReplayCursor(
+  cursorId: string | null
+): Promise<NotificationCursor | null> {
+  const parsed = parseCursorId(cursorId);
+  if (parsed) {
+    return parsed;
+  }
+
+  if (!cursorId) {
+    return null;
+  }
+
+  const [notification, broadcastNotification] = await prisma.$transaction([
+    prisma.notification.findUnique({
+      where: { id: cursorId },
+      select: { id: true, created_at: true },
+    }),
+    prisma.broadcastNotification.findUnique({
+      where: { id: cursorId },
+      select: { id: true, created_at: true },
+    }),
+  ]);
+
+  const resolvedCursor = notification ?? broadcastNotification;
+  if (!resolvedCursor) {
+    return null;
+  }
+
+  return {
+    createdAt: resolvedCursor.created_at,
+    id: resolvedCursor.id,
+  };
+}
+
+function compareNotificationsByCursor(
+  a: Notification | BroadcastNotification,
+  b: Notification | BroadcastNotification
+): number {
+  const timeDiff = a.created_at.getTime() - b.created_at.getTime();
+  if (timeDiff !== 0) {
+    return timeDiff;
+  }
+
+  return a.id.localeCompare(b.id);
+}
+
 async function untrackConnection(
   userId: string,
   connectionId: string
@@ -31,12 +120,18 @@ export async function GET(req: NextRequest) {
     req.nextUrl.searchParams.get("lastEventId");
 
   const connectionId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const allowed = await trackConnectionAtomic(
-    user_id,
-    connectionId,
-    MAX_SSE_CONNECTIONS_PER_USER,
-    SSE_CONNECTION_TTL
-  );
+  let allowed = true;
+  try {
+    allowed = await trackConnectionAtomic(
+      user_id,
+      connectionId,
+      MAX_SSE_CONNECTIONS_PER_USER,
+      SSE_CONNECTION_TTL
+    );
+  } catch (error) {
+    console.error("Failed to track SSE connection:", error);
+    allowed = true;
+  }
 
   if (!allowed) {
     return new Response(
@@ -61,29 +156,54 @@ export async function GET(req: NextRequest) {
     [];
 
   let missedNotifications: (Notification | BroadcastNotification)[] = [];
+  const replayCursor = await resolveReplayCursor(lastEventId);
+  const replayWindowStart = new Date(Date.now() - REPLAY_WINDOW_MS);
 
   if (lastEventId) {
-    missedNotifications = await prisma.$transaction(async (prisma) => {
-      const since = lastEventId;
-      const userNotifications = await prisma.notification.findMany({
+    missedNotifications = await prisma.$transaction(async (tx) => {
+      const userNotifications = await tx.notification.findMany({
         where: {
           user_id,
-          id: { gt: since },
-          created_at: { gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
+          created_at: { gt: replayWindowStart },
+          ...(replayCursor
+            ? {
+                OR: [
+                  { created_at: { gt: replayCursor.createdAt } },
+                  {
+                    AND: [
+                      { created_at: replayCursor.createdAt },
+                      { id: { gt: replayCursor.id } },
+                    ],
+                  },
+                ],
+              }
+            : {}),
         },
-        orderBy: { created_at: "asc" },
+        orderBy: [{ created_at: "asc" }, { id: "asc" }],
       });
 
-      const broadcastNotifications =
-        await prisma.broadcastNotification.findMany({
-          where: {
-            id: { gt: since },
-            created_at: { gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
-          },
-          orderBy: { created_at: "asc" },
-        });
+      const broadcastNotifications = await tx.broadcastNotification.findMany({
+        where: {
+          created_at: { gt: replayWindowStart },
+          ...(replayCursor
+            ? {
+                OR: [
+                  { created_at: { gt: replayCursor.createdAt } },
+                  {
+                    AND: [
+                      { created_at: replayCursor.createdAt },
+                      { id: { gt: replayCursor.id } },
+                    ],
+                  },
+                ],
+              }
+            : {}),
+        },
+        orderBy: [{ created_at: "asc" }, { id: "asc" }],
+      });
+
       return [...userNotifications, ...broadcastNotifications].sort(
-        (a, b) => a.created_at.getTime() - b.created_at.getTime()
+        compareNotificationsByCursor
       );
     });
   }
@@ -99,18 +219,21 @@ export async function GET(req: NextRequest) {
       );
 
       for (const notification of missedNotifications) {
-        const sseData = `id: ${notification.id}\nevent: new_notification\ndata: ${JSON.stringify(notification)}\n\n`;
+        const eventType =
+          "user_id" in notification ? "new_notification" : "new_broadcast";
+        const sseData = `id: ${createCursorId(notification.created_at, notification.id)}\nevent: ${eventType}\ndata: ${JSON.stringify(notification)}\n\n`;
         controller.enqueue(encoder.encode(sseData));
       }
 
       const messageHandler = (channel: string, message: string) => {
         try {
-          const notification = JSON.parse(message);
+          const notification: NotificationStreamItem & Record<string, unknown> =
+            JSON.parse(message);
           const eventType = channel.startsWith("broadcast:")
             ? "new_broadcast"
             : "new_notification";
 
-          const sseData = `id: ${notification.id}\nevent: ${eventType}\ndata: ${JSON.stringify(notification)}\n\n`;
+          const sseData = `id: ${createCursorId(notification.created_at, notification.id)}\nevent: ${eventType}\ndata: ${JSON.stringify(notification)}\n\n`;
 
           controller.enqueue(encoder.encode(sseData));
         } catch (error) {
@@ -133,6 +256,10 @@ export async function GET(req: NextRequest) {
         } catch (error) {
           console.error("Failed to refresh SSE connection TTL", error);
           controller.close();
+          clearInterval(heartbeatInterval);
+          listeners.forEach(({ channel, handler }) => {
+            notificationEmitter.unsubscribe(channel, handler);
+          });
         }
       }, SSE_HEARTBEAT_INTERVAL);
     },
