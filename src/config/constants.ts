@@ -7,6 +7,12 @@ export const SSE_CONNECTION_TTL =
 export const SSE_HEARTBEAT_INTERVAL =
   parseInt(process.env.SSE_HEARTBEAT_INTERVAL || "", 10) || 15000;
 
+export const SSE_REPLAY_USER_LIMIT =
+  parseInt(process.env.SSE_REPLAY_USER_LIMIT || "", 10) || 200;
+
+export const SSE_REPLAY_BROADCAST_LIMIT =
+  parseInt(process.env.SSE_REPLAY_BROADCAST_LIMIT || "", 10) || 100;
+
 export const DEFAULT_PAGE_SIZE =
   parseInt(process.env.DEFAULT_PAGE_SIZE || "", 10) || 10;
 
