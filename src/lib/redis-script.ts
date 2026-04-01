@@ -22,6 +22,20 @@ const TRACK_CONNECTION_SCRIPT = `
   return 1
 `;
 
+const REFRESH_CONNECTION_SCRIPT = `
+  local key = KEYS[1]
+  local connectionId = ARGV[1]
+  local now = tonumber(ARGV[2])
+  local staleThreshold = tonumber(ARGV[3])
+  local ttl = tonumber(ARGV[4])
+
+  redis.call('ZADD', key, now, connectionId)
+  redis.call('ZREMRANGEBYSCORE', key, 0, staleThreshold)
+  redis.call('EXPIRE', key, ttl)
+
+  return redis.call('ZCARD', key)
+`;
+
 export async function trackConnectionAtomic(
   userId: string,
   connectionId: string,
@@ -44,4 +58,26 @@ export async function trackConnectionAtomic(
   );
 
   return Number(result) === 1;
+}
+
+export async function refreshConnectionHeartbeatAtomic(
+  userId: string,
+  connectionId: string,
+  ttlSeconds: number
+): Promise<number> {
+  const key = `sse:connections:${userId}`;
+  const now = Date.now();
+  const staleThreshold = now - ttlSeconds * 1000;
+
+  const result = await redisPublisher.eval(
+    REFRESH_CONNECTION_SCRIPT,
+    1,
+    key,
+    connectionId,
+    String(now),
+    String(staleThreshold),
+    String(ttlSeconds)
+  );
+
+  return Number(result);
 }
