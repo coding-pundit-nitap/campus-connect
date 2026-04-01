@@ -99,7 +99,7 @@ export function useLiveNotifications() {
       }
 
       const url = lastEventIdRef.current
-        ? `/api/notifications/stream?lastEventId=${lastEventIdRef.current}`
+        ? `/api/notifications/stream?lastEventId=${encodeURIComponent(lastEventIdRef.current)}`
         : `/api/notifications/stream`;
       const eventSource = new EventSource(url);
       eventSourceRef.current = eventSource;
