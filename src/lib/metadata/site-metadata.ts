@@ -86,8 +86,8 @@ export const defaultMetadata: Metadata = {
     title: siteConfig.name,
   },
   verification: {
-    google: "ta5Z5jlyjpLChhWGQp8OmWxPt_IocPfwT8MEcYMrOhg"
-  }
+    google: "ta5Z5jlyjpLChhWGQp8OmWxPt_IocPfwT8MEcYMrOhg",
+  },
 };
 
 export interface ShopMetadataProps {
