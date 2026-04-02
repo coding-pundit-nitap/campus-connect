@@ -1,6 +1,7 @@
 import React from "react";
 
 import { Products } from "./products";
+import { ShopDetails } from "./shop-details";
 
 type Props = {
   shop_id: string;
@@ -8,7 +9,8 @@ type Props = {
 
 export default function Shops({ shop_id }: Props) {
   return (
-    <div className="flex gap-4 flex-col justify-between flex-wrap h-full">
+    <div className="flex h-full flex-col gap-4">
+      <ShopDetails shop_id={shop_id} />
       <Products shop_id={shop_id} />
     </div>
   );

@@ -18,6 +18,7 @@ import { PaymentMethod } from "@/types/prisma.types";
 interface PaymentFormProps {
   cart_id: string;
   shop_id: string;
+  shopAcceptingOrders: boolean;
   qr_image_key: string;
   upi_id?: string;
   item_total: number;
@@ -29,6 +30,7 @@ interface PaymentFormProps {
 export function PaymentForm({
   cart_id,
   shop_id,
+  shopAcceptingOrders,
   qr_image_key,
   upi_id,
   item_total,
@@ -129,6 +131,11 @@ export function PaymentForm({
   const { mutate: createOrder, isPending } = useCreateOrder();
 
   const handlePlaceOrder = async () => {
+    if (!shopAcceptingOrders) {
+      toast.error("This shop has currently paused new orders.");
+      return;
+    }
+
     if (!checkoutData) {
       toast.error("Checkout session missing. Please start over.");
       return;
@@ -290,14 +297,24 @@ export function PaymentForm({
           <Button
             onClick={handlePlaceOrder}
             disabled={
+              !shopAcceptingOrders ||
               isPending ||
               (paymentMethod === "ONLINE" && !upiTransactionId.trim())
             }
             className="w-full"
             size="lg"
           >
-            {isPending ? "Processing..." : `Place Order - ₹${total.toFixed(2)}`}
+            {isPending
+              ? "Processing..."
+              : shopAcceptingOrders
+                ? `Place Order - ₹${total.toFixed(2)}`
+                : "Shop is not accepting orders"}
           </Button>
+          {!shopAcceptingOrders && (
+            <p className="text-xs text-amber-700 dark:text-amber-300">
+              Orders are paused by the shop right now. Please try again later.
+            </p>
+          )}
 
           <Button
             variant="outline"

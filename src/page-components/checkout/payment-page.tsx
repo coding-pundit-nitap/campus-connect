@@ -17,6 +17,7 @@ export default async function PaymentPageComponent({
     delivery_fee,
     direct_delivery_fee,
     platform_fee,
+    shop_accepting_orders,
   } = await cartService.getCartData(cart_id);
 
   return (
@@ -33,6 +34,7 @@ export default async function PaymentPageComponent({
         delivery_fee={delivery_fee}
         direct_delivery_fee={direct_delivery_fee}
         platform_fee={platform_fee}
+        shopAcceptingOrders={shop_accepting_orders}
         items={cart.items}
       />
     </SharedCard>

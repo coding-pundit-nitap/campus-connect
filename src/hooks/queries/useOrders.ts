@@ -14,6 +14,7 @@ import {
 } from "@/actions/admin";
 import {
   batchUpdateOrderStatusAction,
+  cancelOrderAction,
   createOrderAction,
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
@@ -124,6 +125,23 @@ function useCreateOrder() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });
+    },
+  });
+}
+
+export function useCancelOrder() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: cancelOrderAction,
+    onSuccess: (response) => {
+      toast.success(response.details || "Order cancelled successfully");
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+      router.refresh();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to cancel order");
     },
   });
 }

@@ -156,11 +156,13 @@ class OrderService {
         },
       });
 
-      const shop = await tx.shop.findUnique({
-        where: { id: shop_id },
+      const shop = await tx.shop.findFirst({
+        where: { id: shop_id, deleted_at: null },
         select: {
           id: true,
           name: true,
+          is_active: true,
+          accepting_orders: true,
           min_order_value: true,
           default_delivery_fee: true,
           direct_delivery_fee: true,
@@ -177,6 +179,14 @@ class OrderService {
       }
       if (!shop) {
         throw new NotFoundError("Shop not found.");
+      }
+      if (!shop.is_active) {
+        throw new ValidationError("Shop is currently not accepting orders.");
+      }
+      if (!shop.accepting_orders) {
+        throw new ValidationError(
+          "Shop is not accepting orders at the moment. Please try again later."
+        );
       }
       if (!deliveryAddress) {
         throw new NotFoundError("Delivery address not found.");
