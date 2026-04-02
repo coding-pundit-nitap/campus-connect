@@ -439,50 +439,57 @@ create-buckets (complete) ──┘                      nginx-dev
 ### `.env` — Infrastructure (all services)
 
 ```env
-DATABASE_URL=postgresql://connect:password@db:5432/campus_connect
-POSTGRES_USER=connect
-POSTGRES_PASSWORD=your-password
-POSTGRES_DB=campus_connect
-
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin
+AWS_REGION=us-east-1
 MINIO_ROOT_USER=minioadmin
-MINIO_ROOT_PASSWORD=your-minio-password
+MINIO_ROOT_PASSWORD=minioadmin
+MINIO_REGION=us-east-1
 NEXT_PUBLIC_MINIO_BUCKET=campus-connect
+MINIO_ENDPOINT=http://minio:9000
 NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
 
+POSTGRES_USER=connect
+POSTGRES_PASSWORD=mypassword
+POSTGRES_DB=campus_connect
+
+DATABASE_URL=postgresql://connect:mypassword@db:5432/campus_connect?schema=public&connection_limit=10&pgbouncer=true
+DIRECT_URL=postgresql://connect:mypassword@db:5432/campus_connect
+
 REDIS_URL=redis://redis:6379
+
+# Email Configuration
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+ALERT_EMAIL_FROM=alerts@yourdomain.com
+ALERT_EMAIL_TO=admin@yourdomain.com
+NOTIFICATION_EMAIL_FROM=notifications@example.com
+
+# Monitoring
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=changeme
 ```
 
 ### `.env.local` — App secrets (development)
 
 ```env
+BETTER_AUTH_URL=http://localhost
 NEXT_PUBLIC_APP_URL=http://localhost
-BETTER_AUTH_SECRET=32-char-minimum-random-string
-
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-S3_ACCESS_KEY=minioadmin
-S3_SECRET_KEY=your-minio-password
-S3_ENDPOINT=http://minio:9000
-S3_REGION=us-east-1
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 ### `.env.production` — Production overrides
 
 ```env
-NEXT_PUBLIC_APP_URL=https://connect.nitap.ac.in
-NODE_ENV=production
+BETTER_AUTH_URL=https://your-production-auth-url
 
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=alerts@example.com
-SMTP_PASSWORD=your-smtp-password
-ALERT_EMAIL_FROM=alerts@example.com
-ALERT_EMAIL_TO=oncall@example.com
-NOTIFICATION_EMAIL_FROM=notifications@example.com
-
-GRAFANA_ADMIN_USER=admin
-GRAFANA_ADMIN_PASSWORD=secure-password
+NEXT_PUBLIC_APP_URL=https://your-production-app-url
+NEXT_PUBLIC_API_URL=/api
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 ---
