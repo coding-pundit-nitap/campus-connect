@@ -143,6 +143,18 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
                   >
                     {isOpen ? "Open" : "Closed"}
                   </Badge>
+                  <Badge
+                    variant={shop.accepting_orders ? "secondary" : "outline"}
+                    className={cn(
+                      "ml-1 px-2 py-0 font-medium",
+                      !shop.accepting_orders &&
+                        "border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-300"
+                    )}
+                  >
+                    {shop.accepting_orders
+                      ? "Accepting Orders"
+                      : "Orders Paused"}
+                  </Badge>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4 shrink-0" />

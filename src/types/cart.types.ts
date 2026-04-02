@@ -30,6 +30,7 @@ export interface ShopCart {
   qr_image_key: string;
   upi_id: string;
   min_order_value: string;
+  shop_accepting_orders: boolean;
 }
 
 export interface CartSummary {
@@ -56,6 +57,7 @@ export type SerializedFullCart = Cart & {
         upi_id: string;
         opening: string;
         closing: string;
+        accepting_orders: boolean;
         default_delivery_fee: string;
         direct_delivery_fee: string;
         min_order_value: string;
@@ -80,6 +82,7 @@ export type FullCart = Cart & {
         upi_id: string;
         opening: string;
         closing: string;
+        accepting_orders: boolean;
         default_delivery_fee: Prisma.Decimal;
         direct_delivery_fee: Prisma.Decimal;
         min_order_value: Prisma.Decimal;

@@ -38,6 +38,7 @@ interface CheckoutFormProps {
   cart_id: string;
   shopOpening?: string;
   shopClosing?: string;
+  shopAcceptingOrders: boolean;
   direct_delivery_fee?: number;
   deliveryFee: number;
   platformFee: number;
@@ -61,6 +62,7 @@ export function CheckoutForm({
   cart_id,
   shopOpening,
   shopClosing,
+  shopAcceptingOrders,
   direct_delivery_fee = 0,
   deliveryFee = 0,
   platformFee = 0,
@@ -165,6 +167,11 @@ export function CheckoutForm({
   };
 
   const handleProceedToPayment = () => {
+    if (!shopAcceptingOrders) {
+      toast.error("This shop has currently paused new orders.");
+      return;
+    }
+
     if (!selectedAddress) {
       toast.error("Please select a delivery address");
       return;
@@ -221,6 +228,7 @@ export function CheckoutForm({
             <Button
               onClick={handleProceedToPayment}
               disabled={
+                !shopAcceptingOrders ||
                 !selectedAddress ||
                 (batchSlots.length > 0 &&
                   !requestedDeliveryTime &&
@@ -229,8 +237,15 @@ export function CheckoutForm({
               className="w-full"
               size="lg"
             >
-              Proceed to Payment - ₹{total.toFixed(2)}
+              {shopAcceptingOrders
+                ? `Proceed to Payment - ₹${total.toFixed(2)}`
+                : "Shop is not accepting orders"}
             </Button>
+            {!shopAcceptingOrders && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
+                Orders are paused by the shop right now. Please try again later.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

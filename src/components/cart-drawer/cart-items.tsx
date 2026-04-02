@@ -12,9 +12,15 @@ interface CartItemsProps {
   items: CartItemData[];
   cart_id: string;
   min_order_value: string;
+  shop_accepting_orders: boolean;
 }
 
-export function CartItems({ items, cart_id, min_order_value }: CartItemsProps) {
+export function CartItems({
+  items,
+  cart_id,
+  min_order_value,
+  shop_accepting_orders,
+}: CartItemsProps) {
   const router = useRouter();
   const total_price = items.reduce(
     (acc, item) =>
@@ -52,6 +58,7 @@ export function CartItems({ items, cart_id, min_order_value }: CartItemsProps) {
       <CartFooter
         total_price={total_price}
         min_order_value={Number(min_order_value)}
+        shop_accepting_orders={shop_accepting_orders}
         onProceed={handlePlaceOrder}
       />
     </div>

@@ -17,6 +17,7 @@ export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
               upi_id: true,
               opening: true,
               closing: true,
+              accepting_orders: true,
               default_delivery_fee: true,
               direct_delivery_fee: true,
               min_order_value: true,

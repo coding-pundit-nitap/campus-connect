@@ -88,6 +88,11 @@ export async function createOrderAction({
     if (!shop.is_active) {
       throw new ValidationError("Shop is currently not accepting orders.");
     }
+    if (!shop.accepting_orders) {
+      throw new ValidationError(
+        "Shop is not accepting orders at the moment. Please try again later."
+      );
+    }
 
     if (requested_delivery_time) {
       const deliveryTime = new Date(requested_delivery_time);
@@ -223,6 +228,73 @@ export async function getOrderByIdAction(
   } catch (error) {
     console.error("GET ORDER BY ID ERROR:", error);
     throw new InternalServerError("Failed to retrieve order details.");
+  }
+}
+
+export async function cancelOrderAction(
+  order_id: string
+): Promise<ActionResponse<null>> {
+  try {
+    const user_id = await authUtils.getUserId();
+    if (!user_id) {
+      throw new UnauthorizedError("Unauthorized: Please log in.");
+    }
+
+    const order = await orderRepository.getOrderById(order_id, {
+      select: {
+        id: true,
+        user_id: true,
+        display_id: true,
+        order_status: true,
+        payment_status: true,
+      },
+    });
+
+    if (!order) {
+      throw new ValidationError("Order not found.");
+    }
+
+    if (order.user_id !== user_id) {
+      throw new UnauthorizedError(
+        "Unauthorized: This order doesn't belong to you."
+      );
+    }
+
+    if (order.order_status !== "NEW") {
+      throw new ValidationError(
+        "Only orders with status NEW can be cancelled."
+      );
+    }
+
+    if (order.payment_status === "COMPLETED") {
+      throw new ValidationError(
+        "Cannot cancel an order with completed payment. Please contact support."
+      );
+    }
+
+    await orderRepository.updateStatus(order_id, OrderStatus.CANCELLED);
+
+    try {
+      await notificationService.publishNotification(user_id, {
+        title: "Order Cancelled",
+        message: `Your order ${order.display_id} has been cancelled.`,
+        action_url: getOrderUrl(order_id),
+        type: "WARNING",
+      });
+    } catch (error) {
+      console.error("Notification Error:", error);
+    }
+
+    return createSuccessResponse(null, "Order cancelled successfully.");
+  } catch (error) {
+    if (
+      error instanceof ValidationError ||
+      error instanceof UnauthorizedError
+    ) {
+      throw error;
+    }
+    console.error("CANCEL ORDER ERROR:", error);
+    throw new InternalServerError("Failed to cancel order.");
   }
 }
 

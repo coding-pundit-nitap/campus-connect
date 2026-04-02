@@ -51,6 +51,7 @@ class CartService {
       upi_id: cart.upi_id,
       shop_opening: shopData?.opening,
       shop_closing: shopData?.closing,
+      shop_accepting_orders: shopData?.accepting_orders ?? false,
       batch_slots: shopData?.batch_slots ?? [],
     };
   }

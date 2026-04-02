@@ -19,6 +19,7 @@ export default async function CheckoutPageComponent({
     shop_id,
     shop_opening,
     shop_closing,
+    shop_accepting_orders,
     batch_slots,
   } = await cartService.getCartData(cart_id);
   return (
@@ -33,6 +34,7 @@ export default async function CheckoutPageComponent({
           cart_id={cart_id}
           shopOpening={shop_opening}
           shopClosing={shop_closing}
+          shopAcceptingOrders={shop_accepting_orders}
           direct_delivery_fee={direct_delivery_fee}
           deliveryFee={delivery_fee}
           platformFee={platform_fee}

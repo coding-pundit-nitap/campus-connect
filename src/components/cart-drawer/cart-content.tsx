@@ -20,6 +20,7 @@ export default function CartContent({ summary }: CartContentProps) {
         cart_id={cart.id}
         items={cart.items}
         min_order_value={cart.min_order_value}
+        shop_accepting_orders={cart.shop_accepting_orders}
       />
     ),
   }));
