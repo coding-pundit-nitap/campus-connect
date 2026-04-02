@@ -18,6 +18,7 @@ import {
   useIsWatchingStock,
   useToggleStockWatch,
 } from "@/hooks/queries";
+import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 
 type ProductActionsProps = {
@@ -33,6 +34,8 @@ export default function ProductActions({
 }: ProductActionsProps) {
   const [quantity, setQuantity] = useState(1);
   const [showSuccess, setShowSuccess] = useState(false);
+  const session = useSession();
+  const isAuthenticated = !!session.data?.user?.id;
 
   const isOutOfStock = maxQuantity <= 0;
 
@@ -44,7 +47,7 @@ export default function ProductActions({
 
   const { data: isWatching, isLoading: isCheckingWatch } = useIsWatchingStock(
     productId,
-    isOutOfStock
+    isAuthenticated
   );
 
   const { mutate: toggleWatch, isPending: isPendingWatch } =
@@ -109,6 +112,33 @@ export default function ProductActions({
             </>
           )}
         </Button>
+
+        {isAuthenticated && (
+          <Button
+            size="lg"
+            variant={isWatching?.data ? "outline" : "secondary"}
+            className="w-full h-12 gap-2"
+            onClick={handleToggleWatch}
+            disabled={isPendingWatch || isCheckingWatch}
+          >
+            {isPendingWatch || isCheckingWatch ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {isCheckingWatch ? "Loading..." : "Updating..."}
+              </>
+            ) : isWatching?.data ? (
+              <>
+                <BellOff className="h-4 w-4" />
+                Remove from Watchlist
+              </>
+            ) : (
+              <>
+                <Bell className="h-4 w-4" />
+                Add to Watchlist
+              </>
+            )}
+          </Button>
+        )}
       </div>
     );
   }
@@ -177,6 +207,33 @@ export default function ProductActions({
           </>
         )}
       </Button>
+
+      {isAuthenticated && (
+        <Button
+          size="lg"
+          variant={isWatching?.data ? "outline" : "secondary"}
+          className="w-full h-12 gap-2"
+          onClick={handleToggleWatch}
+          disabled={isPendingWatch || isCheckingWatch}
+        >
+          {isPendingWatch || isCheckingWatch ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {isCheckingWatch ? "Loading..." : "Updating..."}
+            </>
+          ) : isWatching?.data ? (
+            <>
+              <BellOff className="h-4 w-4" />
+              Remove from Watchlist
+            </>
+          ) : (
+            <>
+              <Bell className="h-4 w-4" />
+              Add to Watchlist
+            </>
+          )}
+        </Button>
+      )}
 
       {isErrorAddToCart && (
         <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-md">

@@ -479,6 +479,7 @@ SMTP_USERNAME=alerts@example.com
 SMTP_PASSWORD=your-smtp-password
 ALERT_EMAIL_FROM=alerts@example.com
 ALERT_EMAIL_TO=oncall@example.com
+NOTIFICATION_EMAIL_FROM=notifications@example.com
 
 GRAFANA_ADMIN_USER=admin
 GRAFANA_ADMIN_PASSWORD=secure-password

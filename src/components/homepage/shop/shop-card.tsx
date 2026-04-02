@@ -3,6 +3,7 @@ import { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { FavoriteShopButton } from "@/components/shops/favorite-shop-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,17 +26,25 @@ type Props = {
 
 export function ShopCard({ shop, priority }: Props) {
   return (
-    <Link href={`/shops/${shop.id}` as Route} className="group block">
+    <div className="group block">
       <Card className="flex h-full w-full flex-col overflow-hidden shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
         <div className="relative aspect-4/3 overflow-hidden">
-          <Image
-            fill
-            src={ImageUtils.getImageUrl(shop.image_key)}
-            alt={shop.name}
-            priority={priority}
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+          <Link
+            href={`/shops/${shop.id}` as Route}
+            className="block h-full w-full"
+          >
+            <Image
+              fill
+              src={ImageUtils.getImageUrl(shop.image_key)}
+              alt={shop.name}
+              priority={priority}
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            />
+          </Link>
+          <div className="absolute top-2 left-2 z-10">
+            <FavoriteShopButton shopId={shop.id} />
+          </div>
           <div className="absolute top-2 right-2 flex gap-2">
             <Badge
               variant={shop.is_active ? "default" : "destructive"}
@@ -56,8 +65,13 @@ export function ShopCard({ shop, priority }: Props) {
 
         <div className="flex flex-1 flex-col p-4">
           <CardHeader className="p-0 pb-3">
-            <CardTitle className="mb-1 line-clamp-2 text-xl font-bold transition-colors group-hover:text-primary">
-              {shop.name}
+            <CardTitle className="mb-1 line-clamp-2 text-xl font-bold">
+              <Link
+                href={`/shops/${shop.id}` as Route}
+                className="transition-colors group-hover:text-primary hover:text-primary"
+              >
+                {shop.name}
+              </Link>
             </CardTitle>
             <CardDescription
               dangerouslySetInnerHTML={{
@@ -87,17 +101,18 @@ export function ShopCard({ shop, priority }: Props) {
           </CardContent>
 
           <CardFooter className="p-0 pt-4">
-            <Button
-              className="w-full"
-              variant={shop.is_active ? "default" : "outline"}
-              disabled={!shop.is_active}
-              asChild
-            >
-              <span>{shop.is_active ? "Visit Shop" : "Shop Inactive"}</span>
-            </Button>
+            {shop.is_active ? (
+              <Button className="w-full" asChild>
+                <Link href={`/shops/${shop.id}` as Route}>Visit Shop</Link>
+              </Button>
+            ) : (
+              <Button className="w-full" variant="outline" disabled>
+                Shop Inactive
+              </Button>
+            )}
           </CardFooter>
         </div>
       </Card>
-    </Link>
+    </div>
   );
 }
