@@ -17,6 +17,9 @@ import {
 } from "@/lib/redis-script";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const REPLAY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 type NotificationCursor = {
