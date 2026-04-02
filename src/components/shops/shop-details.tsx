@@ -1,6 +1,7 @@
 import { Calendar, Clock, MapPin, Store, Truck, User } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { FavoriteShopButton } from "@/components/shops/favorite-shop-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -81,6 +82,7 @@ export async function ShopDetails({ shop_id }: Props) {
                 >
                   {shop.accepting_orders ? "Accepting Orders" : "Orders Paused"}
                 </Badge>
+                <FavoriteShopButton shopId={shop.id} />
               </div>
 
               <div

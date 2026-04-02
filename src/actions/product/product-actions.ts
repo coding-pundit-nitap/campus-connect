@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
 import { Category } from "@/generated/client";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { serializeProduct } from "@/lib/utils";
@@ -123,7 +124,7 @@ export async function updateProductAction(
     }
 
     const currentProduct = await productRepository.findById(product_id, {
-      select: { category_id: true, image_key: true },
+      select: { category_id: true, image_key: true, stock_quantity: true },
     });
 
     const parsedData = productUpdateActionSchema.parse(formData);
@@ -190,6 +191,17 @@ export async function updateProductAction(
       product_id,
       updateData
     );
+
+    const wasOutOfStock = (currentProduct?.stock_quantity ?? 0) <= 0;
+    const isNowInStock = updatedProduct.stock_quantity > 0;
+
+    if (wasOutOfStock && isNowInStock) {
+      await notifyStockWatchers(
+        updatedProduct.id,
+        updatedProduct.name,
+        updatedProduct.shop.name
+      );
+    }
 
     if (
       currentProduct?.category_id &&

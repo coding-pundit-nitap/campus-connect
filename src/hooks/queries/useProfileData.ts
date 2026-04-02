@@ -15,7 +15,7 @@ import {
 import { authClient } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
 
-export function useFavoriteShops() {
+export function useFavoriteShops(enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.users.favorites,
     queryFn: async () => {
@@ -23,6 +23,7 @@ export function useFavoriteShops() {
       if (!response.success) throw new Error(response.details);
       return response.data;
     },
+    enabled,
   });
 }
 
@@ -45,7 +46,7 @@ export function useToggleFavoriteShop() {
   });
 }
 
-export function useStockWatches() {
+export function useStockWatches(enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.users.stockWatches,
     queryFn: async () => {
@@ -53,6 +54,7 @@ export function useStockWatches() {
       if (!response.success) throw new Error(response.details);
       return response.data;
     },
+    enabled,
   });
 }
 

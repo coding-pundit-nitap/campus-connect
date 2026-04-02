@@ -1,5 +1,6 @@
 import { Job, Queue, Worker } from "bullmq";
 
+import { sendNotificationEmail } from "../lib/email";
 import { loggers } from "../lib/logger";
 import { prisma } from "../lib/prisma";
 import { redisPublisher } from "../lib/redis";
@@ -30,6 +31,40 @@ const workHandler = async (job: Job<NotificationJobData>) => {
 
       const channel = `user:${user_id}:notifications`;
       await redisPublisher.publish(channel, JSON.stringify(newNotification));
+
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: user_id },
+          select: { email: true, name: true },
+        });
+
+        if (user?.email) {
+          const sent = await sendNotificationEmail({
+            to: user.email,
+            recipientName: user.name,
+            title: newNotification.title,
+            message: newNotification.message,
+            actionUrl: newNotification.action_url,
+          });
+
+          if (sent) {
+            logger.info(
+              { userId: user_id, notificationId: newNotification.id },
+              "Notification email sent"
+            );
+          }
+        }
+      } catch (emailError) {
+        logger.error(
+          {
+            err: emailError,
+            userId: user_id,
+            notificationId: newNotification.id,
+          },
+          "Failed to send notification email"
+        );
+      }
+
       logger.info(
         { userId: user_id, notificationId: newNotification.id },
         "Notification sent to user"

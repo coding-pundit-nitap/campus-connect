@@ -6,7 +6,6 @@ import {
   CreditCard,
   DollarSign,
   Edit,
-  IndianRupee,
   MapPin,
   Package,
   Pause,
@@ -81,7 +80,7 @@ export function ShopSettingsCard() {
 
   if (isLoading) {
     return (
-      <Card className="min-h-[500px] shadow-sm">
+      <Card className="min-h-125 shadow-sm">
         <CardHeader>
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-4 w-64" />
@@ -117,7 +116,7 @@ export function ShopSettingsCard() {
   const activeBatchSlots = batchSlots?.filter((slot) => slot.is_active) || [];
 
   return (
-    <Card className="flex flex-col relative overflow-hidden min-h-[550px] shadow-sm">
+    <Card className="flex flex-col relative overflow-hidden min-h-137.5 shadow-sm">
       <CardHeader className="flex flex-row items-start justify-between border-b bg-muted/10 pb-5 shrink-0">
         <div>
           <CardTitle className="text-xl font-bold tracking-tight">
