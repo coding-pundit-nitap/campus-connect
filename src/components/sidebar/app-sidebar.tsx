@@ -1,4 +1,4 @@
-import { GraduationCap } from "lucide-react";
+import Image from "next/image";
 import { Suspense } from "react";
 
 import SharedSidebar, {
@@ -22,10 +22,20 @@ export default function AppSidebar({
   error,
   footer,
 }: AppSidebarProps) {
+  const SidebarIcon = () => (
+    <Image
+      src="/icon.webp"
+      alt="Campus Connect"
+      width={24}
+      height={24}
+      className="rounded-sm"
+    />
+  );
+
   const headerConfig: SidebarHeaderConfig = {
     title: "Campus Connect",
     subtitle: "NIT Arunachal Pradesh",
-    icon: GraduationCap,
+    icon: SidebarIcon,
     href: "/",
   };
 
