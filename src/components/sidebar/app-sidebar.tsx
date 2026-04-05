@@ -6,6 +6,7 @@ import SharedSidebar, {
   NavigationItem,
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
+import { cn } from "@/lib/cn";
 
 interface AppSidebarProps {
   navigation?: NavigationItem[];
@@ -22,13 +23,14 @@ export default function AppSidebar({
   error,
   footer,
 }: AppSidebarProps) {
-  const SidebarIcon = () => (
+  const SidebarIcon = ({ className }: { className?: string }) => (
     <Image
-      src="/icon.webp"
+      src="/icon.svg"
       alt="Campus Connect"
-      width={24}
-      height={24}
-      className="rounded-sm"
+      width={30}
+      height={30}
+      className={cn("rounded-sm", className)}
+      style={{ width: "30px", height: "30px" }}
     />
   );
 

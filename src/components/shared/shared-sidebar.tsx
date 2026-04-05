@@ -160,11 +160,7 @@ export default function SharedSidebar({
     const HeaderIcon = header.icon;
     const content = (
       <>
-        {HeaderIcon && (
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <HeaderIcon className="size-4" />
-          </div>
-        )}
+        {HeaderIcon && <HeaderIcon />}
         <div className="grid flex-1 text-left text-sm leading-tight">
           <span className="truncate font-semibold">{header.title}</span>
           {header.subtitle && (
