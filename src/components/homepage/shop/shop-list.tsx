@@ -60,7 +60,16 @@ export default function ShopList({
               ref={isLastShop ? lastElementRef : null}
               className="animate-fade-in"
             >
-              <ShopCard shop={shop} priority={index < 8} />
+              <ShopCard.Provider shop={shop} priority={index < 8}>
+                <ShopCard.Frame>
+                  <ShopCard.Image>
+                    <ShopCard.Favorite />
+                    <ShopCard.Badges />
+                  </ShopCard.Image>
+                  <ShopCard.Details />
+                  <ShopCard.Actions />
+                </ShopCard.Frame>
+              </ShopCard.Provider>
             </div>
           );
         })}

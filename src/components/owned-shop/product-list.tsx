@@ -1,23 +1,19 @@
 "use client";
 import React from "react";
 
-import { ProductCard } from "@/components/shared/product-card";
+import { OwnerProductCard } from "@/components/shared/product-card";
 import { ProductListWithViewModes } from "@/components/shared/product-list/product-list-with-view-modes";
-import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 interface ProductListProps {
   onDeleteProduct: (product_id: string, image_key: string) => Promise<void>;
   shopData: {
     displayProducts: SerializedProduct[];
-    isInitialLoading: boolean;
-    hasError: boolean;
     isLoading: boolean;
     isError: boolean;
     hasNextPage: boolean;
     isFetchingNextPage: boolean;
     fetchNextPage: () => void;
-    hasActiveFilters?: boolean;
     error: Error | null;
   };
 }
@@ -36,17 +32,13 @@ export function ProductListContainer({
     fetchNextPage,
   } = shopData;
 
-  const renderProductCard = (product: SerializedProduct, index: number) => {
-    const cardProps = productUIServices.getProductCardProps(product, index);
-    return (
-      <ProductCard
-        {...cardProps}
-        product={product}
-        mode="owner"
-        onDelete={onDeleteProduct}
-      />
-    );
-  };
+  const renderProductCard = (product: SerializedProduct, index: number) => (
+    <OwnerProductCard
+      product={product}
+      index={index}
+      onDelete={onDeleteProduct}
+    />
+  );
 
   return (
     <ProductListWithViewModes

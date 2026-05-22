@@ -7,23 +7,20 @@ import { useStockWatches, useToggleStockWatch } from "@/hooks/queries";
 import { useSession } from "@/lib/auth-client";
 
 import LoadingSpinner from "../shared-loading-spinner";
+import { useProductCard } from "./product-card-context";
 
 interface UserProductActionsProps {
-  product_id: string;
   onAddToCart: (product_id: string, quantity: number) => void;
   onViewDetails?: (product_id: string) => void;
   isAddingToCart: boolean;
-  stock: number;
 }
 
 export function UserProductActions({
-  product_id,
   onAddToCart,
   onViewDetails,
   isAddingToCart,
-  stock,
 }: UserProductActionsProps) {
-  const isOutOfStock = stock === 0;
+  const { product, isOutOfStock } = useProductCard();
   const isMobile = useIsMobile();
   const session = useSession();
   const isAuthenticated = !!session.data?.user?.id;
@@ -34,12 +31,12 @@ export function UserProductActions({
     useToggleStockWatch();
 
   const handleToggleWatch = () => {
-    toggleWatch(product_id);
+    toggleWatch(product.id);
   };
 
   const disableWatchButton = isPendingWatch || isCheckingWatch;
   const isWatchingProduct = !!stockWatches?.some(
-    (watch) => watch.product.id === product_id
+    (watch) => watch.product.id === product.id
   );
 
   return (
@@ -48,7 +45,7 @@ export function UserProductActions({
         variant={isOutOfStock ? "outline" : "default"}
         className="w-full"
         disabled={isOutOfStock || isAddingToCart}
-        onClick={() => onAddToCart(product_id, 1)}
+        onClick={() => onAddToCart(product.id, 1)}
       >
         {isAddingToCart ? (
           <LoadingSpinner />
@@ -88,7 +85,7 @@ export function UserProductActions({
         <Button
           variant="secondary"
           className="w-full"
-          onClick={() => onViewDetails(product_id)}
+          onClick={() => onViewDetails(product.id)}
         >
           View Details
         </Button>

@@ -45,12 +45,9 @@ export default function ProductsList({
         isLoading={isLoading}
         fetchNextPage={fetchNextPage}
         error={error}
-        hasActiveFilters={false}
         hasNextPage={hasNextPage}
         isError={isError}
         isFetchingNextPage={isFetchingNextPage}
-        isInitialLoading={false}
-        hasError={!!error}
         isAddingToCart={isAddingToCart}
         onAddToCart={onAddToCart}
         onViewDetails={onViewDetails}

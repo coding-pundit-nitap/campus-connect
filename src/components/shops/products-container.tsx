@@ -84,12 +84,9 @@ export function ProductsContainer({
           isLoading={isLoading}
           fetchNextPage={fetchNextPage}
           error={error}
-          hasActiveFilters={hasActiveFilters}
           hasNextPage={hasNextPage}
           isError={isError}
           isFetchingNextPage={isFetchingNextPage}
-          isInitialLoading={isInitialLoading}
-          hasError={hasError}
           onAddToCart={onAddToCart}
           onViewDetails={onViewDetails}
           isAddingToCart={isAddingToCart}

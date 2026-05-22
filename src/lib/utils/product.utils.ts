@@ -257,16 +257,6 @@ export class ProductUIServices {
     };
   }
 
-  getProductCardProps(product: SerializedProduct, index: number) {
-    return {
-      discountedPrice: this.calculateDiscountedPrice(product).toFixed(2),
-      formattedDate: this.formatProductDate(product.created_at),
-      productHasDiscount: product.discount !== null && product.discount > 0,
-      productHasRating: product.rating !== null && product.rating > 0,
-      priority: index < 4,
-    };
-  }
-
   createActiveFilters(
     filters: FilterState,
     clearSearchFilter: () => void,

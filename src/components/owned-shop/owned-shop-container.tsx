@@ -99,9 +99,6 @@ export function OwnedShopContainer({
           shopData={{
             displayProducts,
             error,
-            hasActiveFilters,
-            isInitialLoading: isLoading && initialProducts.length === 0,
-            hasError: isError && !!error,
             isLoading,
             isError,
             hasNextPage,

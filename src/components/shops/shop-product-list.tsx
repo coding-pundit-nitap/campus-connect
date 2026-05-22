@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  ProductCard,
-  UserProductActions,
-} from "@/components/shared/product-card";
+import { UserProductCard } from "@/components/shared/product-card";
 import { ProductListWithViewModes } from "@/components/shared/product-list";
-import { productUIServices } from "@/lib/utils/product.utils";
 import { SerializedProduct } from "@/types/product.types";
 
 type Props = {
@@ -13,12 +9,9 @@ type Props = {
   isLoading: boolean;
   fetchNextPage: () => void;
   error: Error | null;
-  hasActiveFilters: boolean;
   hasNextPage: boolean;
   isError: boolean;
   isFetchingNextPage: boolean;
-  isInitialLoading: boolean;
-  hasError: boolean;
   onAddToCart?: (product_id: string, quantity: number) => void;
   onViewDetails?: (product_id: string) => void;
   isAddingToCart?: boolean;
@@ -36,25 +29,15 @@ export function ShopProductList({
   onViewDetails,
   isAddingToCart,
 }: Props) {
-  const renderProductCard = (product: SerializedProduct, index: number) => {
-    const cardProps = productUIServices.getProductCardProps(product, index);
-    return (
-      <ProductCard
-        {...cardProps}
-        product={product}
-        mode="user"
-        userActions={
-          <UserProductActions
-            isAddingToCart={isAddingToCart || false}
-            onAddToCart={onAddToCart || (() => {})}
-            onViewDetails={onViewDetails || (() => {})}
-            product_id={product.id}
-            stock={product.stock_quantity}
-          />
-        }
-      />
-    );
-  };
+  const renderProductCard = (product: SerializedProduct, index: number) => (
+    <UserProductCard
+      product={product}
+      index={index}
+      onAddToCart={onAddToCart || (() => {})}
+      onViewDetails={onViewDetails || (() => {})}
+      isAddingToCart={isAddingToCart || false}
+    />
+  );
 
   return (
     <ProductListWithViewModes

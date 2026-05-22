@@ -2,22 +2,21 @@ import Image from "next/image";
 import React from "react";
 
 import { ImageUtils } from "@/lib/utils";
-import { SerializedProduct } from "@/types/product.types";
 
-interface ProductCardHeaderProps {
-  product: SerializedProduct;
-  priority?: boolean;
-  isMobileList?: boolean;
+import { useProductCard } from "./product-card-context";
+
+interface ProductCardImageProps {
+  variant?: "default" | "compact";
 }
 
-export function ProductCardHeader({
-  product,
-  priority = false,
-  isMobileList = false,
-}: ProductCardHeaderProps) {
+export function ProductCardImage({
+  variant = "default",
+}: ProductCardImageProps) {
+  const { product, priority } = useProductCard();
+
   return (
     <div
-      className={`relative overflow-hidden ${isMobileList ? "h-full" : "aspect-square"}`}
+      className={`relative overflow-hidden ${variant === "compact" ? "h-full" : "aspect-square"}`}
     >
       <Image
         src={ImageUtils.getImageUrl(product.image_key)}
