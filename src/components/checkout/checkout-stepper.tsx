@@ -1,39 +1,40 @@
 "use client";
 
-import { Check, CreditCard, MapPin } from "lucide-react";
+import { Check, Clock, CreditCard, MapPin } from "lucide-react";
 
 import { cn } from "@/lib/cn";
 
-export type CheckoutStep = "address" | "payment" | "complete";
-
-interface CheckoutStepperProps {
-  currentStep: CheckoutStep;
-  className?: string;
-}
+export type CheckoutStep = "address" | "timing" | "payment" | "complete";
 
 const steps = [
   {
     id: "address" as const,
-    label: "Address & Time",
+    label: "Delivery Address",
     icon: MapPin,
-    description: "Delivery details",
+    description: "Where to deliver",
+  },
+  {
+    id: "timing" as const,
+    label: "Delivery Time",
+    icon: Clock,
+    description: "Choose batch or direct",
   },
   {
     id: "payment" as const,
     label: "Payment",
     icon: CreditCard,
-    description: "Choose payment method",
-  },
-  {
-    id: "complete" as const,
-    label: "Complete",
-    icon: Check,
-    description: "Order confirmed",
+    description: "Choose method",
   },
 ];
 
 function getStepIndex(step: CheckoutStep): number {
+  if (step === "complete") return 3;
   return steps.findIndex((s) => s.id === step);
+}
+
+interface CheckoutStepperProps {
+  currentStep: CheckoutStep;
+  className?: string;
 }
 
 export function CheckoutStepper({
@@ -43,8 +44,9 @@ export function CheckoutStepper({
   const currentIndex = getStepIndex(currentStep);
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="hidden md:flex items-center justify-center">
+    <div className={cn("w-full py-2", className)}>
+      {/* Desktop Stepper */}
+      <div className="hidden md:flex items-center justify-center gap-2">
         {steps.map((step, index) => {
           const StepIcon = step.icon;
           const isActive = index === currentIndex;
@@ -53,37 +55,37 @@ export function CheckoutStepper({
 
           return (
             <div key={step.id} className="flex items-center">
-              <div className="flex flex-col items-center">
+              <div className="flex items-center gap-3">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300",
+                    "flex items-center justify-center w-10 h-10 rounded-xl border-2 transition-all duration-500",
                     isCompleted &&
-                      "bg-primary border-primary text-primary-foreground",
+                      "bg-gradient-to-tr from-indigo-500 to-violet-600 border-transparent text-white shadow-lg shadow-indigo-500/20",
                     isActive &&
-                      "border-primary bg-primary/10 text-primary scale-110",
+                      "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-110 shadow-lg shadow-indigo-500/[0.08]",
                     !isCompleted &&
                       !isActive &&
-                      "border-muted-foreground/30 text-muted-foreground"
+                      "border-border/60 bg-muted/20 text-muted-foreground"
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="w-5 h-5" />
+                    <Check className="w-5 h-5 stroke-[2.5]" />
                   ) : (
                     <StepIcon className="w-5 h-5" />
                   )}
                 </div>
-                <div className="mt-2 text-center">
+                <div className="text-left">
                   <p
                     className={cn(
-                      "text-sm font-medium transition-colors",
-                      isActive && "text-primary",
-                      isCompleted && "text-primary",
-                      !isActive && !isCompleted && "text-muted-foreground"
+                      "text-sm font-semibold tracking-tight transition-colors",
+                      isActive && "text-foreground",
+                      isCompleted && "text-muted-foreground",
+                      !isActive && !isCompleted && "text-muted-foreground/60"
                     )}
                   >
                     {step.label}
                   </p>
-                  <p className="text-xs text-muted-foreground hidden lg:block">
+                  <p className="text-xs text-muted-foreground/80 font-medium hidden lg:block">
                     {step.description}
                   </p>
                 </div>
@@ -92,8 +94,10 @@ export function CheckoutStepper({
               {!isLast && (
                 <div
                   className={cn(
-                    "w-16 lg:w-24 h-0.5 mx-2 mt-[-1.5rem] transition-colors duration-300",
-                    isCompleted ? "bg-primary" : "bg-muted-foreground/30"
+                    "w-12 lg:w-16 h-[2px] mx-4 transition-all duration-500 rounded-full",
+                    isCompleted
+                      ? "bg-gradient-to-r from-indigo-500 to-violet-500"
+                      : "bg-border/60"
                   )}
                 />
               )}
@@ -102,8 +106,9 @@ export function CheckoutStepper({
         })}
       </div>
 
+      {/* Mobile Stepper */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3 bg-muted/30 p-1.5 rounded-lg border border-border/20">
           {steps.map((step, index) => {
             const isActive = index === currentIndex;
             const isCompleted = index < currentIndex;
@@ -112,26 +117,27 @@ export function CheckoutStepper({
               <div
                 key={step.id}
                 className={cn(
-                  "flex-1 h-1.5 mx-0.5 rounded-full transition-colors duration-300",
-                  index === 0 && "ml-0",
-                  index === steps.length - 1 && "mr-0",
-                  isCompleted && "bg-primary",
-                  isActive && "bg-primary/50",
-                  !isCompleted && !isActive && "bg-muted-foreground/30"
+                  "flex-1 h-1.5 mx-1 rounded-full transition-all duration-500",
+                  isCompleted &&
+                    "bg-gradient-to-r from-indigo-500 to-violet-500",
+                  isActive && "bg-indigo-500 shadow shadow-indigo-500/30",
+                  !isCompleted && !isActive && "bg-muted-foreground/20"
                 )}
               />
             );
           })}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 px-1">
           {(() => {
-            const step = steps[currentIndex];
+            const step = steps[currentIndex < 3 ? currentIndex : 2];
             const StepIcon = step.icon;
             return (
               <>
-                <StepIcon className="w-5 h-5 text-primary" />
-                <span className="text-sm font-medium">
-                  Step {currentIndex + 1} of {steps.length}: {step.label}
+                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500">
+                  <StepIcon className="w-4 h-4" />
+                </div>
+                <span className="text-xs font-semibold text-foreground">
+                  Step {Math.min(currentIndex + 1, 3)} of 3: {step.label}
                 </span>
               </>
             );

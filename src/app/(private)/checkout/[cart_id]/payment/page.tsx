@@ -1,6 +1,4 @@
-import React from "react";
-
-import PaymentPageComponent from "@/page-components/checkout/payment-page";
+import { redirect } from "next/navigation";
 
 export default async function PaymentPage({
   params,
@@ -8,5 +6,5 @@ export default async function PaymentPage({
   params: Promise<{ cart_id: string }>;
 }) {
   const { cart_id } = await params;
-  return <PaymentPageComponent cart_id={cart_id} />;
+  redirect(`/checkout/${cart_id}`);
 }
