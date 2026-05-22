@@ -61,7 +61,6 @@ export default function OrderPage() {
 
   const orders = data?.pages.flatMap((page) => page.orders) || [];
 
-  // Derive available blocks from the current dataset dynamically
   const pages = data?.pages;
 
   const availableBlocks = useMemo(() => {
@@ -82,7 +81,6 @@ export default function OrderPage() {
     fetchNextPage,
   });
 
-  // --- Filter Guard Logic ---
   const handleFilterChange = (setterFn: () => void) => {
     if (selectedOrders.length > 0) {
       toast.warning(
@@ -135,7 +133,6 @@ export default function OrderPage() {
     });
   };
 
-  // --- Selection Logic ---
   const handleSelectionChange = (orderId: string, isSelected: boolean) => {
     setSelectedOrders((prev) =>
       isSelected ? [...prev, orderId] : prev.filter((id) => id !== orderId)

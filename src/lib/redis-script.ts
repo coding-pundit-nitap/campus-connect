@@ -48,8 +48,8 @@ export async function trackConnectionAtomic(
 
   const result = await redisPublisher.eval(
     TRACK_CONNECTION_SCRIPT,
-    1, // number of keys
-    key, // KEYS[1]
+    1,
+    key,
     connectionId,
     String(now),
     String(staleThreshold),

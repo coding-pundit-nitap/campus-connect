@@ -1,9 +1,6 @@
-// Recursively convert Prisma Decimal instances to plain strings so
-// Server Components don't pass non-plain objects to Client Components.
 export function convertPrismaDecimals<T>(value: T): T {
   if (value === null || value === undefined) return value;
 
-  // Handle arrays
   if (Array.isArray(value)) {
     return value.map((v) => convertPrismaDecimals(v)) as T;
   }

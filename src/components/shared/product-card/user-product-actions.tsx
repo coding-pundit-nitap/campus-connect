@@ -1,10 +1,9 @@
-import { Bell, BellOff, Loader2, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks";
-import { useStockWatches, useToggleStockWatch } from "@/hooks/queries";
-import { useSession } from "@/lib/auth-client";
+import { cn } from "@/lib/cn";
 
 import LoadingSpinner from "../shared-loading-spinner";
 import { useProductCard } from "./product-card-context";
@@ -22,70 +21,42 @@ export function UserProductActions({
 }: UserProductActionsProps) {
   const { product, isOutOfStock } = useProductCard();
   const isMobile = useIsMobile();
-  const session = useSession();
-  const isAuthenticated = !!session.data?.user?.id;
-
-  const { data: stockWatches, isLoading: isCheckingWatch } =
-    useStockWatches(isAuthenticated);
-  const { mutate: toggleWatch, isPending: isPendingWatch } =
-    useToggleStockWatch();
-
-  const handleToggleWatch = () => {
-    toggleWatch(product.id);
-  };
-
-  const disableWatchButton = isPendingWatch || isCheckingWatch;
-  const isWatchingProduct = !!stockWatches?.some(
-    (watch) => watch.product.id === product.id
-  );
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2 w-full">
       <Button
         variant={isOutOfStock ? "outline" : "default"}
-        className="w-full"
+        className={cn(
+          "w-full font-bold transition-all duration-300 cursor-pointer rounded-lg relative overflow-hidden group/btn",
+          !isOutOfStock &&
+            "bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-98 border-none"
+        )}
         disabled={isOutOfStock || isAddingToCart}
-        onClick={() => onAddToCart(product.id, 1)}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onAddToCart(product.id, 1);
+        }}
       >
         {isAddingToCart ? (
           <LoadingSpinner />
-        ) : isMobile ? (
-          <ShoppingCart />
         ) : (
-          <ShoppingCart className="mr-2 h-4 w-4" />
+          <ShoppingCart className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
         )}
-        <p className="text-sm hidden md:block font-medium">
-          {!isMobile && (isOutOfStock ? "Out of Stock" : "Add to Cart")}
-        </p>
+        <span className="text-sm font-semibold ml-2">
+          {isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        </span>
       </Button>
-      {isAuthenticated && (
-        <Button
-          variant={isWatchingProduct ? "outline" : "secondary"}
-          className="w-full"
-          onClick={handleToggleWatch}
-          disabled={disableWatchButton}
-        >
-          {disableWatchButton ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : isWatchingProduct ? (
-            <BellOff className="mr-2 h-4 w-4" />
-          ) : (
-            <Bell className="mr-2 h-4 w-4" />
-          )}
-          <p className="text-sm hidden md:block font-medium">
-            {disableWatchButton
-              ? "Updating..."
-              : isWatchingProduct
-                ? "Remove Watchlist"
-                : "Add to Watchlist"}
-          </p>
-        </Button>
-      )}
+
       {onViewDetails && !isMobile && (
         <Button
           variant="secondary"
-          className="w-full"
-          onClick={() => onViewDetails(product.id)}
+          className="w-full text-xs font-semibold rounded-lg hover:bg-muted/80 transition-colors"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onViewDetails(product.id);
+          }}
         >
           View Details
         </Button>

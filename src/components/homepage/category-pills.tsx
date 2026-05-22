@@ -26,6 +26,11 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
               className="h-9 w-20 md:w-24 rounded-full bg-muted/65 animate-pulse shrink-0 snap-start"
             />
           ))
+        ) : isError ? (
+          <div className="flex items-center gap-2 px-4 text-xs text-red-500">
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span>Error loading categories</span>
+          </div>
         ) : (
           <>
             <button

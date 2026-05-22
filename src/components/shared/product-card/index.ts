@@ -5,5 +5,6 @@ export { ProductCardBadges } from "./product-card-badges";
 export { ProductCardProvider, useProductCard } from "./product-card-context";
 export { ProductCardDetails } from "./product-card-details";
 export { ProductCardImage } from "./product-card-header";
+export { ProductWatchlistButton } from "./product-watchlist-button";
 export { UserProductActions } from "./user-product-actions";
 export { UserProductCard } from "./user-product-card";

@@ -2,42 +2,71 @@
 
 import { Flame, GraduationCap, Sparkles, Store } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 
 import { useSession } from "@/lib/auth-client";
 
+/**
+ * Pure helper function to compute greeting time-of-day salutation and guest context
+ */
+function getGreetingAndTimeContext(
+  user:
+    | { name?: string | null; email?: string | null; image?: string | null }
+    | undefined
+    | null
+) {
+  const hour = new Date().getHours();
+
+  let greet = "Welcome";
+  let emo = "🎓";
+
+  if (hour >= 5 && hour < 12) {
+    greet = "Good morning";
+    emo = "☀️";
+  } else if (hour >= 12 && hour < 17) {
+    greet = "Good afternoon";
+    emo = "☕";
+  } else if (hour >= 17 && hour < 22) {
+    greet = "Good evening";
+    emo = "👋";
+  } else {
+    greet = "Up late";
+    emo = "🦉";
+  }
+
+  const isGuest = !user;
+  const firstName = user?.name?.split(" ")[0];
+
+  return {
+    greeting: firstName ? `${greet}, ${firstName}` : `${greet}, guest`,
+    emoji: emo,
+    isGuest,
+  };
+}
+
 export default function SmartHero() {
   const { data: session } = useSession();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const { greeting, emoji, isGuest } = useMemo(() => {
-    const hour = new Date().getHours();
-
-    let greet = "Welcome";
-    let emo = "🎓";
-
-    if (hour >= 5 && hour < 12) {
-      greet = "Good morning";
-      emo = "☀️";
-    } else if (hour >= 12 && hour < 17) {
-      greet = "Good afternoon";
-      emo = "☕";
-    } else if (hour >= 17 && hour < 22) {
-      greet = "Good evening";
-      emo = "👋";
-    } else {
-      greet = "Up late";
-      emo = "🦉";
+    if (!mounted) {
+      const isGuest = !session?.user;
+      const firstName = session?.user?.name?.split(" ")[0];
+      return {
+        greeting: firstName ? `Welcome, ${firstName}` : "Welcome, guest",
+        emoji: "🎓",
+        isGuest,
+      };
     }
-
-    const isGuest = !session?.user;
-    const firstName = session?.user?.name?.split(" ")[0];
-
-    return {
-      greeting: firstName ? `${greet}, ${firstName}` : `${greet}, guest`,
-      emoji: emo,
-      isGuest,
-    };
-  }, [session]);
+    return getGreetingAndTimeContext(session?.user);
+  }, [session?.user, mounted]);
 
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-muted/80 bg-gradient-to-br from-indigo-50/45 via-background to-violet-50/30 dark:from-indigo-950/15 dark:via-background dark:to-violet-950/15 p-6 md:p-8 mb-6 shadow-sm transition-all duration-500 hover:border-muted-foreground/20 group">
@@ -69,7 +98,6 @@ export default function SmartHero() {
           </p>
         </div>
 
-        {/* Premium Campus Features Info Navigation Links */}
         <div className="relative z-10 flex flex-wrap gap-2.5 mt-5">
           <Link
             href="/shops"

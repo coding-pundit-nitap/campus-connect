@@ -31,7 +31,6 @@ export function IndividualDeliveryCard({
 
   const canVerify = status === "OUT_FOR_DELIVERY";
 
-  // Dynamic UI configuration based on status
   const uiConfig = useMemo(() => {
     if (canStart) {
       return {
@@ -63,7 +62,6 @@ export function IndividualDeliveryCard({
         desc: "This order has been completed.",
       };
     }
-    // Default / Cancelled state
     return {
       border: "border-l-muted-foreground/30",
       iconBg: "bg-muted text-muted-foreground",
@@ -82,7 +80,6 @@ export function IndividualDeliveryCard({
         uiConfig.border
       )}
     >
-      {/* Universal Header - Matches the new design system */}
       <div className="bg-muted/30 p-4 flex gap-3 items-start border-b shrink-0">
         <div className={cn("p-2 rounded-lg h-fit", uiConfig.iconBg)}>
           <StatusIcon className="h-5 w-5" />

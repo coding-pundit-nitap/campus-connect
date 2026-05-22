@@ -37,7 +37,7 @@ const STATUS_CONFIG: Record<
   COMPLETED: {
     label: "Completed",
     icon: CheckCircle2,
-    color: "text-emerald-500", // Tweaked to emerald to match new success states
+    color: "text-emerald-500",
   },
   CANCELLED: { label: "Cancelled", icon: XCircle, color: "text-red-500" },
 };
