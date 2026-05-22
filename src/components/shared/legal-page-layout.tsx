@@ -19,7 +19,7 @@ export default function LegalPageLayout({
 }: LegalPageLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-background">
-      <div className="h-64 bg-gradient-to-b from-primary/5 to-transparent absolute top-0 w-full -z-10" />
+      <div className="h-64 bg-primary/5 to-transparent absolute top-0 w-full -z-10" />
 
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         <div className="mb-8">

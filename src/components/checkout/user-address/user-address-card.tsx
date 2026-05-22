@@ -41,7 +41,7 @@ export function UserAddressCard({
           {onSelect && (
             <div className="shrink-0 mt-1">
               {isSelected ? (
-                <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-indigo-500 to-violet-600 flex items-center justify-center shadow shadow-indigo-500/30 transition-transform duration-300 scale-100">
+                <div className="h-5 w-5 rounded-full bg-violet-600 flex items-center justify-center shadow shadow-indigo-500/30 transition-transform duration-300 scale-100">
                   <Check className="h-3 w-3 text-white stroke-[3.5]" />
                 </div>
               ) : (

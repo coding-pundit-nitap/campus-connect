@@ -47,7 +47,7 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
         ) : (
           <div
             className={cn(
-              "w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-primary",
+              "w-full h-full flex items-center justify-center bg-violet-500/10 text-primary",
               !open && "grayscale"
             )}
           >

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { ShopEditForm } from "@/components/owned-shop/shop-edit";
+import { ShopSettingsForm } from "@/components/owned-shop/settings/shop-settings-form";
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
 import { ShopUpdateFormShop } from "@/types/shop.types";
 
-export default async function ShopEditPage() {
+export default async function ShopSettingsPage() {
   const user_id = await authUtils.getUserId();
   const shopWithUser = await shopRepository.findByOwnerId(user_id, {
     select: {
@@ -54,14 +54,14 @@ export default async function ShopEditPage() {
     <div className="container mx-auto max-w-3xl py-10">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Edit Your Shop</CardTitle>
+          <CardTitle className="text-2xl">Operating & Fee Settings</CardTitle>
           <CardDescription>
-            Update your shop's details, location, and opening hours. Changes
-            will be visible to customers after saving.
+            Configure your shop's minimum order limits and delivery fees. These
+            settings govern checkout rules for all customers.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ShopEditForm shop={shop} />
+          <ShopSettingsForm shop={shop} />
         </CardContent>
       </Card>
     </div>

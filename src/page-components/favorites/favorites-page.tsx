@@ -39,7 +39,7 @@ export default function FavoritesPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Custom Glassmorphic Page Header */}
-      <div className="relative w-full border-b border-muted/80 bg-gradient-to-br from-indigo-50/45 via-background to-violet-50/30 dark:from-indigo-950/15 dark:via-background dark:to-violet-950/15 py-8 px-4 md:px-8 mb-6 shadow-sm overflow-hidden group">
+      <div className="relative w-full border-b border-muted/80 bg-violet-50/30 dark:from-indigo-950/15 dark:via-background dark:to-violet-950/15 py-8 px-4 md:px-8 mb-6 shadow-sm overflow-hidden group">
         <div className="absolute -right-8 -top-8 w-40 h-40 bg-indigo-500/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-8 -bottom-8 w-40 h-40 bg-violet-500/15 dark:bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -169,7 +169,7 @@ export default function FavoritesPage() {
                     ) : (
                       <div
                         className={cn(
-                          "w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-primary/70",
+                          "w-full h-full flex items-center justify-center bg-violet-500/10 text-primary/70",
                           !open && "grayscale"
                         )}
                       >
@@ -177,7 +177,7 @@ export default function FavoritesPage() {
                       </div>
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                    <div className="absolute inset-0 bg-transparent pointer-events-none" />
 
                     <div className="absolute left-3 top-3 bg-black/60 backdrop-blur-xs text-[10px] font-bold text-white px-2.5 py-1 rounded-full border border-white/10 tracking-wide uppercase">
                       🕒 {formatTime(shop.opening)} - {formatTime(shop.closing)}

@@ -22,7 +22,7 @@ export function ShopCardActions({ children }: ShopCardActionsProps) {
         children
       ) : shop.is_active ? (
         <Button
-          className="w-full font-bold bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-98 transition-all duration-300 cursor-pointer rounded-lg border-none"
+          className="w-full font-bold bg-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-98 transition-all duration-300 cursor-pointer rounded-lg border-none"
           asChild
         >
           <Link href={`/shops/${shop.id}` as Route}>Visit Shop</Link>

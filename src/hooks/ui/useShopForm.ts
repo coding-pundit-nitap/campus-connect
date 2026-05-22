@@ -46,6 +46,9 @@ export function useLinkShop() {
         const result = await linkShop(data);
         if (result.success) {
           await authClient.updateUser({ shop_id: result.data.id });
+          if (typeof window !== "undefined") {
+            window.sessionStorage?.removeItem("cc_create_shop_draft");
+          }
           router.push(`/owner-shops`);
           form.reset();
         }

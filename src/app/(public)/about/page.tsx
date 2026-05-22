@@ -360,7 +360,7 @@ export default function AboutPage() {
           </InfoCard>
         </InfoSection>
         <InfoSection title="Join Our Journey" id="contact">
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-2xl p-8 text-center">
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-8 text-center">
             <h3 className="text-2xl font-bold mb-4">Be Part of the Solution</h3>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
               Campus Connect is more than a platform – it&apos;s a community

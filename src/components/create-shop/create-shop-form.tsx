@@ -1,9 +1,28 @@
 "use client";
 
-import { CheckCircle2, Circle } from "lucide-react";
-import { useState } from "react";
+import {
+  CheckCircle2,
+  Clock,
+  Coins,
+  CreditCard,
+  Image as ImageIcon,
+  Store,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
 
 import { BatchCardsEditor } from "@/components/shared/batch-cards-editor";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,17 +43,124 @@ import { SharedFileInput } from "../shared/shared-file-input";
 import { RichTextEditor } from "../ui/rich-text-editor";
 
 const STEPS_META = [
-  { num: 1, title: "Shop Details", desc: "Name and description" },
-  { num: 2, title: "Hours & Location", desc: "Where and when you operate" },
-  { num: 3, title: "Fees & Batches", desc: "Pricing and delivery schedule" },
-  { num: 4, title: "Shop Image", desc: "Visual branding" },
-  { num: 5, title: "Payments", desc: "UPI and QR code setup" },
+  { num: 1, title: "Shop Details", desc: "Name and description", icon: Store },
+  {
+    num: 2,
+    title: "Hours & Location",
+    desc: "Where and when you operate",
+    icon: Clock,
+  },
+  {
+    num: 3,
+    title: "Fees & Batches",
+    desc: "Pricing and delivery schedule",
+    icon: Coins,
+  },
+  { num: 4, title: "Shop Image", desc: "Visual branding", icon: ImageIcon },
+  {
+    num: 5,
+    title: "Payments",
+    desc: "UPI and QR code setup",
+    icon: CreditCard,
+  },
 ];
+
+const STEP_ESTIMATES = {
+  1: "Step 1 of 5 • About 3 minutes left",
+  2: "Step 2 of 5 • About 2 minutes left",
+  3: "Step 3 of 5 • About 1 minute left",
+  4: "Step 4 of 5 • Almost finished!",
+  5: "Step 5 of 5 • Ready to launch!",
+};
+
+const SCHEMA_VERSION = 1;
+const DRAFT_TTL = 72 * 60 * 60 * 1000; // 72 Hours
+
+const serializableDraftSchema = z.object({
+  name: z.string(),
+  description: z.string(),
+  location: z.string(),
+  opening: z.string(),
+  closing: z.string(),
+  min_order_value: z.number().min(0),
+  default_delivery_fee: z.number().min(0),
+  direct_delivery_fee: z.number().min(0),
+  upi_id: z.string(),
+  batch_slots: z.array(
+    z.object({
+      cutoff_time_minutes: z.number().int().min(0).max(1439),
+      label: z.string().nullable().optional(),
+    })
+  ),
+});
+
+const draftEnvelopeSchema = z.object({
+  version: z.literal(SCHEMA_VERSION),
+  savedAt: z
+    .number()
+    .refine((ts) => Date.now() - ts <= DRAFT_TTL, "Draft expired"),
+  step: z.number().int().min(1).max(5),
+  data: serializableDraftSchema,
+});
+
+type SerializableDraft = z.infer<typeof serializableDraftSchema>;
+type DraftEnvelope = z.infer<typeof draftEnvelopeSchema>;
+
+function validateDraft(envelope: unknown): envelope is DraftEnvelope {
+  return draftEnvelopeSchema.safeParse(envelope).success;
+}
 
 export function CreateShopForm() {
   const [step, setStep] = useState(1);
   const { form, handlers, state } = useLinkShop();
   const { isSubmitting, isLoading } = state;
+
+  const [pendingDraft, setPendingDraft] = useState<DraftEnvelope | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem("cc_create_shop_draft");
+      if (raw) {
+        const envelope = JSON.parse(raw);
+        if (validateDraft(envelope)) {
+          setTimeout(() => {
+            setPendingDraft(envelope);
+            setShowPrompt(true);
+          }, 0);
+        } else {
+          sessionStorage.removeItem("cc_create_shop_draft");
+        }
+      }
+    } catch {
+      toast.error("Failed to parse draft from sessionStorage");
+    }
+  }, []);
+
+  const handleRestore = () => {
+    if (pendingDraft) {
+      const { step: savedStep, data } = pendingDraft;
+      setStep(savedStep);
+      form.reset({
+        name: data.name,
+        description: data.description,
+        location: data.location,
+        opening: data.opening,
+        closing: data.closing,
+        min_order_value: data.min_order_value,
+        default_delivery_fee: data.default_delivery_fee,
+        direct_delivery_fee: data.direct_delivery_fee,
+        upi_id: data.upi_id,
+        batch_slots: data.batch_slots,
+      });
+    }
+    setShowPrompt(false);
+  };
+
+  const handleDiscard = () => {
+    sessionStorage.removeItem("cc_create_shop_draft");
+    setShowPrompt(false);
+  };
 
   const stepFieldNames = {
     1: ["name", "description"] as const,
@@ -55,58 +181,147 @@ export function CreateShopForm() {
     if (isValid) setStep((s) => s + 1);
   };
 
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      const timer = setTimeout(() => {
+        try {
+          const serializableValues: SerializableDraft = {
+            name: values.name || "",
+            description: values.description || "",
+            location: values.location || "",
+            opening: values.opening || "07:00",
+            closing: values.closing || "20:00",
+            min_order_value: Number(values.min_order_value) || 50,
+            default_delivery_fee: Number(values.default_delivery_fee) || 0,
+            direct_delivery_fee: Number(values.direct_delivery_fee) || 0,
+            upi_id: values.upi_id || "",
+            batch_slots: (
+              (values.batch_slots || []) as {
+                cutoff_time_minutes?: number;
+                label?: string | null;
+              }[]
+            ).map((slot) => ({
+              cutoff_time_minutes: Number(slot?.cutoff_time_minutes) || 0,
+              label: slot?.label || null,
+            })),
+          };
+
+          const envelope: DraftEnvelope = {
+            version: SCHEMA_VERSION,
+            savedAt: Date.now(),
+            step,
+            data: serializableValues,
+          };
+
+          sessionStorage.setItem(
+            "cc_create_shop_draft",
+            JSON.stringify(envelope)
+          );
+        } catch {
+          toast.error("Failed to save draft");
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [form, step]);
+
+  const activeMeta = STEPS_META[step - 1];
+
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-12 py-8">
-      {/* Left Sidebar: Progress Tracker */}
-      <div className="md:col-span-4 lg:col-span-3 space-y-8">
+    <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-12 py-8 px-4 sm:px-6">
+      <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-lg font-bold">
+              Resume previous setup?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed">
+              We found an unfinished draft for your shop setup. Would you like
+              to resume where you left off or start fresh?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0 mt-4">
+            <AlertDialogCancel onClick={handleDiscard} className="sm:mr-2">
+              Start Fresh
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestore}>
+              Resume Setup
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <div className="hidden md:block md:col-span-4 lg:col-span-3 space-y-8">
         <div className="sticky top-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Create Shop</h1>
-            <p className="text-sm text-muted-foreground mt-2">
-              Set up your store in 5 quick steps.
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Create Shop
+            </h1>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              Set up your store and delivery details in 5 simple steps.
             </p>
           </div>
 
           <div className="space-y-2 mb-8">
-            <div className="flex justify-between text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="flex justify-between text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
               <span>Progress</span>
               <span>{Math.round((step / 5) * 100)}%</span>
             </div>
-            <Progress value={(step / 5) * 100} className="h-2" />
+            <Progress
+              value={(step / 5) * 100}
+              className="h-1.5 bg-muted rounded-full"
+            />
+            <p className="text-[10px] text-muted-foreground/80 mt-1">
+              {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
+            </p>
           </div>
 
-          <nav className="space-y-4">
+          <nav className="relative flex flex-col gap-6 pl-2">
+            <div className="absolute left-4.5 top-2 bottom-2 w-[1.5px] bg-border pointer-events-none" />
+
             {STEPS_META.map((s) => {
               const isActive = step === s.num;
               const isCompleted = step > s.num;
+              const StepIcon = s.icon;
 
               return (
                 <div
                   key={s.num}
                   className={cn(
-                    "flex items-start gap-3 transition-opacity",
-                    isActive ? "opacity-100" : "opacity-50"
+                    "relative flex items-start gap-4 transition-all duration-200",
+                    isActive ? "opacity-100" : "opacity-60"
                   )}
                 >
-                  <div className="mt-0.5 shrink-0">
+                  <div
+                    className={cn(
+                      "z-10 flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all",
+                      isCompleted
+                        ? "border-emerald-600 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        : isActive
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-muted-foreground"
+                    )}
+                  >
                     {isCompleted ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
-                    ) : isActive ? (
-                      <Circle className="h-5 w-5 fill-primary text-primary" />
+                      <CheckCircle2 className="h-3.5 w-3.5" />
                     ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground" />
+                      <StepIcon className="h-3.5 w-3.5" />
                     )}
                   </div>
                   <div className="flex flex-col">
                     <span
                       className={cn(
-                        "text-sm font-semibold",
+                        "text-xs font-semibold leading-tight",
                         isActive ? "text-foreground" : "text-muted-foreground"
                       )}
                     >
-                      {s.num}. {s.title}
+                      {s.title}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] text-muted-foreground/80 mt-0.5">
                       {s.desc}
                     </span>
                   </div>
@@ -117,44 +332,57 @@ export function CreateShopForm() {
         </div>
       </div>
 
-      {/* Right Content: Form Fields */}
-      <div className="md:col-span-8 lg:col-span-9">
-        <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+      <div className="md:hidden col-span-12 space-y-3 mb-2">
+        <div className="flex justify-between items-center text-xs">
+          <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">
+            {activeMeta.title}
+          </span>
+          <span className="text-muted-foreground text-[10px] font-semibold">
+            {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
+          </span>
+        </div>
+        <Progress
+          value={(step / 5) * 100}
+          className="h-1.5 bg-muted rounded-full"
+        />
+      </div>
+
+      <div className="md:col-span-8 lg:col-span-9 col-span-12">
+        <div className="bg-card rounded-xl border border-border/80 shadow-xs overflow-hidden">
           <Form {...form}>
             <form
               onSubmit={handlers.onSubmit}
               className="flex flex-col h-full min-h-125"
             >
-              <div className="p-6 sm:p-8 flex-1">
-                {/* STEP 1: Details */}
+              <div className="p-6 sm:p-8 flex-1 space-y-6">
                 {step === 1 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">
+                      <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Shop Details
                       </h2>
-                      <p className="text-sm text-muted-foreground">
-                        This is how customers will see your shop.
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Identify your shop so customers can locate you easily.
                       </p>
                     </div>
-                    <Separator />
+                    <Separator className="opacity-80" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Shop Name
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g., Midnight Munchies"
-                                className="shadow-sm"
+                                placeholder="E.g., Midnight Munchies, Block A Canteen"
+                                className="shadow-xs h-9.5 text-sm"
                                 {...field}
                               />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
                               Your shop's public display name.
                             </FormDescription>
                             <FormMessage />
@@ -166,7 +394,7 @@ export function CreateShopForm() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Description
                             </FormLabel>
                             <FormControl>
@@ -174,13 +402,17 @@ export function CreateShopForm() {
                                 value={field.value || ""}
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
-                                placeholder="Write something about your shop..."
+                                placeholder="Write details about your menu, specialties, or standard canteen hours..."
                                 disabled={field.disabled || isSubmitting}
                               />
                             </FormControl>
-                            <FormDescription>
-                              {String(field.value || "").length}/{500}{" "}
-                              characters
+                            <FormDescription className="text-[11px] text-muted-foreground/80 flex justify-between">
+                              <span>
+                                Describe what you sell to campus students.
+                              </span>
+                              <span>
+                                {String(field.value || "").length}/500 chars
+                              </span>
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -190,37 +422,37 @@ export function CreateShopForm() {
                   </div>
                 )}
 
-                {/* STEP 2: Hours & Location */}
                 {step === 2 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">
+                      <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Hours & Location
                       </h2>
-                      <p className="text-sm text-muted-foreground">
-                        Where are you located and when are you open?
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Help campus students know when you are open and where to
+                        pick up orders.
                       </p>
                     </div>
-                    <Separator />
+                    <Separator className="opacity-80" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
                         name="location"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
-                              Location
+                            <FormLabel className="text-xs font-semibold text-foreground">
+                              Location / Pickup Point
                             </FormLabel>
                             <FormControl>
                               <Input
-                                placeholder="E.g., Main Street, Block A"
-                                className="shadow-sm"
+                                placeholder="E.g., Block A ground floor common room, Main Street"
+                                className="shadow-xs h-9.5 text-sm"
                                 {...field}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Where customers can find your physical store (if
-                              applicable).
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
+                              Specific description of your physical location on
+                              campus.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -232,16 +464,19 @@ export function CreateShopForm() {
                           name="opening"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">
+                              <FormLabel className="text-xs font-semibold text-foreground">
                                 Opening Time
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="time"
-                                  className="shadow-sm"
+                                  className="shadow-xs h-9.5 text-sm"
                                   {...field}
                                 />
                               </FormControl>
+                              <FormDescription className="text-[10px] text-muted-foreground">
+                                E.g., 07:00 AM
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -251,16 +486,19 @@ export function CreateShopForm() {
                           name="closing"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">
+                              <FormLabel className="text-xs font-semibold text-foreground">
                                 Closing Time
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="time"
-                                  className="shadow-sm"
+                                  className="shadow-xs h-9.5 text-sm"
                                   {...field}
                                 />
                               </FormControl>
+                              <FormDescription className="text-[10px] text-muted-foreground">
+                                E.g., 08:00 PM
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -270,18 +508,18 @@ export function CreateShopForm() {
                   </div>
                 )}
 
-                {/* STEP 3: Fees & Batches */}
                 {step === 3 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">
-                        Fees & Batch Cards
+                      <h2 className="text-lg font-bold tracking-tight text-foreground">
+                        Fees & Schedule
                       </h2>
-                      <p className="text-sm text-muted-foreground">
-                        Set your minimums, delivery fees, and schedule.
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Configure minimum baskets, standard delivery rates, and
+                        schedules.
                       </p>
                     </div>
-                    <Separator />
+                    <Separator className="opacity-80" />
                     <div className="space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <FormField
@@ -289,7 +527,7 @@ export function CreateShopForm() {
                           name="min_order_value"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">
+                              <FormLabel className="text-xs font-semibold text-foreground">
                                 Minimum Order Value (₹)
                               </FormLabel>
                               <FormControl>
@@ -297,7 +535,7 @@ export function CreateShopForm() {
                                   type="number"
                                   min={0}
                                   step="1"
-                                  className="shadow-sm"
+                                  className="shadow-xs h-9.5 text-sm"
                                   value={field.value ?? 50}
                                   onChange={(e) =>
                                     field.onChange(
@@ -306,8 +544,8 @@ export function CreateShopForm() {
                                   }
                                 />
                               </FormControl>
-                              <FormDescription>
-                                Minimum cart value required to order.
+                              <FormDescription className="text-[11px] text-muted-foreground/80">
+                                Minimum cart total required (E.g., ₹50).
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -318,15 +556,15 @@ export function CreateShopForm() {
                           name="default_delivery_fee"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="font-semibold">
-                                Default Delivery Fee (₹)
+                              <FormLabel className="text-xs font-semibold text-foreground">
+                                Batch Delivery Fee (₹)
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
                                   min={0}
                                   step="1"
-                                  className="shadow-sm"
+                                  className="shadow-xs h-9.5 text-sm"
                                   value={field.value ?? 0}
                                   onChange={(e) => {
                                     const value = e.currentTarget.valueAsNumber;
@@ -334,8 +572,9 @@ export function CreateShopForm() {
                                   }}
                                 />
                               </FormControl>
-                              <FormDescription>
-                                Standard fee for batch deliveries.
+                              <FormDescription className="text-[11px] text-muted-foreground/80">
+                                Delivery charge when using batched slots (E.g.,
+                                ₹10).
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -348,7 +587,7 @@ export function CreateShopForm() {
                         name="direct_delivery_fee"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               Direct Delivery Fee (₹)
                             </FormLabel>
                             <FormControl>
@@ -356,7 +595,7 @@ export function CreateShopForm() {
                                 type="number"
                                 min={0}
                                 step="1"
-                                className="shadow-sm"
+                                className="shadow-xs h-9.5 text-sm"
                                 value={field.value ?? 0}
                                 onChange={(e) => {
                                   const value = e.currentTarget.valueAsNumber;
@@ -364,9 +603,9 @@ export function CreateShopForm() {
                                 }}
                               />
                             </FormControl>
-                            <FormDescription>
-                              Extra fee charged for immediate (non-batched)
-                              delivery.
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
+                              Additional charge for immediate, non-batched
+                              delivery (E.g., ₹20).
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -378,14 +617,15 @@ export function CreateShopForm() {
                         name="batch_slots"
                         render={({ field }) => (
                           <FormItem className="pt-2">
-                            <FormLabel className="font-semibold text-base">
-                              Batch Schedule
+                            <FormLabel className="text-xs font-bold text-foreground">
+                              Delivery Batch Schedule
                             </FormLabel>
-                            <FormDescription className="mb-2">
-                              Leave empty if you only do direct deliveries.
+                            <FormDescription className="text-[11px] text-muted-foreground/80 mb-2">
+                              Configure specific batch intervals. Leave empty if
+                              you only run direct delivery.
                             </FormDescription>
                             <FormControl>
-                              <div className="rounded-lg border p-4 bg-muted/10 shadow-sm">
+                              <div className="rounded-lg border border-border/80 p-4 bg-muted/5 shadow-2xs">
                                 <BatchCardsEditor
                                   value={field.value || []}
                                   onChange={field.onChange}
@@ -401,18 +641,18 @@ export function CreateShopForm() {
                   </div>
                 )}
 
-                {/* STEP 4: Shop Image */}
                 {step === 4 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">
+                      <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Shop Image
                       </h2>
-                      <p className="text-sm text-muted-foreground">
-                        Upload a banner or logo for your shop.
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Upload a banner logo or store graphic to brand your
+                        portal.
                       </p>
                     </div>
-                    <Separator />
+                    <Separator className="opacity-80" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
@@ -425,9 +665,12 @@ export function CreateShopForm() {
                                 onChange={(file) => field.onChange(file)}
                                 accept="image/*"
                                 maxSize={5}
-                                placeholder="Drag & drop or click to upload shop image"
+                                placeholder="Drag & drop or click to upload brand image"
                               />
                             </FormControl>
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
+                              Upload high resolution JPG, PNG up to 5MB.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -436,37 +679,38 @@ export function CreateShopForm() {
                   </div>
                 )}
 
-                {/* STEP 5: Payments */}
                 {step === 5 && (
-                  <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                  <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-bold tracking-tight">
+                      <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Payments Setup
                       </h2>
-                      <p className="text-sm text-muted-foreground">
-                        How will customers pay you online?
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Provide your billing info so campus students can pay you
+                        online.
                       </p>
                     </div>
-                    <Separator />
+                    <Separator className="opacity-80" />
                     <div className="space-y-6">
                       <FormField
                         control={form.control}
                         name="upi_id"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
+                            <FormLabel className="text-xs font-semibold text-foreground">
                               UPI ID
                             </FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
                                 type="text"
-                                className="shadow-sm font-mono"
-                                placeholder="e.g. yourname@upi"
+                                className="shadow-xs h-9.5 text-sm font-mono"
+                                placeholder="e.g. merchant@ybl, canteenname@okaxis"
                               />
                             </FormControl>
-                            <FormDescription>
-                              The UPI address where you will receive payments.
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
+                              The exact UPI address where online customer
+                              payments are routed.
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -477,8 +721,8 @@ export function CreateShopForm() {
                         name="qr_image"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="font-semibold">
-                              Payment QR Code
+                            <FormLabel className="text-xs font-semibold text-foreground">
+                              Billing QR Code
                             </FormLabel>
                             <FormControl>
                               <SharedFileInput
@@ -489,6 +733,10 @@ export function CreateShopForm() {
                                 placeholder="Upload your UPI QR code image"
                               />
                             </FormControl>
+                            <FormDescription className="text-[11px] text-muted-foreground/80">
+                              Upload a screenshot of your UPI QR code for visual
+                              scan pay validation.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -498,23 +746,22 @@ export function CreateShopForm() {
                 )}
               </div>
 
-              {/* Navigation Footer */}
-              <div className="p-6 sm:p-8 bg-muted/10 border-t flex items-center justify-between mt-auto">
+              <div className="p-6 sm:p-8 bg-muted/5 border-t border-border/80 flex items-center justify-between mt-auto">
                 {step > 1 ? (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="shadow-sm"
+                    className="shadow-2xs text-xs font-medium h-9 px-4"
                   >
                     Back
                   </Button>
                 ) : (
-                  <div /> // Placeholder to push Next button to the right
+                  <div />
                 )}
 
                 <div className="flex items-center gap-4">
-                  <FormMessage className="text-sm">
+                  <FormMessage className="text-xs">
                     {form.formState.errors.root?.message}
                   </FormMessage>
 
@@ -522,21 +769,26 @@ export function CreateShopForm() {
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="shadow-sm px-6"
+                      className="shadow-2xs text-xs font-semibold h-9 px-5 bg-primary text-primary-foreground hover:bg-primary/95"
                     >
                       Continue
                     </Button>
                   )}
                   {step === 5 && (
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting || isLoading}
-                      className="shadow-sm px-8"
-                    >
-                      {isSubmitting || isLoading
-                        ? "Creating Shop..."
-                        : "Create Shop"}
-                    </Button>
+                    <div className="flex flex-col items-end">
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting || isLoading}
+                        className="shadow-2xs text-xs font-bold h-9.5 px-6 bg-primary text-primary-foreground hover:bg-primary/95"
+                      >
+                        {isSubmitting || isLoading
+                          ? "Launching portal..."
+                          : "Create Shop & Launch Dashboard"}
+                      </Button>
+                      <span className="text-[10px] text-muted-foreground mt-1.5 text-right font-medium">
+                        Your store goes live after setup.
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>

@@ -6,6 +6,7 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import shopRepository from "@/repositories/shop.repository";
 import { categoryServices } from "@/services/category/category.service";
@@ -125,7 +126,7 @@ export async function createShopAction(formData: ShopActionFormData) {
     }
 
     return createSuccessResponse(
-      newShop,
+      convertPrismaDecimals(newShop),
       batchCardsSaved
         ? "Shop created successfully! Please log out and back in to access the seller dashboard."
         : "Shop created successfully, but batch cards could not be saved (migration pending). The shop will run in direct-delivery mode."
@@ -231,7 +232,10 @@ export async function updateShopAction(formData: ShopActionFormData) {
       type: "INFO",
     });
 
-    return createSuccessResponse(updatedShop, "Shop updated successfully!");
+    return createSuccessResponse(
+      convertPrismaDecimals(updatedShop),
+      "Shop updated successfully!"
+    );
   } catch (error) {
     console.error("UPDATE SHOP ERROR:", error);
     throw new InternalServerError("Failed to update shop.");

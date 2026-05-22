@@ -28,7 +28,7 @@ export function ShopCardImage({ children }: ShopCardImageProps) {
           className="object-cover transition-transform duration-700 ease-out group-hover:scale-108"
           sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-black/35 opacity-90 transition-opacity duration-300 group-hover:opacity-75" />
+        <div className="absolute inset-0 bg-black/10 to-black/35 opacity-90 transition-opacity duration-300 group-hover:opacity-75" />
       </Link>
       {children}
     </div>

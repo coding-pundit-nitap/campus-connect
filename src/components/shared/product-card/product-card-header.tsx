@@ -16,7 +16,7 @@ export function ProductCardImage({
 
   return (
     <div
-      className={`relative overflow-hidden bg-gradient-to-tr from-indigo-500/[0.05] via-violet-500/[0.02] to-transparent dark:from-indigo-500/10 dark:via-transparent dark:to-transparent flex items-center justify-center transition-colors duration-500 ${variant === "compact" ? "h-full w-full" : "aspect-square"}`}
+      className={`relative overflow-hidden bg-violet-500/[0.02] to-transparent dark:from-indigo-500/10 dark:via-transparent dark:to-transparent flex items-center justify-center transition-colors duration-500 ${variant === "compact" ? "h-full w-full" : "aspect-square"}`}
     >
       <Image
         src={ImageUtils.getImageUrl(product.image_key)}
@@ -26,7 +26,7 @@ export function ProductCardImage({
         priority={priority}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/[0.02] to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-transparent pointer-events-none" />
     </div>
   );
 }

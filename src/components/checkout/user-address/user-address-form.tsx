@@ -33,7 +33,7 @@ export function UserAddressForm({
 }: UserAddressFormProps) {
   return (
     <Card className="p-6 bg-card/40 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-indigo-500/[0.02] relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-purple-500 to-pink-500" />
       <div className="mb-6">
         <h3 className="text-lg font-bold tracking-tight text-foreground">
           Add New Address
@@ -188,7 +188,7 @@ export function UserAddressForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-11 min-w-[130px] rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/10"
+              className="h-11 min-w-[130px] rounded-xl font-semibold bg-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/10"
             >
               {isSubmitting ? "Adding..." : "Add Address"}
             </Button>

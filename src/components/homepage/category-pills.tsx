@@ -15,8 +15,8 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
 
   return (
     <div className="relative w-full h-14 min-h-[56px] flex items-center mb-6">
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none hidden md:block" />
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none hidden md:block" />
+      <div className="absolute left-0 top-0 bottom-0 w-8 bg-transparent z-10 pointer-events-none hidden md:block" />
+      <div className="absolute right-0 top-0 bottom-0 w-8 bg-transparent z-10 pointer-events-none hidden md:block" />
 
       <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-2.5 py-1 px-4 md:px-1">
         {isLoading ? (

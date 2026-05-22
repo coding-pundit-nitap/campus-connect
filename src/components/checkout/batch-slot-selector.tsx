@@ -152,7 +152,7 @@ export function BatchSlotSelector({
             )}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow shadow-orange-500/10">
+              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-linear-to-tr from-amber-500 to-orange-500 text-white shadow shadow-orange-500/10">
                 <Package className="h-4.5 w-4.5" />
               </div>
               {isDirectDelivery && (
@@ -195,7 +195,7 @@ export function BatchSlotSelector({
             )}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shadow shadow-indigo-500/10">
+              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-linear-to-tr from-indigo-500 to-violet-600 text-white shadow shadow-indigo-500/10">
                 <Clock className="h-4.5 w-4.5" />
               </div>
               {!isDirectDelivery && selectedSlot && (

@@ -1,8 +1,10 @@
 import {
   Bell,
+  CalendarClock,
   HelpCircle,
   Home,
   Info,
+  LayoutDashboard,
   Mail,
   Package,
   Settings,
@@ -10,6 +12,7 @@ import {
   Store,
   Users,
 } from "lucide-react";
+import { Route } from "next";
 
 import {
   NavigationGroup,
@@ -196,6 +199,61 @@ class NavigationUIService {
             id: "settings",
             title: "Settings",
             url: "/admin/settings",
+            icon: Settings,
+          },
+        ],
+      },
+    ];
+  }
+  getOwnerNavigationGroups(): NavigationGroup[] {
+    return [
+      {
+        label: "Operations",
+        items: [
+          {
+            id: "overview",
+            title: "Overview",
+            url: "/owner-shops",
+            icon: LayoutDashboard,
+          },
+          {
+            id: "orders",
+            title: "Orders",
+            url: "/owner-shops/orders",
+            icon: ShoppingBag,
+          },
+          {
+            id: "products",
+            title: "Products",
+            url: "/owner-shops/products",
+            icon: Package,
+          },
+        ],
+      },
+      {
+        label: "Delivery",
+        items: [
+          {
+            id: "batch-cards",
+            title: "Delivery Schedule",
+            url: "/owner-shops/batch-cards",
+            icon: CalendarClock,
+          },
+        ],
+      },
+      {
+        label: "Business",
+        items: [
+          {
+            id: "profile",
+            title: "Shop Profile",
+            url: "/owner-shops/profile" as Route,
+            icon: Store,
+          },
+          {
+            id: "settings",
+            title: "Settings",
+            url: "/owner-shops/settings",
             icon: Settings,
           },
         ],

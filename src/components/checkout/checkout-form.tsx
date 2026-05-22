@@ -311,7 +311,7 @@ export function CheckoutForm({
       <Button
         onClick={handlePlaceOrder}
         disabled={isDisabled || isPlacingOrder}
-        className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-indigo-500 via-violet-600 to-indigo-600 bg-[length:200%_auto] hover:bg-right text-white shadow-lg shadow-indigo-500/20 active:scale-[0.98] disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none"
+        className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-violet-600 to-indigo-600 bg-[length:200%_auto] hover:bg-right text-white shadow-lg shadow-indigo-500/20 active:scale-[0.98] disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none"
         size="lg"
       >
         {isPlacingOrder ? "Processing Order..." : buttonText}
@@ -394,7 +394,7 @@ export function CheckoutForm({
                     {selectedAddress && (
                       <Button
                         onClick={() => handleStepConfirm("timing")}
-                        className="w-full h-11 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1"
+                        className="w-full h-11 bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1"
                       >
                         Confirm Address & Next{" "}
                         <ChevronRight className="h-4 w-4" />
@@ -493,7 +493,7 @@ export function CheckoutForm({
                       batchSlots.length === 0) && (
                       <Button
                         onClick={() => handleStepConfirm("payment")}
-                        className="w-full h-11 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1"
+                        className="w-full h-11 bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1"
                       >
                         Confirm Slot & Next <ChevronRight className="h-4 w-4" />
                       </Button>
@@ -558,7 +558,7 @@ export function CheckoutForm({
                             : "border-border/40 hover:border-border/80"
                         )}
                       >
-                        <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white shrink-0 shadow">
+                        <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-linear-to-tr from-indigo-500 to-violet-600 text-white shrink-0 shadow">
                           <Wallet className="h-4.5 w-4.5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -587,7 +587,7 @@ export function CheckoutForm({
                             : "border-border/40 hover:border-border/80"
                         )}
                       >
-                        <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shrink-0 shadow">
+                        <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-linear-to-tr from-amber-500 to-orange-500 text-white shrink-0 shadow">
                           <QrCode className="h-4.5 w-4.5" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -609,7 +609,7 @@ export function CheckoutForm({
                     {/* Expandable UPI QR details box */}
                     {paymentMethod === PaymentMethod.ONLINE && (
                       <div className="p-5 border border-border/20 rounded-2xl bg-muted/20 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-tr from-indigo-500/10 to-violet-500/10 rounded-full blur-xl pointer-events-none" />
+                        <div className="absolute top-0 right-0 h-24 w-24 bg-linear-to-tr from-indigo-500/10 to-violet-500/10 rounded-full blur-xl pointer-events-none" />
 
                         <div className="space-y-1">
                           <h4 className="font-bold text-sm text-foreground">
@@ -741,7 +741,7 @@ export function CheckoutForm({
       {/* Phone Registration Dialog */}
       <Dialog open={showPhoneDialog} onOpenChange={setShowPhoneDialog}>
         <DialogContent className="sm:max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl p-6 relative">
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-indigo-500 to-purple-500" />
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-linear-to-r from-indigo-500 to-purple-500" />
           <DialogHeader className="space-y-2">
             <DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
               <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-500 shrink-0">
@@ -795,7 +795,7 @@ export function CheckoutForm({
                 <Button
                   type="submit"
                   disabled={isUpdatingPhone}
-                  className="h-10 px-6 rounded-xl font-semibold bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow shadow-indigo-500/10"
+                  className="h-10 px-6 rounded-xl font-semibold bg-indigo-500 hover:bg-indigo-600 hover:text-white shadow shadow-indigo-500/10"
                 >
                   {isUpdatingPhone ? "Saving..." : "Save & Continue"}
                 </Button>

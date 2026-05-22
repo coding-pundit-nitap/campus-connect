@@ -1,8 +1,6 @@
 "use client";
 
-import { BatchCardsManager } from "@/components/owned-shop/batch-cards/batch-cards-manager";
 import { SharedForm } from "@/components/shared/shared-form";
-import { Separator } from "@/components/ui/separator";
 import { useUpdateShop } from "@/hooks";
 import { shopUIServices } from "@/lib/utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
@@ -54,11 +52,6 @@ export function ShopEditForm({ shop }: ShopEditFormProps) {
         error={state.error}
         isLoading={state.isLoading || state.isSubmitting}
       />
-
-      <Separator className="my-8" />
-      <div className="space-y-4">
-        <BatchCardsManager />
-      </div>
     </div>
   );
 }
