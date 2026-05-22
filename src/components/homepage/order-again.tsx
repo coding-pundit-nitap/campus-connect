@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { History, RotateCcw,Sparkles } from "lucide-react";
+import { History, RotateCcw, Sparkles } from "lucide-react";
 import React, { useMemo } from "react";
 
 import { UserProductCard } from "@/components/shared/product-card";

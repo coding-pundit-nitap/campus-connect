@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
     authInterrupts: true,
+    optimizePackageImports: ["lucide-react"],
   },
   typedRoutes: true,
   output: isProduction ? "standalone" : undefined,

@@ -53,20 +53,22 @@ export default function ProductsList({
 
   return (
     <div className="flex-1 hide-scrollbar overflow-y-auto">
-      {!selectedCategoryId && <SmartHero />}
+      {!selectedCategoryId ? <SmartHero /> : null}
       <div id="category-pills-section">
         <CategoryPills
           selectedId={selectedCategoryId}
           onChange={setSelectedCategoryId}
         />
       </div>
-      {!selectedCategoryId && <FavoriteShopsStrip />}
-      {!selectedCategoryId && <OrderAgain displayProducts={displayProducts} />}
-      {!selectedCategoryId && (
+      {!selectedCategoryId ? <FavoriteShopsStrip /> : null}
+      {!selectedCategoryId ? (
+        <OrderAgain displayProducts={displayProducts} />
+      ) : null}
+      {!selectedCategoryId ? (
         <div id="hot-deals-section">
           <HotDeals />
         </div>
-      )}
+      ) : null}
       <div id="products-feed-section">
         <ShopProductList
           displayProducts={displayProducts}

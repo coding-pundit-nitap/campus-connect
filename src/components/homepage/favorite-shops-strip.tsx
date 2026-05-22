@@ -101,21 +101,21 @@ export default function FavoriteShopsStrip() {
                     </div>
                   )}
 
-                  {!open && (
+                  {!open ? (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                       <span className="text-[10px] md:text-xs text-white font-extrabold tracking-wider uppercase bg-red-500/80 px-1 rounded-sm">
                         Closed
                       </span>
                     </div>
-                  )}
+                  ) : null}
                 </div>
 
                 <span className="text-[11px] md:text-xs font-semibold text-center text-muted-foreground group-hover:text-foreground transition-colors max-w-[72px] md:max-w-[88px] truncate block capitalize">
                   {shop.name}
                 </span>
-                {open && (
+                {open ? (
                   <span className="absolute top-0 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-background shadow-xs shadow-emerald-500 animate-pulse" />
-                )}
+                ) : null}
               </Link>
             );
           })}
@@ -171,21 +171,21 @@ export default function FavoriteShopsStrip() {
                   </div>
                 )}
 
-                {!open && (
+                {!open ? (
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                     <span className="text-[10px] md:text-xs text-white font-extrabold tracking-wider uppercase bg-red-500/80 px-1 rounded-sm">
                       Closed
                     </span>
                   </div>
-                )}
+                ) : null}
               </div>
 
               <span className="text-[11px] md:text-xs font-semibold text-center text-muted-foreground group-hover:text-foreground transition-colors max-w-[72px] md:max-w-[88px] truncate block capitalize">
                 {shop.name}
               </span>
-              {open && (
+              {open ? (
                 <span className="absolute top-0 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-background shadow-xs shadow-emerald-500 animate-pulse" />
-              )}
+              ) : null}
             </Link>
           );
         })}
