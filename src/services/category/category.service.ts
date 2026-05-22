@@ -30,6 +30,15 @@ class CategoryServices {
       return false;
     }
   }
+
+  async getActiveCategories() {
+    try {
+      return await categoryRepository.getActiveCategories();
+    } catch (error) {
+      console.error("Error fetching active categories in service:", error);
+      return [];
+    }
+  }
 }
 
 export const categoryServices = new CategoryServices();

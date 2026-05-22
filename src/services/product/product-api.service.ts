@@ -46,9 +46,13 @@ class ProductAPIService {
   async fetchProducts({
     limit = 10,
     cursor,
+    categoryId,
+    hasDiscount,
   }: {
     limit?: number;
     cursor?: string | null;
+    categoryId?: string;
+    hasDiscount?: boolean;
   }): Promise<ServerProductData> {
     const url = `products`;
 
@@ -58,6 +62,8 @@ class ProductAPIService {
         params: {
           limit: limit,
           cursor: cursor || undefined,
+          categoryId: categoryId || undefined,
+          hasDiscount: hasDiscount || undefined,
         },
       }
     );

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { UnauthenticatedError } from "@/lib/custom-error";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -8,22 +9,32 @@ import { paginatedSchema } from "@/validations/broadcast";
 
 export const dynamic = "force-dynamic";
 
+const productsQuerySchema = paginatedSchema.extend({
+  categoryId: z.string().optional(),
+  hasDiscount: z
+    .preprocess((val) => val === "true" || val === "1", z.coerce.boolean())
+    .optional(),
+});
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
     const params = Object.fromEntries(searchParams);
-    const validation = paginatedSchema.safeParse(params);
+    const validation = productsQuerySchema.safeParse(params);
 
     if (!validation.success) {
+      console.log("Validation error: ", validation.error);
       return jsonResponse(createErrorResponse("Invalid query parameters"), 400);
     }
 
-    const { limit, cursor } = validation.data;
+    const { limit, cursor, categoryId, hasDiscount } = validation.data;
 
     const response = await productService.getPaginatedProducts({
       limit,
       cursor,
+      categoryId,
+      hasDiscount,
     });
 
     const successResponse = createSuccessResponse(response);

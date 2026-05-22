@@ -13,3 +13,11 @@ export function useProductCategoriesSearch(query: string) {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+export function useActiveCategories() {
+  return useQuery({
+    queryKey: queryKeys.shops.categories(""),
+    queryFn: () => categoryAPIService.search(""),
+    staleTime: 5 * 60 * 1000,
+  });
+}

@@ -13,6 +13,8 @@ type Props = {
   initialNextCursor: string | null;
   initialError?: string;
   limit?: number;
+  categoryId?: string;
+  hasDiscount?: boolean;
 };
 
 export const useInfiniteProducts = ({
@@ -21,10 +23,14 @@ export const useInfiniteProducts = ({
   initialNextCursor,
   initialError,
   limit,
+  categoryId,
+  hasDiscount,
 }: Props) => {
+  const isFiltered = !!categoryId || !!hasDiscount;
+
   const initialDataValue = useMemo(
     () =>
-      initialProducts.length > 0
+      !isFiltered && initialProducts.length > 0
         ? {
             pages: [
               {
@@ -37,7 +43,13 @@ export const useInfiniteProducts = ({
             pageParams: [null as string | null],
           }
         : undefined,
-    [initialProducts, initialNextCursor, initialHasNextPage, initialError]
+    [
+      isFiltered,
+      initialProducts,
+      initialNextCursor,
+      initialHasNextPage,
+      initialError,
+    ]
   );
 
   const {
@@ -49,9 +61,14 @@ export const useInfiniteProducts = ({
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: queryKeys.products.list({ limit }),
+    queryKey: queryKeys.products.list({ limit, categoryId, hasDiscount }),
     queryFn: ({ pageParam }) =>
-      productAPIService.fetchProducts({ cursor: pageParam, limit }),
+      productAPIService.fetchProducts({
+        cursor: pageParam,
+        limit,
+        categoryId,
+        hasDiscount,
+      }),
     initialPageParam: null as string | null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData: initialDataValue,
@@ -60,25 +77,25 @@ export const useInfiniteProducts = ({
 
   const allProducts: SerializedProduct[] = useMemo(() => {
     if (!data?.pages) {
-      return initialProducts;
+      return isFiltered ? [] : initialProducts;
     }
 
-    const serverData = data.pages[0]?.initialProducts ?? [];
-    const clientPages = data.pages.slice(1);
-    const clientProducts = clientPages.flatMap((page) => page.initialProducts);
-
-    return [...serverData, ...clientProducts];
-  }, [data, initialProducts]);
+    return data.pages.flatMap((page) => page.initialProducts ?? []);
+  }, [data, initialProducts, isFiltered]);
 
   const { onAddToCart, onViewDetails, isAddingToCart } = useProductActions({
     mode: "user",
   });
 
   return {
-    isLoading: isLoading && initialProducts.length === 0,
-    isError: isError || !!initialError,
-    error: error || (initialError ? new Error(initialError) : null),
-    hasNextPage: hasNextPage ?? initialHasNextPage,
+    isLoading: isFiltered
+      ? isLoading
+      : isLoading && initialProducts.length === 0,
+    isError: isFiltered ? isError : isError || !!initialError,
+    error: isFiltered
+      ? error
+      : error || (initialError ? new Error(initialError) : null),
+    hasNextPage: hasNextPage ?? (isFiltered ? false : initialHasNextPage),
     isFetchingNextPage,
     fetchNextPage,
     allProducts,

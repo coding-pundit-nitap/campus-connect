@@ -1,5 +1,6 @@
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
+import { categoryServices } from "@/services/category/category.service";
 import dbSearchService from "@/services/search/db-search.service";
 import {
   createErrorResponse,
@@ -15,8 +16,24 @@ export async function GET(request: Request) {
     const query = searchParams.get("q");
 
     if (!query || query.trim().length === 0) {
-      const errorResponse = createErrorResponse("Search query is required");
-      return jsonResponse(errorResponse, 400);
+      const activeCategories = await categoryServices.getActiveCategories();
+      const searchResults: SearchResult[] = activeCategories.map(
+        (category) => ({
+          id: category.id,
+          title: category.name,
+          image_key: "",
+          subtitle: "category",
+          type: "category",
+          shop_id: category.shop_id,
+        })
+      );
+      return jsonResponse(
+        createSuccessResponse(
+          searchResults,
+          "Active categories fetched successfully"
+        ),
+        200
+      );
     }
 
     const shopId = await authUtils.getOwnedShopId();

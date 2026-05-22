@@ -133,6 +133,25 @@ class CategoryRepository {
 
     return false;
   }
+
+  async getActiveCategories(): Promise<Category[]> {
+    return prisma.category.findMany({
+      where: {
+        products: {
+          some: {
+            deleted_at: null,
+            shop: {
+              is_active: true,
+              deleted_at: null,
+            },
+          },
+        },
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  }
 }
 
 export const categoryRepository = new CategoryRepository();

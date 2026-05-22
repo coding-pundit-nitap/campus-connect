@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const result = await paginateCursor(
       ({ take, cursor }) =>
         shopRepository.getShops({
-          where: { is_active: true },
+          where: { is_active: true, deleted_at: null },
           include: { user: { select: { name: true, email: true } } },
           take,
           cursor: cursor ? { id: cursor } : undefined,

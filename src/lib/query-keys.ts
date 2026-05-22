@@ -63,8 +63,11 @@ export const queryKeys = {
     /** Base key for all product-related queries */
     all: ["products"] as const,
     /** Query key for paginated product lists with optional filters */
-    list: (filters: { limit?: number }) =>
-      ["products", "list", filters] as const,
+    list: (filters: {
+      limit?: number;
+      categoryId?: string;
+      hasDiscount?: boolean;
+    }) => ["products", "list", filters] as const,
     /** Products filtered by shop query key factory */
     byShop: (shop_id: string) => ["products", "shop", shop_id] as const,
     /** Products filtered by shop with additional filters */

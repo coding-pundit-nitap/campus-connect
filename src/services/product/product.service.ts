@@ -47,16 +47,31 @@ class ProductService {
   async getPaginatedProducts({
     limit = 20,
     cursor,
+    categoryId,
+    hasDiscount,
   }: {
     limit: number;
     cursor?: string;
+    categoryId?: string;
+    hasDiscount?: boolean;
   }): Promise<ServerProductData> {
     const queryOptions = {
       take: limit + 1,
       where: {
         shop: {
           is_active: true,
+          deleted_at: null,
         },
+        deleted_at: null,
+        ...(categoryId ? { category_id: categoryId } : {}),
+        ...(hasDiscount
+          ? {
+              discount: {
+                not: null,
+                gt: 0,
+              },
+            }
+          : {}),
       },
       orderBy: {
         orderItems: {
@@ -72,7 +87,7 @@ class ProductService {
         },
         category: true,
       },
-    } as const;
+    };
 
     const baseQuery = cursor
       ? {

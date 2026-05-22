@@ -75,6 +75,8 @@ export async function getFavoriteShopsAction(): Promise<
         image_key: string;
         location: string;
         is_active: boolean;
+        opening: string;
+        closing: string;
       };
     }>
   >
@@ -95,6 +97,8 @@ export async function getFavoriteShopsAction(): Promise<
             image_key: true,
             location: true,
             is_active: true,
+            opening: true,
+            closing: true,
             deleted_at: true,
           },
         },
@@ -112,6 +116,8 @@ export async function getFavoriteShopsAction(): Promise<
           image_key: f.shop.image_key,
           location: f.shop.location,
           is_active: f.shop.is_active,
+          opening: f.shop.opening,
+          closing: f.shop.closing,
         },
       }));
 
