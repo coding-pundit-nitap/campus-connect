@@ -1,30 +1,24 @@
 FROM node:24-alpine AS base
 WORKDIR /app
 
-RUN apk add --no-cache libc6-compat openssl curl dumb-init \
-    && apk upgrade \
-    && rm -rf /var/cache/apk/* \
-    && rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
+# Add security updates and essential packages, then clean up.
+RUN apk add --no-cache libc6-compat openssl curl dumb-init
+
+# Enable and activate pnpm.
+RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
     && npm install -g corepack@latest \
     && corepack enable \
     && corepack prepare pnpm@latest --activate
 
+# This stage installs all dependencies.
 FROM base AS deps
-ARG DATABASE_URL
-ENV DATABASE_URL=${DATABASE_URL:-postgresql://placeholder}
 COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma
-COPY prisma.config.ts ./prisma.config.ts
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --frozen-lockfile --ignore-scripts \
-    && pnpm prisma generate
+RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts
 
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml ./
-COPY --from=deps /app/src/generated ./src/generated
-COPY --from=deps /app/workers/generated ./workers/generated
-RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
-    pnpm install --prod --frozen-lockfile --ignore-scripts
+# Install ONLY production dependencies
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # Development target
 FROM deps AS dev
@@ -39,8 +33,11 @@ ENV NEXT_PUBLIC_MINIO_ENDPOINT=${NEXT_PUBLIC_MINIO_ENDPOINT}
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/src/generated ./src/generated
 COPY . .
+ARG DATABASE_URL="postgresql://user:pass@db:5432/dbname?schema=public&connection_limit=5&pool_timeout=30"
+ENV DATABASE_URL=$DATABASE_URL
+# Generate Prisma client and build the application.
+RUN pnpm exec prisma generate
 RUN pnpm build
 
 FROM base AS worker-builder
@@ -48,8 +45,11 @@ ENV NODE_ENV=production
 
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/workers/generated ./workers/generated
 COPY . .
+ARG DATABASE_URL="postgresql://user:pass@db:5432/dbname?schema=public&connection_limit=5&pool_timeout=30"
+ENV DATABASE_URL=$DATABASE_URL
+# Generate Prisma client and build the application.
+RUN pnpm exec prisma generate
 RUN pnpm build:worker
 
 FROM base AS runner
@@ -85,7 +85,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=prod-deps --chown=worker:nodejs /app/node_modules ./node_modules
 COPY --from=worker-builder --chown=worker:nodejs /app/dist ./dist
-COPY --from=deps --chown=worker:nodejs /app/workers/generated ./workers/generated
+COPY --from=worker-builder --chown=worker:nodejs /app/workers/generated ./workers/generated
 
 USER worker
 ENTRYPOINT ["dumb-init", "--"]
@@ -97,11 +97,11 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/migrator --shell /bin/false migrator
 
-COPY --from=prod-deps --chown=migrator:nodejs /app/node_modules ./node_modules
-COPY --from=deps --chown=migrator:nodejs /app/src/generated ./src/generated
+COPY --from=deps --chown=migrator:nodejs /app/node_modules ./node_modules
+COPY --from=app-builder --chown=migrator:nodejs /app/src/generated ./src/generated
 COPY --chown=migrator:nodejs package.json pnpm-lock.yaml ./
 COPY --chown=migrator:nodejs prisma ./prisma
 COPY --chown=migrator:nodejs prisma.config.ts ./prisma.config.ts
 
 USER migrator
-CMD ["pnpm", "prisma", "migrate", "deploy"]
+CMD ["npx", "prisma", "migrate", "deploy"]

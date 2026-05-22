@@ -313,7 +313,10 @@ export async function GET(req: NextRequest) {
   return new Response(stream, {
     headers: {
       "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
+      "Cache-Control":
+        "private, no-cache, no-store, must-revalidate, max-age=0, no-transform",
+      Pragma: "no-cache",
+      Expires: "0",
       Connection: "keep-alive",
       "X-Accel-Buffering": "no",
     },

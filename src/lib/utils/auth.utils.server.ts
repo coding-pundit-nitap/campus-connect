@@ -1,8 +1,8 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { auth, User } from "@/auth";
 import { Role } from "@/generated/client";
+import { UnauthenticatedError, UnauthorizedError } from "@/lib/custom-error";
 
 export interface IAuthUtils {
   getUserData: () => Promise<User>;
@@ -33,11 +33,11 @@ class AuthUtils implements IAuthUtils {
   }
 
   unAuthenticated(): never {
-    return redirect("/");
+    throw new UnauthenticatedError("Please log in first.");
   }
 
   unAuthorized(): never {
-    return redirect("/");
+    throw new UnauthorizedError("User not authorized");
   }
 
   async isSeller(): Promise<boolean> {

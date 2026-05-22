@@ -71,21 +71,27 @@ services:
     <<: [*dev-build, *dev-env]
     container_name: campus_connect_migrator_dev
     restart: "no"
-    command: pnpm prisma migrate deploy
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - NODE_ENV=development
+    command: >
+      /bin/sh -c "
+        pnpm install --frozen-lockfile --ignore-scripts --config.confirmModulesPurge=false &&
+        pnpm exec prisma migrate dev &&
+        pnpm exec prisma generate
+      "
     networks:
       - campus_connect_net
     depends_on:
       db:
         condition: service_healthy
-    mem_limit: 512m
-    cpus: "0.50"
+    mem_limit: 4g
+    cpus: "2.0"
     volumes:
-      - ./prisma:/app/prisma
-      - ./prisma.config.ts:/app/prisma.config.ts
+      - .:/app
       - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/root/.local/share/pnpm/store
+    environment:
+      CI: "true"
+      NPM_CONFIG_STORE_DIR: /root/.local/share/pnpm/store
+      NODE_OPTIONS: "--max-old-space-size=3072"
     profiles:
       - dev
 
@@ -115,12 +121,14 @@ services:
     expose:
       - "3000"
     environment:
-      - NODE_ENV=development
-      - NEXT_TELEMETRY_DISABLED=1
-      - CHOKIDAR_USEPOLLING=false
-      - WATCHPACK_POLLING=false
-      - TZ=UTC
-      - REDIS_URL=redis://redis:6379
+      NODE_ENV: "development"
+      NEXT_TELEMETRY_DISABLED: "1"
+      CHOKIDAR_USEPOLLING: "false"
+      WATCHPACK_POLLING: "false"
+      TZ: "UTC"
+      REDIS_URL: "redis://redis:6379"
+      CI: "true"
+      NPM_CONFIG_STORE_DIR: "/root/.local/share/pnpm/store"
     networks:
       - campus_connect_net
     healthcheck:
@@ -143,8 +151,9 @@ services:
       - node_modules_volume:/app/node_modules
       - pnpm_store_volume:/root/.local/share/pnpm/store
     environment:
-      - REDIS_HOST=redis
-      - DATABASE_URL=${DATABASE_URL}
+      REDIS_HOST: "redis"
+      NPM_CONFIG_STORE_DIR: "/root/.local/share/pnpm/store"
+      DATABASE_URL: "${DATABASE_URL}"
     depends_on:
       redis:
         condition: service_healthy
@@ -166,21 +175,17 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migrator-dev:
-        condition: service_completed_successfully
     volumes:
-      - ./prisma:/app/prisma
-      - ./prisma.config.ts:/app/prisma.config.ts
-      - ./tsconfig.json:/app/tsconfig.json
-      - ./tsconfig.worker.json:/app/tsconfig.worker.json
+      - .:/app
       - node_modules_volume:/app/node_modules
+      - pnpm_store_volume:/root/.local/share/pnpm/store
     expose:
       - "5555"
     environment:
-      - NODE_ENV=development
-      - TZ=UTC
-    mem_limit: 256m
-    cpus: "0.30"
+      NPM_CONFIG_STORE_DIR: "/root/.local/share/pnpm/store"
+      NODE_OPTIONS: "--max-old-space-size=1536"
+    mem_limit: 2g
+    cpus: "1.0"
     networks:
       - campus_connect_net
     healthcheck:
@@ -351,7 +356,7 @@ services:
     logging: *default-logging
 
   db:
-    image: postgres:18.1-alpine
+    image: postgres:18.2-alpine
     container_name: campus_connect_db
     restart: always
     env_file:
@@ -789,7 +794,6 @@ services:
 
     profiles:
       - prod
-      - dev
     mem_limit: 256m
     cpus: "0.25"
     logging: *default-logging

@@ -1,5 +1,9 @@
 "use server";
-import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  InternalServerError,
+  UnauthenticatedError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { cartRepository } from "@/repositories";
@@ -23,6 +27,12 @@ export const upsertCartItem = async (formData: UpsertItemData) => {
     return serializeFullCart(updatedCart);
   } catch (error) {
     console.error("Error updating cart item:", error);
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to update cart item");
   }
 };

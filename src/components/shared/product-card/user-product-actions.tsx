@@ -57,7 +57,9 @@ export function UserProductActions({
         ) : (
           <ShoppingCart className="mr-2 h-4 w-4" />
         )}
-        {!isMobile && (isOutOfStock ? "Out of Stock" : "Add to Cart")}
+        <p className="text-sm hidden md:block font-medium">
+          {!isMobile && (isOutOfStock ? "Out of Stock" : "Add to Cart")}
+        </p>
       </Button>
       {isAuthenticated && (
         <Button
@@ -73,11 +75,13 @@ export function UserProductActions({
           ) : (
             <Bell className="mr-2 h-4 w-4" />
           )}
-          {disableWatchButton
-            ? "Updating..."
-            : isWatchingProduct
-              ? "Remove Watchlist"
-              : "Add to Watchlist"}
+          <p className="text-sm hidden md:block font-medium">
+            {disableWatchButton
+              ? "Updating..."
+              : isWatchingProduct
+                ? "Remove Watchlist"
+                : "Add to Watchlist"}
+          </p>
         </Button>
       )}
       {onViewDetails && !isMobile && (

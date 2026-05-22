@@ -222,9 +222,8 @@ export function useAddToCart() {
           context.previousShopCart
         );
       }
-
       toast.dismiss();
-      toast.error("Failed to add to cart. Please try again.");
+      toast.error(error.message);
     },
   });
 }

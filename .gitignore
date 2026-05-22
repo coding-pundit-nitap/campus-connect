@@ -56,3 +56,4 @@ src/app/api/debug/*
 /monitoring/alertmanager/data/
 /monitoring/alertmanager/alertmanager.yml
 backup.env
+graphify-out/
