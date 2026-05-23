@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   req: Request,
-  { params }: { params: { shop_id: string } }
+  { params }: { params: Promise<{ shop_id: string }> }
 ) {
   try {
-    const { shop_id } = params;
+    const { shop_id } = await params;
 
     const deliveryBuildings = await prisma.shopDeliveryBuilding.findMany({
       where: {
