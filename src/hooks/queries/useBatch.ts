@@ -11,8 +11,58 @@ import {
   unlockBatchAction,
   verifyOrderOtpAction,
 } from "@/actions";
+import {
+  closeBatchAction,
+  updateBatchCutoffTimeAction,
+} from "@/actions/shop/batch-actions";
+import {
+  acceptOrderAction,
+  rejectOrderAction,
+  startDirectDeliveryAction,
+  verifyDeliveryOtpAction,
+} from "@/actions/shop/order-management-actions";
 import { queryKeys } from "@/lib/query-keys";
 import { vendorApiService } from "@/services";
+
+export function useActiveBatchData() {
+  return useQuery({
+    queryKey: queryKeys.batch.active(),
+    queryFn: vendorApiService.getActiveBatchData,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000,
+  });
+}
+
+export function useDirectDeliveriesData() {
+  return useQuery({
+    queryKey: queryKeys.batch.directDeliveries(),
+    queryFn: vendorApiService.getDirectDeliveriesData,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000,
+  });
+}
+
+export function useDeliveryRunData() {
+  return useQuery({
+    queryKey: queryKeys.batch.deliveryRun(),
+    queryFn: vendorApiService.getDeliveryRunData,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000,
+  });
+}
+
+export function useOrderConsoleData() {
+  return useQuery({
+    queryKey: queryKeys.batch.orderConsole(),
+    queryFn: vendorApiService.getOrderConsoleData,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
+    staleTime: 5_000,
+  });
+}
 
 export function useVendorDashboard() {
   return useQuery({
@@ -141,5 +191,109 @@ export function useBatchSlots(shopId: string) {
     queryKey: queryKeys.batch.all,
     queryFn: () => vendorApiService.getBatchSlots(shopId),
     enabled: !!shopId,
+  });
+}
+
+export function useAcceptOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: acceptOrderAction,
+    onSuccess: () => {
+      toast.success("Order accepted successfully.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to accept order");
+    },
+  });
+}
+
+export function useStartDirectDelivery() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: startDirectDeliveryAction,
+    onSuccess: () => {
+      toast.success("Direct delivery started.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to start direct delivery");
+    },
+  });
+}
+
+export function useRejectOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason?: string }) =>
+      rejectOrderAction(orderId, reason),
+    onSuccess: () => {
+      toast.success("Order rejected successfully.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to reject order");
+    },
+  });
+}
+
+export function useUpdateBatchCutoffTime() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      batchId,
+      newCutoffTime,
+    }: {
+      batchId: string;
+      newCutoffTime: Date;
+    }) => updateBatchCutoffTimeAction(batchId, newCutoffTime),
+    onSuccess: () => {
+      toast.success("Batch cutoff time updated.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update batch time");
+    },
+  });
+}
+
+export function useCloseBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: closeBatchAction,
+    onSuccess: () => {
+      toast.success("Batch closed and locked for delivery.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to close batch");
+    },
+  });
+}
+
+export function useVerifyDeliveryOtp() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, otp }: { orderId: string; otp: string }) =>
+      verifyDeliveryOtpAction(orderId, otp),
+    onSuccess: () => {
+      toast.success("Order verified and delivered successfully!");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to verify OTP");
+    },
   });
 }

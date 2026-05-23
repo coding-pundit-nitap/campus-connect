@@ -226,19 +226,20 @@ model Shop {
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
 
-  min_order_value       Decimal @default(50.00) @db.Decimal(10, 2)
-  default_delivery_fee  Decimal @default(0) @db.Decimal(10, 2)
-  direct_delivery_fee   Decimal @default(0) @db.Decimal(10, 2)
+  min_order_value      Decimal @default(50.00) @db.Decimal(10, 2)
+  default_delivery_fee Decimal @default(0) @db.Decimal(10, 2)
+  direct_delivery_fee  Decimal @default(0) @db.Decimal(10, 2)
 
-  products     Product[]
-  orders       Order[]
-  payouts      Payout[]
-  carts        Cart[]
-  categories   Category[]
-  batches      Batch[]
-  batch_slots  BatchSlot[]
-  user         User?          @relation("owned_shop")
-  favorited_by FavoriteShop[]
+  products           Product[]
+  orders             Order[]
+  payouts            Payout[]
+  carts              Cart[]
+  categories         Category[]
+  batches            Batch[]
+  batch_slots        BatchSlot[]
+  user               User?                  @relation("owned_shop")
+  favorited_by       FavoriteShop[]
+  delivery_buildings ShopDeliveryBuilding[]
 
   @@index([verification_status])
   @@index([deleted_at])
@@ -290,15 +291,17 @@ model Product {
 // ----------------------------------------
 
 model UserAddress {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   label        String
   hostel_block String?
   building     String
+  building_id  String?
+  building_ref Building? @relation(fields: [building_id], references: [id], onDelete: SetNull)
   room_number  String
   notes        String?
-  is_default   Boolean  @default(false)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  is_default   Boolean   @default(false)
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
 
   // Relations
   user_id String
@@ -307,6 +310,39 @@ model UserAddress {
 
   @@index([user_id])
   @@index([hostel_block])
+  @@index([building_id])
+}
+
+model Building {
+  id           String   @id @default(cuid())
+  name         String
+  hostel_block String?
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  addresses UserAddress[]
+  shops     ShopDeliveryBuilding[]
+
+  @@unique([name, hostel_block])
+  @@index([is_active])
+}
+
+model ShopDeliveryBuilding {
+  id          String   @id @default(cuid())
+  shop_id     String
+  building_id String
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  shop     Shop     @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  building Building @relation(fields: [building_id], references: [id], onDelete: Cascade)
+
+  @@unique([shop_id, building_id])
+  @@index([shop_id])
+  @@index([building_id])
+  @@index([is_active])
 }
 
 model Cart {

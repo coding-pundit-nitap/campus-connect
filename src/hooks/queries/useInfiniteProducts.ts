@@ -69,7 +69,7 @@ export const useInfiniteProducts = ({
         categoryId,
         hasDiscount,
       }),
-    initialPageParam: null as string | null,
+    initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? undefined,
     initialData: initialDataValue,
     refetchOnMount: true,

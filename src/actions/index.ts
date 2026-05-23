@@ -1,4 +1,5 @@
 export * from "@/actions/authentication/login-actions";
+export * from "@/actions/building/building-actions";
 export * from "@/actions/cart/cart-actions";
 export * from "@/actions/notifications/notification-actions";
 export * from "@/actions/orders/order-actions";

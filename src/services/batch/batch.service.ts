@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 
 import { BatchSlot, BatchStatus } from "@/generated/client";
 import { NotFoundError } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import {
   addZonedDays,
   APP_TIME_ZONE,
@@ -243,6 +244,39 @@ class BatchService {
       cutoff_time: cutoffTime,
       batch_id: openForCutoff?.id ?? null,
     };
+  }
+
+  async ensureNextOpenBatch(shopId: string): Promise<void> {
+    const slots = await this.getActiveSlots(shopId);
+    if (slots.length === 0) {
+      return;
+    }
+
+    const cutoffTime = this.computeNextCutoffFromSlots(new Date(), slots);
+    const existing = await batchRepository.findOpenBatchByCutoff(
+      shopId,
+      cutoffTime,
+      { select: { id: true } }
+    );
+
+    if (existing) {
+      return;
+    }
+
+    const cutoffZoned = getZonedParts(cutoffTime, APP_TIME_ZONE);
+    const minutesFromMidnight = cutoffZoned.hour * 60 + cutoffZoned.minute;
+    const slot = slots.find(
+      (item) => item.cutoff_time_minutes === minutesFromMidnight
+    );
+
+    await prisma.batch.create({
+      data: {
+        shop_id: shopId,
+        cutoff_time: cutoffTime,
+        status: "OPEN",
+        slot_id: slot?.id,
+      },
+    });
   }
 
   async getVendorDashboard(shopId: string): Promise<{

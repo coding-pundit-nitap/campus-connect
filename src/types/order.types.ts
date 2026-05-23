@@ -5,6 +5,7 @@ import {
   OrderItem,
   Product,
   Shop,
+  UserAddress,
 } from "@/generated/client";
 
 import { PaymentMethod } from "./prisma.types";
@@ -31,6 +32,7 @@ export type OrderWithDetails = Order & {
     email: string;
     phone: string | null;
   } | null;
+  delivery_address: UserAddress | null;
 };
 
 export type CreateOrderPayload = {
@@ -77,6 +79,14 @@ export type SerializedOrderItemWithProduct = SerializedOrderItem & {
   product: SerializedProduct;
 };
 
+export type SerializedDeliveryAddress = Omit<
+  UserAddress,
+  "created_at" | "updated_at"
+> & {
+  created_at?: string;
+  updated_at?: string;
+};
+
 export type SerializedOrderWithDetails = SerializedOrder & {
   items: SerializedOrderItemWithProduct[];
   batch: {
@@ -88,4 +98,5 @@ export type SerializedOrderWithDetails = SerializedOrder & {
     name: string;
     phone: string;
   };
+  delivery_address?: SerializedDeliveryAddress | null;
 };

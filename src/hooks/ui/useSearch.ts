@@ -49,7 +49,9 @@ export const useSearch = ({
   const [inputValue, setInputValue] = useState(initialValue);
 
   useEffect(() => {
-    setInputValue(initialValue);
+    setTimeout(() => {
+      setInputValue(initialValue);
+    }, 0);
   }, [initialValue]);
 
   const hasSuggestions = suggestions.length > 0;

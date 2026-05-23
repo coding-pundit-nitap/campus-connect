@@ -150,11 +150,20 @@ export const queryKeys = {
     database: () => ["health", "database"] as const,
   },
 
+  buildings: {
+    all: ["buildings"] as const,
+    shopDelivery: () => ["buildings", "shop-delivery"] as const,
+  },
+
   batch: {
     all: ["batch"] as const,
     vendorDashboard: () => ["batch", "vendor", "dashboard"] as const,
     nextSlot: (shopId: string) => ["batch", "next-slot", shopId] as const,
     summary: (batchId: string) => ["batch", batchId, "summary"] as const,
+    active: () => ["batch", "active"] as const,
+    directDeliveries: () => ["batch", "direct-deliveries"] as const,
+    deliveryRun: () => ["batch", "delivery-run"] as const,
+    orderConsole: () => ["batch", "order-console"] as const,
   },
 } as const;
 

@@ -5,6 +5,7 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { userAddressRepository } from "@/repositories";
 import { createSuccessResponse } from "@/types/response.types";
@@ -26,12 +27,59 @@ export async function getUserAddressesAction() {
 
 export type CreateAddressFormData = {
   label: string;
+  building_id?: string;
   hostel_block?: string;
-  building: string;
+  building?: string;
   room_number: string;
   notes?: string;
   is_default: boolean;
 };
+
+async function normalizeAddressData(data: CreateAddressFormData) {
+  if (data.building_id) {
+    const building = await prisma.building.findFirst({
+      where: { id: data.building_id, is_active: true },
+    });
+    if (!building) {
+      throw new ForbiddenError("Selected building is not available.");
+    }
+
+    return {
+      ...data,
+      building_ref: { connect: { id: building.id } },
+      building: building.name,
+      hostel_block: building.hostel_block ?? undefined,
+    };
+  }
+
+  if (!data.building?.trim()) {
+    throw new ForbiddenError("Building is required.");
+  }
+
+  const name = data.building.trim();
+  const hostelBlock = data.hostel_block?.trim() || null;
+  const existing = await prisma.building.findFirst({
+    where: {
+      name: { equals: name, mode: "insensitive" },
+      hostel_block: hostelBlock,
+    },
+  });
+  const building =
+    existing ??
+    (await prisma.building.create({
+      data: {
+        name,
+        hostel_block: hostelBlock,
+      },
+    }));
+
+  return {
+    ...data,
+    building_ref: { connect: { id: building.id } },
+    building: name,
+    hostel_block: hostelBlock ?? undefined,
+  };
+}
 
 export async function createAddressAction(data: CreateAddressFormData) {
   try {
@@ -40,8 +88,10 @@ export async function createAddressAction(data: CreateAddressFormData) {
       throw new UnauthorizedError("Unauthorized: Please log in.");
     }
 
+    const { building_id, ...normalized } = await normalizeAddressData(data);
     const addressData = {
-      ...data,
+      ...normalized,
+      building_ref: { connect: { id: building_id } },
       user: { connect: { id: user_id } },
     };
 
@@ -69,10 +119,11 @@ export async function updateAddressAction({
       throw new UnauthorizedError("User not authorized");
     }
 
+    const normalized = await normalizeAddressData(data);
     const address = await userAddressRepository.updateWithDefault(
       id,
       user_id,
-      data
+      normalized
     );
 
     if (!address) {

@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
+import { useToggleAcceptingOrders } from "@/hooks";
 import { cn } from "@/lib/cn";
 import { sanitizeHTML } from "@/lib/sanitize";
 import { getVerificationStatusInfo } from "@/lib/shop.utils";
@@ -42,6 +44,12 @@ function isShopOpen(opening: string, closing: string): boolean {
 }
 
 export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
+  const toggleMutation = useToggleAcceptingOrders();
+
+  const handleToggle = (checked: boolean) => {
+    toggleMutation.mutate(checked);
+  };
+
   const statusInfo = getVerificationStatusInfo(
     shop.verification_status as SellerVerificationStatus
   );
@@ -143,18 +151,26 @@ export function ShopHeaderCard({ shop, stats }: ShopHeaderCardProps) {
                   >
                     {isOpen ? "Open" : "Closed"}
                   </Badge>
-                  <Badge
-                    variant={shop.accepting_orders ? "secondary" : "outline"}
-                    className={cn(
-                      "ml-1 px-2 py-0 font-medium",
-                      !shop.accepting_orders &&
-                        "border-amber-300 text-amber-700 dark:border-amber-700 dark:text-amber-300"
-                    )}
-                  >
-                    {shop.accepting_orders
-                      ? "Accepting Orders"
-                      : "Orders Paused"}
-                  </Badge>
+                  <div className="flex items-center gap-2 bg-background border rounded-lg px-2.5 py-0.5 shadow-sm ml-1 select-none">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold tracking-wide transition-colors",
+                        shop.accepting_orders
+                          ? "text-emerald-700 dark:text-emerald-400"
+                          : "text-amber-700 dark:text-amber-400"
+                      )}
+                    >
+                      {shop.accepting_orders
+                        ? "Accepting Orders"
+                        : "Orders Paused"}
+                    </span>
+                    <Switch
+                      checked={shop.accepting_orders}
+                      onCheckedChange={handleToggle}
+                      disabled={toggleMutation.isPending || !shop.is_active}
+                      className="h-4 w-8 data-[state=checked]:bg-emerald-500"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4 shrink-0" />

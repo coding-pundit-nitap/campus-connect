@@ -36,8 +36,6 @@ export function ProductsContainer({
     hasNextPage,
     isError,
     isFetchingNextPage,
-    isInitialLoading,
-    hasError,
     onAddToCart,
     onViewDetails,
     isAddingToCart,

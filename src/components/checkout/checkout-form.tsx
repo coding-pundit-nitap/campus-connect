@@ -42,7 +42,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useCreateOrder, useUpdateUser } from "@/hooks";
+import {
+  useCreateOrder,
+  usePublicShopDeliveryBuildings,
+  useUpdateUser,
+} from "@/hooks";
 import { authClient, useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { ImageUtils } from "@/lib/utils";
@@ -99,7 +103,6 @@ export function CheckoutForm({
   const router = useRouter();
   const session = useSession();
 
-  // Accordion Workflow State
   const [activeStep, setActiveStep] = useState<CheckoutStep>("address");
   const [completedSteps, setCompletedSteps] = useState<
     Record<CheckoutStep, boolean>
@@ -109,7 +112,6 @@ export function CheckoutForm({
     payment: false,
   });
 
-  // Form selections state
   const [selectedAddress, setSelectedAddress] =
     useState<UserAddressType | null>(null);
   const [requestedDeliveryTime, setRequestedDeliveryTime] =
@@ -124,6 +126,22 @@ export function CheckoutForm({
   const { mutate: updateUser, isPending: isUpdatingPhone } = useUpdateUser();
   const { mutate: createOrder, isPending: isPlacingOrder } = useCreateOrder();
 
+  const { data: allowedBuildings = [] } =
+    usePublicShopDeliveryBuildings(shop_id);
+
+  const isAddressAllowed = React.useMemo(() => {
+    if (!selectedAddress) return true;
+    if (allowedBuildings.length === 0) return true;
+
+    if (selectedAddress.building_id) {
+      return allowedBuildings.some((b) => b.id === selectedAddress.building_id);
+    }
+
+    return allowedBuildings.some(
+      (b) => b.name.toLowerCase() === selectedAddress.building.toLowerCase()
+    );
+  }, [selectedAddress, allowedBuildings]);
+
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
     defaultValues: {
@@ -131,13 +149,11 @@ export function CheckoutForm({
     },
   });
 
-  // Calculate dynamic fees
   const activeDeliveryFee = isDirectDelivery
     ? direct_delivery_fee
     : deliveryFee;
   const total = itemTotal + activeDeliveryFee + platformFee;
 
-  // Real-time UPI Transaction ID Check
   const upiRegex = /^[A-Za-z0-9]{10,}$/;
   const isUpiValid = upiRegex.test(upiTransactionId.trim());
 
@@ -204,6 +220,11 @@ export function CheckoutForm({
       return;
     }
 
+    if (!isAddressAllowed) {
+      toast.error("This shop does not deliver to the selected building.");
+      return;
+    }
+
     if (!validateDeliveryTime()) {
       return;
     }
@@ -262,6 +283,10 @@ export function CheckoutForm({
         toast.error("Please select a delivery address");
         return;
       }
+      if (!isAddressAllowed) {
+        toast.error("This shop does not deliver to the selected building.");
+        return;
+      }
       setCompletedSteps((prev) => ({ ...prev, address: true }));
     } else if (activeStep === "timing") {
       if (!validateDeliveryTime()) return;
@@ -282,7 +307,6 @@ export function CheckoutForm({
     }
   };
 
-  // Master Action Button rendered inside OrderSummary
   const renderMasterActionButton = () => {
     const isAddressUnselected = !selectedAddress;
     const isTimingUnselected =
@@ -295,6 +319,9 @@ export function CheckoutForm({
 
     if (isAddressUnselected) {
       buttonText = "Select Delivery Address";
+      isDisabled = true;
+    } else if (!isAddressAllowed) {
+      buttonText = "Undeliverable Address";
       isDisabled = true;
     } else if (isTimingUnselected) {
       buttonText = "Select Delivery Slot";
@@ -322,9 +349,7 @@ export function CheckoutForm({
   return (
     <>
       <div className="grid lg:grid-cols-3 gap-8 items-start">
-        {/* Accordion Panels Stack */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Step 1: Delivery Address */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
@@ -360,9 +385,17 @@ export function CheckoutForm({
                     </p>
                   )}
                   {completedSteps.address && selectedAddress && (
-                    <p className="text-xs text-muted-foreground font-semibold truncate max-w-[280px] sm:max-w-md">
-                      {selectedAddress.label}: {selectedAddress.building}, Room{" "}
-                      {selectedAddress.room_number}
+                    <p
+                      className={cn(
+                        "text-xs font-semibold truncate max-w-[280px] sm:max-w-md",
+                        isAddressAllowed
+                          ? "text-muted-foreground"
+                          : "text-rose-500"
+                      )}
+                    >
+                      {isAddressAllowed
+                        ? `${selectedAddress.label}: ${selectedAddress.building}, Room ${selectedAddress.room_number}`
+                        : `⚠️ Doesn't deliver to ${selectedAddress.building}`}
                     </p>
                   )}
                 </div>
@@ -390,15 +423,32 @@ export function CheckoutForm({
                     <UserAddress
                       selectedAddressId={selectedAddress?.id || null}
                       onAddressSelect={handleAddressSelect}
+                      shopId={shop_id}
                     />
                     {selectedAddress && (
-                      <Button
-                        onClick={() => handleStepConfirm("timing")}
-                        className="w-full h-11 bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1"
-                      >
-                        Confirm Address & Next{" "}
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                      <div className="space-y-3 w-full">
+                        {!isAddressAllowed && (
+                          <div className="p-3.5 bg-rose-500/5 border border-rose-500/15 text-rose-500 rounded-xl text-xs font-semibold leading-relaxed flex items-start gap-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <span className="text-sm">⚠️</span>
+                            <div>
+                              This shop does not deliver to{" "}
+                              {selectedAddress.building}.
+                              <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                                Please select or add a different address inside
+                                the shop's delivery zone.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        <Button
+                          onClick={() => handleStepConfirm("timing")}
+                          disabled={!isAddressAllowed}
+                          className="w-full h-11 bg-linear-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-bold rounded-xl shadow shadow-indigo-500/10 mt-2 flex items-center justify-center gap-1 disabled:opacity-50 disabled:pointer-events-none"
+                        >
+                          Confirm Address & Next{" "}
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </motion.div>
@@ -406,7 +456,6 @@ export function CheckoutForm({
             </AnimatePresence>
           </Card>
 
-          {/* Step 2: Delivery Timing */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
@@ -504,7 +553,6 @@ export function CheckoutForm({
             </AnimatePresence>
           </Card>
 
-          {/* Step 3: Payment Method */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-indigo-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
@@ -546,9 +594,7 @@ export function CheckoutForm({
                   transition={{ duration: 0.3, ease: "easeInOut" }}
                 >
                   <div className="p-5 border-t border-border/10 space-y-6">
-                    {/* COD vs Online Radio Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {/* COD Selector */}
                       <div
                         onClick={() => setPaymentMethod(PaymentMethod.CASH)}
                         className={cn(
@@ -577,7 +623,6 @@ export function CheckoutForm({
                         )}
                       </div>
 
-                      {/* Online UPI Selector */}
                       <div
                         onClick={() => setPaymentMethod(PaymentMethod.ONLINE)}
                         className={cn(
@@ -606,7 +651,6 @@ export function CheckoutForm({
                       </div>
                     </div>
 
-                    {/* Expandable UPI QR details box */}
                     {paymentMethod === PaymentMethod.ONLINE && (
                       <div className="p-5 border border-border/20 rounded-2xl bg-muted/20 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300 relative overflow-hidden">
                         <div className="absolute top-0 right-0 h-24 w-24 bg-linear-to-tr from-indigo-500/10 to-violet-500/10 rounded-full blur-xl pointer-events-none" />
@@ -621,7 +665,6 @@ export function CheckoutForm({
                           </p>
                         </div>
 
-                        {/* QR Image Holder */}
                         <div className="flex justify-center">
                           <div className="relative p-4 bg-white dark:bg-white rounded-2xl shadow-xl border border-white/50 max-w-[210px] group transition-transform duration-300 hover:scale-[1.02]">
                             <Image
@@ -667,7 +710,6 @@ export function CheckoutForm({
                           </div>
                         </div>
 
-                        {/* Transaction ID input with live validation mark */}
                         <div className="space-y-2 pt-1">
                           <Label
                             htmlFor="tx-id"
@@ -701,7 +743,6 @@ export function CheckoutForm({
                       </div>
                     )}
 
-                    {/* Security Badge Info */}
                     <div className="pt-2 flex items-center justify-center gap-2 text-xs font-semibold text-muted-foreground/80 bg-muted/5 p-3 rounded-xl border border-border/10">
                       <ShieldCheck className="h-4.5 w-4.5 text-indigo-500" />
                       <span>
@@ -709,7 +750,6 @@ export function CheckoutForm({
                       </span>
                     </div>
 
-                    {/* Step-embedded secondary order submit button */}
                     <div className="pt-2">{renderMasterActionButton()}</div>
                   </div>
                 </motion.div>
@@ -718,7 +758,6 @@ export function CheckoutForm({
           </Card>
         </div>
 
-        {/* Floating Order Summary Column (Right) */}
         <div className="lg:col-span-1">
           <OrderSummary
             items={items}
@@ -737,10 +776,8 @@ export function CheckoutForm({
           )}
         </div>
       </div>
-
-      {/* Phone Registration Dialog */}
       <Dialog open={showPhoneDialog} onOpenChange={setShowPhoneDialog}>
-        <DialogContent className="sm:max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl p-6 relative">
+        <DialogContent className="sm:max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl p-6">
           <div className="absolute inset-x-0 top-0 h-[2px] bg-linear-to-r from-indigo-500 to-purple-500" />
           <DialogHeader className="space-y-2">
             <DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">

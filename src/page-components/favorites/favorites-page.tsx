@@ -153,7 +153,6 @@ export default function FavoritesPage() {
                   href={`/shops/${shop.id}`}
                   className="group relative flex flex-col rounded-2xl border border-muted/80 bg-card hover:bg-accent/15 overflow-hidden shadow-xs hover:shadow-md hover:border-primary/20 transition-all duration-300 transform hover:scale-[1.01]"
                 >
-                  {/* Shop Banner Image Cover */}
                   <div className="relative h-40 w-full overflow-hidden bg-muted">
                     {hasImage ? (
                       <Image

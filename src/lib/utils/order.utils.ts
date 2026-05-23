@@ -133,6 +133,17 @@ export const serializeOrderWithDetails = (
       name: order.user?.name || "Unknown",
       phone: order.user?.phone || "Unknown",
     },
+    delivery_address: order.delivery_address
+      ? {
+          ...order.delivery_address,
+          created_at: transformDateToLocaleString(
+            order.delivery_address.created_at
+          ),
+          updated_at: transformDateToLocaleString(
+            order.delivery_address.updated_at
+          ),
+        }
+      : null,
   };
 };
 

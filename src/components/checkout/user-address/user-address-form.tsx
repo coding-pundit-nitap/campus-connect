@@ -1,6 +1,8 @@
 "use client";
 
-import React from "react";
+import { debounce } from "lodash";
+import { MapPin, Search } from "lucide-react";
+import React, { useEffect, useMemo, useRef,useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  useBuildings,
+  usePublicShopDeliveryBuildings,
+} from "@/hooks/queries/useBuildings";
+import { cn } from "@/lib/cn";
 import { AddressFormData } from "@/validations/user-address-schema";
 
 interface UserAddressFormProps {
@@ -23,6 +30,7 @@ interface UserAddressFormProps {
   onSubmit: (data: AddressFormData) => void;
   onCancel?: () => void;
   isSubmitting: boolean;
+  shopId?: string;
 }
 
 export function UserAddressForm({
@@ -30,7 +38,107 @@ export function UserAddressForm({
   onSubmit,
   onCancel,
   isSubmitting,
+  shopId,
 }: UserAddressFormProps) {
+  const { data: allBuildings = [] } = useBuildings();
+
+  const { data: allowedBuildings = [] } = usePublicShopDeliveryBuildings(
+    shopId || ""
+  );
+
+  const [inputValue, setInputValue] = useState(
+    form.getValues("building")
+      ? form.getValues("building") +
+          (form.getValues("hostel_block")
+            ? ` (${form.getValues("hostel_block")})`
+            : "")
+      : ""
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Debounced search query update
+  const debouncedSetQuery = useMemo(
+    () =>
+      debounce((val: string) => {
+        setSearchQuery(val);
+      }, 300),
+    []
+  );
+
+  useEffect(() => {
+    return () => {
+      debouncedSetQuery.cancel();
+    };
+  }, [debouncedSetQuery]);
+
+  const searchableBuildings =
+    allowedBuildings.length > 0 ? allowedBuildings : allBuildings;
+
+  const filteredBuildings = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return searchableBuildings.slice(0, 5);
+    }
+    const query = searchQuery.toLowerCase();
+    return searchableBuildings.filter(
+      (b) =>
+        b.name.toLowerCase().includes(query) ||
+        (b.hostel_block && b.hostel_block.toLowerCase().includes(query))
+    );
+  }, [searchQuery, searchableBuildings]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputValue(val);
+    setIsOpen(true);
+    debouncedSetQuery(val);
+
+    // Clear building_id since we are typing fresh custom text
+    form.setValue("building_id", "");
+
+    // Clear building name to trigger validation unless a match is chosen/typed
+    // if delivery zone restrictions exist.
+    if (allowedBuildings.length > 0) {
+      form.setValue("building", "");
+    } else {
+      // If shop has no restrictions, allow user to save whatever they type
+      form.setValue("building", val);
+    }
+  };
+
+  const handleSelectBuilding = (building: {
+    id: string;
+    name: string;
+    hostel_block: string | null;
+  }) => {
+    form.setValue("building_id", building.id);
+    form.setValue("building", building.name);
+    form.setValue("hostel_block", building.hostel_block || "");
+
+    setInputValue(
+      building.name +
+        (building.hostel_block ? ` (${building.hostel_block})` : "")
+    );
+    setIsOpen(false);
+  };
+
   return (
     <Card className="p-6 bg-card/40 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-indigo-500/[0.02] relative overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-[2px] bg-purple-500 to-pink-500" />
@@ -57,7 +165,6 @@ export function UserAddressForm({
                   <Input
                     placeholder="e.g., Home, Dorm, Office"
                     {...field}
-                    list="label-suggestions"
                     className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
                   />
                 </FormControl>
@@ -68,19 +175,64 @@ export function UserAddressForm({
 
           <FormField
             control={form.control}
-            name="building"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Building Name
+            name="building_id"
+            render={() => (
+              <FormItem className="relative" ref={dropdownRef}>
+                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex justify-between">
+                  <span>Building / Hostel Address</span>
+                  {allowedBuildings.length > 0 && (
+                    <span className="text-[10px] text-indigo-500 tracking-tight lowercase font-medium">
+                      Shop delivery limits active
+                    </span>
+                  )}
                 </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter building name or address"
-                    {...field}
-                    className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
-                  />
-                </FormControl>
+
+                <div className="relative">
+                  <FormControl>
+                    <Input
+                      placeholder="Type your hostel or building name..."
+                      value={inputValue}
+                      onChange={handleInputChange}
+                      onFocus={() => setIsOpen(true)}
+                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium pr-10"
+                    />
+                  </FormControl>
+                  <Search className="absolute right-3.5 top-3.5 h-4 w-4 text-muted-foreground/50" />
+
+                  {isOpen && (
+                    <div className="absolute z-50 w-full mt-1 bg-card border border-border/30 rounded-xl shadow-xl max-h-60 overflow-y-auto p-1.5 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {filteredBuildings.length > 0 ? (
+                        <>
+                          <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                            Suggested Buildings
+                          </div>
+                          {filteredBuildings.map((building) => (
+                            <button
+                              key={building.id}
+                              type="button"
+                              className="w-full text-left px-3 py-2 rounded-lg text-sm hover:bg-muted/80 flex justify-between items-center transition-colors focus:bg-muted/80 focus:outline-none"
+                              onClick={() => handleSelectBuilding(building)}
+                            >
+                              <span className="font-semibold text-foreground/80">
+                                {building.name}
+                              </span>
+                              {building.hostel_block && (
+                                <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full font-medium">
+                                  {building.hostel_block}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </>
+                      ) : (
+                        <div className="px-3 py-3 text-xs text-rose-500 font-semibold text-center bg-rose-500/5 border border-rose-500/10 rounded-lg">
+                          ❌ Not deliverable here
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 <FormMessage className="text-xs font-semibold text-rose-500" />
               </FormItem>
             )}
@@ -100,7 +252,12 @@ export function UserAddressForm({
                       placeholder="e.g., BH-1, Block A"
                       {...field}
                       value={field.value ?? ""}
-                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
+                      readOnly={allowedBuildings.length > 0}
+                      className={cn(
+                        "h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium",
+                        allowedBuildings.length > 0 &&
+                          "opacity-75 bg-muted/10 cursor-not-allowed"
+                      )}
                     />
                   </FormControl>
                   <FormMessage className="text-xs font-semibold text-rose-500" />
@@ -158,7 +315,9 @@ export function UserAddressForm({
                 <FormControl>
                   <Checkbox
                     checked={field.value}
-                    onChange={(checked) => field.onChange(checked)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      field.onChange(e.target.checked)
+                    }
                     className="h-5 w-5 rounded-md border-border/50 text-indigo-600 focus:ring-indigo-500/20 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
                   />
                 </FormControl>
@@ -188,7 +347,7 @@ export function UserAddressForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-11 min-w-[130px] rounded-xl font-semibold bg-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/10"
+              className="h-11 min-w-[130px] rounded-xl font-semibold bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-indigo-500/10 disabled:opacity-50"
             >
               {isSubmitting ? "Adding..." : "Add Address"}
             </Button>

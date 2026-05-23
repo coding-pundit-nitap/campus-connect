@@ -32,8 +32,13 @@ export async function addUserAddress(
     throw new ValidationError("Invalid fields");
   }
 
+  if (!validatedFields.data.building?.trim()) {
+    throw new ValidationError("Building is required");
+  }
+
   await userAddressRepository.create({
     ...validatedFields.data,
+    building: validatedFields.data.building.trim(),
     user: {
       connect: {
         id: user_id,
@@ -53,7 +58,14 @@ export async function updateUserAddress(
     throw new ValidationError("Invalid fields");
   }
 
-  await userAddressRepository.update(user_id, validatedFields.data);
+  if (!validatedFields.data.building?.trim()) {
+    throw new ValidationError("Building is required");
+  }
+
+  await userAddressRepository.update(user_id, {
+    ...validatedFields.data,
+    building: validatedFields.data.building.trim(),
+  });
 }
 
 export async function deleteUserAddress(id: string) {

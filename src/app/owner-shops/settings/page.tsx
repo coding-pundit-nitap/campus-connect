@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { DeliveryBuildingsManager } from "@/components/owned-shop/settings/delivery-buildings-manager";
 import { ShopSettingsForm } from "@/components/owned-shop/settings/shop-settings-form";
 import {
   Card,
@@ -60,8 +61,9 @@ export default async function ShopSettingsPage() {
             settings govern checkout rules for all customers.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <ShopSettingsForm shop={shop} />
+          <DeliveryBuildingsManager />
         </CardContent>
       </Card>
     </div>

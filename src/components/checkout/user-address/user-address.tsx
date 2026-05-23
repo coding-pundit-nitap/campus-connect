@@ -12,11 +12,13 @@ import { UserAddress as UserAddressType } from "@/types/prisma.types";
 interface UserAddressProps {
   selectedAddressId?: string | null;
   onAddressSelect?: (address: UserAddressType) => void;
+  shopId?: string;
 }
 
 export function UserAddress({
   selectedAddressId,
   onAddressSelect,
+  shopId,
 }: UserAddressProps) {
   const { showForm, handleShowForm, handleHideForm } = useUserAddressManager();
 
@@ -25,6 +27,7 @@ export function UserAddress({
       <UserAddressFormContainer
         onSuccess={handleHideForm}
         onCancel={handleHideForm}
+        shopId={shopId}
       />
     );
   }

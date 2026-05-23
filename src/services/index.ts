@@ -1,3 +1,4 @@
+export * from "./building";
 export * from "./cart";
 export * from "./category";
 export * from "./connectivity";

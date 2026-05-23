@@ -1,6 +1,7 @@
 export * from "./useAddress";
 export * from "./useBatch";
 export * from "./useBroadcast";
+export * from "./useBuildings";
 export * from "./useCarts";
 export * from "./useImageUpload";
 export * from "./useIndividualDelivery";

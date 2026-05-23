@@ -5,14 +5,20 @@ export const updateUserSchema = z.object({
   phone: z.string().optional(),
 });
 
-export const userAddressSchema = z.object({
-  label: z.string().min(1, "Label is required"),
-  hostel_block: z.string().optional(),
-  building: z.string().min(1, "Building details are required"),
-  room_number: z.string().min(1, "Room/Apartment number is required"),
-  notes: z.string().optional(),
-  is_default: z.boolean().optional().default(false),
-});
+export const userAddressSchema = z
+  .object({
+    label: z.string().min(1, "Label is required"),
+    building_id: z.string().optional(),
+    hostel_block: z.string().optional(),
+    building: z.string().optional(),
+    room_number: z.string().min(1, "Room/Apartment number is required"),
+    notes: z.string().optional(),
+    is_default: z.boolean().optional().default(false),
+  })
+  .refine((data) => Boolean(data.building_id || data.building?.trim()), {
+    message: "Building details are required",
+    path: ["building_id"],
+  });
 
 export const updateUserAddressSchema = userAddressSchema.extend({
   id: z.string(),

@@ -195,6 +195,40 @@ class OrderService {
         throw new UnauthorizedError("Address does not belong to user.");
       }
 
+      const configuredDeliveryBuildings = await tx.shopDeliveryBuilding.count({
+        where: { shop_id, is_active: true },
+      });
+      if (configuredDeliveryBuildings > 0) {
+        const canDeliver = deliveryAddress.building_id
+          ? await tx.shopDeliveryBuilding.findFirst({
+              where: {
+                shop_id,
+                building_id: deliveryAddress.building_id,
+                is_active: true,
+              },
+              select: { id: true },
+            })
+          : await tx.shopDeliveryBuilding.findFirst({
+              where: {
+                shop_id,
+                is_active: true,
+                building: {
+                  name: {
+                    equals: deliveryAddress.building,
+                    mode: "insensitive",
+                  },
+                },
+              },
+              select: { id: true },
+            });
+
+        if (!canDeliver) {
+          throw new ValidationError(
+            "This shop does not deliver to the selected building."
+          );
+        }
+      }
+
       const productIds = cart.items.map((item) => item.product_id);
       await tx.$executeRaw`
         SELECT id FROM "Product" 
@@ -236,7 +270,7 @@ class OrderService {
       const platformFee = await platformSettingsRepository.getPlatformFee();
       const totalPrice = itemTotal + deliveryFee + platformFee;
 
-      const delivery_address_snapshot = `${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
+      const delivery_address_snapshot = `${deliveryAddress.hostel_block ? `${deliveryAddress.hostel_block}, ` : ""}${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
 
       const display_id = await this.generateDisplayId(tx);
 

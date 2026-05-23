@@ -16,11 +16,13 @@ import { UserAddressForm } from "./user-address-form";
 interface UserAddressFormContainerProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  shopId?: string;
 }
 
 export function UserAddressFormContainer({
   onSuccess,
   onCancel,
+  shopId,
 }: UserAddressFormContainerProps) {
   const { mutateAsync: createMutation, isPending } = useCreateAddress();
 
@@ -28,6 +30,7 @@ export function UserAddressFormContainer({
     resolver: zodResolver(addressSchema),
     defaultValues: {
       label: "",
+      building_id: "",
       building: "",
       hostel_block: "",
       room_number: "",
@@ -52,6 +55,7 @@ export function UserAddressFormContainer({
       onSubmit={onSubmit}
       onCancel={onCancel}
       isSubmitting={isPending}
+      shopId={shopId}
     />
   );
 }

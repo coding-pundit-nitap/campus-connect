@@ -1,5 +1,9 @@
 "use client";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { toggleAcceptingOrdersAction } from "@/actions";
@@ -34,10 +38,14 @@ export const useAllShops = ({ initialData, initialNextCursor }: Props) => {
 };
 
 export function useToggleAcceptingOrders() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: toggleAcceptingOrdersAction,
     onSuccess: () => {
-      toast.success("Shop accepting orders toggled successfully");
+      toast.success("Shop accepting orders updated successfully!");
+      queryClient.invalidateQueries({ queryKey: queryKeys.shops.byUser() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shops.all });
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to toggle shop accepting orders");

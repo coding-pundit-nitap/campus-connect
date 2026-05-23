@@ -19,13 +19,10 @@ import UserDetail from "./user-detail";
 export function SidebarFooter() {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
-
-  const setMountedTrue = useEffectEvent(() => {
-    setMounted(true);
-  });
-
   useEffect(() => {
-    setMountedTrue();
+    setTimeout(() => {
+      setMounted(true);
+    }, 0);
   }, []);
 
   if (!mounted) {

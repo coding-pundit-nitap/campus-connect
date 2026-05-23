@@ -1,5 +1,6 @@
+import { BatchStatus } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
-import type { ActionResponse } from "@/types";
+import type { ActionResponse, SerializedOrderWithDetails } from "@/types";
 
 import type {
   BatchInfo,
@@ -7,7 +8,29 @@ import type {
   DirectOrderInfo,
 } from "../batch";
 
-interface VendorDashboardResponse {
+export interface SerializedBatch {
+  id: string;
+  shop_id: string;
+  slot_id: string | null;
+  cutoff_time: string;
+  status: BatchStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActiveBatchResponse {
+  batch: SerializedBatch | null;
+  orders: SerializedOrderWithDetails[];
+}
+
+export interface VendorOrderConsoleResponse {
+  activeBatch: SerializedBatch | null;
+  batchOrders: SerializedOrderWithDetails[];
+  directOrders: SerializedOrderWithDetails[];
+  deliveryOrders: SerializedOrderWithDetails[];
+}
+
+export interface VendorDashboardResponse {
   open_batch: BatchInfo | null;
   active_batches: BatchInfo[];
   direct_orders: DirectOrderInfo[];
@@ -56,6 +79,34 @@ class VendorApiService {
       await axiosInstance.get<ActionResponse<VendorOverviewResponse>>(
         "/vendor/overview"
       );
+    return response.data.data;
+  }
+
+  async getActiveBatchData(): Promise<ActiveBatchResponse> {
+    const response = await axiosInstance.get<
+      ActionResponse<ActiveBatchResponse>
+    >("/vendor/batch/active");
+    return response.data.data;
+  }
+
+  async getDirectDeliveriesData(): Promise<SerializedOrderWithDetails[]> {
+    const response = await axiosInstance.get<
+      ActionResponse<SerializedOrderWithDetails[]>
+    >("/vendor/batch/direct-deliveries");
+    return response.data.data;
+  }
+
+  async getDeliveryRunData(): Promise<SerializedOrderWithDetails[]> {
+    const response = await axiosInstance.get<
+      ActionResponse<SerializedOrderWithDetails[]>
+    >("/vendor/batch/delivery-run");
+    return response.data.data;
+  }
+
+  async getOrderConsoleData(): Promise<VendorOrderConsoleResponse> {
+    const response = await axiosInstance.get<
+      ActionResponse<VendorOrderConsoleResponse>
+    >("/vendor/orders/console");
     return response.data.data;
   }
 }

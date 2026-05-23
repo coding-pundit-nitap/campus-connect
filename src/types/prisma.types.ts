@@ -89,6 +89,7 @@ export interface UserAddress {
   label: string;
   hostel_block: string | null;
   building: string;
+  building_id: string | null;
   room_number: string;
   notes: string | null;
   is_default: boolean;
