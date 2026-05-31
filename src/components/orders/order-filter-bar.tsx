@@ -131,7 +131,7 @@ export function OrderFilterBar({
             mode="single"
             selected={dateTo}
             onSelect={handleDateToChange}
-            initialFocus
+            autoFocus
           />
         </PopoverContent>
       </Popover>

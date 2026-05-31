@@ -25,9 +25,7 @@ export function IndividualDeliveryCard({
   const startDelivery = useStartIndividualDelivery();
   const verifyOtp = useVerifyIndividualOtp();
 
-  const canStart = useMemo(() => {
-    return status === "NEW" || status === "BATCHED";
-  }, [status]);
+  const canStart = status === "BATCHED";
 
   const canVerify = status === "OUT_FOR_DELIVERY";
 

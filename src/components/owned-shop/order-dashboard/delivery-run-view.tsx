@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Compass,
   Loader2,
-  Navigation,
   Package,
   Truck,
 } from "lucide-react";
@@ -30,13 +29,8 @@ import {
   useVerifyDeliveryOtp,
 } from "@/hooks/queries/useBatch";
 import { formatCurrency } from "@/lib/utils/currency";
+import { getHostel, safeParseAddress } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
-
-interface AddressSnapshot {
-  hostel_block?: string | null;
-  building?: string;
-  room_number?: string;
-}
 
 export function DeliveryRunView() {
   const { data, isLoading } = useOrderConsoleData();
@@ -101,10 +95,7 @@ export function DeliveryRunView() {
 
   const groups: Record<string, SerializedOrderWithDetails[]> = {};
   orders.forEach((order: SerializedOrderWithDetails) => {
-    const snapshot: AddressSnapshot | null = order.delivery_address_snapshot
-      ? JSON.parse(order.delivery_address_snapshot)
-      : null;
-    const block = snapshot?.hostel_block || snapshot?.building || "Other";
+    const block = getHostel(order);
     if (!groups[block]) groups[block] = [];
     groups[block].push(order);
   });
@@ -124,7 +115,7 @@ export function DeliveryRunView() {
         return (
           <Card
             key={batch.id}
-            className="border-t-4 border-t-primary shadow-md overflow-hidden bg-gradient-to-br from-card to-muted/10"
+            className="border-t-4 border-t-primary shadow-md overflow-hidden bg-linear-to-br from-card to-muted/10"
           >
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
@@ -216,10 +207,7 @@ export function DeliveryRunView() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blockOrders.map((order: SerializedOrderWithDetails) => {
-              const snapshot: AddressSnapshot | null =
-                order.delivery_address_snapshot
-                  ? JSON.parse(order.delivery_address_snapshot)
-                  : null;
+              const snapshot = safeParseAddress(order);
 
               const isCompleted = order.order_status === "COMPLETED";
 
@@ -284,11 +272,14 @@ export function DeliveryRunView() {
                           onChange={(e) =>
                             setOtpInputs((prev) => ({
                               ...prev,
-                              [order.id]: e.target.value,
+                              [order.id]: e.target.value.replace(/\D/g, ""),
                             }))
                           }
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          autoComplete="one-time-code"
                           className="font-mono text-sm tracking-widest text-center"
-                          maxLength={6}
+                          maxLength={4}
                         />
                         <Button
                           onClick={() => handleVerifyOtp(order.id)}

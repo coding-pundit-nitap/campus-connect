@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, PauseCircle,Zap } from "lucide-react";
+import { Clock, PauseCircle, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";

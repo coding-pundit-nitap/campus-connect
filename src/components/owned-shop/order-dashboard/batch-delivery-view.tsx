@@ -1,8 +1,9 @@
 "use client";
 
-import { addHours, format, subHours } from "date-fns";
-import { Clock,Loader2 } from "lucide-react";
+import { addMinutes, format } from "date-fns";
+import { Clock, Loader2 } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,15 +19,10 @@ import {
   useOrderConsoleData,
   useUpdateBatchCutoffTime,
 } from "@/hooks/queries/useBatch";
+import { getHostel } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 import { BatchOrderCard } from "../order-card/batch-order-card";
-
-interface AddressSnapshot {
-  hostel_block?: string | null;
-  building?: string;
-  room_number?: string;
-}
 
 export function BatchDeliveryView() {
   const { data, isLoading } = useOrderConsoleData();
@@ -36,21 +32,27 @@ export function BatchDeliveryView() {
   const isPending =
     updateTimeMutation.isPending || closeBatchMutation.isPending;
 
-  const handleAdjustTime = (hours: number) => {
+  const handleAdjustTime = (minutes: number) => {
     if (!data?.activeBatch) return;
-    const newDate =
-      hours > 0
-        ? addHours(new Date(data.activeBatch.cutoff_time), hours)
-        : subHours(new Date(data.activeBatch.cutoff_time), Math.abs(hours));
-
     updateTimeMutation.mutate({
       batchId: data.activeBatch.id,
-      newCutoffTime: newDate,
+      newCutoffTime: addMinutes(
+        new Date(data.activeBatch.cutoff_time),
+        minutes
+      ),
     });
   };
 
   const handleCloseBatch = () => {
     if (!data?.activeBatch) return;
+    const newOrders = data.batchOrders.filter((o) => o.order_status === "NEW");
+    if (newOrders.length > 0) {
+      toast.error(
+        `Accept or reject ${newOrders.length} new order(s) before closing.`
+      );
+      return;
+    }
+    if (!window.confirm("Close this batch for delivery?")) return;
     closeBatchMutation.mutate(data.activeBatch.id);
   };
 
@@ -74,10 +76,7 @@ export function BatchDeliveryView() {
 
   const groups: Record<string, SerializedOrderWithDetails[]> = {};
   data.batchOrders.forEach((order: SerializedOrderWithDetails) => {
-    const snapshot: AddressSnapshot | null = order.delivery_address_snapshot
-      ? JSON.parse(order.delivery_address_snapshot)
-      : null;
-    const block = snapshot?.hostel_block || snapshot?.building || "Other";
+    const block = getHostel(order);
     if (!groups[block]) groups[block] = [];
     groups[block].push(order);
   });
@@ -97,18 +96,18 @@ export function BatchDeliveryView() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleAdjustTime(-1)}
+                onClick={() => handleAdjustTime(-15)}
                 disabled={isPending}
               >
-                -1 Hr
+                −15m
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handleAdjustTime(1)}
+                onClick={() => handleAdjustTime(15)}
                 disabled={isPending}
               >
-                +1 Hr
+                +15m
               </Button>
             </div>
             <Button

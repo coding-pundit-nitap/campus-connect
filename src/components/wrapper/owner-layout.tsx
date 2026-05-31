@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import React from "react";
 import { Toaster } from "sonner";
 
@@ -15,7 +16,13 @@ import {
 interface OwnerLayoutProps {
   children: React.ReactNode;
 }
-
+const OrderNotificationBell = dynamic(
+  () =>
+    import("../notification/notification-bell").then(
+      (mod) => mod.OrderNotificationBell
+    ),
+  { ssr: false }
+);
 export function OwnerLayout({ children }: OwnerLayoutProps) {
   return (
     <SidebarProvider>
@@ -26,6 +33,7 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
             <SidebarTrigger className="-ml-1 text-foreground" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="ml-auto flex items-center gap-2">
+              <OrderNotificationBell />
               <ThemeToggleContainer />
             </div>
           </header>

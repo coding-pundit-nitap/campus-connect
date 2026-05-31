@@ -126,13 +126,17 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
       );
     }
 
+    const rejectionNote = reason
+      ? `[Vendor Rejected: ${reason}]`
+      : "[Vendor Rejected]";
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
         order_status: "CANCELLED",
-        customer_notes: reason
-          ? `Rejected by vendor: ${reason}`
-          : "Rejected by vendor",
+        customer_notes: order.customer_notes
+          ? `${order.customer_notes}\n${rejectionNote}`
+          : rejectionNote,
       },
     });
 

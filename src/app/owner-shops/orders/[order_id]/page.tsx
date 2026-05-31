@@ -221,7 +221,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                 <DetailItem
                   icon={<Phone size={18} />}
                   className="flex justify-between"
-                  label="Customer"
+                  label="Phone"
                 >
                   {order.user.phone}
                   <Link

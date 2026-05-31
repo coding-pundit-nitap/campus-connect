@@ -36,7 +36,6 @@ interface DeliveryPhaseProps {
 export function DeliveryPhase({
   isBatch,
   currentDirectOrder,
-  ordersList,
   groupedByBlock,
   sortedBlocks,
   currentBlock,

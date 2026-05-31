@@ -1,4 +1,4 @@
-import { useMemo,useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useStartIndividualDelivery, useVerifyIndividualOtp } from "@/hooks";
@@ -9,6 +9,7 @@ import {
   useVerifyOtp,
 } from "@/hooks/queries/useBatch";
 import { VendorDashboardResponse } from "@/services";
+import { BatchInfo } from "@/services/batch";
 
 interface UseFulfillmentLogicProps {
   active: {
@@ -72,20 +73,29 @@ export function useFulfillmentLogic({
     new Set()
   );
 
-  const ordersList = currentBatch?.orders || [];
-  const isOrderDone = (orderId: string, status: string) =>
-    status === "COMPLETED" || locallyVerified.has(orderId);
+  const ordersList = useMemo(
+    () => currentBatch?.orders || [],
+    [currentBatch?.orders]
+  );
+  const isOrderDone = useMemo(
+    () => (orderId: string, status: string) =>
+      status === "COMPLETED" || locallyVerified.has(orderId),
+    [locallyVerified]
+  );
 
   const groupedByBlock = useMemo(() => {
-    const initialAcc: Record<string, any[]> = {};
-    return (ordersList || []).reduce((acc, order: any) => {
-      const building = order.delivery_address?.building || "Other Hostel";
-      const block = order.delivery_address?.hostel_block;
-      const key = block ? `${building} - Block ${block}` : building;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(order);
-      return acc;
-    }, initialAcc);
+    type BatchOrders = NonNullable<BatchInfo["orders"]>;
+    return (ordersList || []).reduce(
+      (acc, order) => {
+        const building = order.delivery_address?.building || "Other Hostel";
+        const block = order.delivery_address?.hostel_block;
+        const key = block ? `${building} - Block ${block}` : building;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(order);
+        return acc;
+      },
+      {} as Record<string, BatchOrders>
+    );
   }, [ordersList]);
 
   const sortedBlocks = useMemo(
@@ -96,8 +106,8 @@ export function useFulfillmentLogic({
   const currentBlockOrders = groupedByBlock[currentBlock] || [];
 
   const completedCount = useMemo(() => {
-    return ordersList.filter((o: any) => isOrderDone(o.id, o.status)).length;
-  }, [ordersList, locallyVerified]);
+    return ordersList.filter((o) => isOrderDone(o.id, o.status)).length;
+  }, [ordersList, isOrderDone]);
 
   const totalCount = ordersList.length;
   const deliveryProgress =
@@ -120,7 +130,7 @@ export function useFulfillmentLogic({
             setLocallyVerified((prev) => {
               const next = new Set(prev).add(orderId);
               const allCurrentBlockDone = currentBlockOrders.every(
-                (o: any) =>
+                (o) =>
                   o.id === orderId || o.status === "COMPLETED" || next.has(o.id)
               );
 
@@ -162,6 +172,8 @@ export function useFulfillmentLogic({
   };
 
   const handleCompleteDelivery = () => {
+    if (!window.confirm("Mark this batch as complete? This cannot be undone."))
+      return;
     completeBatch.mutate(currentBatch!.id, {
       onSuccess: () => {
         toast.success("Batch completed! Earnings credited.");

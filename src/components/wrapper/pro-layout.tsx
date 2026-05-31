@@ -1,4 +1,5 @@
 import { ArrowLeft } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import React from "react";
 import { Toaster } from "sonner";
@@ -25,7 +26,13 @@ interface LayoutProps {
   isNavigationLoading?: boolean;
   navigationError?: string;
 }
-
+const OrderNotificationBell = dynamic(
+  () =>
+    import("../notification/notification-bell").then(
+      (mod) => mod.OrderNotificationBell
+    ),
+  { ssr: false }
+);
 export function ProLayout({
   children,
   navigation,
@@ -57,6 +64,7 @@ export function ProLayout({
             <SidebarTrigger className="-ml-1 text-foreground" />
             <Separator orientation="vertical" className="mr-2 h-4" />
             <div className="ml-auto flex items-center gap-2">
+              <OrderNotificationBell />
               <ThemeToggleContainer />
             </div>
           </header>

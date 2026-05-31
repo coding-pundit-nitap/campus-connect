@@ -1,8 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { Clock, MapPin, Package, Phone } from "lucide-react";
-import React from "react";
+import { MapPin, Phone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
   useStartDirectDelivery,
 } from "@/hooks/queries/useBatch";
 import { formatCurrency } from "@/lib/utils/currency";
+import { safeParseAddress } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 import { SwipeableOrderCard } from "./swipeable-order-card";
@@ -19,12 +19,6 @@ import { SwipeableOrderCard } from "./swipeable-order-card";
 interface DirectOrderCardProps {
   order: SerializedOrderWithDetails;
   onActionComplete?: () => void;
-}
-
-interface AddressSnapshot {
-  hostel_block?: string | null;
-  building?: string;
-  room_number?: string;
 }
 
 export function DirectOrderCard({
@@ -72,9 +66,7 @@ export function DirectOrderCard({
     });
   };
 
-  const snapshot: AddressSnapshot | null = order.delivery_address_snapshot
-    ? JSON.parse(order.delivery_address_snapshot)
-    : null;
+  const snapshot = safeParseAddress(order);
 
   const CardContent = (
     <div className="p-4 md:p-6 flex flex-col gap-4">

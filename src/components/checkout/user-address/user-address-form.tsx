@@ -1,8 +1,8 @@
 "use client";
 
 import { debounce } from "lodash";
-import { MapPin, Search } from "lucide-react";
-import React, { useEffect, useMemo, useRef,useState } from "react";
+import { Search } from "lucide-react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,6 @@ export function UserAddressForm({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Debounced search query update
   const debouncedSetQuery = useMemo(
     () =>
       debounce((val: string) => {

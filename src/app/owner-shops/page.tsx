@@ -1,7 +1,5 @@
-import React from "react";
+import { VendorCommandCenter } from "@/components/owned-shop/vendor-command-center";
 
-import OwnedShopsPage from "@/page-components/owner-shop/owned-shops-page";
-
-export default function page() {
-  return <OwnedShopsPage />;
+export default function OwnerShopsPage() {
+  return <VendorCommandCenter />;
 }

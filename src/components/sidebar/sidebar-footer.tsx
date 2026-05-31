@@ -2,7 +2,7 @@
 
 import { ArrowRight, Store } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "@/lib/auth-client";

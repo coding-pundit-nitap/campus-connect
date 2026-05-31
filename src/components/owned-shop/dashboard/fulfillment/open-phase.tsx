@@ -6,10 +6,13 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BatchInfo, BatchSummaryItem } from "@/services/batch";
+
+type BatchOrder = NonNullable<BatchInfo["orders"]>[number];
 
 interface OpenPhaseProps {
-  items: any[];
-  ordersList: any[];
+  items: BatchSummaryItem[];
+  ordersList: BatchOrder[];
   onLockBatch: () => void;
   isLockPending: boolean;
   cancelBtn: React.ReactNode;
@@ -49,7 +52,7 @@ export function OpenPhase({
             <Badge variant="secondary">{items.length} items</Badge>
           </div>
           <CardContent className="p-4 gap-2.5 flex flex-col">
-            {items.map((item: any) => (
+            {items.map((item) => (
               <div
                 key={item.product_id}
                 className="flex justify-between items-center text-sm p-3 bg-muted/40 rounded-xl border border-border/30 hover:bg-muted/50 transition-colors"
@@ -80,7 +83,7 @@ export function OpenPhase({
             Orders in this Batch
           </h4>
           <div className="grid gap-2.5">
-            {ordersList.map((order: any) => (
+            {ordersList.map((order) => (
               <div
                 key={order.id}
                 className="flex justify-between items-center p-3 border rounded-xl bg-background/50 hover:bg-background/80 shadow-sm transition-colors text-sm"
