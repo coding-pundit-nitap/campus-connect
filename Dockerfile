@@ -12,11 +12,11 @@ RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
 
 # This stage installs all dependencies.
 FROM base AS deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts
 
 FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Install ONLY production dependencies
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
@@ -99,7 +99,7 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=deps --chown=migrator:nodejs /app/node_modules ./node_modules
 COPY --from=app-builder --chown=migrator:nodejs /app/src/generated ./src/generated
-COPY --chown=migrator:nodejs package.json pnpm-lock.yaml ./
+COPY --chown=migrator:nodejs package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --chown=migrator:nodejs prisma ./prisma
 COPY --chown=migrator:nodejs prisma.config.ts ./prisma.config.ts
 
