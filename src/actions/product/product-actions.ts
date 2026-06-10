@@ -305,6 +305,7 @@ const bulkProductInputSchema = z.object({
     .optional(),
   category: z
     .string()
+    .trim()
     .min(2, "Category name is too short")
     .optional()
     .or(z.literal("")),
