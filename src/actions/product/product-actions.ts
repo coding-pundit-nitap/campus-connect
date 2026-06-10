@@ -332,16 +332,15 @@ export async function bulkCreateProductsAction(
       throw new InternalServerError("Maximum 50 products per batch");
     }
 
-    // Validate all products first to prevent partial database persistence
-    for (const productData of products) {
-      bulkProductInputSchema.parse(productData);
-    }
+    // 1. Validate and parse all products first (ensures fail-fast and trims inputs)
+    const validatedProducts = products.map((product) =>
+      bulkProductInputSchema.parse(product)
+    );
 
     const createdProducts: Array<{ id: string; name: string }> = [];
 
-    for (const productData of products) {
-      bulkProductInputSchema.parse(productData);
-
+    // 2. Perform insertions using the validated/trimmed products
+    for (const productData of validatedProducts) {
       let category = null;
       if (productData.category && productData.category.trim()) {
         category = await categoryRepository.findOrCreate(
@@ -350,7 +349,7 @@ export async function bulkCreateProductsAction(
       }
 
       const newProduct = await productRepository.create({
-        name: productData.name,
+        name: productData.name, // Will be trimmed correctly
         description: productData.description || "",
         price: productData.price,
         stock_quantity: productData.stock_quantity,
