@@ -173,8 +173,10 @@ export function useBulkProductsCreate() {
         });
       }
     },
-    onError: () => {
-      toast.error("Failed to create products. Please try again.");
+    onError: (error) => {
+      toast.error(
+        error.message || "Failed to create products. Please try again."
+      );
     },
   });
 }

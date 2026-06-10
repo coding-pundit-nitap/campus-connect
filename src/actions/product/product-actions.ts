@@ -290,11 +290,19 @@ export interface BulkCreateResult {
 }
 
 const bulkProductInputSchema = z.object({
-  name: z.string().min(1, "Name is required").min(3, "Name is too short"),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .min(3, "Name is too short"),
   description: z.string().optional(),
   price: z.number().min(0, "Price must be a positive number"),
   stock_quantity: z.number().min(0, "Stock cannot be negative"),
-  discount: z.number().min(0, "Discount cannot be negative").optional(),
+  discount: z
+    .number()
+    .min(0, "Discount cannot be negative")
+    .max(100, "Discount cannot exceed 100%")
+    .optional(),
   category: z
     .string()
     .min(2, "Category name is too short")
@@ -322,6 +330,11 @@ export async function bulkCreateProductsAction(
 
     if (products.length > 50) {
       throw new InternalServerError("Maximum 50 products per batch");
+    }
+
+    // Validate all products first to prevent partial database persistence
+    for (const productData of products) {
+      bulkProductInputSchema.parse(productData);
     }
 
     const createdProducts: Array<{ id: string; name: string }> = [];
