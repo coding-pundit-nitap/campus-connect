@@ -2,13 +2,6 @@ import { redirect } from "next/navigation";
 
 import { DeliveryBuildingsManager } from "@/components/owned-shop/settings/delivery-buildings-manager";
 import { ShopSettingsForm } from "@/components/owned-shop/settings/shop-settings-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
 import { ShopUpdateFormShop } from "@/types/shop.types";
@@ -52,20 +45,33 @@ export default async function ShopSettingsPage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Operating & Fee Settings</CardTitle>
-          <CardDescription>
-            Configure your shop's minimum order limits and delivery fees. These
-            settings govern checkout rules for all customers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <ShopSettingsForm shop={shop} />
-          <DeliveryBuildingsManager />
-        </CardContent>
-      </Card>
+    <div className="w-full max-w-7xl mx-auto py-8 px-4 sm:px-6">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black font-heading tracking-tight text-foreground">
+            Operating & Fee Settings
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed font-medium">
+            Configure order basket minimums, direct and batch delivery rates,
+            and active hostel delivery boundaries.
+          </p>
+        </div>
+
+        <div className="border-t border-border/40 pt-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Settings Form Column */}
+          <div className="lg:col-span-7">
+            <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 p-6 sm:p-8 relative shadow-xl shadow-blue-500/[0.01] overflow-hidden">
+              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-blue-500/20" />
+              <ShopSettingsForm shop={shop} />
+            </div>
+          </div>
+
+          {/* Delivery Buildings Column */}
+          <div className="lg:col-span-5">
+            <DeliveryBuildingsManager />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

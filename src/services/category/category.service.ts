@@ -1,10 +1,10 @@
 import { categoryRepository } from "@/repositories";
 
 class CategoryServices {
-  async cleanupEmptyCategories(shop_id: string): Promise<string[]> {
+  async cleanupEmptyCategories(): Promise<string[]> {
     try {
       const deletedCategoryIds =
-        await categoryRepository.deleteEmptyCategories(shop_id);
+        await categoryRepository.deleteEmptyCategories();
       return deletedCategoryIds;
     } catch (error) {
       console.error("Error cleaning up empty categories:", error);

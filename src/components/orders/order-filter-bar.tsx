@@ -78,7 +78,7 @@ export function OrderFilterBar({
           onStatusChange(value ? (value as OrderStatus) : undefined)
         }
       >
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-[160px] rounded-xl border-2 bg-card hover:bg-muted transition-all duration-200 hover:scale-[1.02] shadow-xs hover:border-primary/50">
           <SelectValue placeholder="Order Status" />
         </SelectTrigger>
         <SelectContent>
@@ -95,7 +95,7 @@ export function OrderFilterBar({
           <Button
             variant="outline"
             className={cn(
-              "w-[140px] justify-start text-left font-normal",
+              "w-[140px] justify-start text-left font-normal rounded-xl border-2 bg-card hover:bg-muted transition-all duration-200 hover:scale-[1.02] shadow-xs hover:border-primary/50",
               !dateFrom && "text-muted-foreground"
             )}
           >
@@ -118,7 +118,7 @@ export function OrderFilterBar({
           <Button
             variant="outline"
             className={cn(
-              "w-[140px] justify-start text-left font-normal",
+              "w-[140px] justify-start text-left font-normal rounded-xl border-2 bg-card hover:bg-muted transition-all duration-200 hover:scale-[1.02] shadow-xs hover:border-primary/50",
               !dateTo && "text-muted-foreground"
             )}
           >
@@ -137,7 +137,12 @@ export function OrderFilterBar({
       </Popover>
 
       {(dateFrom || dateTo) && (
-        <Button variant="ghost" size="icon" onClick={handleClearDates}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleClearDates}
+          className="h-9 w-9 rounded-xl hover:bg-muted hover:text-destructive transition-all duration-200"
+        >
           <X className="h-4 w-4" />
         </Button>
       )}
@@ -151,7 +156,7 @@ export function OrderFilterBar({
             setDateFrom(undefined);
             setDateTo(undefined);
           }}
-          className="ml-auto"
+          className="ml-auto rounded-xl border-2 hover:bg-muted hover:border-destructive/50 hover:text-destructive transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs"
         >
           <FilterX className="mr-2 h-4 w-4" />
           Clear Filters

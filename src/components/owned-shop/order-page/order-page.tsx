@@ -27,16 +27,6 @@ import OrderCard from "./order-card";
 import { OrderCardSkeletonList } from "./order-card-skeleton";
 import OrderFilter from "./order-filter";
 
-function extractHostelBlock(snapshot: string): string | null {
-  try {
-    const parsed = JSON.parse(snapshot) as { hostel_block?: unknown };
-    const block = parsed?.hostel_block;
-    return typeof block === "string" && block.trim() !== "" ? block : null;
-  } catch {
-    return null;
-  }
-}
-
 export default function OrderPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -67,7 +57,12 @@ export default function OrderPage() {
     if (!pages) return [];
     const blocks = pages
       .flatMap((page) => page.orders)
-      .map((o) => extractHostelBlock(o.delivery_address_snapshot))
+      .map(
+        (o) =>
+          o.delivery_address_snapshot?.hostel_block ||
+          o.delivery_address_snapshot?.building ||
+          "Other"
+      )
       .filter(
         (block): block is string =>
           typeof block === "string" && block.trim() !== ""

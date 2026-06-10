@@ -246,7 +246,9 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                 </DetailItem>
               )}
               <DetailItem icon={<Home size={18} />} label="Delivery Address">
-                {order.delivery_address_snapshot}
+                {order.delivery_address_snapshot.hostel_block} Building:
+                {order.delivery_address_snapshot.building} Room:{" "}
+                {order.delivery_address_snapshot.room_number}
               </DetailItem>
               {order.requested_delivery_time && (
                 <DetailItem

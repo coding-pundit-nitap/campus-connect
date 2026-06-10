@@ -1,7 +1,7 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Nunito_Sans, Rubik } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
@@ -9,7 +9,17 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import ViewportVhSetter from "@/components/ui/viewport-vh";
 import { defaultMetadata } from "@/lib/metadata/site-metadata";
 
-const inter = Inter({ subsets: ["latin"] });
+const rubik = Rubik({
+  subsets: ["latin"],
+  variable: "--font-heading",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
+
+const nunito = Nunito_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+});
 
 export const metadata: Metadata = defaultMetadata;
 
@@ -77,7 +87,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         <link rel="dns-prefetch" href="//connect.nitap.ac.in" />
         <link rel="preconnect" href="//connect.nitap.ac.in" />
       </head>
-      <body className={inter.className}>
+      <body
+        className={`${nunito.variable} ${rubik.variable} font-sans antialiased`}
+      >
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe

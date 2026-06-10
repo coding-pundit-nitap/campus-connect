@@ -1,13 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { ShopEditForm } from "@/components/owned-shop/shop-edit";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { ShopProfileContent } from "@/components/owned-shop/shop-edit";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { shopRepository } from "@/repositories";
 import { ShopUpdateFormShop } from "@/types/shop.types";
@@ -51,19 +44,22 @@ export default async function ShopProfilePage() {
   };
 
   return (
-    <div className="container mx-auto max-w-3xl py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Shop Profile</CardTitle>
-          <CardDescription>
-            Update your shop's details, description, logo, and payment
-            information. Changes will be instantly updated for customers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ShopEditForm shop={shop} />
-        </CardContent>
-      </Card>
+    <div className="w-full max-w-4xl mx-auto py-8 px-4 sm:px-6">
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black font-heading tracking-tight text-foreground">
+            Shop Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed font-medium">
+            Manage your shop profile settings, operational settings, delivery
+            charges, and visual assets.
+          </p>
+        </div>
+
+        <div className="border-t border-border/40 pt-6">
+          <ShopProfileContent shop={shop} />
+        </div>
+      </div>
     </div>
   );
 }

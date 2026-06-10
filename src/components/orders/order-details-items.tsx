@@ -33,7 +33,7 @@ export default function OrderDetailsItems({ order }: Props) {
   const isCompleted = order_status === "COMPLETED";
 
   return (
-    <Card className="col-span-1 py-4">
+    <Card className="col-span-1 py-5 rounded-xl border border-border/60 bg-muted/10 shadow-xs">
       <CardHeader>
         <CardTitle className="text-lg">Items ({items.length})</CardTitle>
       </CardHeader>
@@ -89,9 +89,9 @@ function OrderDetailsItem({
   } = useOrderItemReview(item.id);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 group">
       <div className="flex items-start gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-muted">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-card border border-border/60 shadow-xs group-hover:scale-105 transition-transform duration-200">
           <Image
             src={ImageUtils.getImageUrl(item.product.image_key)}
             alt={item.product.name}
@@ -129,7 +129,7 @@ function OrderDetailsItem({
             <Button
               variant="outline"
               size="sm"
-              className="w-full gap-2"
+              className="w-full gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-xs border-2 hover:border-orange-500/50 hover:text-orange-500"
               disabled={isLoadingReview}
             >
               <Star className="h-4 w-4" />

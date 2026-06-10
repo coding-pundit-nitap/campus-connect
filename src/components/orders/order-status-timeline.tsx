@@ -52,27 +52,37 @@ export function OrderStatusTimeline({
 
   if (isCancelled) {
     return (
-      <SharedCard
-        className={cn("border-red-200 dark:border-red-900", className)}
-        contentClassName="py-4"
+      <div
+        className={cn(
+          "rounded-xl border border-red-500/20 bg-red-500/5 dark:bg-red-950/20 shadow-xs p-4",
+          className
+        )}
       >
-        <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-950/30 rounded-lg">
-          <XCircle className="h-8 w-8 text-red-500 shrink-0" />
+        <div className="flex items-center gap-3">
+          <XCircle className="h-8 w-8 text-red-500 shrink-0 animate-pulse" />
           <div>
-            <p className="font-semibold text-red-700 dark:text-red-400">
+            <p className="font-heading font-black text-red-700 dark:text-red-400">
               Order Cancelled
             </p>
-            <p className="text-sm text-red-600 dark:text-red-500">
+            <p className="text-sm text-red-600/80 dark:text-red-400/80">
               This order has been cancelled and cannot be processed further.
             </p>
           </div>
         </div>
-      </SharedCard>
+      </div>
     );
   }
 
   return (
-    <SharedCard headerClassName={className} showHeader title="Order Progress">
+    <div
+      className={cn(
+        "rounded-xl border border-border/60 bg-muted/20 shadow-xs p-5 space-y-5",
+        className
+      )}
+    >
+      <h3 className="font-heading font-black text-xs uppercase tracking-wider text-muted-foreground/90">
+        Order Progress
+      </h3>
       <div className="hidden md:block">
         <div className="relative flex items-start justify-between">
           <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted-foreground/20" />
@@ -100,7 +110,7 @@ export function OrderStatusTimeline({
                     isCompleted &&
                       "bg-primary border-primary text-primary-foreground",
                     isCurrent &&
-                      "bg-primary/10 border-primary text-primary scale-110 ring-4 ring-primary/20",
+                      "bg-orange-500/10 border-orange-500 text-orange-500 scale-110 ring-4 ring-orange-500/20",
                     isPending &&
                       "bg-background border-muted-foreground/30 text-muted-foreground"
                   )}
@@ -114,8 +124,9 @@ export function OrderStatusTimeline({
                 <div className="mt-3 text-center max-w-25">
                   <p
                     className={cn(
-                      "text-xs font-medium transition-colors",
-                      (isCompleted || isCurrent) && "text-primary",
+                      "text-xs font-semibold transition-colors",
+                      isCompleted && "text-primary",
+                      isCurrent && "text-orange-500",
                       isPending && "text-muted-foreground"
                     )}
                   >
@@ -158,7 +169,7 @@ export function OrderStatusTimeline({
                   isCompleted &&
                     "bg-primary border-primary text-primary-foreground",
                   isCurrent &&
-                    "bg-primary/10 border-primary text-primary scale-110",
+                    "bg-orange-500/10 border-orange-500 text-orange-500 scale-110 ring-4 ring-orange-500/20",
                   isPending &&
                     "bg-background border-muted-foreground/30 text-muted-foreground"
                 )}
@@ -173,8 +184,9 @@ export function OrderStatusTimeline({
               <div className="pb-6 pt-1">
                 <p
                   className={cn(
-                    "text-sm font-medium transition-colors",
-                    (isCompleted || isCurrent) && "text-foreground",
+                    "text-sm font-semibold transition-colors",
+                    isCompleted && "text-foreground",
+                    isCurrent && "text-orange-500",
                     isPending && "text-muted-foreground"
                   )}
                 >
@@ -195,6 +207,6 @@ export function OrderStatusTimeline({
           );
         })}
       </div>
-    </SharedCard>
+    </div>
   );
 }

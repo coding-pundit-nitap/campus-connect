@@ -21,7 +21,9 @@ export async function GET() {
         where: { shop_id: shopId, deleted_at: null },
       }),
       prisma.category.count({
-        where: { shop_id: shopId },
+        where: {
+          products: { some: { shop_id: shopId, deleted_at: null } },
+        },
       }),
       prisma.order.count({
         where: { shop_id: shopId },

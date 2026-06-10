@@ -19,6 +19,7 @@ import {
   Shop,
 } from "@/generated/client";
 import {
+  DeliveryAddressSnapshot,
   OrderWithDetails,
   SearchResult,
   SerializedOrder,
@@ -76,6 +77,8 @@ export const serializeOrder = (order: Order): SerializedOrder => {
       ? transformDateToLocaleString(order.actual_delivery_time)
       : undefined,
     upi_transaction_id: order.upi_transaction_id ?? "",
+    delivery_address_snapshot:
+      order.delivery_address_snapshot as DeliveryAddressSnapshot,
   };
 };
 export const orderWithDetailsInclude = {
@@ -103,7 +106,6 @@ export const orderWithDetailsInclude = {
       status: true,
     },
   },
-  delivery_address: true,
   user: {
     select: {
       id: true,
@@ -133,17 +135,6 @@ export const serializeOrderWithDetails = (
       name: order.user?.name || "Unknown",
       phone: order.user?.phone || "Unknown",
     },
-    delivery_address: order.delivery_address
-      ? {
-          ...order.delivery_address,
-          created_at: transformDateToLocaleString(
-            order.delivery_address.created_at
-          ),
-          updated_at: transformDateToLocaleString(
-            order.delivery_address.updated_at
-          ),
-        }
-      : null,
   };
 };
 

@@ -139,8 +139,8 @@ export function UserAddressForm({
   };
 
   return (
-    <Card className="p-6 bg-card/40 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-indigo-500/[0.02] relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-purple-500 to-pink-500" />
+    <Card className="p-6 bg-card/40 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.02] relative overflow-hidden">
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <div className="mb-6">
         <h3 className="text-lg font-bold tracking-tight text-foreground">
           Add New Address
@@ -164,7 +164,7 @@ export function UserAddressForm({
                   <Input
                     placeholder="e.g., Home, Dorm, Office"
                     {...field}
-                    className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
+                    className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
                   />
                 </FormControl>
                 <FormMessage className="text-xs font-semibold text-rose-500" />
@@ -180,7 +180,7 @@ export function UserAddressForm({
                 <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex justify-between">
                   <span>Building / Hostel Address</span>
                   {allowedBuildings.length > 0 && (
-                    <span className="text-[10px] text-indigo-500 tracking-tight lowercase font-medium">
+                    <span className="text-[10px] text-blue-600 tracking-tight lowercase font-medium">
                       Shop delivery limits active
                     </span>
                   )}
@@ -193,7 +193,7 @@ export function UserAddressForm({
                       value={inputValue}
                       onChange={handleInputChange}
                       onFocus={() => setIsOpen(true)}
-                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium pr-10"
+                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium pr-10"
                     />
                   </FormControl>
                   <Search className="absolute right-3.5 top-3.5 h-4 w-4 text-muted-foreground/50" />
@@ -253,7 +253,7 @@ export function UserAddressForm({
                       value={field.value ?? ""}
                       readOnly={allowedBuildings.length > 0}
                       className={cn(
-                        "h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium",
+                        "h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium",
                         allowedBuildings.length > 0 &&
                           "opacity-75 bg-muted/10 cursor-not-allowed"
                       )}
@@ -276,7 +276,7 @@ export function UserAddressForm({
                     <Input
                       placeholder="e.g., 101, A-204"
                       {...field}
-                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
+                      className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
                     />
                   </FormControl>
                   <FormMessage className="text-xs font-semibold text-rose-500" />
@@ -296,7 +296,7 @@ export function UserAddressForm({
                 <FormControl>
                   <Textarea
                     placeholder="Any additional instructions for delivery (e.g. drop at lobby, ring bell)..."
-                    className="resize-none bg-muted/20 border-border/50 hover:border-border focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
+                    className="resize-none bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/50 font-medium"
                     rows={3}
                     {...field}
                   />
@@ -317,7 +317,7 @@ export function UserAddressForm({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                       field.onChange(e.target.checked)
                     }
-                    className="h-5 w-5 rounded-md border-border/50 text-indigo-600 focus:ring-indigo-500/20 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500"
+                    className="h-5 w-5 rounded-md border-border/50 text-blue-600 focus:ring-blue-600/20 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                   />
                 </FormControl>
                 <div className="space-y-0.5 leading-none">
@@ -346,7 +346,7 @@ export function UserAddressForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="h-11 min-w-[130px] rounded-xl font-semibold bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-indigo-500/10 disabled:opacity-50"
+              className="h-11 min-w-[130px] rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 active:scale-95 transition-all duration-300 text-white shadow-lg shadow-orange-500/10 disabled:opacity-50"
             >
               {isSubmitting ? "Adding..." : "Add Address"}
             </Button>

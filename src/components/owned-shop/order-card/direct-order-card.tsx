@@ -11,7 +11,6 @@ import {
   useStartDirectDelivery,
 } from "@/hooks/queries/useBatch";
 import { formatCurrency } from "@/lib/utils/currency";
-import { safeParseAddress } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 import { SwipeableOrderCard } from "./swipeable-order-card";
@@ -66,8 +65,6 @@ export function DirectOrderCard({
     });
   };
 
-  const snapshot = safeParseAddress(order);
-
   const CardContent = (
     <div className="p-4 md:p-6 flex flex-col gap-4">
       <div className="flex justify-between items-start">
@@ -110,25 +107,26 @@ export function DirectOrderCard({
       </div>
 
       <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-        {snapshot && (
-          <>
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-              <div className="text-sm">
-                <span className="font-medium">
-                  {snapshot.hostel_block || snapshot.building}
-                </span>
-                <p className="text-muted-foreground">{snapshot.room_number}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">
-                {order.user?.phone || "No phone provided"}
+        <>
+          <div className="flex items-start gap-2">
+            <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+            <div className="text-sm">
+              <span className="font-medium">
+                {order.delivery_address_snapshot?.hostel_block ||
+                  order.delivery_address_snapshot?.building}
               </span>
+              <p className="text-muted-foreground">
+                {order.delivery_address_snapshot?.room_number}
+              </p>
             </div>
-          </>
-        )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Phone className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {order.user?.phone || "No phone provided"}
+            </span>
+          </div>
+        </>
       </div>
 
       <div className="space-y-1 mt-2">

@@ -42,7 +42,11 @@ export function CartDrawer() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button
+          variant="outline"
+          size="icon"
+          className="relative h-10 w-10 rounded-xl border bg-card hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs flex items-center justify-center hover:text-primary hover:border-primary/50"
+        >
           <CartIcon totalItems={cartState.summary?.totalItems || 0} />
         </Button>
       </SheetTrigger>

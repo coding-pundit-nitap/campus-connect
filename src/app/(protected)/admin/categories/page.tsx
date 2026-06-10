@@ -11,7 +11,7 @@ import { SharedCard } from "@/components/shared/shared-card";
 
 export const metadata: Metadata = {
   title: "Categories Overview | Admin Dashboard",
-  description: "View and manage product categories across all shops",
+  description: "View and manage product categories globally",
 };
 
 export default async function AdminCategoriesPage({
@@ -61,7 +61,7 @@ export default async function AdminCategoriesPage({
           </h1>
         </div>
         <p className="text-muted-foreground">
-          View all product categories across shops
+          View all global product categories
         </p>
       </div>
 
@@ -73,7 +73,7 @@ export default async function AdminCategoriesPage({
             contentClassName=""
           >
             <div className="text-2xl font-bold">{stats.totalCategories}</div>
-            <p className="text-xs text-muted-foreground">Across all shops</p>
+            <p className="text-xs text-muted-foreground">Globally available</p>
           </SharedCard>
           <SharedCard
             title="With Products"

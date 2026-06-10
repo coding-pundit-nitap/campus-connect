@@ -19,18 +19,13 @@ import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
 
-const getCategoriesSchema = searchSchema.extend({
-  shop_id: z.string().optional(),
-});
+const getCategoriesSchema = searchSchema;
 
 export type CategoryEntry = {
   id: string;
   name: string;
   productCount: number;
-  shop: {
-    id: string;
-    name: string;
-  };
+  shopCount: number;
 };
 
 export async function getAllCategoriesAction(
@@ -44,19 +39,12 @@ export async function getAllCategoriesAction(
       throw new BadRequestError("Invalid options");
     }
 
-    const { limit, cursor, search, shop_id } = parsedData.data;
+    const { limit, cursor, search } = parsedData.data;
 
     const where: Prisma.CategoryWhereInput = {};
 
-    if (shop_id) {
-      where.shop_id = shop_id;
-    }
-
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { shop: { name: { contains: search, mode: "insensitive" } } },
-      ];
+      where.name = { contains: search, mode: "insensitive" };
     }
 
     const categories = await prisma.category.findMany({
@@ -68,16 +56,14 @@ export async function getAllCategoriesAction(
       select: {
         id: true,
         name: true,
-        shop: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         _count: {
           select: {
             products: true,
           },
+        },
+        products: {
+          select: { shop_id: true },
+          distinct: ["shop_id"],
         },
       },
     });
@@ -92,7 +78,7 @@ export async function getAllCategoriesAction(
           id: cat.id,
           name: cat.name,
           productCount: cat._count.products,
-          shop: cat.shop,
+          shopCount: cat.products.length,
         })),
         nextCursor,
         hasMore,
@@ -136,16 +122,10 @@ export async function getCategoryStatsAction(): Promise<
     ).length;
     const emptyCategories = totalCategories - categoriesWithProducts;
 
-    const categoryNameCounts = new Map<string, number>();
-    for (const cat of categories) {
-      const current = categoryNameCounts.get(cat.name) ?? 0;
-      categoryNameCounts.set(cat.name, current + cat._count.products);
-    }
-
-    const topCategories = [...categoryNameCounts.entries()]
-      .sort((a, b) => b[1] - a[1])
+    const topCategories = categories
+      .sort((a, b) => b._count.products - a._count.products)
       .slice(0, 5)
-      .map(([name, count]) => ({ name, count }));
+      .map((cat) => ({ name: cat.name, count: cat._count.products }));
 
     return createSuccessResponse(
       {

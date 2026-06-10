@@ -42,20 +42,20 @@ function HotDealsFeed({
   isAddingToCart,
 }: HotDealsFeedProps) {
   return (
-    <div className="w-full mb-8 relative">
+    <div className="w-full mb-8 relative animate-fade-in">
       <div className="flex items-center justify-between mb-4 px-4 md:px-1">
         <div className="flex items-center gap-2">
-          <div className="bg-red-500/10 dark:bg-red-500/20 text-red-500 p-2 rounded-full animate-pulse">
+          <div className="bg-gradient-to-tr from-red-500 to-orange-500 text-white p-2 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.35)] animate-pulse">
             <Flame className="h-5 w-5 fill-current" />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-1.5">
+            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Hot Deals
-              <span className="text-xs bg-red-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider animate-bounce">
+              <span className="text-[10px] bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider animate-bounce shadow-xs">
                 Save Big
               </span>
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground font-sans font-medium">
               Top discounts curated just for you
             </p>
           </div>
@@ -69,7 +69,7 @@ function HotDealsFeed({
         </Link>
       </div>
 
-      <div className="w-full flex items-stretch overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 py-2 px-4 md:px-1">
+      <div className="w-full flex items-stretch overflow-x-auto scrollbar-none snap-x snap-mandatory gap-5 py-2 px-4 md:px-1">
         {deals.map((product, index) => (
           <div
             key={product.id}

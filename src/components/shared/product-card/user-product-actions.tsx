@@ -29,7 +29,7 @@ export function UserProductActions({
         className={cn(
           "w-full font-bold transition-all duration-300 cursor-pointer rounded-lg relative overflow-hidden group/btn",
           !isOutOfStock &&
-            "bg-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-lg hover:shadow-indigo-500/20 active:scale-98 border-none"
+            "bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/10 hover:shadow-lg hover:shadow-orange-500/20 active:scale-95 border-none"
         )}
         disabled={isOutOfStock || isAddingToCart}
         onClick={(e) => {

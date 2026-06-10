@@ -60,9 +60,9 @@ export default function OrderDetailsInfo({ order }: Props) {
   return (
     <div className="space-y-4 col-span-1">
       {showOtp && (
-        <Card className="py-4 border-2 border-green-500 bg-green-50 dark:bg-green-950/20">
+        <Card className="py-4 rounded-xl border-2 border-green-500 bg-green-500/5 dark:bg-green-950/10 shadow-xs">
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2 font-heading font-black text-green-700 dark:text-green-400">
               <Key className="h-5 w-5 text-green-600" />
               Delivery OTP
             </CardTitle>
@@ -76,7 +76,7 @@ export default function OrderDetailsInfo({ order }: Props) {
                 {delivery_otp.split("").map((digit, i) => (
                   <div
                     key={i}
-                    className="w-12 h-14 flex items-center justify-center bg-white dark:bg-gray-900 border-2 border-green-500 rounded-lg text-2xl font-bold text-green-700 dark:text-green-400"
+                    className="w-12 h-14 flex items-center justify-center bg-card border-2 border-green-500 dark:border-green-600 rounded-xl text-2xl font-black text-green-700 dark:text-green-400 shadow-sm animate-pulse"
                   >
                     {digit}
                   </div>
@@ -87,7 +87,7 @@ export default function OrderDetailsInfo({ order }: Props) {
         </Card>
       )}
 
-      <Card className="py-4">
+      <Card className="py-5 rounded-xl border border-border/60 bg-muted/10 shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg">Delivery Information</CardTitle>
         </CardHeader>
@@ -96,7 +96,9 @@ export default function OrderDetailsInfo({ order }: Props) {
             {items?.[0].product.shop?.name || "Unknown"}
           </InfoRow>
           <InfoRow Icon={MapPin} label="Delivery Address">
-            {delivery_address_snapshot}
+            {delivery_address_snapshot.hostel_block} Building:
+            {delivery_address_snapshot.building} Room:{" "}
+            {delivery_address_snapshot.room_number}
           </InfoRow>
 
           {requested_delivery_time && (
@@ -140,7 +142,7 @@ export default function OrderDetailsInfo({ order }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="py-4">
+      <Card className="py-5 rounded-xl border border-border/60 bg-muted/10 shadow-xs">
         <CardHeader>
           <CardTitle className="text-lg">Payment Information</CardTitle>
         </CardHeader>

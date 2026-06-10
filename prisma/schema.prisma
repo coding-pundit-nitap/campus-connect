@@ -234,7 +234,6 @@ model Shop {
   orders             Order[]
   payouts            Payout[]
   carts              Cart[]
-  categories         Category[]
   batches            Batch[]
   batch_slots        BatchSlot[]
   user               User?                  @relation("owned_shop")
@@ -247,14 +246,10 @@ model Shop {
 
 model Category {
   id   String @id @default(cuid())
-  name String
+  name String @unique
 
   // Relations
-  shop_id  String
-  shop     Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
   products Product[]
-
-  @@unique([shop_id, name])
 }
 
 model Product {
@@ -306,7 +301,6 @@ model UserAddress {
   // Relations
   user_id String
   user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  orders  Order[]
 
   @@index([user_id])
   @@index([hostel_block])
@@ -410,7 +404,7 @@ model Order {
   pg_payment_id             String?       @unique
   pg_refund_id              String?       @unique
   upi_transaction_id        String?
-  delivery_address_snapshot String
+  delivery_address_snapshot Json
   requested_delivery_time   DateTime?
   estimated_delivery_time   DateTime?
   actual_delivery_time      DateTime?
@@ -431,8 +425,6 @@ model Order {
   batch_id            String?
   batch               Batch?       @relation(fields: [batch_id], references: [id])
   items               OrderItem[]
-  delivery_address_id String?
-  delivery_address    UserAddress? @relation(fields: [delivery_address_id], references: [id], onDelete: SetNull)
 
   @@index([user_id])
   @@index([shop_id])

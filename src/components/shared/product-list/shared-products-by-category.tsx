@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import React from "react";
 
 import {
@@ -40,11 +41,20 @@ function CategorySection({
         </div>
       </div>
 
-      <ProductGrid>
+      <ProductGrid count={products.length}>
         {products.map((product, index) => (
-          <div key={product.id} className="animate-fade-in">
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 400,
+              damping: 30,
+            }}
+          >
             {renderProductCard(product, index)}
-          </div>
+          </motion.div>
         ))}
       </ProductGrid>
     </section>

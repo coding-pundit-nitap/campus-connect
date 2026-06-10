@@ -23,7 +23,7 @@ export function ShopCardDetails() {
         <CardTitle className="line-clamp-1 text-lg font-extrabold tracking-tight">
           <Link
             href={`/shops/${shop.id}` as Route}
-            className="text-foreground transition-colors duration-300 hover:text-indigo-600 dark:hover:text-indigo-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400"
+            className="text-foreground transition-colors duration-300 hover:text-orange-500 dark:hover:text-orange-400 group-hover:text-orange-500 dark:group-hover:text-orange-400"
           >
             {shop.name}
           </Link>
@@ -36,15 +36,15 @@ export function ShopCardDetails() {
         />
       </CardHeader>
 
-      <CardContent className="flex-1 space-y-2.5 p-0 pt-2 border-t border-muted/65">
+      <CardContent className="flex-1 space-y-2.5 p-0 pt-2 border-t border-border/20">
         <div className="flex items-center text-xs text-muted-foreground font-medium transition-colors duration-300 hover:text-foreground">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/25 dark:text-indigo-400 mr-2.5 shrink-0">
+          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 mr-2.5 shrink-0 border border-blue-500/5">
             <MapPin className="h-3.5 w-3.5" />
           </div>
           <span className="line-clamp-1">{shop.location}</span>
         </div>
         <div className="flex items-center text-xs text-muted-foreground font-medium transition-colors duration-300 hover:text-foreground">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 dark:bg-amber-500/25 dark:text-amber-400 mr-2.5 shrink-0">
+          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-500 mr-2.5 shrink-0 border border-amber-500/5">
             <Clock className="h-3.5 w-3.5" />
           </div>
           <span>
@@ -52,7 +52,7 @@ export function ShopCardDetails() {
           </span>
         </div>
         <div className="flex items-center text-xs text-muted-foreground font-medium transition-colors duration-300 hover:text-foreground">
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-rose-500/10 text-rose-500 dark:bg-rose-500/25 dark:text-rose-400 mr-2.5 shrink-0">
+          <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 mr-2.5 shrink-0 border border-rose-500/5">
             <User className="h-3.5 w-3.5" />
           </div>
           <span className="line-clamp-1 font-semibold">

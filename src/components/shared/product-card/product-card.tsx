@@ -40,7 +40,7 @@ function ProductCardFrame({
 }: ProductCardFrameProps) {
   const frameClasses =
     variant === "elevated"
-      ? "overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-lg"
+      ? "group overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-lg"
       : "group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-shadow duration-300 hover:shadow-xl";
 
   return <div className={frameClasses}>{children}</div>;

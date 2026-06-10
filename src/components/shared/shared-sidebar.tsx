@@ -21,6 +21,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/cn";
 
 /**
  * Configuration interface for navigation items in the sidebar.
@@ -154,35 +155,53 @@ export default function SharedSidebar({
     }
 
     if (header.customContent) {
-      return <SidebarHeader>{header.customContent}</SidebarHeader>;
+      return (
+        <SidebarHeader className="p-4 border-b border-border/50">
+          {header.customContent}
+        </SidebarHeader>
+      );
     }
 
     const HeaderIcon = header.icon;
     const content = (
       <>
-        {HeaderIcon && <HeaderIcon />}
-        <div className="grid flex-1 text-left text-sm leading-tight">
-          <span className="truncate font-semibold">{header.title}</span>
+        {HeaderIcon && (
+          <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0 shadow-xs">
+            <HeaderIcon className="w-5 h-5" />
+          </div>
+        )}
+        <div className="grid flex-1 text-left leading-tight">
+          <span className="truncate font-heading font-black tracking-tight text-foreground text-sm leading-none">
+            {header.title}
+          </span>
           {header.subtitle && (
-            <span className="truncate text-xs">{header.subtitle}</span>
+            <span className="truncate text-[9px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1 leading-none">
+              {header.subtitle}
+            </span>
           )}
         </div>
       </>
     );
 
     return (
-      <SidebarHeader>
+      <SidebarHeader className="p-4 border-b border-border/40 mb-3 bg-muted/20">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={() => setOpenMobile(false)}
               size="lg"
               asChild
+              className="hover:bg-primary/5 active:scale-[0.99] transition-all duration-200 rounded-xl h-12"
             >
               {header.href ? (
-                <Link href={header.href}>{content}</Link>
+                <Link
+                  href={header.href}
+                  className="flex items-center gap-3 w-full"
+                >
+                  {content}
+                </Link>
               ) : (
-                <div className="flex items-center gap-2">{content}</div>
+                <div className="flex items-center gap-3 w-full">{content}</div>
               )}
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -201,19 +220,30 @@ export default function SharedSidebar({
           asChild
           isActive={isActive}
           tooltip={item.title}
-          className={isActive ? activeClassName : ""}
+          className={cn(
+            "transition-all duration-200 hover:scale-[1.02] active:scale-98 font-bold border-2 border-transparent rounded-xl h-10 px-3",
+            isActive
+              ? "bg-primary text-primary-foreground border-primary shadow-[2.5px_2.5px_0px_0px_#F97316] hover:bg-primary hover:text-primary-foreground font-black"
+              : "hover:bg-muted hover:text-foreground text-muted-foreground",
+            activeClassName
+          )}
           onClick={() => setOpenMobile(false)}
         >
           <Link
             href={item.url as Route}
-            className="flex items-center justify-between"
+            className="flex items-center justify-between w-full"
             target={item.external ? "_blank" : undefined}
             rel={item.external ? "noopener noreferrer" : undefined}
             aria-current={isActive ? "page" : undefined}
           >
-            <div className="flex items-center gap-2">
-              <ItemIcon className="h-4 w-4" />
-              <span>{item.title}</span>
+            <div className="flex items-center gap-2.5">
+              <ItemIcon
+                className={cn(
+                  "h-4 w-4 shrink-0 transition-transform duration-200",
+                  isActive ? "scale-110" : "opacity-80"
+                )}
+              />
+              <span className="text-[13px] tracking-tight">{item.title}</span>
               {item.external && (
                 <span className="sr-only">(opens in new tab)</span>
               )}
@@ -221,7 +251,12 @@ export default function SharedSidebar({
             {item.badge && (
               <Badge
                 variant={item.badgeVariant || "destructive"}
-                className="ml-auto h-5 w-5 flex items-center justify-center p-0 text-xs"
+                className={cn(
+                  "ml-auto h-5 px-1.5 min-w-5 flex items-center justify-center text-[10px] font-bold rounded-md border-none",
+                  isActive
+                    ? "bg-orange-500 text-white dark:bg-orange-600"
+                    : "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400"
+                )}
                 aria-label={`${item.title} has ${item.badge} items`}
               >
                 {item.badge}
@@ -267,13 +302,20 @@ export default function SharedSidebar({
   }
 
   return (
-    <Sidebar className={className}>
+    <Sidebar
+      className={cn(
+        "border-r border-border/60 bg-sidebar/85 backdrop-blur-md",
+        className
+      )}
+    >
       {Header()}
-      <SidebarContent>
+      <SidebarContent className="px-2 space-y-1">
         {displayGroups.map((group, index) => (
           <SidebarGroup key={group.label || index}>
             {group.label && (
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarGroupLabel className="font-heading font-black uppercase tracking-wider text-[10px] text-muted-foreground/85 px-3 mb-2 mt-1">
+                {group.label}
+              </SidebarGroupLabel>
             )}
             <SidebarGroupContent>
               <SidebarMenu>
@@ -283,7 +325,7 @@ export default function SharedSidebar({
               </SidebarMenu>
             </SidebarGroupContent>
             {index < displayGroups.length - 1 && (
-              <SidebarSeparator className="my-2" />
+              <SidebarSeparator className="my-3 opacity-60" />
             )}
           </SidebarGroup>
         ))}

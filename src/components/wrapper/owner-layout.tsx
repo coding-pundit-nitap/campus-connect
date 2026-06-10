@@ -29,12 +29,18 @@ export function OwnerLayout({ children }: OwnerLayoutProps) {
       <AppSidebar footer={null} />
       <SidebarInset>
         <div className="flex flex-col items-center justify-center w-full min-h-screen bg-sidebar-background/5">
-          <header className="sticky top-0 z-50 flex w-full h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur-md px-4 supports-backdrop-filter:bg-background/60">
-            <SidebarTrigger className="-ml-1 text-foreground" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="ml-auto flex items-center gap-2">
+          <header className="sticky top-0 z-50 flex w-full h-16 shrink-0 items-center gap-3 border-b border-border/40 bg-background/80 backdrop-blur-lg px-4 md:px-6 shadow-xs relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-50">
+            <SidebarTrigger className="-ml-1 text-foreground h-10 w-10 rounded-xl border bg-card hover:bg-muted hover:border-primary/50 hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs [&_svg]:h-5 [&_svg]:w-5 flex items-center justify-center" />
+            <Separator
+              orientation="vertical"
+              className="mr-1 h-4 hidden sm:block opacity-60"
+            />
+            <div className="ml-auto flex items-center gap-2.5">
               <OrderNotificationBell />
-              <ThemeToggleContainer />
+              <ThemeToggleContainer
+                variant="outline"
+                className="h-10 w-10 rounded-xl border bg-card hover:bg-muted hover:border-primary/50 hover:text-primary transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs flex items-center justify-center"
+              />
             </div>
           </header>
           <main className="flex flex-1 p-4 flex-col w-full overflow-y-auto bg-background/30">

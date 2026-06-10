@@ -82,7 +82,7 @@ export function CategoriesTable({
           <TableHeader>
             <TableRow>
               <TableHead>Category Name</TableHead>
-              <TableHead>Shop</TableHead>
+              <TableHead>Shops Using</TableHead>
               <TableHead>Products</TableHead>
             </TableRow>
           </TableHeader>
@@ -102,7 +102,10 @@ export function CategoriesTable({
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{category.shop.name}</Badge>
+                    <Badge variant="outline">
+                      {category.shopCount} shop
+                      {category.shopCount !== 1 ? "s" : ""}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge

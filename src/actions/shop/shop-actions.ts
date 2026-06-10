@@ -172,7 +172,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
     }
 
     const values = parsedData.data;
-    await categoryServices.cleanupEmptyCategories(shop_id);
+    await categoryServices.cleanupEmptyCategories();
 
     const { image, qr_image, ...rest } = values;
 

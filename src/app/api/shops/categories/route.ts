@@ -1,5 +1,4 @@
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { categoryServices } from "@/services/category/category.service";
 import dbSearchService from "@/services/search/db-search.service";
 import {
@@ -24,7 +23,6 @@ export async function GET(request: Request) {
           image_key: "",
           subtitle: "category",
           type: "category",
-          shop_id: category.shop_id,
         })
       );
       return jsonResponse(
@@ -36,11 +34,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const shopId = await authUtils.getOwnedShopId();
-
     const esResponse = await dbSearchService.searchCategories({
       query: query.trim(),
-      shopId: shopId ?? undefined,
       limit: 10,
     });
 
@@ -50,7 +45,6 @@ export async function GET(request: Request) {
       image_key: "",
       subtitle: "category",
       type: "category",
-      shop_id: category.shop_id,
     }));
 
     return jsonResponse(

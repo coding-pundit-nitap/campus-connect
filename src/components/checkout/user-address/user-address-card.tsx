@@ -31,7 +31,7 @@ export function UserAddressCard({
     <Card
       className={`p-4 cursor-pointer relative overflow-hidden transition-all duration-300 hover:translate-y-[-2px] border bg-card/40 backdrop-blur-md ${
         isSelected
-          ? "ring-2 ring-indigo-500/50 bg-indigo-500/[0.03] border-indigo-500 shadow-lg shadow-indigo-500/[0.05]"
+          ? "ring-2 ring-blue-600/50 bg-blue-600/[0.03] border-blue-600 shadow-lg shadow-blue-500/[0.05]"
           : "border-border/40 hover:border-border/80 shadow-sm hover:shadow-md"
       }`}
       onClick={() => onSelect?.(address)}
@@ -41,7 +41,7 @@ export function UserAddressCard({
           {onSelect && (
             <div className="shrink-0 mt-1">
               {isSelected ? (
-                <div className="h-5 w-5 rounded-full bg-violet-600 flex items-center justify-center shadow shadow-indigo-500/30 transition-transform duration-300 scale-100">
+                <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center shadow shadow-blue-600/30 transition-transform duration-300 scale-100">
                   <Check className="h-3 w-3 text-white stroke-[3.5]" />
                 </div>
               ) : (
@@ -66,7 +66,7 @@ export function UserAddressCard({
               {address.hostel_block && (
                 <Badge
                   variant="outline"
-                  className="text-[10px] font-bold px-1.5 py-0 bg-indigo-500/5 text-indigo-500 border-indigo-500/20"
+                  className="text-[10px] font-bold px-1.5 py-0 bg-blue-600/5 text-blue-600 border-blue-600/20"
                 >
                   {address.hostel_block}
                 </Badge>
@@ -91,7 +91,7 @@ export function UserAddressCard({
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs font-semibold text-indigo-500 hover:text-indigo-600 hover:bg-indigo-500/5 px-2.5 py-1 h-8 rounded-lg"
+              className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:bg-blue-600/5 px-2.5 py-1 h-8 rounded-lg"
               onClick={(e) => {
                 e.stopPropagation();
                 onSetDefault(address.id);

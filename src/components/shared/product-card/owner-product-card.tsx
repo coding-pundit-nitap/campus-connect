@@ -28,7 +28,7 @@ export function OwnerProductCard({
 }: OwnerProductCardProps) {
   return (
     <ProductCardProvider product={product} priority={index < 4}>
-      <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-lg">
+      <Card className="group overflow-hidden transition-shadow duration-300 hover:shadow-lg">
         <CardHeader className="p-0">
           <ProductCardImage />
         </CardHeader>

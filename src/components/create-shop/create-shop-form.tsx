@@ -234,21 +234,28 @@ export function CreateShopForm() {
   return (
     <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-12 py-8 px-4 sm:px-6">
       <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-lg font-bold">
+            <AlertDialogTitle className="text-lg font-bold tracking-tight text-foreground">
               Resume previous setup?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-sm text-muted-foreground leading-relaxed">
+            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed font-medium">
               We found an unfinished draft for your shop setup. Would you like
               to resume where you left off or start fresh?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0 mt-4">
-            <AlertDialogCancel onClick={handleDiscard} className="sm:mr-2">
+          <AlertDialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border/10 pt-3">
+            <AlertDialogCancel
+              onClick={handleDiscard}
+              className="h-10 px-5 rounded-xl border-border/60 font-semibold cursor-pointer"
+            >
               Start Fresh
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRestore}>
+            <AlertDialogAction
+              onClick={handleRestore}
+              className="h-10 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white cursor-pointer border-none shadow shadow-orange-500/10"
+            >
               Resume Setup
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -258,30 +265,30 @@ export function CreateShopForm() {
       <div className="hidden md:block md:col-span-4 lg:col-span-3 space-y-8">
         <div className="sticky top-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-black font-heading tracking-tight text-foreground">
               Create Shop
             </h1>
-            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed font-medium">
               Set up your store and delivery details in 5 simple steps.
             </p>
           </div>
 
           <div className="space-y-2 mb-8">
-            <div className="flex justify-between text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+            <div className="flex justify-between text-[10px] font-bold tracking-wider text-muted-foreground/80 uppercase">
               <span>Progress</span>
               <span>{Math.round((step / 5) * 100)}%</span>
             </div>
             <Progress
               value={(step / 5) * 100}
-              className="h-1.5 bg-muted rounded-full"
+              className="h-1.5 bg-muted rounded-full [&_div]:bg-gradient-to-r [&_div]:from-blue-600 [&_div]:to-orange-500"
             />
-            <p className="text-[10px] text-muted-foreground/80 mt-1">
+            <p className="text-[10px] text-muted-foreground/80 font-medium mt-1">
               {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
             </p>
           </div>
 
           <nav className="relative flex flex-col gap-6 pl-2">
-            <div className="absolute left-4.5 top-2 bottom-2 w-[1.5px] bg-border pointer-events-none" />
+            <div className="absolute left-4.5 top-2 bottom-2 w-[1.5px] bg-border/40 pointer-events-none" />
 
             {STEPS_META.map((s) => {
               const isActive = step === s.num;
@@ -293,17 +300,17 @@ export function CreateShopForm() {
                   key={s.num}
                   className={cn(
                     "relative flex items-start gap-4 transition-all duration-200",
-                    isActive ? "opacity-100" : "opacity-60"
+                    isActive ? "opacity-100" : "opacity-60 hover:opacity-80"
                   )}
                 >
                   <div
                     className={cn(
-                      "z-10 flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all",
+                      "z-10 flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all duration-300",
                       isCompleted
-                        ? "border-emerald-600 bg-emerald-500/10 text-emerald-600 dark:border-emerald-500 dark:bg-emerald-500/10 dark:text-emerald-400"
+                        ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
                         : isActive
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-background text-muted-foreground"
+                          ? "border-orange-500 bg-orange-500/10 text-orange-500 scale-110 shadow-lg shadow-orange-500/[0.08]"
+                          : "border-border/60 bg-muted/20 text-muted-foreground/60"
                     )}
                   >
                     {isCompleted ? (
@@ -315,8 +322,10 @@ export function CreateShopForm() {
                   <div className="flex flex-col">
                     <span
                       className={cn(
-                        "text-xs font-semibold leading-tight",
-                        isActive ? "text-foreground" : "text-muted-foreground"
+                        "text-xs font-semibold leading-tight transition-colors duration-200",
+                        isActive
+                          ? "text-foreground font-bold"
+                          : "text-muted-foreground"
                       )}
                     >
                       {s.title}
@@ -337,22 +346,23 @@ export function CreateShopForm() {
           <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">
             {activeMeta.title}
           </span>
-          <span className="text-muted-foreground text-[10px] font-semibold">
+          <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
             {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
           </span>
         </div>
         <Progress
           value={(step / 5) * 100}
-          className="h-1.5 bg-muted rounded-full"
+          className="h-1.5 bg-muted rounded-full [&_div]:bg-gradient-to-r [&_div]:from-blue-600 [&_div]:to-orange-500"
         />
       </div>
 
       <div className="md:col-span-8 lg:col-span-9 col-span-12">
-        <div className="bg-card rounded-xl border border-border/80 shadow-xs overflow-hidden">
+        <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 shadow-xl shadow-blue-500/[0.01] overflow-hidden relative flex flex-col h-full min-h-[500px]">
+          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
           <Form {...form}>
             <form
               onSubmit={handlers.onSubmit}
-              className="flex flex-col h-full min-h-125"
+              className="flex flex-col h-full min-h-[500px] justify-between"
             >
               <div className="p-6 sm:p-8 flex-1 space-y-6">
                 {step === 1 && (
@@ -361,24 +371,24 @@ export function CreateShopForm() {
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Shop Details
                       </h2>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
                         Identify your shop so customers can locate you easily.
                       </p>
                     </div>
-                    <Separator className="opacity-80" />
+                    <Separator className="bg-border/40" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Shop Name
                             </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="E.g., Midnight Munchies, Block A Canteen"
-                                className="shadow-xs h-9.5 text-sm"
+                                className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/40 font-semibold text-sm"
                                 {...field}
                               />
                             </FormControl>
@@ -394,17 +404,19 @@ export function CreateShopForm() {
                         name="description"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Description
                             </FormLabel>
                             <FormControl>
-                              <RichTextEditor
-                                value={field.value || ""}
-                                onChange={field.onChange}
-                                onBlur={field.onBlur}
-                                placeholder="Write details about your menu, specialties, or standard canteen hours..."
-                                disabled={field.disabled || isSubmitting}
-                              />
+                              <div className="focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/10 rounded-xl overflow-hidden border border-border/50 transition-all duration-300">
+                                <RichTextEditor
+                                  value={field.value || ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  placeholder="Write details about your menu, specialties, or standard canteen hours..."
+                                  disabled={field.disabled || isSubmitting}
+                                />
+                              </div>
                             </FormControl>
                             <FormDescription className="text-[11px] text-muted-foreground/80 flex justify-between">
                               <span>
@@ -428,25 +440,25 @@ export function CreateShopForm() {
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Hours & Location
                       </h2>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
                         Help campus students know when you are open and where to
                         pick up orders.
                       </p>
                     </div>
-                    <Separator className="opacity-80" />
+                    <Separator className="bg-border/40" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
                         name="location"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Location / Pickup Point
                             </FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="E.g., Block A ground floor common room, Main Street"
-                                className="shadow-xs h-9.5 text-sm"
+                                className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/40 font-semibold text-sm"
                                 {...field}
                               />
                             </FormControl>
@@ -464,17 +476,17 @@ export function CreateShopForm() {
                           name="opening"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-semibold text-foreground">
+                              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Opening Time
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="time"
-                                  className="shadow-xs h-9.5 text-sm"
+                                  className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                                   {...field}
                                 />
                               </FormControl>
-                              <FormDescription className="text-[10px] text-muted-foreground">
+                              <FormDescription className="text-[10px] text-muted-foreground font-semibold">
                                 E.g., 07:00 AM
                               </FormDescription>
                               <FormMessage />
@@ -486,17 +498,17 @@ export function CreateShopForm() {
                           name="closing"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-semibold text-foreground">
+                              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Closing Time
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="time"
-                                  className="shadow-xs h-9.5 text-sm"
+                                  className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                                   {...field}
                                 />
                               </FormControl>
-                              <FormDescription className="text-[10px] text-muted-foreground">
+                              <FormDescription className="text-[10px] text-muted-foreground font-semibold">
                                 E.g., 08:00 PM
                               </FormDescription>
                               <FormMessage />
@@ -514,12 +526,12 @@ export function CreateShopForm() {
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Fees & Schedule
                       </h2>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
                         Configure minimum baskets, standard delivery rates, and
                         schedules.
                       </p>
                     </div>
-                    <Separator className="opacity-80" />
+                    <Separator className="bg-border/40" />
                     <div className="space-y-5">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <FormField
@@ -527,7 +539,7 @@ export function CreateShopForm() {
                           name="min_order_value"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-semibold text-foreground">
+                              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Minimum Order Value (₹)
                               </FormLabel>
                               <FormControl>
@@ -535,7 +547,7 @@ export function CreateShopForm() {
                                   type="number"
                                   min={0}
                                   step="1"
-                                  className="shadow-xs h-9.5 text-sm"
+                                  className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                                   value={field.value ?? 50}
                                   onChange={(e) =>
                                     field.onChange(
@@ -556,7 +568,7 @@ export function CreateShopForm() {
                           name="default_delivery_fee"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs font-semibold text-foreground">
+                              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                                 Batch Delivery Fee (₹)
                               </FormLabel>
                               <FormControl>
@@ -564,7 +576,7 @@ export function CreateShopForm() {
                                   type="number"
                                   min={0}
                                   step="1"
-                                  className="shadow-xs h-9.5 text-sm"
+                                  className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                                   value={field.value ?? 0}
                                   onChange={(e) => {
                                     const value = e.currentTarget.valueAsNumber;
@@ -587,7 +599,7 @@ export function CreateShopForm() {
                         name="direct_delivery_fee"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Direct Delivery Fee (₹)
                             </FormLabel>
                             <FormControl>
@@ -595,7 +607,7 @@ export function CreateShopForm() {
                                 type="number"
                                 min={0}
                                 step="1"
-                                className="shadow-xs h-9.5 text-sm"
+                                className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                                 value={field.value ?? 0}
                                 onChange={(e) => {
                                   const value = e.currentTarget.valueAsNumber;
@@ -617,7 +629,7 @@ export function CreateShopForm() {
                         name="batch_slots"
                         render={({ field }) => (
                           <FormItem className="pt-2">
-                            <FormLabel className="text-xs font-bold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Delivery Batch Schedule
                             </FormLabel>
                             <FormDescription className="text-[11px] text-muted-foreground/80 mb-2">
@@ -625,7 +637,7 @@ export function CreateShopForm() {
                               you only run direct delivery.
                             </FormDescription>
                             <FormControl>
-                              <div className="rounded-lg border border-border/80 p-4 bg-muted/5 shadow-2xs">
+                              <div className="rounded-xl border border-border/30 p-4 bg-muted/20 shadow-inner">
                                 <BatchCardsEditor
                                   value={field.value || []}
                                   onChange={field.onChange}
@@ -647,12 +659,12 @@ export function CreateShopForm() {
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Shop Image
                       </h2>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
                         Upload a banner logo or store graphic to brand your
                         portal.
                       </p>
                     </div>
-                    <Separator className="opacity-80" />
+                    <Separator className="bg-border/40" />
                     <div className="space-y-5">
                       <FormField
                         control={form.control}
@@ -685,26 +697,26 @@ export function CreateShopForm() {
                       <h2 className="text-lg font-bold tracking-tight text-foreground">
                         Payments Setup
                       </h2>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-muted-foreground mt-1 font-medium">
                         Provide your billing info so campus students can pay you
                         online.
                       </p>
                     </div>
-                    <Separator className="opacity-80" />
+                    <Separator className="bg-border/40" />
                     <div className="space-y-6">
                       <FormField
                         control={form.control}
                         name="upi_id"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               UPI ID
                             </FormLabel>
                             <FormControl>
                               <Input
                                 {...field}
                                 type="text"
-                                className="shadow-xs h-9.5 text-sm font-mono"
+                                className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-mono text-sm uppercase tracking-wider placeholder:text-muted-foreground/40 font-semibold"
                                 placeholder="e.g. merchant@ybl, canteenname@okaxis"
                               />
                             </FormControl>
@@ -721,7 +733,7 @@ export function CreateShopForm() {
                         name="qr_image"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-xs font-semibold text-foreground">
+                            <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                               Billing QR Code
                             </FormLabel>
                             <FormControl>
@@ -746,13 +758,13 @@ export function CreateShopForm() {
                 )}
               </div>
 
-              <div className="p-6 sm:p-8 bg-muted/5 border-t border-border/80 flex items-center justify-between mt-auto">
+              <div className="p-6 sm:p-8 bg-muted/10 border-t border-border/20 flex items-center justify-between mt-auto">
                 {step > 1 ? (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="shadow-2xs text-xs font-medium h-9 px-4"
+                    className="h-11 px-6 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer"
                   >
                     Back
                   </Button>
@@ -761,15 +773,13 @@ export function CreateShopForm() {
                 )}
 
                 <div className="flex items-center gap-4">
-                  <FormMessage className="text-xs">
-                    {form.formState.errors.root?.message}
-                  </FormMessage>
+                  <FormMessage className="text-xs" />
 
                   {step < 5 && (
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="shadow-2xs text-xs font-semibold h-9 px-5 bg-primary text-primary-foreground hover:bg-primary/95"
+                      className="h-11 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-blue-500 hover:opacity-90 text-white text-xs shadow shadow-blue-500/10 cursor-pointer border-none"
                     >
                       Continue
                     </Button>
@@ -779,7 +789,7 @@ export function CreateShopForm() {
                       <Button
                         type="submit"
                         disabled={isSubmitting || isLoading}
-                        className="shadow-2xs text-xs font-bold h-9.5 px-6 bg-primary text-primary-foreground hover:bg-primary/95"
+                        className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] text-white shadow-lg shadow-orange-500/25 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
                       >
                         {isSubmitting || isLoading
                           ? "Launching portal..."

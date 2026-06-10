@@ -46,7 +46,10 @@ export function UserAddressListEmpty({
         description="Add a delivery address to continue with your order."
         icon={<MapPin className="h-12 w-12" />}
         action={
-          <Button onClick={onAddNewAddress}>
+          <Button
+            onClick={onAddNewAddress}
+            className="bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 active:scale-95 transition-all text-white border-none cursor-pointer"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Address
           </Button>

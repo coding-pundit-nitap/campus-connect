@@ -44,27 +44,26 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
             control={form.control}
             name="min_order_value"
             render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-semibold">
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Minimum Order Value
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold text-sm">
                       ₹
                     </span>
                     <Input
                       type="number"
                       placeholder="50"
-                      className="pl-8 h-10 border-input bg-background font-medium focus-visible:ring-1"
+                      className="pl-8 h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[11px] leading-normal">
-                  Minimum cart subtotal required for a customer to place an
-                  order.
+                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                  Minimum cart subtotal required for a customer to checkout.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -76,26 +75,26 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
             control={form.control}
             name="default_delivery_fee"
             render={({ field }) => (
-              <FormItem className="space-y-2">
-                <FormLabel className="text-sm font-semibold">
-                  Default Delivery Fee
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Batch Delivery Fee
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold text-sm">
                       ₹
                     </span>
                     <Input
                       type="number"
                       placeholder="0"
-                      className="pl-8 h-10 border-input bg-background font-medium focus-visible:ring-1"
+                      className="pl-8 h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[11px] leading-normal">
-                  Standard delivery charge applied for regular batch deliveries.
+                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                  Standard delivery charge applied for scheduled batch slots.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -107,27 +106,26 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
             control={form.control}
             name="direct_delivery_fee"
             render={({ field }) => (
-              <FormItem className="space-y-2 md:col-span-2">
-                <FormLabel className="text-sm font-semibold">
+              <FormItem className="space-y-1.5 md:col-span-2">
+                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Direct Delivery Fee
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold text-sm">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold text-sm">
                       ₹
                     </span>
                     <Input
                       type="number"
                       placeholder="0"
-                      className="pl-8 h-10 border-input bg-background font-medium focus-visible:ring-1"
+                      className="pl-8 h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
                       {...field}
                       onChange={(e) => field.onChange(Number(e.target.value))}
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[11px] leading-normal">
-                  Delivery surcharge applied when customers bypass batching to
-                  request immediate delivery.
+                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                  Immediate, non-batched delivery surcharge.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -136,10 +134,16 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
         </div>
 
         {/* Submit & Cancel Buttons */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t">
-          <Button type="button" variant="outline" disabled={isSaving} asChild>
+        <div className="flex items-center justify-end gap-3 pt-5 border-t border-border/40 mt-6">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSaving}
+            asChild
+            className="h-11 px-5 rounded-xl border-border/60 hover:bg-muted/40 font-semibold text-xs cursor-pointer transition-all hover:scale-102 active:scale-98"
+          >
             <Link href="/owner-shops">
-              <ArrowLeft className="mr-1.5 h-4 w-4" />
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
               Cancel
             </Link>
           </Button>
@@ -147,16 +151,16 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
           <Button
             type="submit"
             disabled={isSaving}
-            className="font-semibold px-5"
+            className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 text-white shadow shadow-orange-500/15 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
           >
             {isSaving ? (
               <>
-                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                Saving...
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                Saving settings...
               </>
             ) : (
               <>
-                <Save className="mr-1.5 h-4 w-4" />
+                <Save className="mr-1.5 h-3.5 w-3.5" />
                 Save Settings
               </>
             )}

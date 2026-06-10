@@ -88,15 +88,15 @@ export function OrderNotificationBell() {
     <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="relative h-9 w-9 rounded-full"
+          className="relative h-10 w-10 rounded-xl border bg-card hover:bg-muted transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs flex items-center justify-center hover:text-primary hover:border-primary/50"
         >
           <Bell className="h-5 w-5" />
           {displayCount > 0 && (
             <Badge
-              variant="destructive"
-              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+              variant="outline"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px] font-black bg-orange-500 text-white border-2 border-background shadow-xs hover:bg-orange-600 transition-colors"
             >
               {displayCount > 9 ? "9+" : displayCount}
             </Badge>

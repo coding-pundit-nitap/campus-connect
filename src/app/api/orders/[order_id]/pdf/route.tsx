@@ -8,7 +8,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { createErrorResponse } from "@/types";
+import { createErrorResponse, DeliveryAddressSnapshot } from "@/types";
 
 export async function GET(
   request: NextRequest,
@@ -80,6 +80,9 @@ export async function GET(
       return acc + discountedPrice * item.quantity;
     }, 0);
 
+    const deliveryAddress: DeliveryAddressSnapshot =
+      order.delivery_address_snapshot as DeliveryAddressSnapshot;
+
     const receiptData: OrderReceiptData = {
       displayId: order.display_id,
       createdAt: new Date(order.created_at).toLocaleString("en-IN", {
@@ -95,7 +98,7 @@ export async function GET(
         name: order.shop?.name || "Unknown Shop",
         location: order.shop?.location || "",
       },
-      deliveryAddress: order.delivery_address_snapshot || "",
+      deliveryAddress,
       requestedDeliveryTime: order.requested_delivery_time
         ? new Date(order.requested_delivery_time).toLocaleString("en-IN", {
             dateStyle: "medium",

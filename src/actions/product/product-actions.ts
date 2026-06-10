@@ -42,10 +42,7 @@ export async function createProductAction(
 
     const parsedData = productActionSchema.parse(formData);
 
-    const category = await categoryRepository.findOrCreate(
-      parsedData.category,
-      shop_id
-    );
+    const category = await categoryRepository.findOrCreate(parsedData.category);
 
     const { image, name, price, stock_quantity, description, discount } =
       parsedData;
@@ -131,10 +128,7 @@ export async function updateProductAction(
 
     let category: Category | null = null;
     if (parsedData.category) {
-      category = await categoryRepository.findOrCreate(
-        parsedData.category,
-        shop_id
-      );
+      category = await categoryRepository.findOrCreate(parsedData.category);
     }
 
     const { image, name, price, stock_quantity, description, discount } =
@@ -316,8 +310,7 @@ export async function bulkCreateProductsAction(
       let category = null;
       if (productData.category && productData.category.trim()) {
         category = await categoryRepository.findOrCreate(
-          productData.category.trim(),
-          shop_id
+          productData.category.trim()
         );
       }
 

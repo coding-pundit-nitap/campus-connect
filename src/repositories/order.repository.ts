@@ -187,10 +187,10 @@ class OrderRepository {
     };
 
     if (hostelBlock) {
-      where.delivery_address =
-        hostelBlock === "UNASSIGNED"
-          ? { hostel_block: null }
-          : { hostel_block: hostelBlock };
+      where.delivery_address_snapshot = {
+        string_contains: hostelBlock,
+        mode: "insensitive",
+      };
     }
 
     if (orderStatus) {
@@ -209,7 +209,7 @@ class OrderRepository {
         { display_id: { contains: searchTerm, mode: "insensitive" } },
         {
           delivery_address_snapshot: {
-            contains: searchTerm,
+            string_contains: searchTerm,
             mode: "insensitive",
           },
         },

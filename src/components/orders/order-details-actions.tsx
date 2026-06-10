@@ -54,7 +54,7 @@ export default function OrderDetailsActions({ order }: Props) {
   };
 
   return (
-    <Card className="py-4">
+    <Card className="py-5 rounded-xl border border-border/60 bg-muted/10 shadow-xs">
       <CardHeader>
         <CardTitle className="text-lg">Need Help?</CardTitle>
         <CardDescription>
@@ -63,14 +63,22 @@ export default function OrderDetailsActions({ order }: Props) {
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row">
         {shopId ? (
-          <Button variant="outline" className="flex-1 gap-2" asChild>
+          <Button
+            variant="outline"
+            className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-xs border-2 hover:border-primary/50 hover:text-primary"
+            asChild
+          >
             <Link href={`/shops/${shopId}` as Route}>
               <Store className="h-4 w-4" />
               {shopName ?? "View Restaurant"}
             </Link>
           </Button>
         ) : (
-          <Button variant="outline" className="flex-1 gap-2" disabled>
+          <Button
+            variant="outline"
+            className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-xs border-2"
+            disabled
+          >
             <Phone className="h-4 w-4" />
             Contact Restaurant
           </Button>
@@ -81,7 +89,7 @@ export default function OrderDetailsActions({ order }: Props) {
             <AlertDialogTrigger asChild>
               <Button
                 variant="destructive"
-                className="flex-1 gap-2"
+                className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-xs border-2 border-transparent bg-destructive hover:bg-destructive/90"
                 disabled={isPending}
               >
                 {isPending ? (
@@ -102,13 +110,16 @@ export default function OrderDetailsActions({ order }: Props) {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={isPending}>
+                <AlertDialogCancel
+                  disabled={isPending}
+                  className="rounded-xl border-2 hover:bg-muted transition-all duration-200"
+                >
                   Keep Order
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleCancel}
                   disabled={isPending}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="rounded-xl border-2 border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs"
                 >
                   {isPending ? (
                     <>

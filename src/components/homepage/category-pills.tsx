@@ -14,21 +14,18 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
   const { data: categories = [], isLoading, isError } = useActiveCategories();
 
   return (
-    <div className="relative w-full h-14 min-h-[56px] flex items-center mb-6">
-      <div className="absolute left-0 top-0 bottom-0 w-8 bg-transparent z-10 pointer-events-none hidden md:block" />
-      <div className="absolute right-0 top-0 bottom-0 w-8 bg-transparent z-10 pointer-events-none hidden md:block" />
-
-      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-2.5 py-1 px-4 md:px-1">
+    <div className="relative w-full h-16 min-h-[64px] flex items-center mb-6">
+      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-3 py-2 px-4 md:px-1">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}
-              className="h-9 w-20 md:w-24 rounded-full bg-muted/65 animate-pulse shrink-0 snap-start"
+              className="h-10 w-24 rounded-xl bg-muted/65 animate-pulse shrink-0 snap-start border border-muted"
             />
           ))
         ) : isError ? (
-          <div className="flex items-center gap-2 px-4 text-xs text-red-500">
-            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          <div className="flex items-center gap-2 px-4 text-xs font-bold text-red-500">
+            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse" />
             <span>Error loading categories</span>
           </div>
         ) : (
@@ -36,13 +33,13 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
             <button
               onClick={() => onChange(null)}
               className={cn(
-                "h-9 px-5 rounded-full text-xs font-semibold shrink-0 snap-start transition-all duration-300 active:scale-95 flex items-center justify-center border",
+                "h-10 px-5 rounded-xl text-[11px] font-heading font-black uppercase tracking-wider shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 cursor-pointer",
                 selectedId === null
-                  ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-[1.02] font-bold"
-                  : "bg-card/45 backdrop-blur-sm border-muted/80 text-muted-foreground hover:text-foreground hover:bg-card hover:border-muted-foreground/30 shadow-sm"
+                  ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_#F97316] scale-[1.01]"
+                  : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:-translate-y-[1px]"
               )}
             >
-              All
+              All Categories
             </button>
 
             {categories.map((category) => {
@@ -52,10 +49,10 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
                   key={category.id}
                   onClick={() => onChange(category.id)}
                   className={cn(
-                    "h-9 px-5 rounded-full text-xs font-semibold shrink-0 snap-start transition-all duration-300 active:scale-95 flex items-center justify-center border capitalize",
+                    "h-10 px-5 rounded-xl text-[11px] font-heading font-black uppercase tracking-wider shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 capitalize cursor-pointer",
                     isActive
-                      ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-[1.02] font-bold"
-                      : "bg-card/45 backdrop-blur-sm border-muted/80 text-muted-foreground hover:text-foreground hover:bg-card hover:border-muted-foreground/30 shadow-sm"
+                      ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_#F97316] scale-[1.01]"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:-translate-y-[1px]"
                   )}
                 >
                   {category.title}

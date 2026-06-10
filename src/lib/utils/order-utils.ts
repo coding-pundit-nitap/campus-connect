@@ -6,70 +6,6 @@
 
 import type { SerializedOrderWithDetails } from "@/types";
 
-/* ─── Address Snapshot ─── */
-
-export interface AddressSnapshot {
-  hostel_block?: string | null;
-  building?: string | null;
-  room_number?: string | null;
-}
-
-// Regex hoisted to module level per `js-hoist-regexp` rule
-const ADDRESS_FALLBACK_REGEX =
-  /^\s*(?<building>.*?)(?:,\s*Room\s*(?<room>.+))?\s*$/i;
-
-/**
- * Safely parse delivery address from an order. Handles:
- * - Populated `delivery_address` relation
- * - Valid JSON snapshot string
- * - Fallback regex for plain-text snapshot
- * - Null/undefined/malformed data
- */
-export function safeParseAddress(
-  order: SerializedOrderWithDetails
-): AddressSnapshot {
-  // Prefer the hydrated relation if available
-  if (order.delivery_address) {
-    return {
-      hostel_block: order.delivery_address.hostel_block,
-      building: order.delivery_address.building,
-      room_number: order.delivery_address.room_number,
-    };
-  }
-
-  // Try JSON parse on snapshot
-  if (order.delivery_address_snapshot) {
-    try {
-      const parsed = JSON.parse(order.delivery_address_snapshot);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch {
-      // Fallback: regex-parse plain-text address
-      const match = order.delivery_address_snapshot.match(
-        ADDRESS_FALLBACK_REGEX
-      );
-      if (match?.groups) {
-        return {
-          building: match.groups.building || null,
-          room_number: match.groups.room || null,
-        };
-      }
-    }
-  }
-
-  return {};
-}
-
-/* ─── Display Helpers ─── */
-
-export function getHostel(order: SerializedOrderWithDetails): string {
-  const a = safeParseAddress(order);
-  return a.hostel_block || a.building || "Other";
-}
-
-export function getRoom(order: SerializedOrderWithDetails): string {
-  return safeParseAddress(order).room_number || "N/A";
-}
-
 export function getItemsText(order: SerializedOrderWithDetails): string {
   return order.items.map((i) => `${i.quantity}× ${i.product.name}`).join(", ");
 }
@@ -82,7 +18,10 @@ export function groupByHostel(
 ): Record<string, SerializedOrderWithDetails[]> {
   const groups: Record<string, SerializedOrderWithDetails[]> = {};
   for (const order of orders) {
-    const key = getHostel(order);
+    const key =
+      order.delivery_address_snapshot?.hostel_block ||
+      order.delivery_address_snapshot?.building ||
+      "Other";
     (groups[key] ||= []).push(order);
   }
   return groups;

@@ -16,29 +16,19 @@ class CategoryRepository {
     return prisma.category.findUnique(query);
   }
 
-  async findByNameAndShop(
+  async findByName(
     name: string,
-    shop_id: string,
     options?: CategoryFindOptions
   ): Promise<Category | null> {
     const query = {
-      where: {
-        shop_id_name: {
-          shop_id: shop_id,
-          name: name,
-        },
-      },
+      where: { name },
       ...(options ?? {}),
     };
     return prisma.category.findUnique(query);
   }
 
-  async findManyByShopId(
-    shop_id: string,
-    options?: CategoryFindManyOptions
-  ): Promise<Category[]> {
-    const query = { where: { shop_id }, ...(options ?? {}) };
-    return prisma.category.findMany(query);
+  async findAll(options?: CategoryFindManyOptions): Promise<Category[]> {
+    return prisma.category.findMany({ ...(options ?? {}) });
   }
 
   async searchCategory(
@@ -71,25 +61,19 @@ class CategoryRepository {
     return prisma.category.delete({ where: { id: category_id } });
   }
 
-  async findOrCreate(name: string, shop_id: string): Promise<Category> {
-    const existingCategory = await this.findByNameAndShop(name, shop_id);
+  async findOrCreate(name: string): Promise<Category> {
+    const existingCategory = await this.findByName(name);
 
     if (existingCategory) {
       return existingCategory;
     }
 
-    return this.create({
-      name,
-      shop: {
-        connect: { id: shop_id },
-      },
-    });
+    return this.create({ name });
   }
 
-  async deleteEmptyCategories(shop_id?: string): Promise<string[]> {
+  async deleteEmptyCategories(): Promise<string[]> {
     const emptyCategories = await prisma.category.findMany({
       where: {
-        ...(shop_id && { shop_id }),
         products: {
           none: {},
         },

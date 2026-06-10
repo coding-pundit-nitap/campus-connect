@@ -29,7 +29,6 @@ import {
   useVerifyDeliveryOtp,
 } from "@/hooks/queries/useBatch";
 import { formatCurrency } from "@/lib/utils/currency";
-import { getHostel, safeParseAddress } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 export function DeliveryRunView() {
@@ -95,7 +94,10 @@ export function DeliveryRunView() {
 
   const groups: Record<string, SerializedOrderWithDetails[]> = {};
   orders.forEach((order: SerializedOrderWithDetails) => {
-    const block = getHostel(order);
+    const block =
+      order.delivery_address_snapshot?.hostel_block ||
+      order.delivery_address_snapshot?.building ||
+      "Other";
     if (!groups[block]) groups[block] = [];
     groups[block].push(order);
   });
@@ -207,8 +209,6 @@ export function DeliveryRunView() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blockOrders.map((order: SerializedOrderWithDetails) => {
-              const snapshot = safeParseAddress(order);
-
               const isCompleted = order.order_status === "COMPLETED";
 
               return (
@@ -239,7 +239,9 @@ export function DeliveryRunView() {
                           )}
                         </div>
                         <div className="text-sm font-semibold text-foreground/80 mt-1">
-                          Room {snapshot?.room_number || "N/A"}
+                          Room{" "}
+                          {order.delivery_address_snapshot?.room_number ||
+                            "N/A"}
                         </div>
                         <div className="text-xs text-muted-foreground mt-0.5">
                           {order.user?.name} • {order.user?.phone}

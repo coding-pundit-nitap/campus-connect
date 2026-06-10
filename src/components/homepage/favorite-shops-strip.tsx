@@ -30,46 +30,57 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
   return (
     <Link
       href={`/shops/${shop.id}`}
-      className="flex flex-col items-center gap-1.5 shrink-0 snap-start group relative"
+      className="flex flex-col items-center gap-2 shrink-0 snap-start group relative"
     >
-      <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border border-muted bg-card overflow-hidden shadow-sm flex items-center justify-center transition-all duration-300 group-hover:scale-105 group-hover:shadow-md group-hover:border-primary/30">
-        {shop.image_key ? (
-          <Image
-            src={ImageUtils.getImageUrl(shop.image_key)}
-            alt={shop.name}
-            fill
-            sizes="(max-width: 768px) 64px, 80px"
-            className={cn(
-              "object-cover transition-transform duration-500 group-hover:scale-110",
-              !open && "grayscale contrast-75 brightness-75"
-            )}
-          />
-        ) : (
-          <div
-            className={cn(
-              "w-full h-full flex items-center justify-center bg-violet-500/10 text-primary",
-              !open && "grayscale"
-            )}
-          >
-            <Store className="w-6 h-6 md:w-8 md:h-8" />
-          </div>
+      <div
+        className={cn(
+          "relative w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-card border-2 border-border p-3 flex flex-col items-center justify-between transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 cursor-pointer shadow-xs hover:shadow-md",
+          open
+            ? "hover:border-emerald-500/50 hover:shadow-emerald-500/5 dark:hover:shadow-emerald-950/20"
+            : "hover:border-red-500/50 hover:shadow-red-500/5 dark:hover:shadow-red-950/20"
         )}
+      >
+        {/* Shop Avatar */}
+        <div className="relative w-12 h-12 md:w-14 md:h-14 overflow-hidden rounded-xl border border-muted bg-muted/20 flex items-center justify-center">
+          {shop.image_key ? (
+            <Image
+              src={ImageUtils.getImageUrl(shop.image_key)}
+              alt={shop.name}
+              fill
+              sizes="(max-width: 768px) 48px, 56px"
+              className={cn(
+                "object-cover transition-transform duration-500 group-hover:scale-108",
+                !open && "grayscale contrast-75 brightness-75"
+              )}
+            />
+          ) : (
+            <Store
+              className={cn(
+                "w-6 h-6 text-muted-foreground transition-colors group-hover:text-primary",
+                !open && "grayscale"
+              )}
+            />
+          )}
+        </div>
 
-        {!open ? (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-            <span className="text-[10px] md:text-xs text-white font-extrabold tracking-wider uppercase bg-red-500/80 px-1 rounded-sm">
-              Closed
-            </span>
-          </div>
-        ) : null}
+        {/* Shop Title */}
+        <span className="text-[11px] md:text-xs font-heading font-black text-center text-foreground max-w-full truncate block capitalize tracking-wide leading-tight">
+          {shop.name}
+        </span>
+
+        {/* Status Pill */}
+        {open ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Open
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-[9px] font-black uppercase tracking-wider select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+            Closed
+          </span>
+        )}
       </div>
-
-      <span className="text-[11px] md:text-xs font-semibold text-center text-muted-foreground group-hover:text-foreground transition-colors max-w-[72px] md:max-w-[88px] truncate block capitalize">
-        {shop.name}
-      </span>
-      {open ? (
-        <span className="absolute top-0 right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 border border-background shadow-xs shadow-emerald-500 animate-pulse" />
-      ) : null}
     </Link>
   );
 }
@@ -77,18 +88,15 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
 function FavoriteShopsSkeleton() {
   return (
     <div className="w-full mb-6 relative px-4 md:px-1">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="h-5 w-24 bg-muted rounded-md animate-pulse" />
+      <div className="flex items-center gap-2 mb-4">
+        <div className="h-6 w-32 bg-muted rounded-md animate-pulse" />
       </div>
-      <div className="w-full flex items-center overflow-x-auto scrollbar-none gap-5 py-1">
+      <div className="w-full flex items-center overflow-x-auto scrollbar-none gap-4 py-1.5">
         {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={index}
-            className="flex flex-col items-center gap-2 shrink-0"
-          >
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted/65 animate-pulse" />
-            <div className="h-3 w-12 bg-muted/65 rounded-md animate-pulse" />
-          </div>
+            className="w-28 h-28 md:w-32 md:h-32 rounded-2xl bg-muted/50 border border-muted animate-pulse shrink-0"
+          />
         ))}
       </div>
     </div>
@@ -111,27 +119,33 @@ interface FavoriteShopsFeedProps {
 function FavoriteShopsFeed({ favorites }: FavoriteShopsFeedProps) {
   return (
     <div className="w-full mb-6 relative">
-      <div className="flex items-center justify-between mb-3 px-4 md:px-1">
+      <div className="flex items-center justify-between mb-4 px-4 md:px-1">
         <div className="flex items-center gap-2">
-          <div className="bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 p-1.5 rounded-full">
-            <Heart className="h-4 w-4 fill-rose-500 text-rose-500" />
+          <div className="bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 p-2 rounded-full">
+            <Heart className="h-5 w-5 fill-rose-500 text-rose-500" />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-sm font-bold tracking-tight text-foreground">
+            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Favorite Canteens
+              <span className="text-[10px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Saved
+              </span>
             </h2>
+            <p className="text-xs text-muted-foreground font-sans font-medium">
+              Quick access to canteens you love
+            </p>
           </div>
         </div>
 
         <Link
           href={"/favorites" as Route}
-          className="text-[11px] font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all duration-300 flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 active:scale-95 shadow-xs cursor-pointer"
         >
           Manage →
         </Link>
       </div>
 
-      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-5 py-1.5 px-4 md:px-1">
+      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 py-1.5 px-4 md:px-1">
         {favorites.slice(0, 8).map((fav) => (
           <CanteenCircleCard key={fav.shop.id} shop={fav.shop} />
         ))}
@@ -154,27 +168,33 @@ interface ExploreCanteensFeedProps {
 function ExploreCanteensFeed({ shops }: ExploreCanteensFeedProps) {
   return (
     <div className="w-full mb-6 relative">
-      <div className="flex items-center justify-between mb-3 px-4 md:px-1">
+      <div className="flex items-center justify-between mb-4 px-4 md:px-1">
         <div className="flex items-center gap-2">
-          <div className="bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 p-1.5 rounded-full">
-            <Sparkles className="h-4 w-4 text-amber-500 fill-amber-500/10" />
+          <div className="bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 p-2 rounded-full">
+            <Sparkles className="h-5 w-5 text-amber-500 fill-amber-500/10" />
           </div>
           <div className="flex flex-col">
-            <h2 className="text-sm font-bold tracking-tight text-foreground">
+            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Explore Canteens
+              <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                Discover
+              </span>
             </h2>
+            <p className="text-xs text-muted-foreground font-sans font-medium">
+              Order from popular canteens on campus
+            </p>
           </div>
         </div>
 
         <Link
           href="/shops"
-          className="text-[11px] font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-all duration-300 flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 active:scale-95 shadow-xs cursor-pointer"
         >
           See All →
         </Link>
       </div>
 
-      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-5 py-1.5 px-4 md:px-1">
+      <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-4 py-1.5 px-4 md:px-1">
         {shops.slice(0, 8).map((shop) => (
           <CanteenCircleCard key={shop.id} shop={shop} />
         ))}

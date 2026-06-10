@@ -11,6 +11,7 @@ import { getShopOrderUrl } from "@/lib/utils/url.utils";
 import { platformSettingsRepository } from "@/repositories";
 import orderRepository from "@/repositories/order.repository";
 import { notificationService } from "@/services/notification/notification.service";
+import { DeliveryAddressSnapshot } from "@/types";
 
 type GetOrdersOptions = {
   page?: number;
@@ -270,7 +271,12 @@ class OrderService {
       const platformFee = await platformSettingsRepository.getPlatformFee();
       const totalPrice = itemTotal + deliveryFee + platformFee;
 
-      const delivery_address_snapshot = `${deliveryAddress.hostel_block ? `${deliveryAddress.hostel_block}, ` : ""}${deliveryAddress.building}, Room ${deliveryAddress.room_number}${deliveryAddress.notes ? ` (${deliveryAddress.notes})` : ""}`;
+      const delivery_address_snapshot: DeliveryAddressSnapshot = {
+        hostel_block: deliveryAddress.hostel_block,
+        building: deliveryAddress.building,
+        room_number: deliveryAddress.room_number,
+        notes: deliveryAddress.notes,
+      };
 
       const display_id = await this.generateDisplayId(tx);
 
@@ -296,7 +302,6 @@ class OrderService {
           payment_status: payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
           pg_payment_id,
           upi_transaction_id,
-          delivery_address_id,
           delivery_address_snapshot,
           requested_delivery_time,
           customer_notes,

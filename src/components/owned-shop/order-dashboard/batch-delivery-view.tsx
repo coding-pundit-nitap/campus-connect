@@ -19,7 +19,6 @@ import {
   useOrderConsoleData,
   useUpdateBatchCutoffTime,
 } from "@/hooks/queries/useBatch";
-import { getHostel } from "@/lib/utils/order-utils";
 import { SerializedOrderWithDetails } from "@/types";
 
 import { BatchOrderCard } from "../order-card/batch-order-card";
@@ -76,7 +75,10 @@ export function BatchDeliveryView() {
 
   const groups: Record<string, SerializedOrderWithDetails[]> = {};
   data.batchOrders.forEach((order: SerializedOrderWithDetails) => {
-    const block = getHostel(order);
+    const block =
+      order.delivery_address_snapshot?.hostel_block ||
+      order.delivery_address_snapshot?.building ||
+      "Other";
     if (!groups[block]) groups[block] = [];
     groups[block].push(order);
   });

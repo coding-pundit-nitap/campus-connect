@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from "framer-motion";
 import React from "react";
 
 import { useInfiniteScroll } from "@/hooks/utils/useInfiniteScroll";
@@ -57,19 +58,29 @@ export function ProductList({
 
   return (
     <div className="space-y-6">
-      <ProductGrid>
-        {products?.map((product, index) => {
-          const isLastProduct = index === products.length - 1;
-          return (
-            <div
-              key={product.id}
-              ref={isLastProduct ? lastElementRef : null}
-              className="animate-fade-in"
-            >
-              {renderProductCard(product, index)}
-            </div>
-          );
-        })}
+      <ProductGrid count={products?.length}>
+        <AnimatePresence>
+          {products?.map((product, index) => {
+            const isLastProduct = index === products.length - 1;
+            return (
+              <motion.div
+                key={product.id}
+                ref={isLastProduct ? lastElementRef : null}
+                layout
+                initial={{ opacity: 0, scale: 0.97, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.97, y: 8 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 400,
+                  damping: 30,
+                }}
+              >
+                {renderProductCard(product, index)}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </ProductGrid>
 
       <ProductListFooter

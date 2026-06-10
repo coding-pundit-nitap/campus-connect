@@ -1,5 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
+import { DeliveryAddressSnapshot } from "@/types";
+
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -136,7 +138,7 @@ export type OrderReceiptData = {
     name: string;
     location: string;
   };
-  deliveryAddress: string;
+  deliveryAddress: DeliveryAddressSnapshot;
   requestedDeliveryTime?: string;
   paymentMethod: string;
   upiTransactionId?: string;
@@ -184,7 +186,11 @@ export function OrderReceiptPDF({ data }: { data: OrderReceiptData }) {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Delivery Address:</Text>
-            <Text style={styles.value}>{data.deliveryAddress}</Text>
+            <Text style={styles.value}>
+              {data.deliveryAddress.hostel_block} Building:
+              {data.deliveryAddress.building} Room:{" "}
+              {data.deliveryAddress.room_number}
+            </Text>
           </View>
           {data.requestedDeliveryTime && (
             <View style={styles.row}>

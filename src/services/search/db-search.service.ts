@@ -30,7 +30,6 @@ export interface ShopSearchParams extends PaginationParams {
 
 export interface CategorySearchParams extends PaginationParams {
   query?: string;
-  shopId?: string;
 }
 
 export interface ProductDocument {
@@ -60,7 +59,6 @@ export interface ShopDocument {
 
 export interface CategoryDocument {
   name: string;
-  shop_id: string;
 }
 
 export interface DBSearchResult<T> {
@@ -240,18 +238,9 @@ class DBSearchService {
   async searchCategories(
     params: CategorySearchParams
   ): Promise<DBSearchResult<CategoryDocument>> {
-    const {
-      query,
-      shopId,
-      page = DEFAULT_PAGE,
-      limit = DEFAULT_LIMIT,
-    } = params;
+    const { query, page = DEFAULT_PAGE, limit = DEFAULT_LIMIT } = params;
 
     const where: Prisma.CategoryWhereInput = {};
-
-    if (shopId) {
-      where.shop_id = shopId;
-    }
 
     if (query && query.trim()) {
       const trimmed = query.trim();
@@ -271,7 +260,6 @@ class DBSearchService {
     const hits = categories.map((category) => ({
       id: category.id,
       name: category.name,
-      shop_id: category.shop_id,
     }));
 
     return {
@@ -315,10 +303,9 @@ class DBSearchService {
       ...categoryResults.hits.map((category) => ({
         id: category.id,
         title: category.name,
-        subtitle: category.shop_id,
+        subtitle: "category",
         type: "category" as const,
         image_key: null,
-        shop_id: category.shop_id,
       })),
     ];
 

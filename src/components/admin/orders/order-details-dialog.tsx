@@ -152,7 +152,7 @@ export function OrderDetailsDialog({
 
           <Separator />
 
-          {order.delivery_address_id && (
+          {order.delivery_address_snapshot && (
             <>
               <div className="space-y-2">
                 <h3 className="font-semibold flex items-center gap-2">
@@ -160,11 +160,31 @@ export function OrderDetailsDialog({
                   Delivery Address
                 </h3>
                 <div className="text-sm space-y-1">
-                  <p className="text-muted-foreground">
-                    Address ID: {order.delivery_address_id}
-                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {order.delivery_address_snapshot}
+                    <div>
+                      <p className="text-muted-foreground">Building</p>
+                      <p className="font-medium">
+                        {order.delivery_address_snapshot?.building}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Room Number</p>
+                      <p className="font-medium">
+                        {order.delivery_address_snapshot?.room_number}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Hostel Block</p>
+                      <p className="font-medium">
+                        {order.delivery_address_snapshot?.hostel_block}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Notes</p>
+                      <p className="font-medium">
+                        {order.delivery_address_snapshot?.notes}
+                      </p>
+                    </div>
                   </p>
                 </div>
               </div>

@@ -121,6 +121,7 @@ CREATE TABLE "Shop" (
     "upi_id" TEXT NOT NULL,
     "qr_image_key" TEXT NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT false,
+    "accepting_orders" BOOLEAN NOT NULL DEFAULT true,
     "pg_seller_id" TEXT,
     "verification_status" "SellerVerificationStatus" NOT NULL DEFAULT 'NOT_STARTED',
     "deleted_at" TIMESTAMP(3),
@@ -128,7 +129,7 @@ CREATE TABLE "Shop" (
     "updated_at" TIMESTAMP(3) NOT NULL,
     "min_order_value" DECIMAL(10,2) NOT NULL DEFAULT 50.00,
     "default_delivery_fee" DECIMAL(10,2) NOT NULL DEFAULT 0,
-    "default_platform_fee" DECIMAL(10,2) NOT NULL DEFAULT 0,
+    "direct_delivery_fee" DECIMAL(10,2) NOT NULL DEFAULT 0,
 
     CONSTRAINT "Shop_pkey" PRIMARY KEY ("id")
 );
@@ -137,7 +138,6 @@ CREATE TABLE "Shop" (
 CREATE TABLE "Category" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "shop_id" TEXT NOT NULL,
 
     CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
 );
@@ -168,6 +168,7 @@ CREATE TABLE "UserAddress" (
     "label" TEXT NOT NULL,
     "hostel_block" TEXT,
     "building" TEXT NOT NULL,
+    "building_id" TEXT,
     "room_number" TEXT NOT NULL,
     "notes" TEXT,
     "is_default" BOOLEAN NOT NULL DEFAULT false,
@@ -176,6 +177,30 @@ CREATE TABLE "UserAddress" (
     "user_id" TEXT NOT NULL,
 
     CONSTRAINT "UserAddress_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Building" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "hostel_block" TEXT,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Building_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ShopDeliveryBuilding" (
+    "id" TEXT NOT NULL,
+    "shop_id" TEXT NOT NULL,
+    "building_id" TEXT NOT NULL,
+    "is_active" BOOLEAN NOT NULL DEFAULT true,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ShopDeliveryBuilding_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -225,7 +250,7 @@ CREATE TABLE "Order" (
     "pg_payment_id" TEXT,
     "pg_refund_id" TEXT,
     "upi_transaction_id" TEXT,
-    "delivery_address_snapshot" TEXT NOT NULL,
+    "delivery_address_snapshot" JSONB NOT NULL,
     "requested_delivery_time" TIMESTAMP(3),
     "estimated_delivery_time" TIMESTAMP(3),
     "actual_delivery_time" TIMESTAMP(3),
@@ -234,10 +259,10 @@ CREATE TABLE "Order" (
     "assigned_to" TEXT,
     "customer_notes" TEXT,
     "delivery_otp" TEXT,
+    "is_direct_delivery" BOOLEAN NOT NULL DEFAULT false,
     "user_id" TEXT,
     "shop_id" TEXT,
     "batch_id" TEXT,
-    "delivery_address_id" TEXT,
 
     CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
@@ -354,6 +379,15 @@ CREATE TABLE "stock_watch" (
     CONSTRAINT "stock_watch_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "platform_settings" (
+    "id" TEXT NOT NULL DEFAULT 'default',
+    "platform_fee" DECIMAL(10,2) NOT NULL DEFAULT 0,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "platform_settings_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "batch_slot_shop_id_idx" ON "batch_slot"("shop_id");
 
@@ -388,7 +422,7 @@ CREATE INDEX "Shop_verification_status_idx" ON "Shop"("verification_status");
 CREATE INDEX "Shop_deleted_at_idx" ON "Shop"("deleted_at");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Category_shop_id_name_key" ON "Category"("shop_id", "name");
+CREATE UNIQUE INDEX "Category_name_key" ON "Category"("name");
 
 -- CreateIndex
 CREATE INDEX "Product_shop_id_idx" ON "Product"("shop_id");
@@ -404,6 +438,27 @@ CREATE INDEX "UserAddress_user_id_idx" ON "UserAddress"("user_id");
 
 -- CreateIndex
 CREATE INDEX "UserAddress_hostel_block_idx" ON "UserAddress"("hostel_block");
+
+-- CreateIndex
+CREATE INDEX "UserAddress_building_id_idx" ON "UserAddress"("building_id");
+
+-- CreateIndex
+CREATE INDEX "Building_is_active_idx" ON "Building"("is_active");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Building_name_hostel_block_key" ON "Building"("name", "hostel_block");
+
+-- CreateIndex
+CREATE INDEX "ShopDeliveryBuilding_shop_id_idx" ON "ShopDeliveryBuilding"("shop_id");
+
+-- CreateIndex
+CREATE INDEX "ShopDeliveryBuilding_building_id_idx" ON "ShopDeliveryBuilding"("building_id");
+
+-- CreateIndex
+CREATE INDEX "ShopDeliveryBuilding_is_active_idx" ON "ShopDeliveryBuilding"("is_active");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ShopDeliveryBuilding_shop_id_building_id_key" ON "ShopDeliveryBuilding"("shop_id", "building_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Cart_user_id_shop_id_key" ON "Cart"("user_id", "shop_id");
@@ -517,16 +572,22 @@ ALTER TABLE "session" ADD CONSTRAINT "session_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "account" ADD CONSTRAINT "account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Category" ADD CONSTRAINT "Category_shop_id_fkey" FOREIGN KEY ("shop_id") REFERENCES "Shop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_shop_id_fkey" FOREIGN KEY ("shop_id") REFERENCES "Shop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_building_id_fkey" FOREIGN KEY ("building_id") REFERENCES "Building"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "UserAddress" ADD CONSTRAINT "UserAddress_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShopDeliveryBuilding" ADD CONSTRAINT "ShopDeliveryBuilding_shop_id_fkey" FOREIGN KEY ("shop_id") REFERENCES "Shop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ShopDeliveryBuilding" ADD CONSTRAINT "ShopDeliveryBuilding_building_id_fkey" FOREIGN KEY ("building_id") REFERENCES "Building"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Cart" ADD CONSTRAINT "Cart_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -557,9 +618,6 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_shop_id_fkey" FOREIGN KEY ("shop_id") 
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_batch_id_fkey" FOREIGN KEY ("batch_id") REFERENCES "Batch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_delivery_address_id_fkey" FOREIGN KEY ("delivery_address_id") REFERENCES "UserAddress"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_order_id_fkey" FOREIGN KEY ("order_id") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -596,5 +654,4 @@ ALTER TABLE "stock_watch" ADD CONSTRAINT "stock_watch_user_id_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "stock_watch" ADD CONSTRAINT "stock_watch_product_id_fkey" FOREIGN KEY ("product_id") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 CREATE SEQUENCE order_display_id_seq START WITH 1000 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;

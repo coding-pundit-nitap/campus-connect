@@ -1,6 +1,7 @@
 "use client";
 
 import { SharedForm } from "@/components/shared/shared-form";
+import { Button } from "@/components/ui/button";
 import { useUpdateShop } from "@/hooks";
 import { shopUIServices } from "@/lib/utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
@@ -9,9 +10,10 @@ import { ShopUpdateFormShop } from "@/types/shop.types";
 
 interface ShopEditFormProps {
   shop: ShopUpdateFormShop;
+  onCancel?: () => void;
 }
 
-export function ShopEditForm({ shop }: ShopEditFormProps) {
+export function ShopEditForm({ shop, onCancel }: ShopEditFormProps) {
   const { form, state, handlers } = useUpdateShop({
     shop,
   });
@@ -51,7 +53,19 @@ export function ShopEditForm({ shop }: ShopEditFormProps) {
         submitButton={submitButton}
         error={state.error}
         isLoading={state.isLoading || state.isSubmitting}
-      />
+      >
+        {onCancel && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={state.isLoading || state.isSubmitting}
+            className="w-full h-11 px-5 rounded-xl border-border/60 hover:bg-muted/40 font-semibold text-xs cursor-pointer transition-all duration-200 hover:scale-[1.01] active:scale-[0.99]"
+          >
+            Cancel
+          </Button>
+        )}
+      </SharedForm>
     </div>
   );
 }

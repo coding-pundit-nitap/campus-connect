@@ -60,9 +60,9 @@ export function CheckoutStepper({
                   className={cn(
                     "flex items-center justify-center w-10 h-10 rounded-xl border-2 transition-all duration-500",
                     isCompleted &&
-                      "violet-600 border-transparent text-white shadow-lg shadow-indigo-500/20",
+                      "bg-blue-600 border-transparent text-white shadow-lg shadow-blue-500/20",
                     isActive &&
-                      "border-indigo-500 bg-indigo-500/10 text-indigo-500 scale-110 shadow-lg shadow-indigo-500/[0.08]",
+                      "border-orange-500 bg-orange-500/10 text-orange-500 scale-110 shadow-lg shadow-orange-500/[0.08]",
                     !isCompleted &&
                       !isActive &&
                       "border-border/60 bg-muted/20 text-muted-foreground"
@@ -95,7 +95,7 @@ export function CheckoutStepper({
                 <div
                   className={cn(
                     "w-12 lg:w-16 h-[2px] mx-4 transition-all duration-500 rounded-full",
-                    isCompleted ? "violet-500" : "bg-border/60"
+                    isCompleted ? "bg-blue-600" : "bg-border/60"
                   )}
                 />
               )}
@@ -116,8 +116,8 @@ export function CheckoutStepper({
                 key={step.id}
                 className={cn(
                   "flex-1 h-1.5 mx-1 rounded-full transition-all duration-500",
-                  isCompleted && "violet-500",
-                  isActive && "bg-indigo-500 shadow shadow-indigo-500/30",
+                  isCompleted && "bg-blue-600",
+                  isActive && "bg-orange-500 shadow shadow-orange-500/30",
                   !isCompleted && !isActive && "bg-muted-foreground/20"
                 )}
               />
@@ -130,7 +130,7 @@ export function CheckoutStepper({
             const StepIcon = step.icon;
             return (
               <>
-                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500">
+                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-orange-500/10 text-orange-500">
                   <StepIcon className="w-4 h-4" />
                 </div>
                 <span className="text-xs font-semibold text-foreground">

@@ -4,6 +4,7 @@ import { Download, FileSpreadsheet, Loader2 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
 import { BulkProductInput } from "@/actions/product/product-actions";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -145,29 +146,48 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <FileSpreadsheet className="h-4 w-4" />
-          Bulk Import
+        <Button
+          variant="outline"
+          className="gap-2 h-11 px-6 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs transition-all duration-200 hover:scale-102 active:scale-98 cursor-pointer"
+        >
+          <FileSpreadsheet className="h-4 w-4 text-orange-500" />
+          Bulk Import Products
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Bulk Import Products</DialogTitle>
-          <DialogDescription>
-            Upload a CSV file to create multiple products at once.
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card border border-border/30 rounded-2xl shadow-2xl p-6 sm:p-8">
+        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+            Bulk Import Products
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground font-medium leading-relaxed">
+            Upload a CSV file containing your product information to import
+            multiple items.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={downloadTemplate}
-          >
-            <Download className="h-4 w-4" />
-            Download CSV Template
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 h-9 px-4 rounded-lg border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98]"
+              onClick={downloadTemplate}
+            >
+              <Download className="h-3.5 w-3.5 text-blue-600" />
+              Download CSV Template
+            </Button>
+            {products.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                Clear File
+              </Button>
+            )}
+          </div>
 
           {products.length === 0 ? (
             <SharedFileInput
@@ -182,35 +202,59 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
             />
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">
-                  {products.length} products to import
-                </p>
-                <Button variant="ghost" size="sm" onClick={handleReset}>
-                  Clear
-                </Button>
+              <div className="p-3 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.01] border border-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs rounded-xl font-semibold flex items-center justify-between">
+                <span>CSV verified successfully</span>
+                <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full text-[10px]">
+                  {products.length} Products Found
+                </span>
               </div>
 
-              <div className="border rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+              <div className="border border-border/30 rounded-xl overflow-hidden max-h-64 overflow-y-auto shadow-inner bg-muted/5">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Category</TableHead>
+                  <TableHeader className="bg-muted/20">
+                    <TableRow className="hover:bg-transparent border-b border-border/20">
+                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                        Name
+                      </TableHead>
+                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                        Price
+                      </TableHead>
+                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                        Stock
+                      </TableHead>
+                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                        Category
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {products.slice(0, 10).map((product, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium truncate max-w-[200px]">
+                      <TableRow
+                        key={index}
+                        className="hover:bg-muted/10 border-b border-border/10 transition-colors"
+                      >
+                        <TableCell className="font-semibold text-xs truncate max-w-[200px] text-foreground py-2.5">
                           {product.name}
                         </TableCell>
-                        <TableCell>₹{product.price}</TableCell>
-                        <TableCell>{product.stock_quantity}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {product.category || "-"}
+                        <TableCell className="font-bold text-xs text-foreground py-2.5">
+                          ₹{product.price}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground py-2.5">
+                          {product.stock_quantity}
+                        </TableCell>
+                        <TableCell className="py-2.5">
+                          {product.category ? (
+                            <Badge
+                              variant="outline"
+                              className="bg-indigo-500/5 text-indigo-600 border border-indigo-500/10 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[10px] rounded-full px-2 py-0"
+                            >
+                              {product.category}
+                            </Badge>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground/60 italic">
+                              -
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -219,25 +263,32 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
               </div>
 
               {products.length > 10 && (
-                <p className="text-xs text-muted-foreground text-center">
-                  Showing first 10 of {products.length} products
+                <p className="text-[10px] text-muted-foreground text-center font-medium">
+                  Showing first 10 of {products.length} products to import.
                 </p>
               )}
             </div>
           )}
 
           {parseError && (
-            <p className="text-sm text-destructive">{parseError}</p>
+            <p className="text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
+              {parseError}
+            </p>
           )}
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border/10 pt-4">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            className="h-11 px-5 rounded-xl border-border/60 font-semibold text-xs cursor-pointer"
+          >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={products.length === 0 || isPending}
+            className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white text-xs cursor-pointer border-none shadow shadow-orange-500/10 disabled:from-muted disabled:to-muted disabled:text-muted-foreground"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Import {products.length} Products

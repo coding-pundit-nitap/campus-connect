@@ -129,7 +129,7 @@ export function BatchSlotSelector({
     <Card className="border-0 bg-transparent shadow-none px-0 py-0">
       <CardHeader className="px-0 pt-0 pb-4">
         <CardTitle className="flex items-center gap-2.5 text-lg font-bold text-foreground">
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-500">
+          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-blue-600/10 text-blue-600">
             <Timer className="h-4 w-4" />
           </div>
           Select Delivery Mode
@@ -147,7 +147,7 @@ export function BatchSlotSelector({
             className={cn(
               "flex flex-col p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden bg-card/40 backdrop-blur-md hover:translate-y-[-2px]",
               isDirectDelivery
-                ? "ring-2 ring-indigo-500/50 bg-indigo-500/[0.03] border-indigo-500 shadow-lg shadow-indigo-500/[0.04]"
+                ? "ring-2 ring-orange-500/50 bg-orange-500/[0.03] border-orange-500 shadow-lg shadow-orange-500/[0.04]"
                 : "border-border/40 hover:border-border/80 shadow-sm"
             )}
           >
@@ -156,7 +156,7 @@ export function BatchSlotSelector({
                 <Package className="h-4.5 w-4.5" />
               </div>
               {isDirectDelivery && (
-                <div className="h-4.5 w-4.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                <div className="h-4.5 w-4.5 rounded-full bg-orange-500 flex items-center justify-center">
                   <div className="h-2 w-2 rounded-full bg-white" />
                 </div>
               )}
@@ -189,17 +189,17 @@ export function BatchSlotSelector({
             className={cn(
               "flex flex-col p-4 rounded-2xl border cursor-pointer transition-all duration-300 relative overflow-hidden bg-card/40 backdrop-blur-md hover:translate-y-[-2px]",
               !isDirectDelivery && selectedSlot
-                ? "ring-2 ring-indigo-500/50 bg-indigo-500/[0.03] border-indigo-500 shadow-lg shadow-indigo-500/[0.04]"
+                ? "ring-2 ring-blue-600/50 bg-blue-600/[0.03] border-blue-600 shadow-lg shadow-blue-500/[0.04]"
                 : "border-border/40 hover:border-border/80 shadow-sm",
               slots.length === 0 && "opacity-50 pointer-events-none"
             )}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-linear-to-tr from-indigo-500 to-violet-600 text-white shadow shadow-indigo-500/10">
+              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 text-white shadow shadow-blue-500/10">
                 <Clock className="h-4.5 w-4.5" />
               </div>
               {!isDirectDelivery && selectedSlot && (
-                <div className="h-4.5 w-4.5 rounded-full bg-indigo-500 flex items-center justify-center">
+                <div className="h-4.5 w-4.5 rounded-full bg-blue-600 flex items-center justify-center">
                   <div className="h-2 w-2 rounded-full bg-white" />
                 </div>
               )}
@@ -252,9 +252,9 @@ export function BatchSlotSelector({
                         key={slot.time.toISOString()}
                         variant="outline"
                         className={cn(
-                          "h-11 relative rounded-xl border border-border/50 bg-card/20 backdrop-blur-sm transition-all duration-300 font-semibold hover:border-indigo-500/40 hover:bg-muted/10 flex items-center justify-center gap-1.5 px-3 text-xs",
+                          "h-11 relative rounded-xl border border-border/50 bg-card/20 backdrop-blur-sm transition-all duration-300 font-semibold hover:border-blue-600/40 hover:bg-muted/10 flex items-center justify-center gap-1.5 px-3 text-xs",
                           isSelected &&
-                            "ring-2 ring-indigo-500/50 bg-indigo-500/[0.04] border-indigo-500 text-indigo-500 shadow-md shadow-indigo-500/[0.05]"
+                            "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
                         )}
                         onClick={() => onSlotSelect(slot.time)}
                       >
@@ -279,7 +279,7 @@ export function BatchSlotSelector({
 
         {selectedSlot && !isDirectDelivery && (
           <div className="p-3 bg-muted/20 border border-border/20 rounded-xl flex items-start gap-3">
-            <div className="h-8 w-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="h-8 w-8 rounded-lg bg-blue-600/10 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
               <Clock className="h-4 w-4" />
             </div>
             <div>

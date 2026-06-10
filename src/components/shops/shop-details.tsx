@@ -1,4 +1,12 @@
-import { Calendar, Clock, MapPin, Store, Truck, User } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  Package,
+  Store,
+  Truck,
+  User,
+} from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { FavoriteShopButton } from "@/components/shops/favorite-shop-button";
@@ -48,10 +56,11 @@ export async function ShopDetails({ shop_id }: Props) {
   });
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex flex-col gap-5 md:flex-row">
-          <Avatar className="h-24 w-24 border shadow-sm">
+    <Card className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01] overflow-hidden relative">
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
+      <CardContent className="p-6 sm:p-8">
+        <div className="flex flex-col gap-6 md:flex-row items-start">
+          <Avatar className="h-24 w-24 border border-border/20 rounded-2xl overflow-hidden shadow-md shrink-0">
             <AvatarImage
               src={shopImageUrl}
               alt={shop.name}
@@ -62,23 +71,30 @@ export async function ShopDetails({ shop_id }: Props) {
             </AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 space-y-4">
-            <div className="space-y-2">
+          <div className="flex-1 space-y-5 w-full">
+            <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="text-2xl font-black font-heading tracking-tight text-foreground mr-1">
                   {shop.name}
                 </h1>
                 <Badge
-                  variant={shop.is_active ? "default" : "destructive"}
+                  variant={shop.is_active ? "outline" : "destructive"}
                   className={
-                    shop.is_active ? "bg-green-600 hover:bg-green-600" : ""
+                    shop.is_active
+                      ? "bg-green-500/10 text-green-600 border border-green-500/20 rounded-lg text-xs font-bold"
+                      : "bg-destructive/10 text-destructive border border-destructive/20 rounded-lg text-xs font-bold"
                   }
                 >
                   {shop.is_active ? "Active" : "Inactive"}
                 </Badge>
                 <ShopStatusBadge shop={shop} />
                 <Badge
-                  variant={shop.accepting_orders ? "secondary" : "outline"}
+                  variant={shop.accepting_orders ? "outline" : "outline"}
+                  className={
+                    shop.accepting_orders
+                      ? "bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-lg text-xs font-bold"
+                      : "bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-lg text-xs font-bold"
+                  }
                 >
                   {shop.accepting_orders ? "Accepting Orders" : "Orders Paused"}
                 </Badge>
@@ -86,62 +102,91 @@ export async function ShopDetails({ shop_id }: Props) {
               </div>
 
               <div
-                className="prose prose-sm max-w-none text-muted-foreground dark:prose-invert"
+                className="prose prose-sm max-w-none text-muted-foreground/90 leading-relaxed font-medium dark:prose-invert"
                 dangerouslySetInnerHTML={{
                   __html: sanitizeHTML(shop.description),
                 }}
               />
             </div>
 
-            <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span className="text-foreground">{shop.location}</span>
+            <div className="grid gap-3.5 text-xs sm:grid-cols-2 lg:grid-cols-4 border-t border-border/10 pt-4">
+              <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 border border-blue-500/5">
+                  <MapPin className="h-4 w-4" />
+                </div>
+                <span className="text-foreground font-semibold line-clamp-1">
+                  {shop.location}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4 text-primary" />
-                <span className="text-foreground">
+              <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600 border border-amber-500/5">
+                  <Clock className="h-4 w-4" />
+                </div>
+                <span className="text-foreground font-semibold">
                   {shop.openingFormatted} - {shop.closingFormatted}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <User className="h-4 w-4 text-primary" />
-                <span className="text-foreground">By {shop.user?.name}</span>
+              <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500/10 text-rose-600 border border-rose-500/5">
+                  <User className="h-4 w-4" />
+                </div>
+                <span className="text-foreground font-semibold line-clamp-1">
+                  By {shop.user?.name || "Campus Partner"}
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground sm:col-span-2 lg:col-span-1">
-                <Calendar className="h-4 w-4 text-primary" />
-                <span className="text-foreground">Created {createdDate}</span>
+              <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
+                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/5">
+                  <Calendar className="h-4 w-4" />
+                </div>
+                <span className="text-foreground font-semibold">
+                  Joined {createdDate}
+                </span>
               </div>
             </div>
 
-            <Separator />
+            <Separator className="bg-border/20" />
 
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-md border bg-muted/30 p-3">
-                <p className="text-xs text-muted-foreground">Minimum Order</p>
-                <p className="text-base font-semibold text-foreground">
-                  {formatCurrency(shop.min_order_value)}
-                </p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/5">
+                  <Package className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                    Minimum Order
+                  </p>
+                  <p className="text-base font-extrabold text-foreground mt-0.5">
+                    {formatCurrency(shop.min_order_value)}
+                  </p>
+                </div>
               </div>
 
-              <div className="rounded-md border bg-muted/30 p-3">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Truck className="h-3.5 w-3.5" />
-                  <span>Batch Delivery Fee</span>
+              <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/5">
+                  <Truck className="h-5 w-5" />
                 </div>
-                <p className="text-base font-semibold text-foreground">
-                  {formatCurrency(shop.default_delivery_fee)}
-                </p>
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                    Batch Delivery Fee
+                  </p>
+                  <p className="text-base font-extrabold text-foreground mt-0.5">
+                    {formatCurrency(shop.default_delivery_fee)}
+                  </p>
+                </div>
               </div>
 
-              <div className="rounded-md border bg-muted/30 p-3">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Truck className="h-3.5 w-3.5" />
-                  <span>Direct Delivery Fee</span>
+              <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/5">
+                  <Truck className="h-5 w-5" />
                 </div>
-                <p className="text-base font-semibold text-foreground">
-                  {formatCurrency(shop.direct_delivery_fee)}
-                </p>
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                    Direct Delivery Fee
+                  </p>
+                  <p className="text-base font-extrabold text-foreground mt-0.5">
+                    {formatCurrency(shop.direct_delivery_fee)}
+                  </p>
+                </div>
               </div>
             </div>
           </div>

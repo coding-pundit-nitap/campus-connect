@@ -42,50 +42,6 @@ import { SerializedOrderWithDetails } from "@/types";
 
 const EMPTY_ORDERS: SerializedOrderWithDetails[] = [];
 
-interface AddressSnapshot {
-  hostel_block?: string | null;
-  building?: string | null;
-  room_number?: string | null;
-}
-
-function parseAddress(order: SerializedOrderWithDetails): AddressSnapshot {
-  if (order.delivery_address) {
-    return {
-      hostel_block: order.delivery_address.hostel_block,
-      building: order.delivery_address.building,
-      room_number: order.delivery_address.room_number,
-    };
-  }
-
-  try {
-    const parsed = order.delivery_address_snapshot
-      ? JSON.parse(order.delivery_address_snapshot)
-      : null;
-    if (parsed && typeof parsed === "object") {
-      return parsed;
-    }
-  } catch {
-    const match = order.delivery_address_snapshot?.match(
-      /^\s*(?<building>.*?)(?:,\s*Room\s*(?<room>.+))?\s*$/i
-    );
-    return {
-      building: match?.groups?.building || null,
-      room_number: match?.groups?.room || null,
-    };
-  }
-
-  return {};
-}
-
-function getHostel(order: SerializedOrderWithDetails) {
-  const address = parseAddress(order);
-  return address.hostel_block || address.building || "Other";
-}
-
-function getRoom(order: SerializedOrderWithDetails) {
-  return parseAddress(order).room_number || "N/A";
-}
-
 function getItemsText(order: SerializedOrderWithDetails) {
   return order.items
     .map((item) => `${item.quantity}x ${item.product.name}`)
@@ -95,7 +51,10 @@ function getItemsText(order: SerializedOrderWithDetails) {
 function groupByHostel(orders: SerializedOrderWithDetails[]) {
   return orders.reduce<Record<string, SerializedOrderWithDetails[]>>(
     (groups, order) => {
-      const hostel = getHostel(order);
+      const hostel =
+        order.delivery_address_snapshot?.hostel_block ||
+        order.delivery_address_snapshot?.building ||
+        "Other";
       groups[hostel] = groups[hostel] || [];
       groups[hostel].push(order);
       return groups;
@@ -156,9 +115,13 @@ function OrderMeta({ order }: { order: SerializedOrderWithDetails }) {
     <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
       <span>{format(new Date(order.created_at), "h:mm a")}</span>
       <span aria-hidden="true">/</span>
-      <span>{getHostel(order)}</span>
+      <span>
+        {order.delivery_address_snapshot?.hostel_block ||
+          order.delivery_address_snapshot?.building ||
+          "Other"}
+      </span>
       <span aria-hidden="true">/</span>
-      <span>Room {getRoom(order)}</span>
+      <span>Room {order.delivery_address_snapshot?.room_number || "N/A"}</span>
     </div>
   );
 }
@@ -301,7 +264,7 @@ function DispatchOrderCard({
               ) : null}
             </div>
             <div className="mt-1 text-sm font-medium">
-              Room {getRoom(order)}
+              Room {order.delivery_address_snapshot?.room_number || "N/A"}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="truncate">{order.user?.name || "Unknown"}</span>

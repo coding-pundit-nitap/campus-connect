@@ -32,7 +32,6 @@ export type OrderWithDetails = Order & {
     email: string;
     phone: string | null;
   } | null;
-  delivery_address: UserAddress | null;
 };
 
 export type CreateOrderPayload = {
@@ -63,6 +62,7 @@ export type SerializedOrder = Omit<
   | "requested_delivery_time"
   | "estimated_delivery_time"
   | "actual_delivery_time"
+  | "delivery_address_snapshot"
 > & {
   created_at: string;
   updated_at: string;
@@ -73,8 +73,14 @@ export type SerializedOrder = Omit<
   requested_delivery_time?: string;
   estimated_delivery_time?: string;
   actual_delivery_time?: string;
+  delivery_address_snapshot: DeliveryAddressSnapshot;
 };
-
+export type DeliveryAddressSnapshot = {
+  hostel_block: string | null;
+  building: string | null;
+  room_number: string | null;
+  notes: string | null;
+};
 export type SerializedOrderItemWithProduct = SerializedOrderItem & {
   product: SerializedProduct;
 };
@@ -98,5 +104,4 @@ export type SerializedOrderWithDetails = SerializedOrder & {
     name: string;
     phone: string;
   };
-  delivery_address?: SerializedDeliveryAddress | null;
 };

@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, Store } from "lucide-react";
 import React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -87,13 +87,19 @@ export function ProductCardDetails({
   return (
     <div className={cn("flex flex-col", styles.container)}>
       <div className="flex items-center justify-between text-xs gap-2">
-        {product.category ? (
-          <Badge variant="outline" className={styles.categoryBadge}>
-            {product.category.name}
-          </Badge>
-        ) : (
-          <span />
-        )}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          {product.category && (
+            <Badge variant="outline" className={styles.categoryBadge}>
+              {product.category.name}
+            </Badge>
+          )}
+          {product.shop && (
+            <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-muted/40 px-1.5 py-0.5 rounded-md">
+              <Store className="w-3 h-3 text-orange-500" />
+              <span className="truncate max-w-[80px]">{product.shop.name}</span>
+            </span>
+          )}
+        </div>
         {hasRating && (
           <div
             className={cn(
@@ -113,7 +119,7 @@ export function ProductCardDetails({
       <div className={styles.spacing}>
         <h3
           className={cn(
-            "truncate font-extrabold tracking-tight leading-tight text-foreground transition-colors duration-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400",
+            "truncate font-heading font-black tracking-tight leading-tight text-foreground transition-colors duration-300 group-hover:text-orange-500 dark:group-hover:text-orange-400",
             styles.title
           )}
         >
