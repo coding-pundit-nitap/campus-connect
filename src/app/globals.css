@@ -210,9 +210,16 @@ body {
 }
 
 @media print {
-  body {
+  body,
+  html,
+  main,
+  .sidebar-inset {
     background: white !important;
     color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
   }
   header,
   nav,
@@ -232,6 +239,7 @@ body {
     left: 0;
     top: 0;
     width: 100%;
+    z-index: 9999;
   }
 }
 @media screen {

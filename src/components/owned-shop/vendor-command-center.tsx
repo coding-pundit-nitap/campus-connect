@@ -523,7 +523,7 @@ function BatchControlBar({
   if (!activeBatch) return null;
 
   return (
-    <div className="sticky bottom-0 z-30 border-t border-border/40 bg-background/80 backdrop-blur-xl px-4 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+    <div className="sticky bottom-0 z-30 border-t border-border/40 bg-background/80 backdrop-blur-xl px-4 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] no-print">
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <div className="mx-auto flex max-w-5xl flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
@@ -837,7 +837,7 @@ export function VendorCommandCenter() {
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col">
-      <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 p-4 md:p-6 pb-24">
+      <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 p-4 md:p-6 pb-24 no-print">
         {/* ── Header ── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-border/20 pb-4">
           <div>
