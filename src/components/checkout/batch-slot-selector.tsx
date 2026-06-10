@@ -41,26 +41,46 @@ function buildUpcomingSlots(
   }[]
 ): BatchSlot[] {
   const now = new Date();
-  const today = new Date(now);
-  today.setHours(0, 0, 0, 0);
 
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  });
+
+  const parts = formatter.formatToParts(now);
+  const getVal = (type: string) =>
+    Number(parts.find((p) => p.type === type)?.value);
+
+  const year = getVal("year");
+  const month = getVal("month");
+  const day = getVal("day");
+
+  const todayUtcMs = Date.UTC(year, month - 1, day, 0, 0, 0);
 
   const occurrences: BatchSlot[] = [];
 
-  const days = [today, tomorrow];
-  for (const day of days) {
+  for (let d = 0; d < 2; d++) {
+    const dayStartUtcMs = todayUtcMs + d * 86400000;
+
+    const dayDate = new Date(dayStartUtcMs);
+    const dayYear = dayDate.getUTCFullYear();
+    const dayMonth = dayDate.getUTCMonth();
+    const dayDay = dayDate.getUTCDate();
+
     for (const slot of configured) {
-      const time = new Date(day);
-      time.setHours(Math.floor(slot.cutoff_time_minutes / 60));
-      time.setMinutes(slot.cutoff_time_minutes % 60);
-      time.setSeconds(0);
-      time.setMilliseconds(0);
+      const hour = Math.floor(slot.cutoff_time_minutes / 60);
+      const minute = slot.cutoff_time_minutes % 60;
+
+      const timeMs =
+        Date.UTC(dayYear, dayMonth, dayDay, hour, minute, 0) -
+        5.5 * 60 * 60 * 1000;
+      const time = new Date(timeMs);
 
       if (time.getTime() <= now.getTime()) continue;
 
-      const isToday = day.getDate() === today.getDate();
+      const isToday = d === 0;
       if (isToday && slot.is_today_available === false) {
         continue;
       }
@@ -73,6 +93,7 @@ function buildUpcomingSlots(
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
+            timeZone: "Asia/Kolkata",
           }),
         isNextBatch: false,
       });

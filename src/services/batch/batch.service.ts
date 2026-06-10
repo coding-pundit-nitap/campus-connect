@@ -15,6 +15,7 @@ import {
   productRepository,
   shopRepository,
 } from "@/repositories";
+import { notificationService } from "@/services/notification/notification.service";
 
 export interface BatchSummaryItem {
   product_id: string;
@@ -47,7 +48,7 @@ export interface DirectOrderInfo {
   id: string;
   display_id: string;
   status: string;
-  phone?: string | null; // <-- ADDED: customer phone for quick-call
+  phone?: string | null;
   item_total: number;
   delivery_fee: number;
   platform_fee: number;
@@ -69,6 +70,8 @@ class BatchService {
   async getBatchSlotsWithAvailability(
     shopId: string
   ): Promise<BatchSlotWithAvailability[]> {
+    await this.autoLockExpiredBatches(shopId);
+
     const allSlots = await batchRepository.findActiveSlots(shopId);
 
     const now = new Date();
@@ -123,32 +126,67 @@ class BatchService {
     });
   }
 
-  private computeNextCutoffFromSlots(
+  private async computeNextCutoffFromSlots(
+    shopId: string,
     now: Date,
-    slots: { cutoff_time_minutes: number }[]
-  ): Date {
+    slots: { id: string; cutoff_time_minutes: number }[]
+  ): Promise<Date> {
     const nowZoned = getZonedParts(now, APP_TIME_ZONE);
-    const minutesNow = nowZoned.hour * 60 + nowZoned.minute;
-    const sorted = [...slots].sort(
+    const sortedSlots = [...slots].sort(
       (a, b) => a.cutoff_time_minutes - b.cutoff_time_minutes
     );
 
-    const nextToday = sorted.find((s) => s.cutoff_time_minutes > minutesNow);
-    const chosen = nextToday ?? sorted[0];
+    const daysOffset = [0, 1, 2];
 
-    const baseDate = nextToday
-      ? { year: nowZoned.year, month: nowZoned.month, day: nowZoned.day }
-      : addZonedDays(
-          { year: nowZoned.year, month: nowZoned.month, day: nowZoned.day },
-          1,
+    for (const offset of daysOffset) {
+      const baseDate =
+        offset === 0
+          ? { year: nowZoned.year, month: nowZoned.month, day: nowZoned.day }
+          : addZonedDays(
+              { year: nowZoned.year, month: nowZoned.month, day: nowZoned.day },
+              offset,
+              APP_TIME_ZONE
+            );
+
+      for (const slot of sortedSlots) {
+        const hour = Math.floor(slot.cutoff_time_minutes / 60);
+        const minute = slot.cutoff_time_minutes % 60;
+        const candidateTime = zonedPartsToUtcDate(
+          { ...baseDate, hour, minute, second: 0 },
           APP_TIME_ZONE
         );
 
-    const hour = Math.floor(chosen.cutoff_time_minutes / 60);
-    const minute = chosen.cutoff_time_minutes % 60;
+        if (candidateTime.getTime() <= now.getTime()) {
+          continue;
+        }
 
+        const existingBatch = await prisma.batch.findFirst({
+          where: {
+            shop_id: shopId,
+            cutoff_time: candidateTime,
+          },
+          select: { id: true, status: true },
+        });
+
+        if (!existingBatch) {
+          return candidateTime;
+        }
+
+        if (existingBatch.status === "OPEN") {
+          return candidateTime;
+        }
+      }
+    }
+
+    const hour = Math.floor(sortedSlots[0].cutoff_time_minutes / 60);
+    const minute = sortedSlots[0].cutoff_time_minutes % 60;
+    const tomorrowDate = addZonedDays(
+      { year: nowZoned.year, month: nowZoned.month, day: nowZoned.day },
+      1,
+      APP_TIME_ZONE
+    );
     return zonedPartsToUtcDate(
-      { ...baseDate, hour, minute, second: 0 },
+      { ...tomorrowDate, hour, minute, second: 0 },
       APP_TIME_ZONE
     );
   }
@@ -212,26 +250,68 @@ class BatchService {
     return summary;
   }
 
+  async autoLockExpiredBatches(shopId: string): Promise<void> {
+    const now = new Date();
+    const expiredBatches = await prisma.batch.findMany({
+      where: {
+        shop_id: shopId,
+        status: "OPEN",
+        cutoff_time: {
+          lt: now,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    for (const batch of expiredBatches) {
+      try {
+        await this.lockBatch(batch.id, shopId);
+      } catch (err) {
+        console.error(`Failed to auto-lock batch ${batch.id}:`, err);
+      }
+    }
+  }
+
   async getNextSlot(
     shopId: string
   ): Promise<
-    | { enabled: false; cutoff_time: null; batch_id: null }
-    | { enabled: true; cutoff_time: Date; batch_id: string | null }
+    | { enabled: false; cutoff_time: null; batch_id: null; is_open: boolean }
+    | {
+        enabled: true;
+        cutoff_time: Date;
+        batch_id: string | null;
+        is_open: boolean;
+      }
   > {
     const shop = await shopRepository.findById(shopId, {
-      select: { id: true },
+      select: { id: true, is_active: true, accepting_orders: true },
     });
 
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
 
+    const isOpen = shop.is_active && shop.accepting_orders;
+
+    await this.autoLockExpiredBatches(shopId);
+
     const slots = await this.getActiveSlots(shopId);
     if (slots.length === 0) {
-      return { enabled: false, cutoff_time: null, batch_id: null };
+      return {
+        enabled: false,
+        cutoff_time: null,
+        batch_id: null,
+        is_open: isOpen,
+      };
     }
 
-    const cutoffTime = this.computeNextCutoffFromSlots(new Date(), slots);
+    const cutoffTime = await this.computeNextCutoffFromSlots(
+      shopId,
+      new Date(),
+      slots
+    );
 
     const openForCutoff = await batchRepository.findOpenBatchByCutoff(
       shopId,
@@ -243,6 +323,7 @@ class BatchService {
       enabled: true,
       cutoff_time: cutoffTime,
       batch_id: openForCutoff?.id ?? null,
+      is_open: isOpen,
     };
   }
 
@@ -252,7 +333,11 @@ class BatchService {
       return;
     }
 
-    const cutoffTime = this.computeNextCutoffFromSlots(new Date(), slots);
+    const cutoffTime = await this.computeNextCutoffFromSlots(
+      shopId,
+      new Date(),
+      slots
+    );
     const existing = await batchRepository.findOpenBatchByCutoff(
       shopId,
       cutoffTime,
@@ -284,6 +369,9 @@ class BatchService {
     active_batches: BatchInfo[];
     direct_orders: DirectOrderInfo[];
   }> {
+    await this.autoLockExpiredBatches(shopId);
+    await this.ensureNextOpenBatch(shopId);
+
     const orderSelect = {
       id: true,
       display_id: true,
@@ -443,7 +531,10 @@ class BatchService {
       include: {
         orders: {
           select: {
+            id: true,
             user_id: true,
+            display_id: true,
+            delivery_otp: true,
           },
         },
       },
@@ -459,14 +550,29 @@ class BatchService {
 
     await batchRepository.updateStatus(batchId, "IN_TRANSIT");
 
-    const orders = await orderRepository.getOrdersByIds([], {
-      where: { batch_id: batchId },
-      select: { id: true },
-    });
-    const orderIds = orders.map((o) => o.id);
+    const orderIds = batch.orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
       await orderRepository.batchUpdateStatus(orderIds, "OUT_FOR_DELIVERY");
+
+      for (const order of batch.orders) {
+        if (order.user_id) {
+          try {
+            await notificationService.publishNotification(order.user_id, {
+              title: "🚀 Order Out for Delivery!",
+              message: `Your order ${order.display_id} is out for delivery in the batch run. Share OTP ${order.delivery_otp || ""} to complete delivery.`,
+              type: "SUCCESS",
+              category: "ORDER",
+              action_url: `/orders/${order.id}`,
+            });
+          } catch (notifyErr) {
+            console.error(
+              `Failed to send delivery notification for order ${order.id}:`,
+              notifyErr
+            );
+          }
+        }
+      }
     }
   }
 
@@ -520,6 +626,8 @@ class BatchService {
         shop_id: true,
         batch_id: true,
         payment_method: true,
+        user_id: true,
+        display_id: true,
       },
     });
 
@@ -543,10 +651,21 @@ class BatchService {
       order_status: "COMPLETED",
       actual_delivery_time: new Date(),
       delivery_otp: null,
+      payment_status: order.payment_method === "CASH" ? "COMPLETED" : undefined,
     });
 
-    if (order.payment_method === "CASH") {
-      await orderRepository.updateStatus(orderId, "COMPLETED");
+    if (order.user_id) {
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "🎉 Order Delivered!",
+          message: `Your order ${order.display_id} was successfully delivered. Thank you!`,
+          type: "SUCCESS",
+          category: "ORDER",
+          action_url: `/orders/${orderId}`,
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send order delivery notification:", notifyErr);
+      }
     }
 
     return { success: true, message: "Order delivered successfully" };
@@ -559,7 +678,13 @@ class BatchService {
     const batch = await batchRepository.findById(batchId, {
       include: {
         orders: {
-          select: { id: true, user_id: true, payment_status: true },
+          select: {
+            id: true,
+            user_id: true,
+            payment_status: true,
+            display_id: true,
+            payment_method: true,
+          },
         },
         shop: { select: { name: true } },
       },
@@ -578,10 +703,33 @@ class BatchService {
     const orderIds = batch.orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
-      await orderRepository.batchUpdateOrders(orderIds, {
-        order_status: "CANCELLED",
-        delivery_otp: null,
-      });
+      for (const order of batch.orders) {
+        const paymentStatus =
+          order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
+
+        await orderRepository.update(order.id, {
+          order_status: "CANCELLED",
+          payment_status: paymentStatus,
+          delivery_otp: null,
+        });
+
+        if (order.user_id) {
+          try {
+            await notificationService.publishNotification(order.user_id, {
+              title: "❌ Order Batch Cancelled",
+              message: `Your order ${order.display_id} was cancelled because the delivery run was cancelled. A refund has been initiated if you paid online.`,
+              type: "ERROR",
+              category: "ORDER",
+              action_url: `/orders/${order.id}`,
+            });
+          } catch (notifyErr) {
+            console.error(
+              `Failed to send batch cancellation notification for order ${order.id}:`,
+              notifyErr
+            );
+          }
+        }
+      }
     }
 
     return { cancelled_orders: orderIds.length };

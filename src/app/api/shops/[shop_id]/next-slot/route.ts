@@ -35,7 +35,7 @@ export async function GET(
         cutoff_time: result.cutoff_time.toISOString(),
         batch_id: result.batch_id,
         minutes_remaining: minutesRemaining,
-        is_open: result.batch_id !== null,
+        is_open: result.is_open,
       }),
       200
     );

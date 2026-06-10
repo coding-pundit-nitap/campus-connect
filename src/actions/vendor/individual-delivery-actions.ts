@@ -4,6 +4,7 @@ import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { batchService } from "@/services/batch";
+import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types";
 
 function generateOtp(): string {
@@ -23,6 +24,8 @@ export async function startIndividualDeliveryAction(orderId: string) {
       shop_id: true,
       order_status: true,
       delivery_otp: true,
+      user_id: true,
+      display_id: true,
     },
   });
 
@@ -37,13 +40,32 @@ export async function startIndividualDeliveryAction(orderId: string) {
     throw new ValidationError("This order can’t be delivered.");
   }
 
+  const otp = order.delivery_otp || generateOtp();
+
   await prisma.order.update({
     where: { id: orderId },
     data: {
       order_status: "OUT_FOR_DELIVERY",
-      delivery_otp: order.delivery_otp || generateOtp(),
+      delivery_otp: otp,
     },
   });
+
+  if (order.user_id) {
+    try {
+      await notificationService.publishNotification(order.user_id, {
+        title: "🚀 Order Out for Delivery!",
+        message: `Your order ${order.display_id} is out for delivery. Share OTP ${otp} to complete delivery.`,
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: `/orders/${orderId}`,
+      });
+    } catch (notifyErr) {
+      console.error(
+        "Failed to send individual delivery notification:",
+        notifyErr
+      );
+    }
+  }
 
   return createSuccessResponse(null, "Order marked as OUT_FOR_DELIVERY.");
 }

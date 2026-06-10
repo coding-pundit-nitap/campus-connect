@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
 import shopRepository from "@/repositories/shop.repository";
+import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 
 function generateOtp(): string {
@@ -47,6 +48,20 @@ export async function acceptOrderAction(orderId: string) {
 
     await orderRepository.updateStatus(orderId, newStatus);
 
+    if (order.user_id) {
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "✅ Order Accepted",
+          message: `Your order ${order.display_id} has been accepted by the shop and is being prepared.`,
+          type: "SUCCESS",
+          category: "ORDER",
+          action_url: `/orders/${orderId}`,
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send order accepted notification:", notifyErr);
+      }
+    }
+
     return createSuccessResponse(null, "Order accepted successfully.");
   } catch (error) {
     console.error("ACCEPT ORDER ERROR:", error);
@@ -81,13 +96,32 @@ export async function startDirectDeliveryAction(orderId: string) {
       );
     }
 
+    const otp = order.delivery_otp || generateOtp();
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
         order_status: "OUT_FOR_DELIVERY",
-        delivery_otp: order.delivery_otp || generateOtp(),
+        delivery_otp: otp,
       },
     });
+
+    if (order.user_id) {
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "🚀 Order Out for Delivery!",
+          message: `Your order ${order.display_id} is out for delivery. Share OTP ${otp} to complete delivery.`,
+          type: "SUCCESS",
+          category: "ORDER",
+          action_url: `/orders/${orderId}`,
+        });
+      } catch (notifyErr) {
+        console.error(
+          "Failed to send direct delivery notification:",
+          notifyErr
+        );
+      }
+    }
 
     return createSuccessResponse(null, "Direct delivery started.");
   } catch (error) {
@@ -130,15 +164,36 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
       ? `[Vendor Rejected: ${reason}]`
       : "[Vendor Rejected]";
 
+    const paymentStatus =
+      order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
+
     await prisma.order.update({
       where: { id: orderId },
       data: {
         order_status: "CANCELLED",
+        payment_status: paymentStatus,
         customer_notes: order.customer_notes
           ? `${order.customer_notes}\n${rejectionNote}`
           : rejectionNote,
       },
     });
+
+    if (order.user_id) {
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "❌ Order Rejected by Vendor",
+          message: `Your order ${order.display_id} was rejected by the shop. A refund has been initiated if you paid online.`,
+          type: "ERROR",
+          category: "ORDER",
+          action_url: `/orders/${orderId}`,
+        });
+      } catch (notifyErr) {
+        console.error(
+          "Failed to send order rejection notification:",
+          notifyErr
+        );
+      }
+    }
 
     return createSuccessResponse(null, "Order rejected successfully.");
   } catch (error) {
@@ -190,6 +245,20 @@ export async function verifyDeliveryOtpAction(orderId: string, otp: string) {
           order.payment_method === "CASH" ? "COMPLETED" : order.payment_status,
       },
     });
+
+    if (order.user_id) {
+      try {
+        await notificationService.publishNotification(order.user_id, {
+          title: "🎉 Order Delivered!",
+          message: `Your order ${order.display_id} was successfully delivered. Thank you!`,
+          type: "SUCCESS",
+          category: "ORDER",
+          action_url: `/orders/${orderId}`,
+        });
+      } catch (notifyErr) {
+        console.error("Failed to send order delivery notification:", notifyErr);
+      }
+    }
 
     return createSuccessResponse(null, "OTP verified and order completed.");
   } catch (error) {

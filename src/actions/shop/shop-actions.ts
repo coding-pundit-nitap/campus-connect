@@ -283,6 +283,11 @@ export async function deleteShopAction() {
 
     await shopRepository.delete(shop_id);
 
+    await prisma.user.update({
+      where: { id: user_id },
+      data: { shop_id: null },
+    });
+
     return createSuccessResponse(null, "Shop deleted successfully");
   } catch (error) {
     console.error("DELETE SHOP ERROR:", error);

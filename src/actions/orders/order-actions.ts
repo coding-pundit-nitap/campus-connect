@@ -6,6 +6,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
@@ -156,6 +157,7 @@ export async function updateOrderStatusAction({
         user_id: true,
         display_id: true,
         order_status: true,
+        payment_method: true,
       },
     });
     if (!order || order.shop_id !== shop_id) {
@@ -174,14 +176,52 @@ export async function updateOrderStatusAction({
       );
     }
 
-    const updatedOrder = await orderRepository.updateStatus(order_id, status);
+    const paymentStatus =
+      status === "COMPLETED"
+        ? order.payment_method === "CASH"
+          ? "COMPLETED"
+          : undefined
+        : status === "CANCELLED"
+          ? order.payment_method === "ONLINE"
+            ? "REFUNDED"
+            : "CANCELLED"
+          : undefined;
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: order_id },
+      data: {
+        order_status: status,
+        payment_status: paymentStatus,
+        actual_delivery_time: status === "COMPLETED" ? new Date() : undefined,
+      },
+    });
+
     if (order.user_id) {
       try {
+        let title = "Order Status Updated";
+        let message = `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`;
+        let type: "INFO" | "SUCCESS" | "ERROR" | "WARNING" = "INFO";
+
+        if (status === "COMPLETED") {
+          title = "🎉 Order Delivered!";
+          message = `Your order ${order.display_id} was successfully delivered. Thank you!`;
+          type = "SUCCESS";
+        } else if (status === "CANCELLED") {
+          title = "❌ Order Cancelled";
+          message = `Your order ${order.display_id} has been cancelled.`;
+          type = "ERROR";
+        } else if (status === "OUT_FOR_DELIVERY") {
+          title = "🚀 Order Out for Delivery!";
+          message = `Your order ${order.display_id} is out for delivery.`;
+          type = "SUCCESS";
+        }
+
         await notificationService.publishNotification(order.user_id, {
-          title: "Order Status Updated",
-          message: `Your order with ID: ${order.display_id} has been updated to ${status}`,
+          title,
+          message,
           action_url: getOrderUrl(order_id),
-          type: "INFO",
+          type,
+          category: "ORDER",
         });
       } catch (error) {
         console.error("Notification Error:", error);
@@ -351,6 +391,7 @@ export async function batchUpdateOrderStatusAction({
         user_id: true,
         display_id: true,
         order_status: true,
+        payment_method: true,
       },
     });
 
@@ -384,23 +425,64 @@ export async function batchUpdateOrderStatusAction({
     }
 
     const ordersToUpdate = orders.filter((o) => o.order_status !== status);
-    const idsToUpdate = ordersToUpdate.map((o) => o.id);
 
-    if (idsToUpdate.length > 0) {
-      await orderRepository.batchUpdateStatus(idsToUpdate, status);
+    if (ordersToUpdate.length > 0) {
+      await prisma.$transaction(
+        ordersToUpdate.map((o) => {
+          const paymentStatus =
+            status === "COMPLETED"
+              ? o.payment_method === "CASH"
+                ? "COMPLETED"
+                : undefined
+              : status === "CANCELLED"
+                ? o.payment_method === "ONLINE"
+                  ? "REFUNDED"
+                  : "CANCELLED"
+                : undefined;
+
+          return prisma.order.update({
+            where: { id: o.id },
+            data: {
+              order_status: status,
+              payment_status: paymentStatus,
+              actual_delivery_time:
+                status === "COMPLETED" ? new Date() : undefined,
+            },
+          });
+        })
+      );
     }
 
     Promise.allSettled(
-      orders.map(
-        (order) =>
-          order.user_id &&
-          notificationService.publishNotification(order.user_id, {
-            title: "Order Status Updated",
-            message: `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`,
-            action_url: getOrderUrl(order.id),
-            type: "INFO",
-          })
-      )
+      orders.map((order) => {
+        if (!order.user_id) return Promise.resolve();
+
+        let title = "Order Status Updated";
+        let message = `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`;
+        let type: "INFO" | "SUCCESS" | "ERROR" | "WARNING" = "INFO";
+
+        if (status === "COMPLETED") {
+          title = "🎉 Order Delivered!";
+          message = `Your order ${order.display_id} was successfully delivered. Thank you!`;
+          type = "SUCCESS";
+        } else if (status === "CANCELLED") {
+          title = "❌ Order Cancelled";
+          message = `Your order ${order.display_id} has been cancelled.`;
+          type = "ERROR";
+        } else if (status === "OUT_FOR_DELIVERY") {
+          title = "🚀 Order Out for Delivery!";
+          message = `Your order ${order.display_id} is out for delivery.`;
+          type = "SUCCESS";
+        }
+
+        return notificationService.publishNotification(order.user_id, {
+          title,
+          message,
+          action_url: getOrderUrl(order.id),
+          type,
+          category: "ORDER",
+        });
+      })
     );
 
     return createSuccessResponse(
