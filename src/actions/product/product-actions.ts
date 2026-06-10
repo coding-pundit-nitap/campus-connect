@@ -4,7 +4,12 @@ import { revalidatePath } from "next/cache";
 
 import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
 import { Category } from "@/generated/client";
-import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  ForbiddenError,
+  InternalServerError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import {
@@ -349,11 +354,20 @@ export async function bulkCreateProductsAction(
   }
 }
 
+const DEFAULT_IN_STOCK_QUANTITY = 99;
+
 export async function toggleProductStockAction(
   productId: string,
   inStock: boolean
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
+    if (!productId || typeof productId !== "string") {
+      throw new BadRequestError("Invalid product ID");
+    }
+    if (typeof inStock !== "boolean") {
+      throw new BadRequestError("Invalid availability state");
+    }
+
     const user_id = await authUtils.getUserId();
     const shop = await shopRepository.findByOwnerId(user_id, {
       select: { id: true },
@@ -362,12 +376,14 @@ export async function toggleProductStockAction(
 
     const product = await productRepository.findById(productId);
     if (!product || product.shop_id !== shop.id) {
-      throw new UnauthorizedError("Forbidden");
+      throw new ForbiddenError(
+        "You do not have permission to modify this product"
+      );
     }
 
     const updated = await productRepository.update(productId, {
       data: {
-        stock_quantity: inStock ? 99 : 0,
+        stock_quantity: inStock ? DEFAULT_IN_STOCK_QUANTITY : 0,
       },
     });
 
@@ -384,6 +400,14 @@ export async function toggleProductStockAction(
     return createSuccessResponse(serialized, "Stock toggled successfully.");
   } catch (error) {
     console.error("TOGGLE PRODUCT STOCK ERROR:", error);
+    if (
+      error instanceof BadRequestError ||
+      error instanceof ForbiddenError ||
+      error instanceof UnauthorizedError ||
+      error instanceof InternalServerError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to toggle stock.");
   }
 }
