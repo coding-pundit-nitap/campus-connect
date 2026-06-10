@@ -11,6 +11,7 @@ import {
   PackageCheck,
   Phone,
   Plus,
+  Printer,
   RefreshCw,
   Store,
   TimerReset,
@@ -848,16 +849,28 @@ export function VendorCommandCenter() {
               hostel delivery batches.
             </p>
           </div>
-          <div
-            aria-live="polite"
-            className="flex items-center gap-2 text-xs font-bold text-muted-foreground/80 bg-muted/30 border border-border/15 px-3 py-1.5 rounded-xl w-fit tabular-nums"
-          >
-            {isFetching ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5 text-blue-600" />
-            )}
-            Live refresh · 10s
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => window.print()}
+              className="h-9 px-3 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer flex items-center gap-1.5"
+            >
+              <Printer className="h-3.5 w-3.5" />
+              Print KOT
+            </Button>
+            <div
+              aria-live="polite"
+              className="flex items-center gap-2 text-xs font-bold text-muted-foreground/80 bg-muted/30 border border-border/15 px-3 py-1.5 rounded-xl w-fit tabular-nums"
+            >
+              {isFetching ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-600" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5 text-blue-600" />
+              )}
+              Live refresh · 10s
+            </div>
           </div>
         </div>
 
@@ -1073,6 +1086,43 @@ export function VendorCommandCenter() {
         onStartRun={startRun}
         onCompleteRun={completeRun}
       />
+
+      {/* ── Print-only KOT section ── */}
+      <div id="kot-print-section" className="print-only hidden p-6 font-sans">
+        <div className="border-b-2 border-black pb-4 mb-4">
+          <h1 className="text-2xl font-bold uppercase">
+            Kitchen Order Ticket (KOT)
+          </h1>
+          <p className="text-sm">
+            Generated: {new Date().toLocaleTimeString()} -{" "}
+            {new Date().toLocaleDateString()}
+          </p>
+        </div>
+
+        <div className="mb-6">
+          <h2 className="text-lg font-bold uppercase mb-2">
+            Prep List & Kitchen Queue
+          </h2>
+          <table className="w-full border-collapse border border-black text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="border border-black p-2 text-left">Quantity</th>
+                <th className="border border-black p-2 text-left">Item Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {prepSummary.map((item) => (
+                <tr key={item.name}>
+                  <td className="border border-black p-2 font-bold">
+                    {item.quantity}x
+                  </td>
+                  <td className="border border-black p-2">{item.name}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

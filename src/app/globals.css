@@ -208,3 +208,34 @@ body {
   box-shadow: 6px 6px 0px 0px rgba(249, 115, 22, 0.25);
   border-color: rgba(249, 115, 22, 0.3);
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  header,
+  nav,
+  aside,
+  footer,
+  button,
+  .no-print,
+  [role="navigation"] {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  #kot-print-section {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
