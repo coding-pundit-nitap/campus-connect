@@ -1,7 +1,5 @@
-import React from "react";
-
-import { OrderDashboardRoot } from "@/components/owned-shop/order-dashboard/order-dashboard-root";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <OrderDashboardRoot />;
+  redirect("/owner-shops");
 }

@@ -64,16 +64,6 @@ export function useOrderConsoleData() {
   });
 }
 
-export function useVendorDashboard() {
-  return useQuery({
-    queryKey: queryKeys.batch.vendorDashboard(),
-    queryFn: vendorApiService.getVendorDetails,
-    refetchInterval: 30_000,
-    refetchIntervalInBackground: false,
-    staleTime: 15_000,
-  });
-}
-
 export function useNextSlot(shopId: string) {
   return useQuery({
     queryKey: queryKeys.batch.nextSlot(shopId),

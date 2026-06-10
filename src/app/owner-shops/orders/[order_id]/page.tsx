@@ -14,8 +14,8 @@ import { notFound } from "next/navigation";
 import { ReactNode } from "react";
 
 import { getShopOrderByIdAction } from "@/actions/orders/order-actions";
-import { IndividualDeliveryCard } from "@/components/owned-shop/order-page/individual-delivery-card";
-import { OrderStatusUpdater } from "@/components/owned-shop/order-page/order-status-updater";
+import { IndividualDeliveryCard } from "@/components/owned-shop/individual-delivery-card";
+import { OrderStatusUpdater } from "@/components/owned-shop/order-status-updater";
 import { BackButton } from "@/components/shared/back-button";
 import { DateDisplay } from "@/components/shared/date-display";
 import { Badge } from "@/components/ui/badge";

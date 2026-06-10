@@ -52,14 +52,6 @@ export interface VendorOverviewResponse {
   todayEarnings: number;
 }
 class VendorApiService {
-  async getVendorDetails(): Promise<VendorDashboardResponse> {
-    const response =
-      await axiosInstance.get<ActionResponse<VendorDashboardResponse>>(
-        "/vendor/dashboard"
-      );
-    return response.data.data;
-  }
-
   async getBatchSlots(shopId: string): Promise<BatchSlotWithAvailability[]> {
     const response = await axiosInstance.get<
       ActionResponse<BatchSlotWithAvailability[]>
