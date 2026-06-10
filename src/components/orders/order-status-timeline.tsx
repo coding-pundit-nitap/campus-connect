@@ -5,8 +5,6 @@ import { Bike, CheckCircle2, CircleDot, Package, XCircle } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { OrderStatus } from "@/types/prisma.types";
 
-import { SharedCard } from "../shared/shared-card";
-
 interface OrderStatusTimelineProps {
   currentStatus: OrderStatus;
   className?: string;

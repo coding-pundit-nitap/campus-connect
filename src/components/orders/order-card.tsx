@@ -4,7 +4,6 @@ import { Separator } from "@/components/ui/separator";
 import { getOrderStatusInfo } from "@/lib/utils/order.utils";
 import { SerializedOrderWithDetails } from "@/types";
 
-import { SharedCard } from "../shared/shared-card";
 import OrderCardFooter from "./order-card-footer";
 
 type Props = {

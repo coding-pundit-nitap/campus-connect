@@ -174,9 +174,15 @@ export async function updateShopAction(formData: ShopActionFormData) {
     const values = parsedData.data;
     await categoryServices.cleanupEmptyCategories();
 
-    const { image, qr_image, ...rest } = values;
+    const { image, qr_image, batch_slots, ...rest } = values;
 
-    const updateData: Omit<ShopActionFormData, "image" | "qr_image"> = {
+    const updateData: Omit<
+      ShopActionFormData,
+      "image" | "qr_image" | "batch_slots"
+    > & {
+      image_key?: string;
+      qr_image_key?: string;
+    } = {
       ...rest,
     };
 
@@ -214,15 +220,19 @@ export async function updateShopAction(formData: ShopActionFormData) {
 
     const updatedShop = await shopRepository.update(shop_id, {
       ...updateData,
-      batch_slots: {
-        deleteMany: {},
-        create: values.batch_slots.map((card, idx) => ({
-          cutoff_time_minutes: card.cutoff_time_minutes,
-          label: card.label?.trim() || null,
-          is_active: true,
-          sort_order: idx,
-        })),
-      },
+      ...(batch_slots && batch_slots.length > 0
+        ? {
+            batch_slots: {
+              deleteMany: {},
+              create: batch_slots.map((card, idx) => ({
+                cutoff_time_minutes: card.cutoff_time_minutes,
+                label: card.label?.trim() || null,
+                is_active: true,
+                sort_order: idx,
+              })),
+            },
+          }
+        : {}),
     });
 
     await notificationService.publishNotification(user_id, {
