@@ -855,7 +855,7 @@ export function VendorCommandCenter() {
               variant="outline"
               size="sm"
               onClick={() => window.print()}
-              className="h-9 px-3 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer flex items-center gap-1.5"
+              className="h-9 px-3 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs flex items-center gap-1.5"
             >
               <Printer className="h-3.5 w-3.5" />
               Print KOT
@@ -1093,7 +1093,7 @@ export function VendorCommandCenter() {
           <h1 className="text-2xl font-bold uppercase">
             Kitchen Order Ticket (KOT)
           </h1>
-          <p className="text-sm">
+          <p className="text-sm" suppressHydrationWarning>
             Generated: {new Date().toLocaleTimeString()} -{" "}
             {new Date().toLocaleDateString()}
           </p>

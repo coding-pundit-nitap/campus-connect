@@ -220,6 +220,10 @@ body {
     margin: 0 !important;
     border: none !important;
     box-shadow: none !important;
+    print-color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+    height: auto !important;
+    min-height: auto !important;
   }
   header,
   nav,

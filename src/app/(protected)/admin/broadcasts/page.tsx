@@ -6,6 +6,8 @@ import { getBroadcastStatsAction } from "@/actions/admin";
 import { BroadcastForm } from "@/components/admin/broadcasts/broadcast-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Broadcast Notifications | Admin Dashboard",
   description: "Send notifications to all users",
