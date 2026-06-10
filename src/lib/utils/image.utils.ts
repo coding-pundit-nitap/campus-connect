@@ -9,7 +9,8 @@ class ImageUtils {
   }
 
   static getImageUrl(objectKey?: string | null): string {
-    if (!objectKey) return "/placeholders/placeholder.png";
+    if (!objectKey || objectKey === "placeholder")
+      return "/placeholders/placeholder.png";
     if (objectKey.startsWith("http://") || objectKey.startsWith("https://")) {
       return objectKey;
     }

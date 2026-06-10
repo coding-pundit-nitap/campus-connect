@@ -27,6 +27,30 @@ import { useBulkProductsCreate } from "@/hooks/queries/useShopProducts";
 
 import { SharedFileInput } from "../shared/shared-file-input";
 
+export function parseCSVRow(row: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < row.length; i++) {
+    const char = row[i];
+    if (char === '"') {
+      if (inQuotes && row[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === "," && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result;
+}
+
 interface BulkProductDialogProps {
   onSuccess?: () => void;
 }
@@ -39,12 +63,15 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
   const { mutate: bulkCreate, isPending } = useBulkProductsCreate();
 
   const parseCSV = useCallback((content: string): BulkProductInput[] => {
-    const lines = content.trim().split("\n");
+    const lines = content
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
     if (lines.length < 2) {
       throw new Error("CSV must have a header row and at least one data row");
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const headers = parseCSVRow(lines[0]).map((h) => h.trim().toLowerCase());
     const requiredHeaders = ["name", "price"];
 
     for (const required of requiredHeaders) {
@@ -56,7 +83,7 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
     const parsed: BulkProductInput[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(",").map((v) => v.trim());
+      const values = parseCSVRow(lines[i]).map((v) => v.trim());
       const row: Record<string, string> = {};
 
       headers.forEach((header, index) => {
@@ -68,13 +95,24 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
       const parsedPrice = Number(row.price);
       if (Number.isNaN(parsedPrice)) continue;
 
+      const parsedStock = parseInt(row.stock_quantity || row.stock || "0", 10);
+      const stock_quantity = !Number.isNaN(parsedStock) ? parsedStock : 0;
+
+      let discount: number | undefined = undefined;
+      if (row.discount) {
+        const parsedDiscount = parseFloat(row.discount);
+        if (!Number.isNaN(parsedDiscount)) {
+          discount = parsedDiscount;
+        }
+      }
+
       parsed.push({
         name: row.name,
-        description: row.description,
+        description: row.description || undefined,
         price: parsedPrice,
-        stock_quantity: parseInt(row.stock_quantity || row.stock || "0") || 0,
-        discount: row.discount ? parseFloat(row.discount) : undefined,
-        category: row.category,
+        stock_quantity: stock_quantity,
+        discount: discount,
+        category: row.category || "",
       });
     }
 

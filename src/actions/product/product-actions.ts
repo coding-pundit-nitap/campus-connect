@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
 import { Category } from "@/generated/client";
@@ -9,6 +10,7 @@ import {
   ForbiddenError,
   InternalServerError,
   UnauthorizedError,
+  ValidationError,
 } from "@/lib/custom-error";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -287,6 +289,19 @@ export interface BulkCreateResult {
   products: Array<{ id: string; name: string }>;
 }
 
+const bulkProductInputSchema = z.object({
+  name: z.string().min(1, "Name is required").min(3, "Name is too short"),
+  description: z.string().optional(),
+  price: z.number().min(0, "Price must be a positive number"),
+  stock_quantity: z.number().min(0, "Stock cannot be negative"),
+  discount: z.number().min(0, "Discount cannot be negative").optional(),
+  category: z
+    .string()
+    .min(2, "Category name is too short")
+    .optional()
+    .or(z.literal("")),
+});
+
 export async function bulkCreateProductsAction(
   products: BulkProductInput[]
 ): Promise<ActionResponse<BulkCreateResult>> {
@@ -312,6 +327,8 @@ export async function bulkCreateProductsAction(
     const createdProducts: Array<{ id: string; name: string }> = [];
 
     for (const productData of products) {
+      bulkProductInputSchema.parse(productData);
+
       let category = null;
       if (productData.category && productData.category.trim()) {
         category = await categoryRepository.findOrCreate(
@@ -349,6 +366,10 @@ export async function bulkCreateProductsAction(
       `Successfully created ${createdProducts.length} products`
     );
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      const messages = error.issues.map((err) => err.message).join(", ");
+      throw new ValidationError(messages);
+    }
     console.error("BULK CREATE PRODUCTS ERROR:", error);
     throw new InternalServerError("Failed to create products");
   }
