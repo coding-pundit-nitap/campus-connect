@@ -1122,6 +1122,57 @@ export function VendorCommandCenter() {
             </tbody>
           </table>
         </div>
+
+        {dispatchEntries.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-lg font-bold uppercase mb-2">
+              Hostel Dispatch List
+            </h2>
+            {dispatchEntries.map(([hostel, orders]) => (
+              <div key={hostel} className="mb-6 break-inside-avoid">
+                <h3 className="text-sm font-bold uppercase mb-1">
+                  Hostel {hostel}
+                </h3>
+                <table className="w-full border-collapse border border-black text-xs">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-black p-2 text-left w-16">
+                        Room
+                      </th>
+                      <th className="border border-black p-2 text-left w-32">
+                        Name
+                      </th>
+                      <th className="border border-black p-2 text-left">
+                        Items
+                      </th>
+                      <th className="border border-black p-2 text-left w-24">
+                        Payment
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="border border-black p-2 font-bold">
+                          {order.delivery_address_snapshot?.room_number}
+                        </td>
+                        <td className="border border-black p-2">
+                          {order.user?.name || "Unknown"}
+                        </td>
+                        <td className="border border-black p-2">
+                          {getItemsText(order)}
+                        </td>
+                        <td className="border border-black p-2">
+                          {order.payment_method}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
