@@ -213,7 +213,8 @@ body {
   body,
   html,
   main,
-  .sidebar-inset {
+  .sidebar-inset,
+  .sidebar-inset > div {
     background: white !important;
     color: black !important;
     padding: 0 !important;
@@ -224,6 +225,7 @@ body {
     -webkit-print-color-adjust: exact !important;
     height: auto !important;
     min-height: auto !important;
+    overflow: visible !important;
   }
   header,
   nav,
@@ -239,9 +241,7 @@ body {
   }
   #kot-print-section {
     display: block !important;
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: relative !important;
     width: 100%;
     z-index: 9999;
   }
