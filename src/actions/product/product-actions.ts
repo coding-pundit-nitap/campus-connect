@@ -348,3 +348,42 @@ export async function bulkCreateProductsAction(
     throw new InternalServerError("Failed to create products");
   }
 }
+
+export async function toggleProductStockAction(
+  productId: string,
+  inStock: boolean
+): Promise<ActionResponse<SerializedProduct>> {
+  try {
+    const user_id = await authUtils.getUserId();
+    const shop = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!shop || !shop.id) throw new UnauthorizedError("Unauthorized");
+
+    const product = await productRepository.findById(productId);
+    if (!product || product.shop_id !== shop.id) {
+      throw new UnauthorizedError("Forbidden");
+    }
+
+    const updated = await productRepository.update(productId, {
+      data: {
+        stock_quantity: inStock ? 99 : 0,
+      },
+    });
+
+    // Notify stock watchers if transitioning from out of stock to in stock
+    const wasOutOfStock = product.stock_quantity <= 0;
+    const isNowInStock = updated.stock_quantity > 0;
+    if (wasOutOfStock && isNowInStock) {
+      await notifyStockWatchers(updated.id, updated.name, updated.shop.name);
+    }
+
+    const serialized = serializeProduct(updated);
+    revalidatePath(`/shops/${updated.shop_id}`);
+
+    return createSuccessResponse(serialized, "Stock toggled successfully.");
+  } catch (error) {
+    console.error("TOGGLE PRODUCT STOCK ERROR:", error);
+    throw new InternalServerError("Failed to toggle stock.");
+  }
+}

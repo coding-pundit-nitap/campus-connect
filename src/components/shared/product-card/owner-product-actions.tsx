@@ -4,7 +4,9 @@ import React from "react";
 
 import { ProductEditDialog } from "@/components/owned-shop/product-card/product-edit-dialog";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useCategorySearch, useUpdateProductForm } from "@/hooks";
+import { useToggleProductStock } from "@/hooks/queries/useShopProducts";
 import { ImageUtils } from "@/lib/utils";
 import { productUIServices } from "@/lib/utils/product.utils";
 import { FormFieldConfig } from "@/types";
@@ -37,8 +39,23 @@ export function OwnerProductActions({
     return field;
   }) as FormFieldConfig<ProductUpdateActionFormData>[];
 
+  const toggleStock = useToggleProductStock();
+  const inStock = product.stock_quantity > 0;
+
   return (
     <div className="flex w-full flex-col gap-2">
+      <div className="flex items-center justify-between w-full p-2 border rounded-xl bg-card">
+        <span className="text-xs font-bold text-muted-foreground">
+          In Stock
+        </span>
+        <Switch
+          checked={inStock}
+          onCheckedChange={(checked) =>
+            toggleStock.mutate({ productId: product.id, inStock: checked })
+          }
+          disabled={toggleStock.isPending}
+        />
+      </div>
       <ProductEditDialog
         product={product}
         form={productFormHook.form}

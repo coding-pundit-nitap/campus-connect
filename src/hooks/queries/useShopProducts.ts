@@ -12,6 +12,7 @@ import {
   bulkCreateProductsAction,
   createProductAction,
   deleteProductAction,
+  toggleProductStockAction,
   updateProductAction,
 } from "@/actions";
 import { useSession } from "@/lib/auth-client";
@@ -174,6 +175,32 @@ export function useBulkProductsCreate() {
     },
     onError: () => {
       toast.error("Failed to create products. Please try again.");
+    },
+  });
+}
+
+export function useToggleProductStock() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      inStock,
+    }: {
+      productId: string;
+      inStock: boolean;
+    }) => toggleProductStockAction(productId, inStock),
+    onSuccess: (data) => {
+      toast.success("Availability updated!");
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shops.all });
+      if (data.data?.shop_id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.byShop(data.data.shop_id),
+        });
+      }
+    },
+    onError: () => {
+      toast.error("Failed to update availability. Please try again.");
     },
   });
 }
