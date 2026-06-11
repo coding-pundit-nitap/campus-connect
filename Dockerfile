@@ -105,3 +105,39 @@ COPY --chown=migrator:nodejs prisma.config.ts ./prisma.config.ts
 
 USER migrator
 CMD ["npx", "prisma", "migrate", "deploy"]
+
+# ==============================================================================
+# Production Support Images (Bundled Configuration)
+# ==============================================================================
+
+# Custom Nginx image with config bundled
+FROM nginx:1.29-alpine AS nginx-prod-image
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY ./nginx/conf.d/prod.conf /etc/nginx/conf.d/default.conf
+
+# Custom Prometheus image with rules and configuration bundled
+FROM prom/prometheus:v3.9.1 AS prometheus-prod-image
+COPY ./monitoring/prometheus/prometheus.yml /etc/prometheus/prometheus.yml
+COPY ./monitoring/prometheus/rules.yml /etc/prometheus/rules.yml
+
+# Custom Alertmanager image with templates and entrypoint bundled
+FROM prom/alertmanager:v0.28.1 AS alertmanager-prod-image
+COPY ./monitoring/alertmanager/alertmanager.yml.template /etc/alertmanager/alertmanager.yml.template
+COPY ./monitoring/alertmanager/alertmanager-entrypoint.sh /alertmanager-entrypoint.sh
+USER root
+RUN chmod +x /alertmanager-entrypoint.sh
+USER alertmanager
+
+# Custom Grafana image with provisioning and dashboards bundled
+FROM grafana/grafana:12.3.2 AS grafana-prod-image
+COPY ./monitoring/grafana/provisioning /etc/grafana/provisioning
+COPY ./monitoring/grafana/dashboards /var/lib/grafana/dashboards
+
+# Custom Loki image with config bundled
+FROM grafana/loki:3.6.4 AS loki-prod-image
+COPY ./monitoring/loki/loki-config.yaml /etc/loki/local-config.yaml
+
+# Custom Promtail image with config bundled
+FROM grafana/promtail:3.6.4 AS promtail-prod-image
+COPY ./monitoring/promtail/promtail-config.yaml /etc/promtail/config.yml
+
