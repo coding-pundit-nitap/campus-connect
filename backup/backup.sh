@@ -93,9 +93,14 @@ preflight() {
 
   # Verify if BACKUP_ROOT is writable, fall back if not
   if ! mkdir -p "$BACKUP_ROOT" 2>/dev/null || [ ! -w "$BACKUP_ROOT" ]; then
-    warn "Configured BACKUP_ROOT ($BACKUP_ROOT) is not writable. Falling back to $HOME/backups/campus_connect"
-    BACKUP_ROOT="$HOME/backups/campus_connect"
-    mkdir -p "$BACKUP_ROOT"
+    local fallback="$HOME/backups/campus_connect"
+    if [[ "$BACKUP_ROOT" != "$fallback" ]]; then
+      warn "Configured BACKUP_ROOT ($BACKUP_ROOT) is not writable. Falling back to $fallback"
+    fi
+    BACKUP_ROOT="$fallback"
+    if ! mkdir -p "$BACKUP_ROOT" 2>/dev/null || [ ! -w "$BACKUP_ROOT" ]; then
+      fail "Backup root directory ($BACKUP_ROOT) is not writable and fallback failed"
+    fi
   fi
 
   BACKUP_DIR="${BACKUP_ROOT}/${TIER}/${TIMESTAMP}"
