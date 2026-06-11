@@ -274,9 +274,7 @@ class BatchService {
     }
   }
 
-  async getNextSlot(
-    shopId: string
-  ): Promise<
+  async getNextSlot(shopId: string): Promise<
     | { enabled: false; cutoff_time: null; batch_id: null; is_open: boolean }
     | {
         enabled: true;
