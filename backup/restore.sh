@@ -236,7 +236,7 @@ restore_minio() {
     -v "${minio_dir}:/restore:ro" \
     --entrypoint /bin/sh \
     create-buckets \
-    -c "mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mb --ignore-existing dst/${MINIO_BUCKET} && mc mirror --quiet /restore dst/${MINIO_BUCKET}" \
+    -c "mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mb --ignore-existing dst/${MINIO_BUCKET} && mc mirror --quiet --overwrite /restore dst/${MINIO_BUCKET}" \
   || fail "MinIO restore failed"
 
   ok "MinIO restored ← $minio_dir (${count} objects)"
