@@ -232,9 +232,14 @@ backup_redis() {
     warn "Redis BGSAVE completion check timed out. Attempting to copy dump.rdb anyway."
   fi
 
-  docker cp "${REDIS_CONTAINER}:/data/dump.rdb" - \
-  | gzip -9 > "$out" \
-  || fail "Redis backup failed"
+  local temp_dir
+  temp_dir=$(mktemp -d)
+  trap 'rm -rf "$temp_dir"' RETURN EXIT
+  docker cp "${REDIS_CONTAINER}:/data/dump.rdb" "${temp_dir}/dump.rdb" \
+    && gzip -9 -c "${temp_dir}/dump.rdb" > "$out" \
+    || fail "Redis backup failed"
+  rm -rf "$temp_dir"
+  trap - RETURN EXIT
 
   local size
   size=$(stat -c%s "$out" 2>/dev/null || stat -f%z "$out")
