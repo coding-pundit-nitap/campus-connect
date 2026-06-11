@@ -14,17 +14,80 @@ set -euo pipefail
 IFS=$'\n\t'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
+
+# ── Config & Env Loading ──────────────────────────────────────────────────────
+load_env() {
+  local env_file="$1"
+  if [[ -f "$env_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Trim leading/trailing whitespace
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+
+      # Skip comments and empty lines
+      if [[ "$line" =~ ^# ]] || [[ -z "$line" ]]; then
+        continue
+      fi
+
+      if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+        local key="${BASH_REMATCH[1]}"
+        local val="${BASH_REMATCH[2]}"
+
+        key="${key#"${key%%[![:space:]]*}"}"
+        key="${key%"${key##*[![:space:]]}"}"
+        val="${val#"${val%%[![:space:]]*}"}"
+        val="${val%"${val##*[![:space:]]}"}"
+
+        # If quoted, strip quotes
+        if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
+          val="${BASH_REMATCH[1]}"
+        else
+          # Strip inline comments for unquoted values
+          if [[ "$val" =~ ^([^#]*)[[:space:]]+#.*$ ]]; then
+            val="${BASH_REMATCH[1]}"
+          elif [[ "$val" =~ ^([^#]*)#.*$ ]]; then
+            val="${BASH_REMATCH[1]}"
+          fi
+          val="${val#"${val%%[![:space:]]*}"}"
+          val="${val%"${val##*[![:space:]]}"}"
+        fi
+
+        export "$key"="$val"
+      fi
+    done < "$env_file"
+  fi
+}
+
+load_env "${SCRIPT_DIR}/../.env"
 
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
+
+# Dynamic container name discovery with hardcoded fallbacks
+DB_CONTAINER="${DB_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps db --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
+
+MINIO_CONTAINER="${MINIO_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps minio --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
+
+REDIS_CONTAINER="${REDIS_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps redis --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
+
+# Dynamic network discovery
+if [[ -z "${DOCKER_NETWORK:-}" ]]; then
+  DOCKER_NETWORK=$(docker inspect "$DB_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
+  if [[ -z "$DOCKER_NETWORK" ]]; then
+    DOCKER_NETWORK=$(docker inspect "$MINIO_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
+  fi
+fi
 DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
+
+# Postgres credentials mapping
 PG_USER="${POSTGRES_USER:-connect}"
 PG_DB="${POSTGRES_DB:-campus_connect}"
 PG_PASSWORD="${POSTGRES_PASSWORD:-}"
-MINIO_URL="${MINIO_URL:-http://minio:9000}"
+
+# MinIO credentials mapping
+MINIO_URL="${MINIO_URL:-${MINIO_ENDPOINT:-http://minio:9000}}"
 MINIO_USER="${MINIO_ROOT_USER:-}"
 MINIO_PASS="${MINIO_ROOT_PASSWORD:-}"
 MINIO_BUCKET="${NEXT_PUBLIC_MINIO_BUCKET:-campus-connect}"
