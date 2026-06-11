@@ -64,8 +64,8 @@ BACKUP_TS="${1:-latest}"
 PASS=0; FAIL=0
 
 log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
-ok()   { log "✅ PASS — $*"; (( PASS++ )); }
-fail() { log "❌ FAIL — $*"; (( FAIL++ )); }
+ok()   { log "✅ PASS — $*"; PASS=$(( PASS + 1 )); }
+fail() { log "❌ FAIL — $*"; FAIL=$(( FAIL + 1 )); }
 
 # ── Find backup ───────────────────────────────────────────────────────────────
 if [[ "$BACKUP_TS" == "latest" || "$BACKUP_TS" == "--latest" ]]; then
