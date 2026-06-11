@@ -20,8 +20,16 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 DAY_OF_WEEK=$(date +%u)   # 1=Mon … 7=Sun
 DAY_OF_MONTH=$(date +%d)
 
-# Ensure the log directory exists
-mkdir -p "$(dirname "$LOG_FILE")"
+# Ensure the log directory exists, fall back to SCRIPT_DIR if not writable
+LOG_DIR="$(dirname "$LOG_FILE")"
+if ! mkdir -p "$LOG_DIR" 2>/dev/null || [ ! -w "$LOG_DIR" ]; then
+  # We cannot write log to configured path (e.g. permission denied)
+  # Fall back to script directory
+  LOG_FILE="${SCRIPT_DIR}/backup.log"
+  LOG_DIR="${SCRIPT_DIR}"
+  mkdir -p "$LOG_DIR"
+  echo "⚠️ Warning: Configured log path not writable. Falling back to ${LOG_FILE}"
+fi
 
 # Docker container names (must match your compose)
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
@@ -82,6 +90,15 @@ preflight() {
   container_running "$DB_CONTAINER"    || fail "DB container not running: $DB_CONTAINER"
   container_running "$MINIO_CONTAINER" || fail "MinIO container not running: $MINIO_CONTAINER"
   container_running "$REDIS_CONTAINER" || fail "Redis container not running: $REDIS_CONTAINER"
+
+  # Verify if BACKUP_ROOT is writable, fall back if not
+  if ! mkdir -p "$BACKUP_ROOT" 2>/dev/null || [ ! -w "$BACKUP_ROOT" ]; then
+    warn "Configured BACKUP_ROOT ($BACKUP_ROOT) is not writable. Falling back to $HOME/backups/campus_connect"
+    BACKUP_ROOT="$HOME/backups/campus_connect"
+    mkdir -p "$BACKUP_ROOT"
+  fi
+
+  BACKUP_DIR="${BACKUP_ROOT}/${TIER}/${TIMESTAMP}"
 
   # Disk space check — need at least 2 GB free
   AVAIL=$(df -k "$BACKUP_ROOT" 2>/dev/null | awk 'NR==2{print $4}' || df -k "$HOME" | awk 'NR==2{print $4}')
