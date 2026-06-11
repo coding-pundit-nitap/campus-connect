@@ -83,9 +83,9 @@ export default function ContactPage() {
       address: {
         "@type": "PostalAddress",
         streetAddress: "NIT Arunachal Pradesh",
-        addressLocality: "Yupia",
+        addressLocality: "Jote",
         addressRegion: "Arunachal Pradesh",
-        postalCode: "791112",
+        postalCode: "791111",
         addressCountry: "IN",
       },
       contactPoint: {
@@ -354,9 +354,9 @@ export default function ContactPage() {
             <div>
               <h4 className="font-semibold mb-1">NIT Arunachal Pradesh</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Yupia, Papum Pare District
+                Jote, Papum Pare District
                 <br />
-                Arunachal Pradesh, India - 791112
+                Arunachal Pradesh, India - 791111
               </p>
               <p className="text-xs text-muted-foreground mt-4 italic">
                 Note: Campus Connect is an online platform. Please email us to

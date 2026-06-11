@@ -98,9 +98,9 @@ export default function AboutPage() {
       address: {
         "@type": "PostalAddress",
         streetAddress: "NIT Arunachal Pradesh",
-        addressLocality: "Yupia",
+        addressLocality: "Jote",
         addressRegion: "Arunachal Pradesh",
-        postalCode: "791112",
+        postalCode: "791111",
         addressCountry: "IN",
       },
       areaServed: {
