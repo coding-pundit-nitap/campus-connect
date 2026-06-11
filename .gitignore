@@ -59,3 +59,4 @@ backup.env
 graphify-out/
 /design-system
 *.info
+*.log

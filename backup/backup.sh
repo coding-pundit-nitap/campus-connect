@@ -37,10 +37,8 @@ load_env() {
         if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
           val="${BASH_REMATCH[1]}"
         else
-          # Strip inline comments for unquoted values
+          # Strip inline comments for unquoted values (only if preceded by whitespace)
           if [[ "$val" =~ ^([^#]*)[[:space:]]+#.*$ ]]; then
-            val="${BASH_REMATCH[1]}"
-          elif [[ "$val" =~ ^([^#]*)#.*$ ]]; then
             val="${BASH_REMATCH[1]}"
           fi
           val="${val#"${val%%[![:space:]]*}"}"
@@ -90,15 +88,6 @@ MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 
 REDIS_CONTAINER="${REDIS_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps redis --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
-
-# Dynamic network discovery
-if [[ -z "${DOCKER_NETWORK:-}" ]]; then
-  DOCKER_NETWORK=$(docker inspect "$DB_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
-  if [[ -z "$DOCKER_NETWORK" ]]; then
-    DOCKER_NETWORK=$(docker inspect "$MINIO_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
-  fi
-fi
-DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
 
 # Postgres credentials mapping
 PG_USER="${POSTGRES_USER:-connect}"
@@ -200,11 +189,10 @@ backup_minio() {
   local out="${BACKUP_DIR}/minio"
   mkdir -p "$out"
 
-  docker run --rm \
-    --network "${DOCKER_NETWORK}" \
+  docker compose -f "${SCRIPT_DIR}/../compose.yml" run --rm \
     -v "${out}:/backup" \
     --entrypoint /bin/sh \
-    minio/mc:latest \
+    create-buckets \
     -c "mc alias set src '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mirror --quiet src/${MINIO_BUCKET} /backup" \
   || fail "MinIO mirror failed"
 
