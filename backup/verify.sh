@@ -127,7 +127,7 @@ verify_redis() {
   fi
 
   local magic
-  magic=$(zcat "$rdb_file" 2>/dev/null | head -c 5 || echo "")
+  magic=$(set +o pipefail; zcat "$rdb_file" 2>/dev/null | head -c 5 || echo "")
   [[ "$magic" == "REDIS" ]] \
     && ok "Redis RDB magic bytes valid" \
     || fail "Redis RDB magic bytes invalid — file may be corrupt"

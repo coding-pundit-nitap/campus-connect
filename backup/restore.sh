@@ -189,12 +189,11 @@ restore_redis() {
 
   docker stop "$REDIS_CONTAINER" || fail "Could not stop Redis"
 
-  REDIS_VOLUME=$(docker inspect "$REDIS_CONTAINER" \
-    --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "")
-
-  zcat "$rdb_file" > /tmp/dump.rdb
-  docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
-  rm /tmp/dump.rdb
+  local temp_rdb
+  temp_rdb=$(mktemp -t redis_restore_XXXXXX.rdb)
+  zcat "$rdb_file" > "$temp_rdb"
+  docker cp "$temp_rdb" "${REDIS_CONTAINER}:/data/dump.rdb"
+  rm -f "$temp_rdb"
   ok "Redis RDB restored via docker cp"
 
   docker start "$REDIS_CONTAINER" || fail "Could not restart Redis"

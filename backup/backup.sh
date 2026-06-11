@@ -23,19 +23,25 @@ DAY_OF_MONTH=$(date +%d)
 # Ensure the log directory exists, fall back to SCRIPT_DIR if not writable
 LOG_DIR="$(dirname "$LOG_FILE")"
 if ! mkdir -p "$LOG_DIR" 2>/dev/null || [ ! -w "$LOG_DIR" ]; then
-  # We cannot write log to configured path (e.g. permission denied)
-  # Fall back to script directory
   LOG_FILE="${SCRIPT_DIR}/backup.log"
   LOG_DIR="${SCRIPT_DIR}"
-  mkdir -p "$LOG_DIR"
-  echo "⚠️ Warning: Configured log path not writable. Falling back to ${LOG_FILE}"
+  if ! mkdir -p "$LOG_DIR" 2>/dev/null || [ ! -w "$LOG_DIR" ]; then
+    LOG_FILE="/tmp/backup.log"
+    LOG_DIR="/tmp"
+    if ! mkdir -p "$LOG_DIR" 2>/dev/null || [ ! -w "$LOG_DIR" ]; then
+      LOG_FILE="/dev/null"
+    fi
+  fi
+  if [[ "$LOG_FILE" != "/dev/null" ]]; then
+    echo "⚠️ Warning: Configured log path not writable. Falling back to ${LOG_FILE}"
+  fi
 fi
 
 # Docker container names (must match your compose)
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
 MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-campus-connect_campus_connect_net}"
 
 # Postgres creds
 PG_USER="${POSTGRES_USER:-connect}"
@@ -49,7 +55,7 @@ MINIO_PASS="${MINIO_ROOT_PASSWORD:-}"
 MINIO_BUCKET="${NEXT_PUBLIC_MINIO_BUCKET:-campus-connect}"
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
-log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
+log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE" || true; }
 ok()   { log "✅ $*"; }
 warn() { log "⚠️  $*"; }
 fail() { log "❌ $*"; exit 1; }
