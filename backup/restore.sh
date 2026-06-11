@@ -166,12 +166,25 @@ restore_postgres() {
     return
   fi
 
-  log "   Stopping app and studio containers …"
-  docker stop campus_connect_app_prod      2>/dev/null || true
-  docker stop campus_connect_app_dev       2>/dev/null || true
-  docker stop campus_connect_worker_prod   2>/dev/null || true
-  docker stop campus_connect_worker_dev    2>/dev/null || true
-  docker stop campus_connect_prisma_studio 2>/dev/null || true
+  log "   Checking running app and studio containers …"
+  local start_app_prod=false
+  local start_app_dev=false
+  local start_worker_prod=false
+  local start_worker_dev=false
+  local start_studio=false
+
+  if docker ps --format '{{.Names}}' | grep -q "^campus_connect_app_prod$"; then start_app_prod=true; fi
+  if docker ps --format '{{.Names}}' | grep -q "^campus_connect_app_dev$"; then start_app_dev=true; fi
+  if docker ps --format '{{.Names}}' | grep -q "^campus_connect_worker_prod$"; then start_worker_prod=true; fi
+  if docker ps --format '{{.Names}}' | grep -q "^campus_connect_worker_dev$"; then start_worker_dev=true; fi
+  if docker ps --format '{{.Names}}' | grep -q "^campus_connect_prisma_studio$"; then start_studio=true; fi
+
+  log "   Stopping running app and studio containers …"
+  [[ "$start_app_prod" == "true" ]] && docker stop campus_connect_app_prod 2>/dev/null || true
+  [[ "$start_app_dev" == "true" ]] && docker stop campus_connect_app_dev 2>/dev/null || true
+  [[ "$start_worker_prod" == "true" ]] && docker stop campus_connect_worker_prod 2>/dev/null || true
+  [[ "$start_worker_dev" == "true" ]] && docker stop campus_connect_worker_dev 2>/dev/null || true
+  [[ "$start_studio" == "true" ]] && docker stop campus_connect_prisma_studio 2>/dev/null || true
 
   # Terminate active connections
   docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
@@ -197,12 +210,12 @@ restore_postgres() {
 
   ok "PostgreSQL restored ← $(basename "$dump_file")"
 
-  log "   Restarting app and studio containers …"
-  docker start campus_connect_app_prod      2>/dev/null || true
-  docker start campus_connect_app_dev       2>/dev/null || true
-  docker start campus_connect_worker_prod   2>/dev/null || true
-  docker start campus_connect_worker_dev    2>/dev/null || true
-  docker start campus_connect_prisma_studio 2>/dev/null || true
+  log "   Restarting previously running app and studio containers …"
+  [[ "$start_app_prod" == "true" ]] && docker start campus_connect_app_prod 2>/dev/null || true
+  [[ "$start_app_dev" == "true" ]] && docker start campus_connect_app_dev 2>/dev/null || true
+  [[ "$start_worker_prod" == "true" ]] && docker start campus_connect_worker_prod 2>/dev/null || true
+  [[ "$start_worker_dev" == "true" ]] && docker start campus_connect_worker_dev 2>/dev/null || true
+  [[ "$start_studio" == "true" ]] && docker start campus_connect_prisma_studio 2>/dev/null || true
 }
 
 # ── Restore MinIO ─────────────────────────────────────────────────────────────
@@ -246,10 +259,12 @@ restore_redis() {
 
   local temp_rdb
   temp_rdb=$(mktemp -t redis_restore_XXXXXX.rdb)
-  zcat "$rdb_file" > "$temp_rdb"
+  trap 'rm -f "$temp_rdb"' EXIT
+  gunzip -c "$rdb_file" > "$temp_rdb"
   chmod 644 "$temp_rdb"
   docker cp "$temp_rdb" "${REDIS_CONTAINER}:/data/dump.rdb"
   rm -f "$temp_rdb"
+  trap - EXIT
   ok "Redis RDB restored via docker cp"
 
   docker start "$REDIS_CONTAINER" || fail "Could not restart Redis"
