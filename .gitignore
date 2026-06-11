@@ -60,3 +60,4 @@ graphify-out/
 /design-system
 *.info
 *.log
+backup/backup.log
