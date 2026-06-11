@@ -15,9 +15,11 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "**/*.generated.ts",
     "node_modules/**",
-    "src/generated",
-    "workers/generated",
+    "src/generated/**",
+    "workers/generated/**",
     "dist/**",
+    ".agent/**",
+    "**/.agent/**",
   ]),
   {
     plugins: {
