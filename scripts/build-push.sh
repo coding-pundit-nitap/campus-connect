@@ -17,26 +17,53 @@ REGISTRY="${DOCKER_REGISTRY:-}"
 TAG="${IMAGE_TAG:-latest}"
 PUSH_IMAGES=true
 
+# Group & Service Filtering Configuration
+BUILD_APP=true
+BUILD_MONITORING=true
+HAS_POSITIONAL=false
+REQUESTED_SERVICES=()
+
 # Parse args
 for arg in "$@"; do
   case $arg in
     --no-push)
       PUSH_IMAGES=false
-      shift
       ;;
     --registry=*)
       REGISTRY="${arg#*=}"
-      shift
       ;;
     --tag=*)
       TAG="${arg#*=}"
-      shift
+      ;;
+    app)
+      HAS_POSITIONAL=true
+      BUILD_APP=true
+      ;;
+    monitoring)
+      HAS_POSITIONAL=true
+      BUILD_MONITORING=true
       ;;
     *)
-      # Unknown option
+      # If it's not a flag (starts with --), it's a specific service/alias request
+      if [[ "$arg" != --* ]]; then
+        HAS_POSITIONAL=true
+        REQUESTED_SERVICES+=("$arg")
+      fi
       ;;
   esac
 done
+
+# If positional arguments were specified, reset default groups
+if [ "$HAS_POSITIONAL" = true ]; then
+  # Only build app group if explicitly requested
+  if [[ " ${*} " != *" app "* ]]; then
+    BUILD_APP=false
+  fi
+  # Only build monitoring group if explicitly requested
+  if [[ " ${*} " != *" monitoring "* ]]; then
+    BUILD_MONITORING=false
+  fi
+fi
 
 if [ -z "$REGISTRY" ]; then
   # If we're not pushing and REGISTRY is empty, set a dummy registry for tag resolving
@@ -53,6 +80,11 @@ echo "🚀 Starting Campus Connect Local Build & Push Process"
 echo "   Registry : $REGISTRY"
 echo "   Tag      : $TAG"
 echo "   Push     : $PUSH_IMAGES"
+if [ "$HAS_POSITIONAL" = true ]; then
+  echo "   Filters  : app=$BUILD_APP, monitoring=$BUILD_MONITORING, services=[${REQUESTED_SERVICES[*]:-}]"
+else
+  echo "   Filters  : Build all (no filters)"
+fi
 echo "=========================================================="
 
 # Resolve build variables
@@ -79,6 +111,33 @@ for service in "${SERVICES[@]}"; do
   IMAGE_NAME="${service#*:}"
   FULL_IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}:${TAG}"
 
+  # Filtering Logic
+  if [ "$HAS_POSITIONAL" = true ]; then
+    SHOULD_BUILD=false
+
+    # Check if app group is requested
+    if [ "$BUILD_APP" = true ] && [[ "$TARGET" =~ ^(migrator|runner|worker-runner)$ ]]; then
+      SHOULD_BUILD=true
+    fi
+
+    # Check if monitoring group is requested
+    if [ "$BUILD_MONITORING" = true ] && [[ ! "$TARGET" =~ ^(migrator|runner|worker-runner)$ ]]; then
+      SHOULD_BUILD=true
+    fi
+
+    # Check for specific service names or aliases (like 'nginx', 'prometheus', etc.)
+    for req in "${REQUESTED_SERVICES[@]}"; do
+      if [ "$req" = "$TARGET" ] || [ "$req" = "$IMAGE_NAME" ] || [[ "$IMAGE_NAME" == *"$req"* ]]; then
+        SHOULD_BUILD=true
+      fi
+    done
+
+    if [ "$SHOULD_BUILD" = false ]; then
+      echo "⏭️ Skipping '$TARGET' (does not match filters)"
+      continue
+    fi
+  fi
+
   echo "📦 Building target '$TARGET' -> '$FULL_IMAGE_NAME'..."
 
   # Extra arguments for runner (Next.js app)
@@ -103,4 +162,4 @@ for service in "${SERVICES[@]}"; do
   fi
 done
 
-echo "🏁 Process complete! Images built successfully."
+echo "🏁 Process complete! Selected images built successfully."
