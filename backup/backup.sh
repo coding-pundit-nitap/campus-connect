@@ -15,10 +15,13 @@ BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
 RETENTION_DAILY="${RETENTION_DAILY:-7}"
 RETENTION_WEEKLY="${RETENTION_WEEKLY:-4}"
 RETENTION_MONTHLY="${RETENTION_MONTHLY:-6}"
-LOG_FILE="${LOG_FILE:-${SCRIPT_DIR}/../backup/backup.log}"
+LOG_FILE="${LOG_FILE:-${SCRIPT_DIR}/backup.log}"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 DAY_OF_WEEK=$(date +%u)   # 1=Mon … 7=Sun
 DAY_OF_MONTH=$(date +%d)
+
+# Ensure the log directory exists
+mkdir -p "$(dirname "$LOG_FILE")"
 
 # Docker container names (must match your compose)
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
