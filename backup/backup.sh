@@ -54,7 +54,6 @@ load_env() {
 }
 
 load_env "${SCRIPT_DIR}/../.env"
-load_env "${SCRIPT_DIR}/../backup.env"
 
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
 RETENTION_DAILY="${RETENTION_DAILY:-7}"
