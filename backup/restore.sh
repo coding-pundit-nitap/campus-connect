@@ -42,10 +42,8 @@ load_env() {
         if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
           val="${BASH_REMATCH[1]}"
         else
-          # Strip inline comments for unquoted values
+          # Strip inline comments for unquoted values (only if preceded by whitespace)
           if [[ "$val" =~ ^([^#]*)[[:space:]]+#.*$ ]]; then
-            val="${BASH_REMATCH[1]}"
-          elif [[ "$val" =~ ^([^#]*)#.*$ ]]; then
             val="${BASH_REMATCH[1]}"
           fi
           val="${val#"${val%%[![:space:]]*}"}"
@@ -71,15 +69,6 @@ MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 
 REDIS_CONTAINER="${REDIS_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps redis --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
-
-# Dynamic network discovery
-if [[ -z "${DOCKER_NETWORK:-}" ]]; then
-  DOCKER_NETWORK=$(docker inspect "$DB_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
-  if [[ -z "$DOCKER_NETWORK" ]]; then
-    DOCKER_NETWORK=$(docker inspect "$MINIO_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' 2>/dev/null | head -n 1)
-  fi
-fi
-DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
 
 # Postgres credentials mapping
 PG_USER="${POSTGRES_USER:-connect}"
@@ -177,11 +166,12 @@ restore_postgres() {
     return
   fi
 
-  log "   Stopping app containers …"
-  docker stop campus_connect_app_prod   2>/dev/null || true
-  docker stop campus_connect_app_dev    2>/dev/null || true
-  docker stop campus_connect_worker_prod 2>/dev/null || true
-  docker stop campus_connect_worker_dev  2>/dev/null || true
+  log "   Stopping app and studio containers …"
+  docker stop campus_connect_app_prod      2>/dev/null || true
+  docker stop campus_connect_app_dev       2>/dev/null || true
+  docker stop campus_connect_worker_prod   2>/dev/null || true
+  docker stop campus_connect_worker_dev    2>/dev/null || true
+  docker stop campus_connect_prisma_studio 2>/dev/null || true
 
   # Terminate active connections
   docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
@@ -200,16 +190,19 @@ restore_postgres() {
   || fail "Failed to create database"
 
   # Restore
-  zcat "$dump_file" \
+  gunzip -c "$dump_file" \
   | docker exec -i -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
     pg_restore -U "$PG_USER" -d "$PG_DB" --no-owner --role="$PG_USER" \
   || fail "pg_restore failed"
 
   ok "PostgreSQL restored ← $(basename "$dump_file")"
 
-  log "   Restarting app containers …"
-  docker start campus_connect_app_prod   2>/dev/null || true
-  docker start campus_connect_worker_prod 2>/dev/null || true
+  log "   Restarting app and studio containers …"
+  docker start campus_connect_app_prod      2>/dev/null || true
+  docker start campus_connect_app_dev       2>/dev/null || true
+  docker start campus_connect_worker_prod   2>/dev/null || true
+  docker start campus_connect_worker_dev    2>/dev/null || true
+  docker start campus_connect_prisma_studio 2>/dev/null || true
 }
 
 # ── Restore MinIO ─────────────────────────────────────────────────────────────
@@ -226,11 +219,10 @@ restore_minio() {
     return
   fi
 
-  docker run --rm \
-    --network "${DOCKER_NETWORK}" \
+  docker compose -f "${SCRIPT_DIR}/../compose.yml" run --rm \
     -v "${minio_dir}:/restore:ro" \
     --entrypoint /bin/sh \
-    minio/mc:latest \
+    create-buckets \
     -c "mc alias set dst '${MINIO_URL}' '${MINIO_USER}' '${MINIO_PASS}' --quiet && mc mb --ignore-existing dst/${MINIO_BUCKET} && mc mirror --quiet /restore dst/${MINIO_BUCKET}" \
   || fail "MinIO restore failed"
 
@@ -255,6 +247,7 @@ restore_redis() {
   local temp_rdb
   temp_rdb=$(mktemp -t redis_restore_XXXXXX.rdb)
   zcat "$rdb_file" > "$temp_rdb"
+  chmod 644 "$temp_rdb"
   docker cp "$temp_rdb" "${REDIS_CONTAINER}:/data/dump.rdb"
   rm -f "$temp_rdb"
   ok "Redis RDB restored via docker cp"
