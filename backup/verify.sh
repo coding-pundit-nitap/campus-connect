@@ -7,10 +7,56 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
+
+# ── Config & Env Loading ──────────────────────────────────────────────────────
+load_env() {
+  local env_file="$1"
+  if [[ -f "$env_file" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      # Trim leading/trailing whitespace
+      line="${line#"${line%%[![:space:]]*}"}"
+      line="${line%"${line##*[![:space:]]}"}"
+
+      # Skip comments and empty lines
+      if [[ "$line" =~ ^# ]] || [[ -z "$line" ]]; then
+        continue
+      fi
+
+      if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+        local key="${BASH_REMATCH[1]}"
+        local val="${BASH_REMATCH[2]}"
+
+        key="${key#"${key%%[![:space:]]*}"}"
+        key="${key%"${key##*[![:space:]]}"}"
+        val="${val#"${val%%[![:space:]]*}"}"
+        val="${val%"${val##*[![:space:]]}"}"
+
+        # If quoted, strip quotes
+        if [[ "$val" =~ ^\"(.*)\"$ ]] || [[ "$val" =~ ^\'(.*)\'$ ]]; then
+          val="${BASH_REMATCH[1]}"
+        else
+          # Strip inline comments for unquoted values (only if preceded by whitespace)
+          if [[ "$val" =~ ^([^#]*)[[:space:]]+#.*$ ]]; then
+            val="${BASH_REMATCH[1]}"
+          fi
+          val="${val#"${val%%[![:space:]]*}"}"
+          val="${val%"${val##*[![:space:]]}"}"
+        fi
+
+        export "$key"="$val"
+      fi
+    done < "$env_file"
+  fi
+}
+
+load_env "${SCRIPT_DIR}/../.env"
 
 BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
+
+# Dynamic container name discovery with hardcoded fallbacks
+DB_CONTAINER="${DB_CONTAINER:-$(docker compose -f "${SCRIPT_DIR}/../compose.yml" ps db --format '{{.Names}}' 2>/dev/null | head -n 1)}"
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
+
 PG_USER="${POSTGRES_USER:-connect}"
 PG_DB="${POSTGRES_DB:-campus_connect}"
 PG_PASSWORD="${POSTGRES_PASSWORD:-}"
@@ -73,7 +119,7 @@ verify_postgres() {
   if docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" psql -U "$PG_USER" -d postgres -c "CREATE DATABASE ${test_db};" >/dev/null 2>&1; then
     
     # Attempt restore (capture exit code safely)
-    if zcat "$dump_file" | docker exec -i -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" pg_restore -U "$PG_USER" -d "$test_db" --no-owner 2>/dev/null; then
+    if gunzip -c "$dump_file" | docker exec -i -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" pg_restore -U "$PG_USER" -d "$test_db" --no-owner 2>/dev/null; then
       restore_success=true
       # Fetch table count
       local query_res
@@ -127,7 +173,7 @@ verify_redis() {
   fi
 
   local magic
-  magic=$(set +o pipefail; zcat "$rdb_file" 2>/dev/null | head -c 5 || echo "")
+  magic=$(set +o pipefail; gunzip -c "$rdb_file" 2>/dev/null | head -c 5 || echo "")
   [[ "$magic" == "REDIS" ]] \
     && ok "Redis RDB magic bytes valid" \
     || fail "Redis RDB magic bytes invalid — file may be corrupt"
