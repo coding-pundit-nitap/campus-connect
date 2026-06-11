@@ -193,7 +193,7 @@ restore_redis() {
     --format '{{range .Mounts}}{{if eq .Destination "/data"}}{{.Source}}{{end}}{{end}}' 2>/dev/null || echo "")
 
   zcat "$rdb_file" > /tmp/dump.rdb
-  sudo docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
+  docker cp /tmp/dump.rdb "${REDIS_CONTAINER}:/data/dump.rdb"
   rm /tmp/dump.rdb
   ok "Redis RDB restored via docker cp"
 

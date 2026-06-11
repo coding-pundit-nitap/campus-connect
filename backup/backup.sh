@@ -130,13 +130,31 @@ backup_redis() {
   log "── Redis snapshot …"
   local out="${BACKUP_DIR}/redis_${TIMESTAMP}.rdb.gz"
 
-  docker exec "$REDIS_CONTAINER" redis-cli BGSAVE >/dev/null
-  sleep 2
-  for i in $(seq 1 15); do
-    status=$(docker exec "$REDIS_CONTAINER" redis-cli LASTSAVE)
-    [[ "$status" -gt 0 ]] && break
-    sleep 2
+  # Fetch the timestamp of the last save before starting the BGSAVE
+  local start_save
+  start_save=$(docker exec "$REDIS_CONTAINER" redis-cli LASTSAVE 2>/dev/null | tr -d '\r\n')
+  if [[ -z "$start_save" || ! "$start_save" =~ ^[0-9]+$ ]]; then
+    start_save=0
+  fi
+
+  # Trigger BGSAVE
+  docker exec "$REDIS_CONTAINER" redis-cli BGSAVE >/dev/null 2>&1 || true
+  
+  # Wait for LASTSAVE timestamp to increase, indicating BGSAVE has finished
+  local current_save
+  local save_success=false
+  for i in $(seq 1 30); do
+    sleep 1
+    current_save=$(docker exec "$REDIS_CONTAINER" redis-cli LASTSAVE 2>/dev/null | tr -d '\r\n')
+    if [[ -n "$current_save" && "$current_save" =~ ^[0-9]+$ && "$current_save" -gt "$start_save" ]]; then
+      save_success=true
+      break
+    fi
   done
+
+  if [ "$save_success" = false ]; then
+    warn "Redis BGSAVE completion check timed out. Attempting to copy dump.rdb anyway."
+  fi
 
   docker cp "${REDIS_CONTAINER}:/data/dump.rdb" - \
   | gzip -9 > "$out" \
@@ -188,6 +206,22 @@ cleanup_old_backups() {
     | sort -r | tail -n +$(( RETENTION_MONTHLY + 1 )) \
     | xargs -r rm -rf
   ok "Kept last ${RETENTION_MONTHLY} monthly backups"
+}
+
+# ── 6. Offsite sync ───────────────────────────────────────────────────────────
+offsite_sync() {
+  if [[ "$OFFSITE" != "true" ]]; then
+    return 0
+  fi
+
+  log "── Offsite sync via rclone …"
+  local remote="${OFFSITE_REMOTE:-gdrive:campus-connect-backups}"
+  
+  if ! rclone sync "$BACKUP_ROOT" "$remote" --fast-list; then
+    warn "Offsite sync failed, but local backup was saved successfully"
+  else
+    ok "Offsite sync completed → $remote"
+  fi
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
