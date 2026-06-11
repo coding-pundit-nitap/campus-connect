@@ -11,7 +11,7 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
 
-BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
 RETENTION_DAILY="${RETENTION_DAILY:-7}"
 RETENTION_WEEKLY="${RETENTION_WEEKLY:-4}"
 RETENTION_MONTHLY="${RETENTION_MONTHLY:-6}"

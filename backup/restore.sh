@@ -16,7 +16,7 @@ IFS=$'\n\t'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
 
-BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
 MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"

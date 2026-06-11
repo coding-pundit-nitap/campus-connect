@@ -9,7 +9,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../backup.env" 2>/dev/null || true
 
-BACKUP_ROOT="${BACKUP_ROOT:-/home/campus_connect/campus-connect/backups}"
+BACKUP_ROOT="${BACKUP_ROOT:-$HOME/backups/campus_connect}"
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
 PG_USER="${POSTGRES_USER:-connect}"
 PG_DB="${POSTGRES_DB:-campus_connect}"
