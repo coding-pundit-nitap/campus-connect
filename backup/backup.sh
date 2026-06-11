@@ -41,7 +41,7 @@ fi
 DB_CONTAINER="${DB_CONTAINER:-campus_connect_db}"
 MINIO_CONTAINER="${MINIO_CONTAINER:-campus_connect_minio}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-campus_connect_redis}"
-DOCKER_NETWORK="${DOCKER_NETWORK:-campus-connect_campus_connect_net}"
+DOCKER_NETWORK="${DOCKER_NETWORK:-campus_connect_net}"
 
 # Postgres creds
 PG_USER="${POSTGRES_USER:-connect}"
