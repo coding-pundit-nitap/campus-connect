@@ -1,7 +1,4 @@
 x-nginx-common: &nginx-common
-  image: nginx:1.29-alpine
-  volumes:
-    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
   networks:
     - campus_connect_net
   healthcheck:
@@ -43,6 +40,7 @@ x-prod-env: &prod-env
 services:
   nginx-dev:
     <<: *nginx-common
+    image: nginx:1.29-alpine
     mem_limit: 128m
     cpus: "0.20"
     container_name: campus_connect_nginx_dev
@@ -200,6 +198,7 @@ services:
 
   nginx-prod:
     <<: *nginx-common
+    image: ${DOCKER_REGISTRY}/campus-connect-nginx:${IMAGE_TAG:-latest}
     container_name: campus_connect_nginx_prod
     restart: always
     ports:
@@ -207,9 +206,7 @@ services:
       - "8080:8080"
       - "9000:9000"
       - "9001:9001"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d/prod.conf:/etc/nginx/conf.d/default.conf:ro
+    # No local nginx volumes mounted
     depends_on:
       app-prod:
         condition: service_healthy
@@ -241,10 +238,7 @@ services:
 
   migrator-prod:
     <<: *prod-env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: migrator
+    image: ${DOCKER_REGISTRY}/campus-connect-migrator:${IMAGE_TAG:-latest}
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
     environment:
@@ -263,14 +257,7 @@ services:
 
   app-prod:
     <<: *prod-env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
-      args:
-        - NEXT_PUBLIC_MINIO_BUCKET=${NEXT_PUBLIC_MINIO_BUCKET:-campus-connect}
-        - NEXT_PUBLIC_MINIO_ENDPOINT=${NEXT_PUBLIC_MINIO_ENDPOINT:-http://localhost:9000}
-        - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost}
+    image: ${DOCKER_REGISTRY}/campus-connect-app:${IMAGE_TAG:-latest}
     container_name: campus_connect_app_prod
     restart: always
     depends_on:
@@ -314,10 +301,7 @@ services:
 
   worker-prod:
     <<: *prod-env
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: worker-runner
+    image: ${DOCKER_REGISTRY}/campus-connect-worker:${IMAGE_TAG:-latest}
     container_name: campus_connect_worker_prod
     restart: always
     environment:
@@ -494,7 +478,7 @@ services:
     logging: *default-logging
 
   prometheus-prod:
-    image: prom/prometheus:v3.9.1
+    image: ${DOCKER_REGISTRY}/campus-connect-prometheus:${IMAGE_TAG:-latest}
     container_name: campus_connect_prometheus_prod
     restart: always
     command:
@@ -505,8 +489,6 @@ services:
       - "--web.external-url=http://localhost/prometheus"
       - "--web.route-prefix=/"
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus_data:/prometheus
     expose:
       - "9090"
@@ -536,7 +518,7 @@ services:
     logging: *default-logging
 
   alertmanager:
-    image: prom/alertmanager:v0.28.1
+    image: ${DOCKER_REGISTRY}/campus-connect-alertmanager:${IMAGE_TAG:-latest}
     container_name: campus_connect_alertmanager
     restart: always
     entrypoint: ["/alertmanager-entrypoint.sh"]
@@ -546,8 +528,6 @@ services:
       - "--web.external-url=http://localhost/alertmanager"
       - "--web.route-prefix=/"
     volumes:
-      - ./monitoring/alertmanager/alertmanager.yml.template:/etc/alertmanager/alertmanager.yml.template:ro
-      - ./monitoring/alertmanager/alertmanager-entrypoint.sh:/alertmanager-entrypoint.sh:ro
       - alertmanager_data:/alertmanager
     environment:
       - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
@@ -580,7 +560,7 @@ services:
     logging: *default-logging
 
   grafana:
-    image: grafana/grafana:12.3.2
+    image: ${DOCKER_REGISTRY}/campus-connect-grafana:${IMAGE_TAG:-latest}
     container_name: campus_connect_grafana
     restart: always
     environment:
@@ -591,8 +571,6 @@ services:
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
     volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     expose:
       - "3000"
@@ -620,12 +598,11 @@ services:
     logging: *default-logging
 
   loki:
-    image: grafana/loki:3.6.4
+    image: ${DOCKER_REGISTRY}/campus-connect-loki:${IMAGE_TAG:-latest}
     container_name: campus_connect_loki
     restart: always
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
-      - ./monitoring/loki/loki-config.yaml:/etc/loki/local-config.yaml:ro
       - loki_data:/loki
     expose:
       - "3100"
@@ -651,12 +628,11 @@ services:
     logging: *default-logging
 
   promtail:
-    image: grafana/promtail:3.6.4
+    image: ${DOCKER_REGISTRY}/campus-connect-promtail:${IMAGE_TAG:-latest}
     container_name: campus_connect_promtail
     restart: always
     command: -config.file=/etc/promtail/config.yml
     volumes:
-      - ./monitoring/promtail/promtail-config.yaml:/etc/promtail/config.yml:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
       - promtail_positions:/var/lib/promtail
