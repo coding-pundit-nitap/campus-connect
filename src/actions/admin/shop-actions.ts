@@ -459,12 +459,14 @@ export async function getShopStatsAction(): Promise<
       recentShops,
     ] = await Promise.all([
       shopRepository.count({}),
-      shopRepository.count({ is_active: true }),
-      shopRepository.count({ verification_status: "VERIFIED" }),
-      shopRepository.count({ verification_status: "PENDING" }),
+      shopRepository.count({ where: { is_active: true } }),
+      shopRepository.count({ where: { verification_status: "VERIFIED" } }),
+      shopRepository.count({ where: { verification_status: "PENDING" } }),
       shopRepository.count({
-        created_at: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        where: {
+          created_at: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
         },
       }),
     ]);

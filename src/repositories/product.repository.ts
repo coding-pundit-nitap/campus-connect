@@ -1,31 +1,68 @@
 import { Prisma, Product } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
-export type CreateProductDto = Prisma.ProductCreateInput;
+import { BaseRepository } from "./base.repository";
 
-export type UpdateProductDto = Omit<Prisma.ProductUpdateArgs, "where">;
+export type CreateProductDto = Prisma.ProductCreateInput;
+export type UpdateProductDto = Prisma.ProductUpdateInput;
 
 type ProductFindOptions = Omit<Prisma.ProductFindUniqueArgs, "where">;
-
 type ProductFindManyOptions = Omit<Prisma.ProductFindManyArgs, "where">;
 
-class ProductRepository {
-  async findById(product_id: string): Promise<Product | null>;
-  async findById<T extends ProductFindOptions>(
-    shop_id: string,
-    data: T
-  ): Promise<Prisma.ProductGetPayload<{ where: { id: string } } & T> | null>;
-  async findById<T extends ProductFindOptions>(
-    product_id: string,
-    data?: T
+export class ProductRepository extends BaseRepository<
+  Product,
+  Prisma.ProductDelegate
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.product);
+  }
+
+  override async findById<
+    T extends Omit<
+      Parameters<Prisma.ProductDelegate["findUnique"]>[0],
+      "where"
+    >,
+  >(
+    id: string,
+    options?: T
+  ): Promise<Prisma.Result<
+    Prisma.ProductDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null> {
+    return this.prismaClient.product.findFirst({
+      where: { id, deleted_at: null },
+      ...options,
+    } as any) as any;
+  }
+
+  override async delete<
+    T extends Omit<Parameters<Prisma.ProductDelegate["delete"]>[0], "where">,
+  >(
+    id: string,
+    options?: T
   ): Promise<
-    Prisma.ProductGetPayload<{ where: { id: string } } & T> | Product | null
+    Prisma.Result<
+      Prisma.ProductDelegate,
+      T & { where: { id: string } },
+      "delete"
+    >
   > {
-    const query = {
-      where: { id: product_id, deleted_at: null },
-      ...(data ?? {}),
-    };
-    return prisma.product.findFirst(query);
+    return this.prismaClient.product.update({
+      where: { id },
+      data: { deleted_at: new Date() },
+      ...options,
+    } as any) as any;
+  }
+
+  async hardDelete(
+    product_id: string,
+    data?: Omit<Prisma.ProductDeleteArgs, "where">
+  ): Promise<Product> {
+    return this.prismaClient.product.delete({
+      where: { id: product_id },
+      ...data,
+    });
   }
 
   async findManyByShopId(shop_id: string): Promise<Product[]>;
@@ -37,65 +74,10 @@ class ProductRepository {
     shop_id: string,
     data?: T
   ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
-    return prisma.product.findMany({
+    return this.prismaClient.product.findMany({
       where: { shop_id, deleted_at: null },
       ...data,
     });
-  }
-
-  async create(data: CreateProductDto) {
-    const product = await prisma.product.create({
-      data,
-      include: { category: true, shop: { select: { id: true, name: true } } },
-    });
-
-    return product;
-  }
-
-  async update(product_id: string, data: UpdateProductDto) {
-    const product = await prisma.product.update({
-      where: { id: product_id },
-      ...data,
-      include: {
-        category: true,
-        shop: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-    });
-    return product;
-  }
-  async delete(product_id: string): Promise<Product> {
-    const product = await prisma.product.update({
-      where: { id: product_id },
-      data: { deleted_at: new Date() },
-    });
-
-    return product;
-  }
-  async hardDelete(
-    product_id: string,
-    data?: Omit<Prisma.ProductDeleteArgs, "where">
-  ): Promise<Product> {
-    const product = await prisma.product.delete({
-      where: { id: product_id },
-      ...data,
-    });
-
-    return product;
-  }
-
-  async findMany(): Promise<Product[]>;
-  async findMany<T extends ProductFindManyOptions>(
-    data: T
-  ): Promise<Prisma.ProductGetPayload<T>[]>;
-  async findMany<T extends ProductFindManyOptions>(
-    data?: T
-  ): Promise<Prisma.ProductGetPayload<T>[] | Product[]> {
-    return prisma.product.findMany({ ...data });
   }
 
   async searchProducts(
@@ -111,7 +93,7 @@ class ProductRepository {
   > {
     const trimmed = searchTerm.trim();
 
-    return prisma.product.findMany({
+    return this.prismaClient.product.findMany({
       where: {
         deleted_at: null,
         shop: { is_active: true, deleted_at: null },
@@ -140,11 +122,7 @@ class ProductRepository {
       take: limit,
     });
   }
-  async count(args: Prisma.ProductCountArgs) {
-    return prisma.product.count(args);
-  }
 }
 
 export const productRepository = new ProductRepository();
-
 export default productRepository;

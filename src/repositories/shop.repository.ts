@@ -1,13 +1,51 @@
 import { Prisma, Shop } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
+import { BaseRepository } from "./base.repository";
+
 type ShopFindManyOptions = Prisma.ShopFindManyArgs;
-
-export type UpdateShopDto = Prisma.ShopUpdateInput;
-
 type ShopFindOptions = Omit<Prisma.ShopFindUniqueArgs, "where">;
 
-class ShopRepository {
+export class ShopRepository extends BaseRepository<Shop, Prisma.ShopDelegate> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.shop);
+  }
+
+  override async findById<
+    T extends Omit<Parameters<Prisma.ShopDelegate["findUnique"]>[0], "where">,
+  >(
+    id: string,
+    options?: T
+  ): Promise<Prisma.Result<
+    Prisma.ShopDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null> {
+    return this.prismaClient.shop.findFirst({
+      where: { id, deleted_at: null },
+      ...options,
+    } as any) as any;
+  }
+
+  override async delete<
+    T extends Omit<Parameters<Prisma.ShopDelegate["delete"]>[0], "where">,
+  >(
+    id: string,
+    options?: T
+  ): Promise<
+    Prisma.Result<Prisma.ShopDelegate, T & { where: { id: string } }, "delete">
+  > {
+    return this.prismaClient.shop.update({
+      where: { id },
+      data: { deleted_at: new Date(), is_active: false },
+      ...options,
+    } as any) as any;
+  }
+
+  async hardDelete(shop_id: string): Promise<Shop> {
+    return this.prismaClient.shop.delete({ where: { id: shop_id } });
+  }
+
   async findByOwnerId(owner_id: string): Promise<Shop | null>;
   async findByOwnerId<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
     owner_id: string,
@@ -26,48 +64,7 @@ class ShopRepository {
       },
       ...(options ?? {}),
     };
-    return prisma.shop.findFirst(query);
-  }
-
-  async create(data: Prisma.ShopCreateInput): Promise<Shop> {
-    const shop = await prisma.shop.create({ data });
-    return shop;
-  }
-
-  async update(shop_id: string, data: Prisma.ShopUpdateInput): Promise<Shop> {
-    const shop = await prisma.shop.update({ where: { id: shop_id }, data });
-    return shop;
-  }
-
-  async delete(shop_id: string): Promise<Shop> {
-    const shop = await prisma.shop.update({
-      where: { id: shop_id },
-      data: { deleted_at: new Date(), is_active: false },
-    });
-    return shop;
-  }
-
-  async hardDelete(shop_id: string): Promise<Shop> {
-    const shop = await prisma.shop.delete({ where: { id: shop_id } });
-    return shop;
-  }
-
-  async findById(shop_id: string): Promise<Shop | null>;
-  async findById<T extends ShopFindOptions>(
-    shop_id: string,
-    options: T
-  ): Promise<Prisma.ShopGetPayload<{ where: { id: string } } & T> | null>;
-  async findById<T extends ShopFindOptions>(
-    shop_id: string,
-    options?: T
-  ): Promise<
-    Prisma.ShopGetPayload<{ where: { id: string } } & T> | Shop | null
-  > {
-    const query = {
-      where: { id: shop_id, deleted_at: null },
-      ...(options ?? {}),
-    };
-    return prisma.shop.findFirst(query);
+    return this.prismaClient.shop.findFirst(query);
   }
 
   async getShops(): Promise<Shop[]>;
@@ -78,13 +75,13 @@ class ShopRepository {
     options?: T
   ): Promise<Prisma.ShopGetPayload<T>[] | Shop[]> {
     const query = { ...(options ?? {}) };
-    return prisma.shop.findMany(query);
+    return this.prismaClient.shop.findMany(query);
   }
 
   async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
     const trimmed = searchTerm.trim();
 
-    return prisma.shop.findMany({
+    return this.prismaClient.shop.findMany({
       where: {
         is_active: true,
         deleted_at: null,
@@ -99,21 +96,7 @@ class ShopRepository {
       take: limit,
     });
   }
-
-  async findMany<T extends Prisma.ShopFindManyArgs>(
-    option: T
-  ): Promise<Prisma.ShopGetPayload<T>[]>;
-  async findMany<T extends Prisma.ShopFindManyArgs>(
-    options: T
-  ): Promise<Shop[]> {
-    return prisma.shop.findMany(options);
-  }
-
-  async count(where?: Prisma.ShopWhereInput): Promise<number> {
-    return prisma.shop.count({ where });
-  }
 }
 
 export const shopRepository = new ShopRepository();
-
 export default shopRepository;

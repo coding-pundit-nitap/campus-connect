@@ -83,12 +83,23 @@ export async function createProductAction(
     };
 
     const newProduct = await productRepository.create({
-      ...productData,
-      shop: {
-        connect: { id: shop_id },
+      data: {
+        ...productData,
+        shop: {
+          connect: { id: shop_id },
+        },
+        category: {
+          connect: { id: category.id },
+        },
       },
-      category: {
-        connect: { id: category.id },
+      include: {
+        category: true,
+        shop: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -190,7 +201,18 @@ export async function updateProductAction(
 
     const updatedProduct = await productRepository.update(
       product_id,
-      updateData
+      updateData.data,
+      {
+        include: {
+          category: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }
     );
 
     const wasOutOfStock = (currentProduct?.stock_quantity ?? 0) <= 0;
@@ -350,20 +372,22 @@ export async function bulkCreateProductsAction(
       }
 
       const newProduct = await productRepository.create({
-        name: productData.name, // Will be trimmed correctly
-        description: productData.description || "",
-        price: productData.price,
-        stock_quantity: productData.stock_quantity,
-        discount: productData.discount,
-        image_key: "placeholder",
-        shop: {
-          connect: { id: shop_id },
-        },
-        ...(category && {
-          category: {
-            connect: { id: category.id },
+        data: {
+          name: productData.name, // Will be trimmed correctly
+          description: productData.description || "",
+          price: productData.price,
+          stock_quantity: productData.stock_quantity,
+          discount: productData.discount,
+          image_key: "placeholder",
+          shop: {
+            connect: { id: shop_id },
           },
-        }),
+          ...(category && {
+            category: {
+              connect: { id: category.id },
+            },
+          }),
+        },
       });
 
       createdProducts.push({ id: newProduct.id, name: newProduct.name });
@@ -415,11 +439,23 @@ export async function toggleProductStockAction(
       );
     }
 
-    const updated = await productRepository.update(productId, {
-      data: {
+    const updated = await productRepository.update(
+      productId,
+      {
         stock_quantity: inStock ? DEFAULT_IN_STOCK_QUANTITY : 0,
       },
-    });
+      {
+        include: {
+          category: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }
+    );
 
     // Notify stock watchers if transitioning from out of stock to in stock
     const wasOutOfStock = product.stock_quantity <= 0;

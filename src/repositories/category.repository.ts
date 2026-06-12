@@ -1,19 +1,19 @@
 import { Category, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
+import { BaseRepository } from "./base.repository";
+
 export type CreateCategoryDto = Prisma.CategoryCreateInput;
 export type UpdateCategoryDto = Omit<Prisma.CategoryUpdateArgs, "where">;
 
 type CategoryFindOptions = Omit<Prisma.CategoryFindUniqueArgs, "where">;
-type CategoryFindManyOptions = Omit<Prisma.CategoryFindManyArgs, "where">;
 
-class CategoryRepository {
-  async findById(
-    category_id: string,
-    options?: CategoryFindOptions
-  ): Promise<Category | null> {
-    const query = { where: { id: category_id }, ...(options ?? {}) };
-    return prisma.category.findUnique(query);
+export class CategoryRepository extends BaseRepository<
+  Category,
+  Prisma.CategoryDelegate
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.category);
   }
 
   async findByName(
@@ -24,18 +24,16 @@ class CategoryRepository {
       where: { name },
       ...(options ?? {}),
     };
-    return prisma.category.findUnique(query);
-  }
-
-  async findAll(options?: CategoryFindManyOptions): Promise<Category[]> {
-    return prisma.category.findMany({ ...(options ?? {}) });
+    return this.prismaClient.category.findUnique(
+      query
+    ) as Promise<Category | null>;
   }
 
   async searchCategory(
     searchTerm: string,
     limit: number = 10
   ): Promise<Category[]> {
-    return prisma.category.findMany({
+    return this.prismaClient.category.findMany({
       where: {
         name: {
           contains: searchTerm,
@@ -46,21 +44,6 @@ class CategoryRepository {
     });
   }
 
-  async create(data: CreateCategoryDto): Promise<Category> {
-    return prisma.category.create({ data });
-  }
-
-  async update(
-    category_id: string,
-    data: UpdateCategoryDto
-  ): Promise<Category> {
-    return prisma.category.update({ where: { id: category_id }, ...data });
-  }
-
-  async delete(category_id: string): Promise<Category> {
-    return prisma.category.delete({ where: { id: category_id } });
-  }
-
   async findOrCreate(name: string): Promise<Category> {
     const existingCategory = await this.findByName(name);
 
@@ -68,11 +51,11 @@ class CategoryRepository {
       return existingCategory;
     }
 
-    return this.create({ name });
+    return this.create({ data: { name } });
   }
 
   async deleteEmptyCategories(): Promise<string[]> {
-    const emptyCategories = await prisma.category.findMany({
+    const emptyCategories = await this.prismaClient.category.findMany({
       where: {
         products: {
           none: {},
@@ -86,7 +69,7 @@ class CategoryRepository {
     }
 
     const categoryIds = emptyCategories.map((cat) => cat.id);
-    await prisma.category.deleteMany({
+    await this.prismaClient.category.deleteMany({
       where: {
         id: {
           in: categoryIds,
@@ -97,7 +80,7 @@ class CategoryRepository {
   }
 
   async deleteIfEmpty(category_id: string): Promise<boolean> {
-    const category = await prisma.category.findUnique({
+    const category = await this.prismaClient.category.findUnique({
       where: { id: category_id },
       include: {
         _count: {
@@ -119,7 +102,7 @@ class CategoryRepository {
   }
 
   async getActiveCategories(): Promise<Category[]> {
-    return prisma.category.findMany({
+    return this.prismaClient.category.findMany({
       where: {
         products: {
           some: {

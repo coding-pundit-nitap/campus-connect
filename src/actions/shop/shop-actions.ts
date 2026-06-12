@@ -94,18 +94,20 @@ export async function createShopAction(formData: ShopActionFormData) {
     }
 
     const newShop = await shopRepository.create({
-      closing,
-      description,
-      location,
-      name,
-      opening,
-      image_key,
-      qr_image_key,
-      upi_id,
-      min_order_value,
-      default_delivery_fee,
-      direct_delivery_fee,
-      user: { connect: { id: user_id } },
+      data: {
+        closing,
+        description,
+        location,
+        name,
+        opening,
+        image_key,
+        qr_image_key,
+        upi_id,
+        min_order_value,
+        default_delivery_fee,
+        direct_delivery_fee,
+        user: { connect: { id: user_id } },
+      },
     });
 
     let batchCardsSaved = true;

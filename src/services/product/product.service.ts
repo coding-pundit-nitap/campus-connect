@@ -16,7 +16,7 @@ export type ServerProductData = {
 
 class ProductService {
   async createProduct(data: CreateProductDto): Promise<Product> {
-    return productRepository.create(data);
+    return productRepository.create({ data });
   }
 
   async updateProduct(
@@ -136,13 +136,13 @@ class ProductService {
           {
             name: {
               contains: searchTerm,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
           {
             description: {
               contains: searchTerm,
-              mode: "insensitive",
+              mode: "insensitive" as const,
             },
           },
         ],
@@ -159,10 +159,10 @@ class ProductService {
         },
       },
       orderBy: {
-        name: "asc",
+        name: "asc" as const,
       },
       take: limit,
-    } as const;
+    };
 
     return productRepository.findMany(queryOptions);
   }
