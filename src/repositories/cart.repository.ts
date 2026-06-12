@@ -1,8 +1,11 @@
-import { Prisma } from "@/generated/client";
+import { Cart, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
+import { BaseRepository } from "./base.repository";
+
 export type CartFindOptions = Omit<Prisma.CartFindManyArgs, "where">;
+
 export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
   items: {
     include: {
@@ -43,9 +46,21 @@ export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
     orderBy: { id: Prisma.SortOrder.asc },
   },
 });
-class CartRepository {
+
+export class CartRepository extends BaseRepository<
+  Cart,
+  Prisma.CartFindUniqueArgs,
+  Prisma.CartFindManyArgs,
+  Prisma.CartCreateArgs,
+  Prisma.CartUpdateArgs,
+  Prisma.CartDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.cart);
+  }
+
   async findOrCreate(user_id: string, shop_id: string): Promise<FullCart> {
-    const cart = await prisma.cart.findUnique({
+    const cart = await this.prismaClient.cart.findUnique({
       where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
       include: fullCartInclude,
     });
@@ -54,7 +69,7 @@ class CartRepository {
       return cart;
     }
 
-    return prisma.cart.create({
+    return this.prismaClient.cart.create({
       data: { user_id, shop_id },
       include: fullCartInclude,
     });
@@ -65,7 +80,7 @@ class CartRepository {
     product_id: string,
     quantity: number
   ): Promise<FullCart> {
-    const product = await prisma.product.findUnique({
+    const product = await this.prismaClient.product.findUnique({
       where: { id: product_id },
       select: { shop_id: true },
     });
@@ -76,7 +91,7 @@ class CartRepository {
 
     const { shop_id } = product;
     if (quantity > 0) {
-      await prisma.cartItem.upsert({
+      await this.prismaClient.cartItem.upsert({
         where: {
           cart_id_product_id: {
             cart_id: (await this.findOrCreate(user_id, shop_id)).id,
@@ -92,7 +107,7 @@ class CartRepository {
       });
     } else {
       const cart = await this.findOrCreate(user_id, shop_id);
-      await prisma.cartItem.deleteMany({
+      await this.prismaClient.cartItem.deleteMany({
         where: { cart_id: cart.id, product_id },
       });
     }
@@ -100,24 +115,25 @@ class CartRepository {
   }
 
   async clear(cart_id: string, product_id: string) {
-    return await prisma.cartItem.deleteMany({
+    return await this.prismaClient.cartItem.deleteMany({
       where: { cart_id, product_id },
     });
   }
 
   async getAllUserCartsWithItems(user_id: string): Promise<FullCart[]> {
-    return prisma.cart.findMany({
+    return this.prismaClient.cart.findMany({
       where: {
         user_id,
       },
       include: fullCartInclude,
     });
   }
+
   async getUserCartWithItemsByCartId(
     user_id: string,
     cart_id: string
   ): Promise<FullCart | null> {
-    return prisma.cart.findUnique({
+    return this.prismaClient.cart.findUnique({
       where: {
         id: cart_id,
         user_id,
@@ -127,12 +143,13 @@ class CartRepository {
   }
 
   async removeItem(cart_id: string, product_id: string) {
-    return await prisma.cartItem.deleteMany({
+    return await this.prismaClient.cartItem.deleteMany({
       where: { cart_id, product_id },
     });
   }
+
   async getUserIdsByProductInCart(product_id: string): Promise<string[]> {
-    const cartItems = await prisma.cartItem.findMany({
+    const cartItems = await this.prismaClient.cartItem.findMany({
       where: { product_id },
       include: {
         cart: {

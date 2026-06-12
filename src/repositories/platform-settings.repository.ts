@@ -1,14 +1,27 @@
-import { PlatformSettings } from "@/generated/client";
+import { PlatformSettings, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
-class PlatformSettingsRepository {
+import { BaseRepository } from "./base.repository";
+
+export class PlatformSettingsRepository extends BaseRepository<
+  PlatformSettings,
+  Prisma.PlatformSettingsFindUniqueArgs,
+  Prisma.PlatformSettingsFindManyArgs,
+  Prisma.PlatformSettingsCreateArgs,
+  Prisma.PlatformSettingsUpdateArgs,
+  Prisma.PlatformSettingsDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.platformSettings);
+  }
+
   async getSettings(): Promise<PlatformSettings> {
-    let settings = await prisma.platformSettings.findUnique({
+    let settings = await this.prismaClient.platformSettings.findUnique({
       where: { id: "default" },
     });
 
     if (!settings) {
-      settings = await prisma.platformSettings.create({
+      settings = await this.prismaClient.platformSettings.create({
         data: { id: "default", platform_fee: 0 },
       });
     }
@@ -17,7 +30,7 @@ class PlatformSettingsRepository {
   }
 
   async updatePlatformFee(fee: number): Promise<PlatformSettings> {
-    return prisma.platformSettings.upsert({
+    return this.prismaClient.platformSettings.upsert({
       where: { id: "default" },
       update: { platform_fee: fee },
       create: { id: "default", platform_fee: fee },

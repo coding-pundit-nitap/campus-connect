@@ -3,9 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
 
-type OrderFindOptions = Omit<Prisma.OrderFindUniqueArgs, "where">;
-
-type OrderFindManyOptions = Omit<Prisma.OrderFindManyArgs, "where">;
+import { BaseRepository } from "./base.repository";
 
 type GetPaginatedOrdersOptions = {
   shop_id: string;
@@ -17,74 +15,156 @@ type GetPaginatedOrdersOptions = {
   hostelBlock?: string;
 };
 
-class OrderRepository {
+export class OrderRepository extends BaseRepository<
+  Order,
+  Prisma.OrderFindUniqueArgs,
+  Prisma.OrderFindManyArgs,
+  Prisma.OrderCreateArgs,
+  Prisma.OrderUpdateArgs,
+  Prisma.OrderDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.order);
+  }
+
   async getOrderById(order_id: string): Promise<Order | null>;
-  async getOrderById<T extends OrderFindOptions>(
+  async getOrderById<T extends Omit<Prisma.OrderFindUniqueArgs, "where">>(
     order_id: string,
     options: T
-  ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
-  async getOrderById<T extends OrderFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.OrderDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null>;
+  async getOrderById(
     order_id: string,
-    options?: T
+    options?: Omit<Prisma.OrderFindUniqueArgs, "where">
   ): Promise<
-    Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
+    | Order
+    | null
+    | Prisma.Result<
+        Prisma.OrderDelegate,
+        Omit<Prisma.OrderFindUniqueArgs, "where"> & { where: { id: string } },
+        "findUnique"
+      >
   > {
-    const query = { where: { id: order_id }, ...(options ?? {}) };
-    return prisma.order.findUnique(query);
+    return this.prismaClient.order.findUnique({
+      where: { id: order_id },
+      ...options,
+    });
   }
 
   async getOrdersByUserId(user_id: string): Promise<Order[]>;
-  async getOrdersByUserId<T extends OrderFindManyOptions>(
+  async getOrdersByUserId<T extends Omit<Prisma.OrderFindManyArgs, "where">>(
     user_id: string,
     options: T
-  ): Promise<Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[]>;
-  async getOrdersByUserId<T extends OrderFindManyOptions>(
-    user_id: string,
-    options?: T
   ): Promise<
-    Prisma.OrderGetPayload<{ where: { user_id: string } } & T>[] | Order[]
+    Prisma.Result<
+      Prisma.OrderDelegate,
+      T & { where: { user_id: string } },
+      "findMany"
+    >
+  >;
+  async getOrdersByUserId(
+    user_id: string,
+    options?: Omit<Prisma.OrderFindManyArgs, "where">
+  ): Promise<
+    | Order[]
+    | Prisma.Result<
+        Prisma.OrderDelegate,
+        Omit<Prisma.OrderFindManyArgs, "where"> & {
+          where: { user_id: string };
+        },
+        "findMany"
+      >
   > {
-    const query = { where: { user_id }, ...(options ?? {}) };
-    return prisma.order.findMany(query);
+    return this.prismaClient.order.findMany({
+      where: { user_id },
+      ...options,
+    });
   }
 
   async getOrdersByShopId(shop_id: string): Promise<Order[]>;
-  async getOrdersByShopId<T extends OrderFindManyOptions>(
+  async getOrdersByShopId<T extends Omit<Prisma.OrderFindManyArgs, "where">>(
     shop_id: string,
     options: T
-  ): Promise<Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[]>;
-  async getOrdersByShopId<T extends OrderFindManyOptions>(
-    shop_id: string,
-    options?: T
   ): Promise<
-    Prisma.OrderGetPayload<{ where: { shop_id: string } } & T>[] | Order[]
+    Prisma.Result<
+      Prisma.OrderDelegate,
+      T & { where: { shop_id: string } },
+      "findMany"
+    >
+  >;
+  async getOrdersByShopId(
+    shop_id: string,
+    options?: Omit<Prisma.OrderFindManyArgs, "where">
+  ): Promise<
+    | Order[]
+    | Prisma.Result<
+        Prisma.OrderDelegate,
+        Omit<Prisma.OrderFindManyArgs, "where"> & {
+          where: { shop_id: string };
+        },
+        "findMany"
+      >
   > {
-    const query = { where: { shop_id }, ...(options ?? {}) };
-    return prisma.order.findMany(query);
+    return this.prismaClient.order.findMany({
+      where: { shop_id },
+      ...options,
+    });
   }
 
   async getOrdersByIds(order_ids: string[]): Promise<Order[]>;
-  async getOrdersByIds<T extends OrderFindManyOptions>(
+  async getOrdersByIds<T extends Omit<Prisma.OrderFindManyArgs, "where">>(
     order_ids: string[],
     options: T
-  ): Promise<Prisma.OrderGetPayload<{ where: { id: { in: string[] } } } & T>[]>;
-  async getOrdersByIds<T extends OrderFindManyOptions>(
-    order_ids: string[],
-    options?: T
   ): Promise<
-    Prisma.OrderGetPayload<{ where: { id: { in: string[] } } } & T>[] | Order[]
+    Prisma.Result<
+      Prisma.OrderDelegate,
+      T & { where: { id: { in: string[] } } },
+      "findMany"
+    >
+  >;
+  async getOrdersByIds(
+    order_ids: string[],
+    options?: Omit<Prisma.OrderFindManyArgs, "where">
+  ): Promise<
+    | Order[]
+    | Prisma.Result<
+        Prisma.OrderDelegate,
+        Omit<Prisma.OrderFindManyArgs, "where"> & {
+          where: { id: { in: string[] } };
+        },
+        "findMany"
+      >
   > {
-    const query = { where: { id: { in: order_ids } }, ...(options ?? {}) };
-    return prisma.order.findMany(query);
+    return this.prismaClient.order.findMany({
+      where: { id: { in: order_ids } },
+      ...options,
+    });
   }
 
+  async create<T extends Prisma.OrderCreateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.OrderDelegate, T, "create">>;
+  override async create(args: Prisma.OrderCreateArgs): Promise<Order>;
   async create(
     data: Prisma.OrderCreateInput,
     tx?: Prisma.TransactionClient
-  ): Promise<Order> {
-    const db = tx || prisma;
+  ): Promise<Order>;
+  override async create(
+    argsOrData: Prisma.OrderCreateArgs | Prisma.OrderCreateInput,
+    tx?: Prisma.TransactionClient
+  ): Promise<
+    | Order
+    | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderCreateArgs, "create">
+  > {
+    if (argsOrData && "data" in argsOrData) {
+      return this.prismaClient.order.create(argsOrData);
+    }
+    const db = tx || this.prismaClient;
     const order = await db.order.create({
-      data,
+      data: argsOrData as Prisma.OrderCreateInput,
     });
 
     if (!order.user_id) {
@@ -94,16 +174,37 @@ class OrderRepository {
     return order;
   }
 
-  async update(
-    order_id: string,
-    data: Prisma.OrderUpdateInput
-  ): Promise<Order> {
-    const order = await prisma.order.update({
-      where: { id: order_id },
-      data,
-    });
-
-    return order;
+  async update<T extends Prisma.OrderUpdateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.OrderDelegate, T, "update">>;
+  override async update(args: Prisma.OrderUpdateArgs): Promise<Order>;
+  async update<T extends Omit<Prisma.OrderUpdateArgs, "where" | "data">>(
+    id: string,
+    data: Prisma.OrderUpdateInput,
+    options?: T
+  ): Promise<
+    Prisma.Result<
+      Prisma.OrderDelegate,
+      T & { where: { id: string }; data: Prisma.OrderUpdateInput },
+      "update"
+    >
+  >;
+  override async update(
+    idOrArgs: string | Prisma.OrderUpdateArgs,
+    data?: Prisma.OrderUpdateInput,
+    options?: Omit<Prisma.OrderUpdateArgs, "where" | "data">
+  ): Promise<
+    | Order
+    | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderUpdateArgs, "update">
+  > {
+    if (typeof idOrArgs === "string") {
+      return this.prismaClient.order.update({
+        where: { id: idOrArgs },
+        data: data || {},
+        ...options,
+      });
+    }
+    return this.prismaClient.order.update(idOrArgs);
   }
 
   async updateStatus(
@@ -112,7 +213,7 @@ class OrderRepository {
     assigned_to?: string,
     actual_delivery_time?: Date
   ): Promise<Order> {
-    const order = await prisma.order.update({
+    const order = await this.prismaClient.order.update({
       where: { id: order_id },
       data: {
         order_status,
@@ -128,7 +229,7 @@ class OrderRepository {
     order_ids: string[],
     order_status: OrderStatus
   ): Promise<Prisma.BatchPayload> {
-    const result = await prisma.order.updateMany({
+    const result = await this.prismaClient.order.updateMany({
       where: { id: { in: order_ids } },
       data: { order_status },
     });
@@ -140,13 +241,14 @@ class OrderRepository {
     order_ids: string[],
     data: Prisma.OrderUpdateManyMutationInput
   ): Promise<Prisma.BatchPayload> {
-    const result = await prisma.order.updateMany({
+    const result = await this.prismaClient.order.updateMany({
       where: { id: { in: order_ids } },
       data,
     });
 
     return result;
   }
+
   async getPaginatedShopOrders({
     shop_id,
     limit = 10,
@@ -217,7 +319,7 @@ class OrderRepository {
       ];
     }
 
-    const orders = await prisma.order.findMany({
+    const orders = await this.prismaClient.order.findMany({
       take: limit + 1,
       where,
       orderBy: { created_at: Prisma.SortOrder.desc },
@@ -237,34 +339,47 @@ class OrderRepository {
   }
 
   async findById(orderId: string): Promise<Order | null>;
-  async findById<T extends OrderFindOptions>(
+  async findById<T extends Omit<Prisma.OrderFindUniqueArgs, "where">>(
     orderId: string,
     options: T
-  ): Promise<Prisma.OrderGetPayload<{ where: { id: string } } & T> | null>;
-  async findById<T extends OrderFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.OrderDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null>;
+  async findById(
     orderId: string,
-    options?: T
+    options?: Omit<Prisma.OrderFindUniqueArgs, "where">
   ): Promise<
-    Prisma.OrderGetPayload<{ where: { id: string } } & T> | Order | null
+    | Order
+    | null
+    | Prisma.Result<
+        Prisma.OrderDelegate,
+        Omit<Prisma.OrderFindUniqueArgs, "where"> & { where: { id: string } },
+        "findUnique"
+      >
   > {
     const query = { where: { id: orderId }, ...(options ?? {}) };
-    return prisma.order.findUnique(query);
+    return this.prismaClient.order.findUnique(query);
   }
 
   async findMany<T extends Prisma.OrderFindManyArgs>(
     options: T
-  ): Promise<Prisma.OrderGetPayload<T>[]>;
-  async findMany<T extends Prisma.OrderFindManyArgs>(
-    options: T
-  ): Promise<Order[]> {
-    return prisma.order.findMany(options);
+  ): Promise<Prisma.Result<Prisma.OrderDelegate, T, "findMany">>;
+  override async findMany(args?: Prisma.OrderFindManyArgs): Promise<Order[]>;
+  override async findMany(
+    argsOrOptions?: Prisma.OrderFindManyArgs
+  ): Promise<
+    | Order[]
+    | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderFindManyArgs, "findMany">
+  > {
+    return this.prismaClient.order.findMany(argsOrOptions);
   }
 
   async count(where?: Prisma.OrderWhereInput): Promise<number> {
-    return prisma.order.count({ where });
+    return this.prismaClient.order.count({ where });
   }
 }
 
 export const orderRepository = new OrderRepository();
-
 export default orderRepository;

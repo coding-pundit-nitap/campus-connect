@@ -1,5 +1,7 @@
-import { AdminAction, Prisma } from "@/generated/client";
+import { AdminAction, AdminAuditLog, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
+
+import { BaseRepository } from "./base.repository";
 
 export type CreateAuditLogInput = {
   admin_id: string;
@@ -11,9 +13,40 @@ export type CreateAuditLogInput = {
   user_agent?: string;
 };
 
-class AdminAuditRepository {
-  async create(data: CreateAuditLogInput) {
-    return prisma.adminAuditLog.create({
+export class AdminAuditRepository extends BaseRepository<
+  AdminAuditLog,
+  Prisma.AdminAuditLogFindUniqueArgs,
+  Prisma.AdminAuditLogFindManyArgs,
+  Prisma.AdminAuditLogCreateArgs,
+  Prisma.AdminAuditLogUpdateArgs,
+  Prisma.AdminAuditLogDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.adminAuditLog);
+  }
+
+  async create<T extends Prisma.AdminAuditLogCreateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.AdminAuditLogDelegate, T, "create">>;
+  override async create(
+    args: Prisma.AdminAuditLogCreateArgs
+  ): Promise<AdminAuditLog>;
+  async create(data: CreateAuditLogInput): Promise<AdminAuditLog>;
+  override async create(
+    argsOrData: Prisma.AdminAuditLogCreateArgs | CreateAuditLogInput
+  ): Promise<
+    | AdminAuditLog
+    | Prisma.Result<
+        Prisma.AdminAuditLogDelegate,
+        Prisma.AdminAuditLogCreateArgs,
+        "create"
+      >
+  > {
+    if (argsOrData && "data" in argsOrData) {
+      return this.prismaClient.adminAuditLog.create(argsOrData);
+    }
+    const data = argsOrData as CreateAuditLogInput;
+    return this.prismaClient.adminAuditLog.create({
       data: {
         admin_id: data.admin_id,
         action: data.action,
@@ -29,8 +62,8 @@ class AdminAuditRepository {
   async findByAdminId(
     admin_id: string,
     options?: { skip?: number; take?: number }
-  ) {
-    return prisma.adminAuditLog.findMany({
+  ): Promise<AdminAuditLog[]> {
+    return this.prismaClient.adminAuditLog.findMany({
       where: { admin_id },
       orderBy: { created_at: "desc" },
       skip: options?.skip,
@@ -38,22 +71,25 @@ class AdminAuditRepository {
     });
   }
 
-  async findByTarget(target_type: string, target_id: string) {
-    return prisma.adminAuditLog.findMany({
+  async findByTarget(
+    target_type: string,
+    target_id: string
+  ): Promise<AdminAuditLog[]> {
+    return this.prismaClient.adminAuditLog.findMany({
       where: { target_type, target_id },
       orderBy: { created_at: "desc" },
     });
   }
 
-  async findRecent(limit: number = 50) {
-    return prisma.adminAuditLog.findMany({
+  async findRecent(limit: number = 50): Promise<AdminAuditLog[]> {
+    return this.prismaClient.adminAuditLog.findMany({
       orderBy: { created_at: "desc" },
       take: limit,
     });
   }
 
-  async count(where?: Prisma.AdminAuditLogWhereInput) {
-    return prisma.adminAuditLog.count({ where });
+  async count(where?: Prisma.AdminAuditLogWhereInput): Promise<number> {
+    return this.prismaClient.adminAuditLog.count({ where });
   }
 }
 

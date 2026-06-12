@@ -2,13 +2,24 @@ import { Prisma, Review } from "@/generated/client";
 import { BadRequestError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 
+import { BaseRepository } from "./base.repository";
+
 export type CreateReviewDto = Prisma.ReviewCreateInput;
 
 export type UpdateReviewDto = Omit<Prisma.ReviewUpdateArgs, "where">;
 
-type ReviewFindOptions = Omit<Prisma.ReviewFindUniqueArgs, "where">;
+export class ReviewRepository extends BaseRepository<
+  Review,
+  Prisma.ReviewFindUniqueArgs,
+  Prisma.ReviewFindManyArgs,
+  Prisma.ReviewCreateArgs,
+  Prisma.ReviewUpdateArgs,
+  Prisma.ReviewDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.review);
+  }
 
-class ReviewRepository {
   async createReview(
     data: CreateReviewDto,
     options?: Omit<Prisma.ReviewCreateArgs, "data">
@@ -17,9 +28,9 @@ class ReviewRepository {
     if (!product_id) {
       throw new BadRequestError("Product ID required for review");
     }
-    return prisma.$transaction(async (prisma) => {
-      const review = await prisma.review.create({ data, ...options });
-      await prisma.product.update({
+    return this.prismaClient.$transaction(async (tx) => {
+      const review = await tx.review.create({ data, ...options });
+      await tx.product.update({
         where: { id: product_id },
         data: {
           rating_sum: { increment: data.rating },
@@ -31,47 +42,76 @@ class ReviewRepository {
   }
 
   async updateReview(review_id: string, data: UpdateReviewDto) {
-    return prisma.review.update({ where: { id: review_id }, ...data });
+    return this.prismaClient.review.update({
+      where: { id: review_id },
+      ...data,
+    });
   }
 
   async deleteReview(review_id: string) {
-    return prisma.review.delete({ where: { id: review_id } });
+    return this.prismaClient.review.delete({ where: { id: review_id } });
   }
 
   async findById(review_id: string): Promise<Review | null>;
-  async findById<T extends ReviewFindOptions>(
+  async findById<T extends Omit<Prisma.ReviewFindUniqueArgs, "where">>(
     review_id: string,
     options: T
-  ): Promise<Prisma.ReviewGetPayload<T> | null>;
-  async findById<T extends ReviewFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.ReviewDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null>;
+  async findById(
     review_id: string,
-    options?: T
-  ): Promise<Prisma.ReviewGetPayload<T> | Review | null> {
+    options?: Omit<Prisma.ReviewFindUniqueArgs, "where">
+  ): Promise<
+    | Review
+    | null
+    | Prisma.Result<
+        Prisma.ReviewDelegate,
+        Omit<Prisma.ReviewFindUniqueArgs, "where"> & { where: { id: string } },
+        "findUnique"
+      >
+  > {
     const query = {
       where: { id: review_id },
       ...(options ?? {}),
-    } as Prisma.ReviewFindUniqueArgs;
-    return prisma.review.findUnique(query);
+    };
+    return this.prismaClient.review.findUnique(query);
   }
 
   async findByOrderItemId(order_item_id: string): Promise<Review | null>;
-  async findByOrderItemId<T extends ReviewFindOptions>(
+  async findByOrderItemId<T extends Omit<Prisma.ReviewFindUniqueArgs, "where">>(
     order_item_id: string,
     options: T
-  ): Promise<Prisma.ReviewGetPayload<T> | null>;
-  async findByOrderItemId<T extends ReviewFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.ReviewDelegate,
+    T & { where: { order_item_id: string } },
+    "findUnique"
+  > | null>;
+  async findByOrderItemId(
     order_item_id: string,
-    options?: T
-  ): Promise<Prisma.ReviewGetPayload<T> | Review | null> {
+    options?: Omit<Prisma.ReviewFindUniqueArgs, "where">
+  ): Promise<
+    | Review
+    | null
+    | Prisma.Result<
+        Prisma.ReviewDelegate,
+        Omit<Prisma.ReviewFindUniqueArgs, "where"> & {
+          where: { order_item_id: string };
+        },
+        "findUnique"
+      >
+  > {
     const query = {
       where: { order_item_id },
       ...(options ?? {}),
-    } as Prisma.ReviewFindUniqueArgs;
-    return prisma.review.findUnique(query);
+    };
+    return this.prismaClient.review.findUnique(query);
   }
 
   async updateProductRatings(product_id: string, ratingDifference: number) {
-    return prisma.product.update({
+    return this.prismaClient.product.update({
       where: { id: product_id },
       data: {
         rating_sum: { increment: ratingDifference },
@@ -80,22 +120,40 @@ class ReviewRepository {
   }
 
   async findAllReviewsByProductId(product_id: string): Promise<Review[]>;
-  async findAllReviewsByProductId<T extends Prisma.ReviewFindManyArgs>(
+  async findAllReviewsByProductId<
+    T extends Omit<Prisma.ReviewFindManyArgs, "where">,
+  >(
     product_id: string,
     options: T
-  ): Promise<Prisma.ReviewGetPayload<T>[]>;
+  ): Promise<
+    Prisma.Result<
+      Prisma.ReviewDelegate,
+      T & { where: { product_id: string } },
+      "findMany"
+    >
+  >;
   async findAllReviewsByProductId(
     product_id: string,
-    options?: Prisma.ReviewFindManyArgs
-  ): Promise<Review[] | Prisma.ReviewGetPayload<Prisma.ReviewFindManyArgs>[]> {
+    options?: Omit<Prisma.ReviewFindManyArgs, "where">
+  ): Promise<
+    | Review[]
+    | Prisma.Result<
+        Prisma.ReviewDelegate,
+        Omit<Prisma.ReviewFindManyArgs, "where"> & {
+          where: { product_id: string };
+        },
+        "findMany"
+      >
+  > {
     const query = { ...(options ?? {}) };
-    return prisma.review.findMany({
+    return this.prismaClient.review.findMany({
       where: { product_id },
       ...query,
     });
   }
+
   async getGroupedReviews(product_id: string) {
-    return prisma.review.groupBy({
+    return this.prismaClient.review.groupBy({
       by: ["rating"],
       where: { product_id },
       _count: {
@@ -106,8 +164,9 @@ class ReviewRepository {
       },
     });
   }
+
   async getReviewStats(product_id: string) {
-    return prisma.review.aggregate({
+    return this.prismaClient.review.aggregate({
       where: { product_id },
       _avg: { rating: true },
       _count: { rating: true },

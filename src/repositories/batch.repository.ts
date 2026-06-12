@@ -7,157 +7,294 @@ import {
 } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
-type BatchFindOptions = Omit<Prisma.BatchFindUniqueArgs, "where">;
-type BatchFindManyOptions = Omit<Prisma.BatchFindManyArgs, "where">;
-type BatchSlotFindManyOptions = Omit<Prisma.BatchSlotFindManyArgs, "where">;
+import { BaseRepository } from "./base.repository";
 
-class BatchRepository {
+export class BatchRepository extends BaseRepository<
+  Batch,
+  Prisma.BatchFindUniqueArgs,
+  Prisma.BatchFindManyArgs,
+  Prisma.BatchCreateArgs,
+  Prisma.BatchUpdateArgs,
+  Prisma.BatchDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.batch);
+  }
+
   async findById(batch_id: string): Promise<Batch | null>;
-  async findById<T extends BatchFindOptions>(
+  async findById<T extends Omit<Prisma.BatchFindUniqueArgs, "where">>(
     batch_id: string,
     options: T
-  ): Promise<Prisma.BatchGetPayload<{ where: { id: string } } & T> | null>;
-  async findById<T extends BatchFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.BatchDelegate,
+    T & { where: { id: string } },
+    "findUnique"
+  > | null>;
+  async findById(
     batch_id: string,
-    options?: T
+    options?: Omit<Prisma.BatchFindUniqueArgs, "where">
   ): Promise<
-    Prisma.BatchGetPayload<{ where: { id: string } } & T> | Batch | null
+    | Batch
+    | null
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindUniqueArgs, "where"> & { where: { id: string } },
+        "findUnique"
+      >
   > {
     const query = { where: { id: batch_id }, ...(options ?? {}) };
-    return prisma.batch.findUnique(query);
+    return this.prismaClient.batch.findUnique(query);
   }
 
   async findFirstByShopId(shop_id: string): Promise<Batch | null>;
-  async findFirstByShopId<T extends BatchFindOptions>(
+  async findFirstByShopId<T extends Omit<Prisma.BatchFindFirstArgs, "where">>(
     shop_id: string,
     options: T
-  ): Promise<Prisma.BatchGetPayload<T> | null>;
-  async findFirstByShopId<T extends BatchFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.BatchDelegate,
+    T & { where: { shop_id: string } },
+    "findFirst"
+  > | null>;
+  async findFirstByShopId(
     shop_id: string,
-    options?: T
-  ): Promise<Prisma.BatchGetPayload<T> | Batch | null> {
+    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+  ): Promise<
+    | Batch
+    | null
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindFirstArgs, "where"> & {
+          where: { shop_id: string };
+        },
+        "findFirst"
+      >
+  > {
     const query = { where: { shop_id }, ...(options ?? {}) };
-    return prisma.batch.findFirst(query);
+    return this.prismaClient.batch.findFirst(query);
   }
 
   async findOpenBatchByShopId(shop_id: string): Promise<Batch | null>;
-  async findOpenBatchByShopId<T extends BatchFindOptions>(
+  async findOpenBatchByShopId<
+    T extends Omit<Prisma.BatchFindFirstArgs, "where">,
+  >(
     shop_id: string,
     options: T
-  ): Promise<Prisma.BatchGetPayload<T> | null>;
-  async findOpenBatchByShopId<T extends BatchFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.BatchDelegate,
+    T & { where: { shop_id: string; status: "OPEN" } },
+    "findFirst"
+  > | null>;
+  async findOpenBatchByShopId(
     shop_id: string,
-    options?: T
-  ): Promise<Prisma.BatchGetPayload<T> | Batch | null> {
+    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+  ): Promise<
+    | Batch
+    | null
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindFirstArgs, "where"> & {
+          where: { shop_id: string; status: "OPEN" };
+        },
+        "findFirst"
+      >
+  > {
     const query = {
-      where: { shop_id, status: "OPEN" },
-      orderBy: { cutoff_time: "asc" },
+      where: { shop_id, status: "OPEN" as BatchStatus },
+      orderBy: { cutoff_time: "asc" as const },
       ...(options ?? {}),
-    } as Prisma.BatchFindFirstArgs;
-    return prisma.batch.findFirst(query);
+    };
+    return this.prismaClient.batch.findFirst(query);
   }
 
   async findOpenBatches(shop_id: string): Promise<Batch[]>;
-  async findOpenBatches<T extends BatchFindManyOptions>(
+  async findOpenBatches<T extends Omit<Prisma.BatchFindManyArgs, "where">>(
     shop_id: string,
     options: T
-  ): Promise<Prisma.BatchGetPayload<T>[]>;
-  async findOpenBatches<T extends BatchFindManyOptions>(
+  ): Promise<
+    Prisma.Result<
+      Prisma.BatchDelegate,
+      T & { where: { shop_id: string; status: "OPEN" } },
+      "findMany"
+    >
+  >;
+  async findOpenBatches(
     shop_id: string,
-    options?: T
-  ): Promise<Prisma.BatchGetPayload<T>[] | Batch[]> {
+    options?: Omit<Prisma.BatchFindManyArgs, "where">
+  ): Promise<
+    | Batch[]
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindManyArgs, "where"> & {
+          where: { shop_id: string; status: "OPEN" };
+        },
+        "findMany"
+      >
+  > {
     const query = {
-      where: { shop_id, status: "OPEN" },
-      orderBy: { cutoff_time: "asc" },
+      where: { shop_id, status: "OPEN" as BatchStatus },
+      orderBy: { cutoff_time: "asc" as const },
       ...(options ?? {}),
-    } as Prisma.BatchFindManyArgs;
-    return prisma.batch.findMany(query);
+    };
+    return this.prismaClient.batch.findMany(query);
   }
 
   async findActiveBatches(shop_id: string): Promise<Batch[]>;
-  async findActiveBatches<T extends BatchFindManyOptions>(
+  async findActiveBatches<T extends Omit<Prisma.BatchFindManyArgs, "where">>(
     shop_id: string,
     options: T
-  ): Promise<Prisma.BatchGetPayload<T>[]>;
-  async findActiveBatches<T extends BatchFindManyOptions>(
+  ): Promise<
+    Prisma.Result<
+      Prisma.BatchDelegate,
+      T & { where: { shop_id: string; status: { in: BatchStatus[] } } },
+      "findMany"
+    >
+  >;
+  async findActiveBatches(
     shop_id: string,
-    options?: T
-  ): Promise<Prisma.BatchGetPayload<T>[] | Batch[]> {
+    options?: Omit<Prisma.BatchFindManyArgs, "where">
+  ): Promise<
+    | Batch[]
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindManyArgs, "where"> & {
+          where: { shop_id: string; status: { in: BatchStatus[] } };
+        },
+        "findMany"
+      >
+  > {
     const query = {
       where: {
         shop_id,
         status: { in: ["LOCKED", "IN_TRANSIT"] as BatchStatus[] },
       },
-      orderBy: { cutoff_time: "desc" },
+      orderBy: { cutoff_time: "desc" as const },
       ...(options ?? {}),
-    } as Prisma.BatchFindManyArgs;
-    return prisma.batch.findMany(query);
+    };
+    return this.prismaClient.batch.findMany(query);
   }
 
   async findOpenBatchByCutoff(
     shop_id: string,
     cutoff_time: Date
   ): Promise<Batch | null>;
-  async findOpenBatchByCutoff<T extends BatchFindOptions>(
+  async findOpenBatchByCutoff<
+    T extends Omit<Prisma.BatchFindFirstArgs, "where">,
+  >(
     shop_id: string,
     cutoff_time: Date,
     options: T
-  ): Promise<Prisma.BatchGetPayload<T> | null>;
-  async findOpenBatchByCutoff<T extends BatchFindOptions>(
+  ): Promise<Prisma.Result<
+    Prisma.BatchDelegate,
+    T & { where: { shop_id: string; status: "OPEN"; cutoff_time: Date } },
+    "findFirst"
+  > | null>;
+  async findOpenBatchByCutoff(
     shop_id: string,
     cutoff_time: Date,
-    options?: T
-  ): Promise<Prisma.BatchGetPayload<T> | Batch | null> {
+    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+  ): Promise<
+    | Batch
+    | null
+    | Prisma.Result<
+        Prisma.BatchDelegate,
+        Omit<Prisma.BatchFindFirstArgs, "where"> & {
+          where: { shop_id: string; status: "OPEN"; cutoff_time: Date };
+        },
+        "findFirst"
+      >
+  > {
     const query = {
       where: {
         shop_id,
-        status: "OPEN",
+        status: "OPEN" as BatchStatus,
         cutoff_time,
       },
       ...(options ?? {}),
-    } as Prisma.BatchFindFirstArgs;
-    return prisma.batch.findFirst(query);
+    };
+    return this.prismaClient.batch.findFirst(query);
   }
 
   async updateStatus(batch_id: string, status: BatchStatus): Promise<Batch> {
-    return prisma.batch.update({
+    return this.prismaClient.batch.update({
       where: { id: batch_id },
       data: { status },
     });
   }
 
-  async update(
-    batch_id: string,
-    data: Prisma.BatchUpdateInput
-  ): Promise<Batch> {
-    return prisma.batch.update({
-      where: { id: batch_id },
-      data,
-    });
+  async update<T extends Prisma.BatchUpdateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.BatchDelegate, T, "update">>;
+  override async update(args: Prisma.BatchUpdateArgs): Promise<Batch>;
+  async update<T extends Omit<Prisma.BatchUpdateArgs, "where" | "data">>(
+    id: string,
+    data: Prisma.BatchUpdateInput,
+    options?: T
+  ): Promise<
+    Prisma.Result<
+      Prisma.BatchDelegate,
+      T & { where: { id: string }; data: Prisma.BatchUpdateInput },
+      "update"
+    >
+  >;
+  override async update(
+    idOrArgs: string | Prisma.BatchUpdateArgs,
+    data?: Prisma.BatchUpdateInput,
+    options?: Omit<Prisma.BatchUpdateArgs, "where" | "data">
+  ): Promise<
+    | Batch
+    | Prisma.Result<Prisma.BatchDelegate, Prisma.BatchUpdateArgs, "update">
+  > {
+    if (typeof idOrArgs === "string") {
+      return this.prismaClient.batch.update({
+        where: { id: idOrArgs },
+        data: data || {},
+        ...options,
+      });
+    }
+    return this.prismaClient.batch.update(idOrArgs);
   }
 
   async findActiveSlots(shop_id: string): Promise<BatchSlot[]>;
-  async findActiveSlots<T extends BatchSlotFindManyOptions>(
+  async findActiveSlots<T extends Omit<Prisma.BatchSlotFindManyArgs, "where">>(
     shop_id: string,
     options: T
-  ): Promise<Prisma.BatchSlotGetPayload<T>[]>;
-  async findActiveSlots<T extends BatchSlotFindManyOptions>(
+  ): Promise<
+    Prisma.Result<
+      Prisma.BatchSlotDelegate,
+      T & { where: { shop_id: string; is_active: true } },
+      "findMany"
+    >
+  >;
+  async findActiveSlots(
     shop_id: string,
-    options?: T
-  ): Promise<Prisma.BatchSlotGetPayload<T>[] | BatchSlot[]> {
+    options?: Omit<Prisma.BatchSlotFindManyArgs, "where">
+  ): Promise<
+    | BatchSlot[]
+    | Prisma.Result<
+        Prisma.BatchSlotDelegate,
+        Omit<Prisma.BatchSlotFindManyArgs, "where"> & {
+          where: { shop_id: string; is_active: true };
+        },
+        "findMany"
+      >
+  > {
     try {
       const query = {
         where: { shop_id, is_active: true },
-        orderBy: [{ sort_order: "asc" }, { cutoff_time_minutes: "asc" }],
+        orderBy: [
+          { sort_order: "asc" as const },
+          { cutoff_time_minutes: "asc" as const },
+        ],
         ...(options ?? {}),
-      } as Prisma.BatchSlotFindManyArgs;
-      return prisma.batchSlot.findMany(query);
+      };
+      return this.prismaClient.batchSlot.findMany(query);
     } catch {
       return [];
     }
   }
+
   async getOrderItemSummary(batch_id: string) {
-    return prisma.orderItem.groupBy({
+    return this.prismaClient.orderItem.groupBy({
       by: ["product_id"],
       where: {
         order: {
@@ -174,7 +311,7 @@ class BatchRepository {
     batch_id: string,
     order_status: OrderStatus = "OUT_FOR_DELIVERY"
   ): Promise<number> {
-    return prisma.order.count({
+    return this.prismaClient.order.count({
       where: {
         batch_id,
         order_status,
@@ -183,13 +320,13 @@ class BatchRepository {
   }
 
   async findManyByShopId(shop_id: string): Promise<BatchSlot[]> {
-    return prisma.batchSlot.findMany({
+    return this.prismaClient.batchSlot.findMany({
       where: { shop_id },
     });
   }
 
   async findBatchesByTimeRange(shop_id: string, start: Date, end: Date) {
-    return prisma.batch.findMany({
+    return this.prismaClient.batch.findMany({
       where: {
         shop_id,
         cutoff_time: { gte: start, lte: end },
@@ -199,5 +336,5 @@ class BatchRepository {
   }
 }
 
-const batchRepository = new BatchRepository();
+export const batchRepository = new BatchRepository();
 export default batchRepository;

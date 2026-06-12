@@ -1,14 +1,41 @@
 import { BroadcastNotification, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
-class BroadcastNotificationRepository {
-  async create(
-    data: Prisma.BroadcastNotificationCreateArgs
-  ): Promise<BroadcastNotification> {
-    return prisma.broadcastNotification.create(data);
+import { BaseRepository } from "./base.repository";
+
+export class BroadcastNotificationRepository extends BaseRepository<
+  BroadcastNotification,
+  Prisma.BroadcastNotificationFindUniqueArgs,
+  Prisma.BroadcastNotificationFindManyArgs,
+  Prisma.BroadcastNotificationCreateArgs,
+  Prisma.BroadcastNotificationUpdateArgs,
+  Prisma.BroadcastNotificationDeleteArgs
+> {
+  constructor(private readonly prismaClient: typeof prisma = prisma) {
+    super(prismaClient.broadcastNotification);
   }
+
+  async create<T extends Prisma.BroadcastNotificationCreateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.BroadcastNotificationDelegate, T, "create">>;
+  override async create(
+    args: Prisma.BroadcastNotificationCreateArgs
+  ): Promise<BroadcastNotification>;
+  override async create(
+    args: Prisma.BroadcastNotificationCreateArgs
+  ): Promise<
+    | BroadcastNotification
+    | Prisma.Result<
+        Prisma.BroadcastNotificationDelegate,
+        Prisma.BroadcastNotificationCreateArgs,
+        "create"
+      >
+  > {
+    return this.prismaClient.broadcastNotification.create(args);
+  }
+
   async getBroadcastNotifications(): Promise<BroadcastNotification[]> {
-    return prisma.broadcastNotification.findMany({
+    return this.prismaClient.broadcastNotification.findMany({
       orderBy: { created_at: "desc" },
       take: 10,
     });
@@ -19,7 +46,7 @@ class BroadcastNotificationRepository {
     { limit = 20, cursor }: { limit?: number; cursor?: string }
   ): Promise<{ broadcasts: BroadcastNotification[]; nextCursor?: string }> {
     const take = limit + 1;
-    const broadcasts = await prisma.broadcastNotification.findMany({
+    const broadcasts = await this.prismaClient.broadcastNotification.findMany({
       where: {
         read_statuses: {
           none: {
@@ -41,6 +68,7 @@ class BroadcastNotificationRepository {
 
     return { broadcasts, nextCursor };
   }
+
   async getAllForUser(
     user_id: string,
     { limit = 20, cursor }: { limit?: number; cursor?: string }
@@ -49,7 +77,7 @@ class BroadcastNotificationRepository {
     nextCursor?: string;
   }> {
     const take = limit + 1;
-    const broadcasts = await prisma.broadcastNotification.findMany({
+    const broadcasts = await this.prismaClient.broadcastNotification.findMany({
       orderBy: [{ created_at: "desc" }, { id: "desc" }],
       take,
       cursor: cursor ? { id: cursor } : undefined,
@@ -81,7 +109,7 @@ class BroadcastNotificationRepository {
     user_id: string,
     { limit = 20, beforeDate }: { limit?: number; beforeDate?: Date }
   ): Promise<(BroadcastNotification & { isRead: boolean })[]> {
-    const broadcasts = await prisma.broadcastNotification.findMany({
+    const broadcasts = await this.prismaClient.broadcastNotification.findMany({
       where: beforeDate ? { created_at: { lt: beforeDate } } : undefined,
       orderBy: [{ created_at: "desc" }, { id: "desc" }],
       take: limit,
@@ -104,7 +132,7 @@ class BroadcastNotificationRepository {
     user_id: string,
     broadcast_notification_id: string
   ): Promise<void> {
-    await prisma.user.update({
+    await this.prismaClient.user.update({
       where: { id: user_id },
       data: {
         broadcast_read_statuses: {
@@ -128,12 +156,29 @@ class BroadcastNotificationRepository {
     });
   }
 
-  async delete(
-    broadcastnotification_id: string
-  ): Promise<BroadcastNotification> {
-    return prisma.broadcastNotification.delete({
-      where: { id: broadcastnotification_id },
-    });
+  async delete<T extends Prisma.BroadcastNotificationDeleteArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.BroadcastNotificationDelegate, T, "delete">>;
+  override async delete(
+    args: Prisma.BroadcastNotificationDeleteArgs
+  ): Promise<BroadcastNotification>;
+  async delete(id: string): Promise<BroadcastNotification>;
+  override async delete(
+    idOrArgs: string | Prisma.BroadcastNotificationDeleteArgs
+  ): Promise<
+    | BroadcastNotification
+    | Prisma.Result<
+        Prisma.BroadcastNotificationDelegate,
+        Prisma.BroadcastNotificationDeleteArgs,
+        "delete"
+      >
+  > {
+    if (typeof idOrArgs === "string") {
+      return this.prismaClient.broadcastNotification.delete({
+        where: { id: idOrArgs },
+      });
+    }
+    return this.prismaClient.broadcastNotification.delete(idOrArgs);
   }
 
   async markManyAsReadForUser(
@@ -143,7 +188,7 @@ class BroadcastNotificationRepository {
     if (broadcast_ids.length === 0) {
       return;
     }
-    await prisma.broadcastReadStatus.createMany({
+    await this.prismaClient.broadcastReadStatus.createMany({
       data: broadcast_ids.map((id) => ({
         user_id,
         broadcast_notification_id: id,
@@ -154,7 +199,7 @@ class BroadcastNotificationRepository {
   }
 
   async getUnreadCountForUser(user_id: string): Promise<number> {
-    return await prisma.broadcastNotification.count({
+    return await this.prismaClient.broadcastNotification.count({
       where: {
         read_statuses: {
           none: { user_id: user_id },
@@ -165,18 +210,18 @@ class BroadcastNotificationRepository {
 
   async getUnreadWithCount(user_id: string) {
     const where = { read_statuses: { none: { user_id } } };
-    return prisma.$transaction([
-      prisma.broadcastNotification.findMany({
+    return this.prismaClient.$transaction([
+      this.prismaClient.broadcastNotification.findMany({
         where,
         orderBy: { created_at: "desc" },
         take: 100,
       }),
-      prisma.broadcastNotification.count({ where }),
+      this.prismaClient.broadcastNotification.count({ where }),
     ]);
   }
 
   async getCount(args: Prisma.BroadcastNotificationCountArgs) {
-    return prisma.broadcastNotification.count(args);
+    return this.prismaClient.broadcastNotification.count(args);
   }
 }
 
