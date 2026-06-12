@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: ["main"]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write
@@ -16,89 +20,253 @@ jobs:
     env:
       DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/db"
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run TypeScript typecheck
-        run: pnpm typecheck
-
-      - name: Run ESLint
-        run: pnpm lint
-
-  build-and-push:
-    needs: validate
+  detect-changes:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - target: runner
-            image-name: campus-connect-app
-          - target: worker-runner
-            image-name: campus-connect-worker
-          - target: migrator
-            image-name: campus-connect-migrator
-          - target: nginx-prod-image
-            image-name: campus-connect-nginx
-          - target: prometheus-prod-image
-            image-name: campus-connect-prometheus
-          - target: alertmanager-prod-image
-            image-name: campus-connect-alertmanager
-          - target: grafana-prod-image
-            image-name: campus-connect-grafana
-          - target: loki-prod-image
-            image-name: campus-connect-loki
-          - target: promtail-prod-image
-            image-name: campus-connect-promtail
-
+    outputs:
+      app: ${{ steps.changes.outputs.app }}
+      worker: ${{ steps.changes.outputs.worker }}
+      migrator: ${{ steps.changes.outputs.migrator }}
+      nginx: ${{ steps.changes.outputs.nginx }}
+      docker-base: ${{ steps.changes.outputs.docker-base }}
+      node-base: ${{ steps.changes.outputs.node-base }}
+      prometheus: ${{ steps.changes.outputs.prometheus }}
+      alertmanager: ${{ steps.changes.outputs.alertmanager }}
+      grafana: ${{ steps.changes.outputs.grafana }}
+      loki: ${{ steps.changes.outputs.loki }}
+      promtail: ${{ steps.changes.outputs.promtail }}
+      owner: ${{ steps.owner.outputs.value }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Lowercase repository owner
-        id: repository_owner
-        run: echo "owner=${OWNER,,}" >> ${GITHUB_OUTPUT}
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
         env:
           OWNER: ${{ github.repository_owner }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            docker-base:
+              - 'Dockerfile'
+            node-base:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - '.github/workflows/**'
+            app:
+              - 'src/**'
+              - 'public/**'
+              - 'next.config.*'
+              - 'tsconfig*.json'
+              - 'tailwind.config.*'
+              - 'postcss.config.*'
+              - 'prisma/**'
+              - 'prisma.config.ts'
+            worker:
+              - 'workers/**'
+              - 'tsconfig.worker.json'
+              - 'prisma/**'
+              - 'prisma.config.ts'
+            migrator:
+              - 'prisma/**'
+              - 'prisma.config.ts'
+            nginx:
+              - 'nginx/**'
+            prometheus:
+              - 'monitoring/prometheus/**'
+            alertmanager:
+              - 'monitoring/alertmanager/**'
+            grafana:
+              - 'monitoring/grafana/**'
+            loki:
+              - 'monitoring/loki/**'
+            promtail:
+              - 'monitoring/promtail/**'
 
-      - name: Log in to GitHub Container Registry (GHCR)
+  build-app:
+    needs: [validate, detect-changes]
+    if: needs.detect-changes.outputs.app == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
+      - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.repository_owner.outputs.owner }}/${{ matrix.image-name }}
+          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-app
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-            type=sha,prefix=sha-,enable=true
+            type=sha,prefix=sha-
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
-          target: ${{ matrix.target }}
+          target: runner
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
+            NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-worker:
+    needs: [validate, detect-changes]
+    if: needs.detect-changes.outputs.worker == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-worker
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          target: worker-runner
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
+            NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-migrator:
+    needs: [validate, detect-changes]
+    if: needs.detect-changes.outputs.migrator == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-migrator
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          target: migrator
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
+            NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  build-nginx:
+    needs: [validate, detect-changes]
+    if: needs.detect-changes.outputs.nginx == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lowercase owner
+        id: owner
+        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
+        env:
+          OWNER: ${{ github.repository_owner }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-nginx
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          target: nginx-prod-image
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
