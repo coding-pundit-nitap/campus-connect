@@ -3,43 +3,144 @@ import { prisma } from "@/lib/prisma";
 
 import { BaseRepository } from "./base.repository";
 
-type ShopFindManyOptions = Prisma.ShopFindManyArgs;
-type ShopFindOptions = Omit<Prisma.ShopFindUniqueArgs, "where">;
-
-export class ShopRepository extends BaseRepository<Shop, Prisma.ShopDelegate> {
+export class ShopRepository extends BaseRepository<
+  Shop,
+  Prisma.ShopFindUniqueArgs,
+  Prisma.ShopFindManyArgs,
+  Prisma.ShopCreateArgs,
+  Prisma.ShopUpdateArgs,
+  Prisma.ShopDeleteArgs
+> {
   constructor(private readonly prismaClient: typeof prisma = prisma) {
     super(prismaClient.shop);
   }
 
-  override async findById<
-    T extends Omit<Parameters<Prisma.ShopDelegate["findUnique"]>[0], "where">,
-  >(
+  async findById(id: string): Promise<Shop | null>;
+  async findById<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
     id: string,
-    options?: T
+    options: T
   ): Promise<Prisma.Result<
     Prisma.ShopDelegate,
-    T & { where: { id: string } },
-    "findUnique"
-  > | null> {
+    T & { where: { id: string; deleted_at: null } },
+    "findFirst"
+  > | null>;
+  async findById(
+    id: string,
+    options?: Omit<Prisma.ShopFindFirstArgs, "where">
+  ): Promise<
+    | Shop
+    | null
+    | Prisma.Result<
+        Prisma.ShopDelegate,
+        Omit<Prisma.ShopFindFirstArgs, "where"> & {
+          where: { id: string; deleted_at: null };
+        },
+        "findFirst"
+      >
+  > {
     return this.prismaClient.shop.findFirst({
       where: { id, deleted_at: null },
       ...options,
-    } as any) as any;
+    });
   }
 
-  override async delete<
-    T extends Omit<Parameters<Prisma.ShopDelegate["delete"]>[0], "where">,
-  >(
+  async findUnique<T extends Prisma.ShopFindUniqueArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "findUnique">>;
+  override async findUnique(
+    args: Prisma.ShopFindUniqueArgs
+  ): Promise<Shop | null>;
+  override async findUnique(
+    args: Prisma.ShopFindUniqueArgs
+  ): Promise<
+    | Shop
+    | null
+    | Prisma.Result<
+        Prisma.ShopDelegate,
+        Prisma.ShopFindUniqueArgs,
+        "findUnique"
+      >
+  > {
+    return this.prismaClient.shop.findUnique(args);
+  }
+
+  async findMany<T extends Prisma.ShopFindManyArgs>(
+    args?: T
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "findMany">>;
+  override async findMany(args?: Prisma.ShopFindManyArgs): Promise<Shop[]>;
+  override async findMany(
+    args?: Prisma.ShopFindManyArgs
+  ): Promise<
+    | Shop[]
+    | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopFindManyArgs, "findMany">
+  > {
+    return this.prismaClient.shop.findMany(args);
+  }
+
+  async create<T extends Prisma.ShopCreateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "create">>;
+  override async create(args: Prisma.ShopCreateArgs): Promise<Shop>;
+  override async create(
+    args: Prisma.ShopCreateArgs
+  ): Promise<
+    Shop | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopCreateArgs, "create">
+  > {
+    return this.prismaClient.shop.create(args);
+  }
+
+  async update<T extends Prisma.ShopUpdateArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "update">>;
+  override async update(args: Prisma.ShopUpdateArgs): Promise<Shop>;
+  async update<T extends Omit<Prisma.ShopUpdateArgs, "where" | "data">>(
     id: string,
+    data: Prisma.ShopUpdateInput,
     options?: T
   ): Promise<
-    Prisma.Result<Prisma.ShopDelegate, T & { where: { id: string } }, "delete">
+    Prisma.Result<
+      Prisma.ShopDelegate,
+      T & { where: { id: string }; data: Prisma.ShopUpdateInput },
+      "update"
+    >
+  >;
+  override async update(
+    idOrArgs: string | Prisma.ShopUpdateArgs,
+    data?: Prisma.ShopUpdateInput,
+    options?: Omit<Prisma.ShopUpdateArgs, "where" | "data">
+  ): Promise<
+    Shop | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopUpdateArgs, "update">
   > {
+    if (typeof idOrArgs === "string") {
+      return this.prismaClient.shop.update({
+        where: { id: idOrArgs },
+        data: data || {},
+        ...options,
+      });
+    }
+    return this.prismaClient.shop.update(idOrArgs);
+  }
+
+  async delete<T extends Prisma.ShopDeleteArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "delete">>;
+  override async delete(args: Prisma.ShopDeleteArgs): Promise<Shop>;
+  async delete(id: string): Promise<Shop>;
+  override async delete(
+    idOrArgs: string | Prisma.ShopDeleteArgs
+  ): Promise<
+    Shop | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopDeleteArgs, "delete">
+  > {
+    if (typeof idOrArgs === "string") {
+      return this.prismaClient.shop.update({
+        where: { id: idOrArgs },
+        data: { deleted_at: new Date(), is_active: false },
+      });
+    }
     return this.prismaClient.shop.update({
-      where: { id },
+      where: idOrArgs.where,
       data: { deleted_at: new Date(), is_active: false },
-      ...options,
-    } as any) as any;
+    });
   }
 
   async hardDelete(shop_id: string): Promise<Shop> {
@@ -50,32 +151,48 @@ export class ShopRepository extends BaseRepository<Shop, Prisma.ShopDelegate> {
   async findByOwnerId<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
     owner_id: string,
     options: T
-  ): Promise<Prisma.ShopGetPayload<T> | null>;
-  async findByOwnerId<T extends Omit<Prisma.ShopFindFirstArgs, "where">>(
+  ): Promise<Prisma.Result<
+    Prisma.ShopDelegate,
+    T & { where: { user: { id: string }; deleted_at: null } },
+    "findFirst"
+  > | null>;
+  async findByOwnerId(
     owner_id: string,
-    options?: T
-  ): Promise<Prisma.ShopGetPayload<T> | Shop | null> {
-    const query = {
+    options?: Omit<Prisma.ShopFindFirstArgs, "where">
+  ): Promise<
+    | Shop
+    | null
+    | Prisma.Result<
+        Prisma.ShopDelegate,
+        Omit<Prisma.ShopFindFirstArgs, "where"> & {
+          where: { user: { id: string }; deleted_at: null };
+        },
+        "findFirst"
+      >
+  > {
+    return this.prismaClient.shop.findFirst({
       where: {
         user: {
           id: owner_id,
         },
         deleted_at: null,
       },
-      ...(options ?? {}),
-    };
-    return this.prismaClient.shop.findFirst(query);
+      ...options,
+    });
   }
 
   async getShops(): Promise<Shop[]>;
-  async getShops<T extends ShopFindManyOptions>(
+  async getShops<T extends Prisma.ShopFindManyArgs>(
     options: T
-  ): Promise<Prisma.ShopGetPayload<T>[]>;
-  async getShops<T extends ShopFindManyOptions>(
+  ): Promise<Prisma.Result<Prisma.ShopDelegate, T, "findMany">>;
+  async getShops<T extends Prisma.ShopFindManyArgs>(
     options?: T
-  ): Promise<Prisma.ShopGetPayload<T>[] | Shop[]> {
-    const query = { ...(options ?? {}) };
-    return this.prismaClient.shop.findMany(query);
+  ): Promise<Shop[] | Prisma.Result<Prisma.ShopDelegate, T, "findMany">> {
+    return this.prismaClient.shop.findMany(options);
+  }
+
+  async count(args?: Prisma.ShopCountArgs): Promise<number> {
+    return this.prismaClient.shop.count(args);
   }
 
   async searchShops(searchTerm: string, limit: number = 10): Promise<Shop[]> {
