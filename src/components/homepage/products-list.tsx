@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 import { useInfiniteProducts } from "@/hooks/queries/useInfiniteProducts";
-import { useActiveCategories } from "@/hooks/queries/useProductCategoriesSearch";
+// import { useActiveCategories } from "@/hooks/queries/useProductCategoriesSearch";
 import { SerializedProduct } from "@/types/product.types";
 
 import { ShopProductList } from "../shops/shop-product-list";
@@ -12,7 +12,7 @@ import CategoryPills from "./category-pills";
 import FavoriteShopsStrip from "./favorite-shops-strip";
 import HotDeals from "./hot-deals";
 import OrderAgain from "./order-again";
-import SmartHero from "./smart-hero";
+// import SmartHero from "./smart-hero";
 import AnnouncementCard from "./widgets/announcement-card";
 import CampusInfoWidget from "./widgets/campus-info-widget";
 import ImpactStatsWidget from "./widgets/impact-stats-widget";
@@ -36,8 +36,8 @@ export default function ProductsList({
     null
   );
 
-  const { data: categories = [] } = useActiveCategories();
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
+  // const { data: categories = [] } = useActiveCategories();
+  // const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   const {
     allProducts: displayProducts,
@@ -64,10 +64,10 @@ export default function ProductsList({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Main Feed Content Area */}
         <div className="lg:col-span-8 space-y-6">
-          <SmartHero
+          {/* <SmartHero
             selectedCategoryName={selectedCategory?.title}
             onClearCategory={() => setSelectedCategoryId(null)}
-          />
+          /> */}
           <div
             id="category-pills-section"
             className="animate-fade-in [animation-delay:100ms]"
