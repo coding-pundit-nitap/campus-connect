@@ -37,12 +37,10 @@ export async function addUserAddress(
   }
 
   await userAddressRepository.create({
-    ...validatedFields.data,
-    building: validatedFields.data.building.trim(),
-    user: {
-      connect: {
-        id: user_id,
-      },
+    data: {
+      ...validatedFields.data,
+      building: validatedFields.data.building.trim(),
+      user_id,
     },
   });
 }
