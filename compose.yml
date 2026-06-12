@@ -265,6 +265,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      create-buckets:
+        condition: service_completed_successfully
       migrator-prod:
         condition: service_completed_successfully
     expose:
