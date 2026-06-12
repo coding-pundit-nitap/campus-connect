@@ -276,6 +276,10 @@ export class CategoryRepository extends BaseRepository<
     }
     return this.prismaClient.category.delete(idOrArgs);
   }
+
+  async count(args?: Prisma.CategoryCountArgs): Promise<number> {
+    return this.prismaClient.category.count(args);
+  }
 }
 
 export const categoryRepository = new CategoryRepository();

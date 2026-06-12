@@ -301,15 +301,19 @@ export async function getOrderStatsAction(): Promise<
       recentOrders,
       todayOrders,
     ] = await Promise.all([
-      orderRepository.count({}),
-      orderRepository.count({ order_status: OrderStatus.NEW }),
-      orderRepository.count({ order_status: OrderStatus.BATCHED }),
-      orderRepository.count({ order_status: OrderStatus.COMPLETED }),
-      orderRepository.count({ order_status: OrderStatus.CANCELLED }),
-      orderRepository.count({ payment_status: PaymentStatus.PENDING }),
+      orderRepository.count(),
+      orderRepository.count({ where: { order_status: OrderStatus.NEW } }),
+      orderRepository.count({ where: { order_status: OrderStatus.BATCHED } }),
+      orderRepository.count({ where: { order_status: OrderStatus.COMPLETED } }),
+      orderRepository.count({ where: { order_status: OrderStatus.CANCELLED } }),
       orderRepository.count({
-        created_at: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        where: { payment_status: PaymentStatus.PENDING },
+      }),
+      orderRepository.count({
+        where: {
+          created_at: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
         },
       }),
       orderRepository.findMany({

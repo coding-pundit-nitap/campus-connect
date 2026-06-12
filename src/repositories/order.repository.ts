@@ -376,8 +376,8 @@ export class OrderRepository extends BaseRepository<
     return this.prismaClient.order.findMany(argsOrOptions);
   }
 
-  async count(where?: Prisma.OrderWhereInput): Promise<number> {
-    return this.prismaClient.order.count({ where });
+  async count(args?: Prisma.OrderCountArgs): Promise<number> {
+    return this.prismaClient.order.count(args);
   }
 }
 

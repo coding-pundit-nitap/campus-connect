@@ -5,7 +5,6 @@ import {
 } from "@aws-sdk/client-s3";
 import { config } from "dotenv";
 
-config({ path: ".env.local" });
 config({ path: ".env" });
 
 import { prisma } from "../lib/prisma";

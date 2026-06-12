@@ -6,6 +6,7 @@ import { CartRepository } from "@/repositories/cart.repository";
 import { CategoryRepository } from "@/repositories/category.repository";
 import { NotificationRepository } from "@/repositories/notification.repository";
 import { OrderRepository } from "@/repositories/order.repository";
+import { PayoutRepository } from "@/repositories/payout.repository";
 import { PlatformSettingsRepository } from "@/repositories/platform-settings.repository";
 import { ProductRepository } from "@/repositories/product.repository";
 import { ReviewRepository } from "@/repositories/reviews.repository";
@@ -21,6 +22,7 @@ import { NotificationService } from "@/services/notification/notification.servic
 import { OrderService } from "@/services/order/order.service";
 import { ProductService } from "@/services/product/product.service";
 import { ReviewService } from "@/services/review/review.service";
+import { DBSearchService } from "@/services/search/db-search.service";
 import { ShopAPIService } from "@/services/shop/shop.service";
 // Services
 import { UserService } from "@/services/user/user.service";
@@ -40,6 +42,7 @@ export const platformSettingsRepository = new PlatformSettingsRepository(
   prisma
 );
 export const userAddressRepository = new UserAddressRepository(prisma);
+export const payoutRepository = new PayoutRepository(prisma);
 export const adminAuditRepository = new AdminAuditRepository(prisma);
 
 // Instantiate services
@@ -74,8 +77,14 @@ export const reviewService = new ReviewService(
   notificationService
 );
 export const auditService = new AuditService();
+export const dbSearchService = new DBSearchService(
+  productRepository,
+  shopRepository,
+  categoryRepository
+);
 
 export const container = {
+  db: prisma,
   // Repositories
   userRepository,
   productRepository,
@@ -89,6 +98,7 @@ export const container = {
   reviewRepository,
   platformSettingsRepository,
   userAddressRepository,
+  payoutRepository,
   adminAuditRepository,
 
   // Services
@@ -102,6 +112,7 @@ export const container = {
   batchService,
   reviewService,
   auditService,
+  dbSearchService,
 };
 
 export default container;

@@ -88,8 +88,19 @@ export class AdminAuditRepository extends BaseRepository<
     });
   }
 
-  async count(where?: Prisma.AdminAuditLogWhereInput): Promise<number> {
-    return this.prismaClient.adminAuditLog.count({ where });
+  async count(args?: Prisma.AdminAuditLogCountArgs): Promise<number> {
+    return this.prismaClient.adminAuditLog.count(args);
+  }
+
+  async aggregate<T extends Prisma.AdminAuditLogAggregateArgs>(args: T) {
+    return this.prismaClient.adminAuditLog.aggregate(args);
+  }
+
+  async groupBy(args: Prisma.AdminAuditLogGroupByArgs) {
+    return this.prismaClient.adminAuditLog.groupBy({
+      orderBy: undefined,
+      ...args,
+    });
   }
 }
 

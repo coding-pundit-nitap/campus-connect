@@ -1,13 +1,12 @@
 "use server";
 
+import { container } from "@/di/container";
 import {
   ForbiddenError,
   InternalServerError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
-import { platformSettingsRepository } from "@/repositories";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
@@ -26,16 +25,16 @@ export async function getSystemHealthAction(): Promise<
     await verifyAdmin();
 
     const dbStart = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
+    await container.db.$queryRaw`SELECT 1`;
     const dbResponseTime = Date.now() - dbStart;
 
     const [totalUsers, totalShops, totalOrders, totalProducts, auditLogRange] =
       await Promise.all([
-        prisma.user.count(),
-        prisma.shop.count(),
-        prisma.order.count(),
-        prisma.product.count(),
-        prisma.adminAuditLog.aggregate({
+        container.userRepository.count(),
+        container.shopRepository.count(),
+        container.orderRepository.count(),
+        container.productRepository.count(),
+        container.adminAuditRepository.aggregate({
           _min: { created_at: true },
           _max: { created_at: true },
         }),
@@ -49,8 +48,8 @@ export async function getSystemHealthAction(): Promise<
         },
         stats: {
           totalRecords: totalUsers + totalShops + totalOrders + totalProducts,
-          oldestAuditLog: auditLogRange._min.created_at,
-          newestAuditLog: auditLogRange._max.created_at,
+          oldestAuditLog: auditLogRange._min?.created_at ?? null,
+          newestAuditLog: auditLogRange._max?.created_at ?? null,
         },
       },
       "System health check completed"
@@ -86,23 +85,23 @@ export async function getCleanupStatsAction(): Promise<
 
     const [oldNotifications, oldAuditLogs, expiredSessions, orphanedCarts] =
       await Promise.all([
-        prisma.notification.count({
+        container.notificationRepository.count({
           where: {
             read: true,
             created_at: { lt: thirtyDaysAgo },
           },
         }),
-        prisma.adminAuditLog.count({
+        container.adminAuditRepository.count({
           where: {
             created_at: { lt: ninetyDaysAgo },
           },
         }),
-        prisma.session.count({
+        container.db.session.count({
           where: {
             expiresAt: { lt: new Date() },
           },
         }),
-        prisma.cart.count({
+        container.cartRepository.count({
           where: {
             items: { none: {} },
           },
@@ -142,7 +141,7 @@ export async function runCleanupAction(
       case "notifications": {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const result = await prisma.notification.deleteMany({
+        const result = await container.db.notification.deleteMany({
           where: {
             read: true,
             created_at: { lt: thirtyDaysAgo },
@@ -152,7 +151,7 @@ export async function runCleanupAction(
         break;
       }
       case "sessions": {
-        const result = await prisma.session.deleteMany({
+        const result = await container.db.session.deleteMany({
           where: {
             expiresAt: { lt: new Date() },
           },
@@ -161,7 +160,7 @@ export async function runCleanupAction(
         break;
       }
       case "carts": {
-        const result = await prisma.cart.deleteMany({
+        const result = await container.db.cart.deleteMany({
           where: {
             items: { none: {} },
           },
@@ -171,7 +170,7 @@ export async function runCleanupAction(
       }
     }
 
-    await prisma.adminAuditLog.create({
+    await container.adminAuditRepository.create({
       data: {
         admin_id: adminId,
         action: "ORDER_STATUS_OVERRIDE",
@@ -230,35 +229,43 @@ export async function getPlatformOverviewAction(): Promise<
       pendingOrders,
       completedOrders,
       cancelledOrders,
+      totalReviews,
       reviewStats,
       pendingPayouts,
       completedPayouts,
       pendingPayoutAmount,
     ] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { status: "ACTIVE" } }),
-      prisma.user.count({ where: { role: "ADMIN" } }),
-      prisma.user.count({ where: { status: "SUSPENDED" } }),
-      prisma.shop.count(),
-      prisma.shop.count({ where: { is_active: true } }),
-      prisma.shop.count({ where: { verification_status: "VERIFIED" } }),
-      prisma.shop.count({ where: { verification_status: "PENDING" } }),
-      prisma.product.count(),
-      prisma.product.count({ where: { stock_quantity: { gt: 0 } } }),
-      prisma.order.count(),
-      prisma.order.count({
+      container.userRepository.count(),
+      container.userRepository.count({ where: { status: "ACTIVE" } }),
+      container.userRepository.count({ where: { role: "ADMIN" } }),
+      container.userRepository.count({ where: { status: "SUSPENDED" } }),
+      container.shopRepository.count(),
+      container.shopRepository.count({ where: { is_active: true } }),
+      container.shopRepository.count({
+        where: { verification_status: "VERIFIED" },
+      }),
+      container.shopRepository.count({
+        where: { verification_status: "PENDING" },
+      }),
+      container.productRepository.count(),
+      container.productRepository.count({
+        where: { stock_quantity: { gt: 0 } },
+      }),
+      container.orderRepository.count(),
+      container.orderRepository.count({
         where: {
           order_status: { in: ["NEW", "BATCHED", "OUT_FOR_DELIVERY"] },
         },
       }),
-      prisma.order.count({ where: { order_status: "COMPLETED" } }),
-      prisma.order.count({ where: { order_status: "CANCELLED" } }),
-      prisma.review.aggregate({ _count: true, _avg: { rating: true } }),
-      prisma.payout.count({
+      container.orderRepository.count({ where: { order_status: "COMPLETED" } }),
+      container.orderRepository.count({ where: { order_status: "CANCELLED" } }),
+      container.reviewRepository.count(),
+      container.reviewRepository.aggregate({ _avg: { rating: true } }),
+      container.payoutRepository.count({
         where: { status: { in: ["PENDING", "IN_TRANSIT"] } },
       }),
-      prisma.payout.count({ where: { status: "PAID" } }),
-      prisma.payout.aggregate({
+      container.payoutRepository.count({ where: { status: "PAID" } }),
+      container.payoutRepository.aggregate({
         where: { status: { in: ["PENDING", "IN_TRANSIT"] } },
         _sum: { amount: true },
       }),
@@ -290,13 +297,13 @@ export async function getPlatformOverviewAction(): Promise<
           cancelled: cancelledOrders,
         },
         reviews: {
-          total: reviewStats._count,
-          averageRating: reviewStats._avg.rating ?? 0,
+          total: totalReviews,
+          averageRating: reviewStats._avg?.rating ?? 0,
         },
         payouts: {
           pending: pendingPayouts,
           completed: completedPayouts,
-          totalPending: Number(pendingPayoutAmount._sum.amount ?? 0),
+          totalPending: Number(pendingPayoutAmount._sum?.amount ?? 0),
         },
       },
       "Platform overview retrieved"
@@ -319,7 +326,8 @@ export async function getPlatformSettingsAction(): Promise<
   try {
     await verifyAdmin();
 
-    const platformFee = await platformSettingsRepository.getPlatformFee();
+    const platformFee =
+      await container.platformSettingsRepository.getPlatformFee();
 
     return createSuccessResponse(
       { platform_fee: platformFee },
@@ -347,9 +355,10 @@ export async function updatePlatformFeeAction(
       throw new ValidationError("Platform fee must be a non-negative number.");
     }
 
-    const settings = await platformSettingsRepository.updatePlatformFee(fee);
+    const settings =
+      await container.platformSettingsRepository.updatePlatformFee(fee);
 
-    await prisma.adminAuditLog.create({
+    await container.adminAuditRepository.create({
       data: {
         admin_id: adminId,
         action: "ORDER_STATUS_OVERRIDE",

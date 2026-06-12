@@ -70,7 +70,8 @@ export class BatchService {
     private readonly orderRepository: OrderRepository,
     private readonly productRepository: ProductRepository,
     private readonly shopRepository: ShopRepository,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly prismaClient: typeof prisma = prisma
   ) {}
   async getBatchSlotsWithAvailability(
     shopId: string
@@ -165,7 +166,7 @@ export class BatchService {
           continue;
         }
 
-        const existingBatch = await prisma.batch.findFirst({
+        const existingBatch = await this.batchRepository.findFirst({
           where: {
             shop_id: shopId,
             cutoff_time: candidateTime,
@@ -257,7 +258,7 @@ export class BatchService {
 
   async autoLockExpiredBatches(shopId: string): Promise<void> {
     const now = new Date();
-    const expiredBatches = await prisma.batch.findMany({
+    const expiredBatches = await this.batchRepository.findMany({
       where: {
         shop_id: shopId,
         status: "OPEN",
@@ -357,7 +358,7 @@ export class BatchService {
       (item) => item.cutoff_time_minutes === minutesFromMidnight
     );
 
-    await prisma.batch.create({
+    await this.batchRepository.create({
       data: {
         shop_id: shopId,
         cutoff_time: cutoffTime,

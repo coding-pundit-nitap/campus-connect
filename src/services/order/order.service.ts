@@ -23,7 +23,8 @@ export class OrderService {
   constructor(
     private readonly orderRepository: OrderRepository,
     private readonly platformSettingsRepository: PlatformSettingsRepository,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly prismaClient: typeof prisma = prisma
   ) {}
   private async generateDisplayId(
     tx: Prisma.TransactionClient
@@ -130,7 +131,7 @@ export class OrderService {
       include: orderWithDetailsInclude,
     });
 
-    const totalOrders = await prisma.order.count({
+    const totalOrders = await this.orderRepository.count({
       where: { user_id: userId },
     });
 
@@ -153,7 +154,7 @@ export class OrderService {
     customer_notes?: string,
     is_direct_delivery?: boolean
   ) {
-    return prisma.$transaction(async (tx) => {
+    return this.prismaClient.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
         include: {

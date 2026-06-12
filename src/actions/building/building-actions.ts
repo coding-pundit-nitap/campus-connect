@@ -1,11 +1,11 @@
 "use server";
 
+import { container } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types/response.types";
 
@@ -32,7 +32,7 @@ export async function createBuildingAction(input: BuildingInput) {
 
     const { name, hostelBlock } = normalizeBuildingInput(input);
 
-    const existing = await prisma.building.findFirst({
+    const existing = await container.db.building.findFirst({
       where: {
         name: { equals: name, mode: "insensitive" },
         hostel_block: hostelBlock,
@@ -50,7 +50,7 @@ export async function createBuildingAction(input: BuildingInput) {
       );
     }
 
-    const building = await prisma.building.create({
+    const building = await container.db.building.create({
       data: {
         name,
         hostel_block: hostelBlock,
@@ -84,7 +84,7 @@ export async function addShopDeliveryBuildingAction(buildingId: string) {
       throw new UnauthorizedError("Unauthorized: You do not own a shop.");
     }
 
-    const building = await prisma.building.findUnique({
+    const building = await container.db.building.findUnique({
       where: { id: buildingId },
       select: { id: true, is_active: true },
     });
@@ -93,7 +93,7 @@ export async function addShopDeliveryBuildingAction(buildingId: string) {
       throw new BadRequestError("Building not found.");
     }
 
-    await prisma.shopDeliveryBuilding.upsert({
+    await container.db.shopDeliveryBuilding.upsert({
       where: {
         shop_id_building_id: {
           shop_id: shopId,
@@ -128,7 +128,7 @@ export async function removeShopDeliveryBuildingAction(buildingId: string) {
       throw new UnauthorizedError("Unauthorized: You do not own a shop.");
     }
 
-    await prisma.shopDeliveryBuilding.updateMany({
+    await container.db.shopDeliveryBuilding.updateMany({
       where: {
         shop_id: shopId,
         building_id: buildingId,

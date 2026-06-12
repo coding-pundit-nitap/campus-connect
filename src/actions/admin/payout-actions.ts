@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { container } from "@/di/container";
 import { PayoutStatus, Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -10,7 +11,6 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -87,7 +87,7 @@ export async function getAllPayoutsAction(
       ];
     }
 
-    const payouts = await prisma.payout.findMany({
+    const payouts = await container.payoutRepository.findMany({
       where,
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -160,7 +160,7 @@ export async function updatePayoutStatusAction(
 
     const { payout_id, status } = parsedData.data;
 
-    const payout = await prisma.payout.findUnique({
+    const payout = await container.payoutRepository.findUnique({
       where: { id: payout_id },
       select: { id: true, pg_payout_id: true, status: true },
     });
@@ -169,13 +169,13 @@ export async function updatePayoutStatusAction(
       throw new NotFoundError("Payout not found");
     }
 
-    const updatedPayout = await prisma.payout.update({
+    const updatedPayout = await container.payoutRepository.update({
       where: { id: payout_id },
       data: { status },
       select: { id: true, pg_payout_id: true, status: true },
     });
 
-    await prisma.adminAuditLog.create({
+    await container.adminAuditRepository.create({
       data: {
         admin_id: admin,
         action: "ORDER_STATUS_OVERRIDE",
@@ -233,16 +233,16 @@ export async function getPayoutStatsAction(): Promise<
       pendingAmountResult,
       paidAmountResult,
     ] = await Promise.all([
-      prisma.payout.count(),
-      prisma.payout.count({ where: { status: "PENDING" } }),
-      prisma.payout.count({ where: { status: "IN_TRANSIT" } }),
-      prisma.payout.count({ where: { status: "PAID" } }),
-      prisma.payout.count({ where: { status: "FAILED" } }),
-      prisma.payout.aggregate({
+      container.payoutRepository.count(),
+      container.payoutRepository.count({ where: { status: "PENDING" } }),
+      container.payoutRepository.count({ where: { status: "IN_TRANSIT" } }),
+      container.payoutRepository.count({ where: { status: "PAID" } }),
+      container.payoutRepository.count({ where: { status: "FAILED" } }),
+      container.payoutRepository.aggregate({
         where: { status: { in: ["PENDING", "IN_TRANSIT"] } },
         _sum: { amount: true },
       }),
-      prisma.payout.aggregate({
+      container.payoutRepository.aggregate({
         where: { status: "PAID" },
         _sum: { amount: true },
       }),
@@ -255,8 +255,8 @@ export async function getPayoutStatsAction(): Promise<
         inTransitPayouts,
         paidPayouts,
         failedPayouts,
-        totalPendingAmount: Number(pendingAmountResult._sum.amount ?? 0),
-        totalPaidAmount: Number(paidAmountResult._sum.amount ?? 0),
+        totalPendingAmount: Number(pendingAmountResult._sum?.amount ?? 0),
+        totalPaidAmount: Number(paidAmountResult._sum?.amount ?? 0),
       },
       "Payout statistics retrieved successfully"
     );

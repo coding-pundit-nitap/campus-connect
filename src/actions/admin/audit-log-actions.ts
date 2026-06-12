@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { container } from "@/di/container";
 import { AdminAction, Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -9,7 +10,6 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -116,7 +116,7 @@ export async function getAuditLogsAction(
       ];
     }
 
-    const auditLogs = await prisma.adminAuditLog.findMany({
+    const auditLogs = await container.adminAuditRepository.findMany({
       where,
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -140,7 +140,7 @@ export async function getAuditLogsAction(
     const nextCursor = hasMore ? data[data.length - 1].id : null;
 
     const adminIds = [...new Set(data.map((log) => log.admin_id))];
-    const adminUsers = await prisma.user.findMany({
+    const adminUsers = await container.userRepository.findMany({
       where: { id: { in: adminIds } },
       select: { id: true, email: true, name: true },
     });
@@ -193,18 +193,18 @@ export async function getAuditLogStatsAction(): Promise<
 
     const [totalLogs, todayLogs, recentActionCounts, topAdminGroups] =
       await Promise.all([
-        prisma.adminAuditLog.count(),
-        prisma.adminAuditLog.count({
+        container.adminAuditRepository.count(),
+        container.adminAuditRepository.count({
           where: { created_at: { gte: today } },
         }),
-        prisma.adminAuditLog.groupBy({
+        container.adminAuditRepository.groupBy({
           by: ["action"],
           _count: { action: true },
           where: { created_at: { gte: sevenDaysAgo } },
           orderBy: { _count: { action: "desc" } },
           take: 10,
         }),
-        prisma.adminAuditLog.groupBy({
+        container.adminAuditRepository.groupBy({
           by: ["admin_id"],
           _count: { admin_id: true },
           where: { created_at: { gte: sevenDaysAgo } },
@@ -214,7 +214,7 @@ export async function getAuditLogStatsAction(): Promise<
       ]);
 
     const adminIds = topAdminGroups.map((g) => g.admin_id);
-    const adminUsers = await prisma.user.findMany({
+    const adminUsers = await container.userRepository.findMany({
       where: { id: { in: adminIds } },
       select: { id: true, name: true },
     });
@@ -226,12 +226,18 @@ export async function getAuditLogStatsAction(): Promise<
         todayLogs,
         recentActionCounts: recentActionCounts.map((r) => ({
           action: r.action,
-          count: r._count.action,
+          count:
+            r._count && typeof r._count === "object"
+              ? (r._count.action ?? 0)
+              : 0,
         })),
         topAdmins: topAdminGroups.map((g) => ({
           admin_id: g.admin_id,
           admin_name: adminMap.get(g.admin_id) ?? null,
-          count: g._count.admin_id,
+          count:
+            g._count && typeof g._count === "object"
+              ? (g._count.admin_id ?? 0)
+              : 0,
         })),
       },
       "Audit log statistics retrieved successfully"
@@ -253,7 +259,7 @@ export async function getRecentAuditLogsAction(
 
     const safeLimit = Math.min(Math.max(1, limit), 50);
 
-    const auditLogs = await prisma.adminAuditLog.findMany({
+    const auditLogs = await container.adminAuditRepository.findMany({
       take: safeLimit,
       orderBy: { created_at: "desc" },
       select: {
@@ -270,7 +276,7 @@ export async function getRecentAuditLogsAction(
     });
 
     const adminIds = [...new Set(auditLogs.map((log) => log.admin_id))];
-    const adminUsers = await prisma.user.findMany({
+    const adminUsers = await container.userRepository.findMany({
       where: { id: { in: adminIds } },
       select: { id: true, email: true, name: true },
     });

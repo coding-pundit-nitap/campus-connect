@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { notificationService } from "@/di/container";
+import { container, notificationService } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -11,7 +11,6 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -83,7 +82,7 @@ export async function getAllReviewsAction(
       ];
     }
 
-    const reviews = await prisma.review.findMany({
+    const reviews = await container.reviewRepository.findMany({
       where,
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -147,7 +146,7 @@ export async function deleteReviewAction(
       throw new BadRequestError("Invalid review ID");
     }
 
-    const review = await prisma.review.findUnique({
+    const review = await container.reviewRepository.findUnique({
       where: { id: reviewId },
       include: {
         user: { select: { id: true, name: true } },
@@ -169,18 +168,18 @@ export async function deleteReviewAction(
       throw new NotFoundError("Review not found");
     }
 
-    await prisma.$transaction([
-      prisma.review.delete({ where: { id: reviewId } }),
-      prisma.product.update({
+    await container.db.$transaction(async (tx) => {
+      await tx.review.delete({ where: { id: reviewId } });
+      await tx.product.update({
         where: { id: review.product.id },
         data: {
           rating_sum: { decrement: review.rating },
           review_count: { decrement: 1 },
         },
-      }),
-    ]);
+      });
+    });
 
-    await prisma.adminAuditLog.create({
+    await container.adminAuditRepository.create({
       data: {
         admin_id: adminId,
         action: "USER_DELETE",
@@ -240,16 +239,16 @@ export async function getReviewStatsAction(): Promise<
 
     const [totalReviews, avgResult, ratingGroups, recentReviews] =
       await Promise.all([
-        prisma.review.count(),
-        prisma.review.aggregate({
+        container.reviewRepository.count(),
+        container.reviewRepository.aggregate({
           _avg: { rating: true },
         }),
-        prisma.review.groupBy({
+        container.reviewRepository.groupBy({
           by: ["rating"],
           _count: { rating: true },
           orderBy: { rating: "desc" },
         }),
-        prisma.review.count({
+        container.reviewRepository.count({
           where: { created_at: { gte: sevenDaysAgo } },
         }),
       ]);
@@ -257,10 +256,13 @@ export async function getReviewStatsAction(): Promise<
     return createSuccessResponse(
       {
         totalReviews,
-        averageRating: avgResult._avg.rating ?? 0,
+        averageRating: avgResult._avg?.rating ?? 0,
         ratingDistribution: ratingGroups.map((g) => ({
           rating: g.rating,
-          count: g._count.rating,
+          count:
+            g._count && typeof g._count === "object"
+              ? (g._count.rating ?? 0)
+              : 0,
         })),
         recentReviews,
       },

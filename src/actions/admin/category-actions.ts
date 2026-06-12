@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { container } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -9,7 +10,6 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -47,7 +47,7 @@ export async function getAllCategoriesAction(
       where.name = { contains: search, mode: "insensitive" };
     }
 
-    const categories = await prisma.category.findMany({
+    const categories = await container.categoryRepository.findMany({
       where,
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -107,7 +107,7 @@ export async function getCategoryStatsAction(): Promise<
   try {
     await verifyAdmin();
 
-    const categories = await prisma.category.findMany({
+    const categories = await container.categoryRepository.findMany({
       select: {
         name: true,
         _count: {

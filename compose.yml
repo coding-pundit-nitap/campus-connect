@@ -30,12 +30,10 @@ x-dev-build: &dev-build
 x-dev-env: &dev-env
   env_file:
     - .env
-    - .env.local
 
 x-prod-env: &prod-env
   env_file:
     - .env
-    - .env.production
 
 services:
   nginx-dev:

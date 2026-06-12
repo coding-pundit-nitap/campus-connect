@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { auditService, notificationService } from "@/di/container";
+import { auditService, container,notificationService } from "@/di/container";
 import { Prisma, SellerVerificationStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -11,8 +11,6 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
-import shopRepository from "@/repositories/shop.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import {
   ActionResponse,
@@ -74,7 +72,7 @@ export async function getAllShopsAction(
       where.verification_status = verification_status;
     }
 
-    const shops = await shopRepository.findMany({
+    const shops = await container.shopRepository.findMany({
       where,
       take: limit + 1,
       skip: cursor ? 1 : 0,
@@ -129,7 +127,7 @@ export async function activateShopAction(
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
-    const shop = await shopRepository.findById(shopId, {
+    const shop = await container.shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
     if (!shop) {
@@ -140,7 +138,7 @@ export async function activateShopAction(
       throw new ForbiddenError("Shop is already active");
     }
 
-    const updatedShop = await shopRepository.update(shopId, {
+    const updatedShop = await container.shopRepository.update(shopId, {
       is_active: true,
     });
 
@@ -185,7 +183,7 @@ export async function deactivateShopAction(
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
-    const shop = await shopRepository.findById(shopId, {
+    const shop = await container.shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
     if (!shop) {
@@ -196,7 +194,7 @@ export async function deactivateShopAction(
       throw new ForbiddenError("Shop is already inactive");
     }
 
-    const affectedCarts = await prisma.cart.findMany({
+    const affectedCarts = await container.cartRepository.findMany({
       where: { shop_id: shopId },
       include: {
         items: true,
@@ -208,7 +206,7 @@ export async function deactivateShopAction(
     for (const cart of affectedCarts) {
       if (cart.items.length > 0) {
         affectedUserIds.push(cart.user.id);
-        await prisma.cartItem.deleteMany({
+        await container.db.cartItem.deleteMany({
           where: { cart_id: cart.id },
         });
       }
@@ -225,7 +223,7 @@ export async function deactivateShopAction(
       )
     );
 
-    const updatedShop = await shopRepository.update(shopId, {
+    const updatedShop = await container.shopRepository.update(shopId, {
       is_active: false,
     });
 
@@ -271,7 +269,7 @@ export async function deleteShopAction(
     if (typeof shopId !== "string" || shopId.trim() === "") {
       throw new BadRequestError("Invalid shop ID");
     }
-    const shop = await shopRepository.findById(shopId, {
+    const shop = await container.shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
 
@@ -299,7 +297,7 @@ export async function deleteShopAction(
     }
     await Promise.all(fileDeletionPromises);
 
-    await prisma.$transaction(async (tx) => {
+    await container.db.$transaction(async (tx) => {
       if (shop.user?.id) {
         await tx.user.update({
           where: { id: shop.user.id },
@@ -368,14 +366,14 @@ export async function updateShopVerificationAction(
     ) {
       throw new BadRequestError("Invalid shop ID");
     }
-    const shop = await shopRepository.findById(shopId, {
+    const shop = await container.shopRepository.findById(shopId, {
       include: { user: { select: { id: true } } },
     });
     if (!shop) {
       throw new NotFoundError("Shop not found");
     }
 
-    const updatedShop = await shopRepository.update(shopId, {
+    const updatedShop = await container.shopRepository.update(shopId, {
       verification_status: status,
     });
 
@@ -457,11 +455,15 @@ export async function getShopStatsAction(): Promise<
       pendingVerification,
       recentShops,
     ] = await Promise.all([
-      shopRepository.count({}),
-      shopRepository.count({ where: { is_active: true } }),
-      shopRepository.count({ where: { verification_status: "VERIFIED" } }),
-      shopRepository.count({ where: { verification_status: "PENDING" } }),
-      shopRepository.count({
+      container.shopRepository.count({}),
+      container.shopRepository.count({ where: { is_active: true } }),
+      container.shopRepository.count({
+        where: { verification_status: "VERIFIED" },
+      }),
+      container.shopRepository.count({
+        where: { verification_status: "PENDING" },
+      }),
+      container.shopRepository.count({
         where: {
           created_at: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),

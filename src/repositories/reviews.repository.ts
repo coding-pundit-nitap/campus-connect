@@ -172,6 +172,58 @@ export class ReviewRepository extends BaseRepository<
       _count: { rating: true },
     });
   }
+
+  async findMany<T extends Prisma.ReviewFindManyArgs>(
+    args?: T
+  ): Promise<Prisma.Result<Prisma.ReviewDelegate, T, "findMany">>;
+  override async findMany(args?: Prisma.ReviewFindManyArgs): Promise<Review[]>;
+  override async findMany(
+    args?: Prisma.ReviewFindManyArgs
+  ): Promise<
+    | Review[]
+    | Prisma.Result<
+        Prisma.ReviewDelegate,
+        Prisma.ReviewFindManyArgs,
+        "findMany"
+      >
+  > {
+    return this.prismaClient.review.findMany(args);
+  }
+
+  async findUnique<T extends Prisma.ReviewFindUniqueArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.ReviewDelegate, T, "findUnique">>;
+  override async findUnique(
+    args: Prisma.ReviewFindUniqueArgs
+  ): Promise<Review | null>;
+  override async findUnique(
+    args: Prisma.ReviewFindUniqueArgs
+  ): Promise<
+    | Review
+    | null
+    | Prisma.Result<
+        Prisma.ReviewDelegate,
+        Prisma.ReviewFindUniqueArgs,
+        "findUnique"
+      >
+  > {
+    return this.prismaClient.review.findUnique(args);
+  }
+
+  async count(args?: Prisma.ReviewCountArgs): Promise<number> {
+    return this.prismaClient.review.count(args);
+  }
+
+  async aggregate<T extends Prisma.ReviewAggregateArgs>(args: T) {
+    return this.prismaClient.review.aggregate(args);
+  }
+
+  async groupBy(args: Prisma.ReviewGroupByArgs) {
+    return this.prismaClient.review.groupBy({
+      orderBy: undefined,
+      ...args,
+    });
+  }
 }
 
 export const reviewRepository = new ReviewRepository();

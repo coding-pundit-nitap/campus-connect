@@ -2,15 +2,13 @@
 
 import z from "zod";
 
-import { auditService, notificationService } from "@/di/container";
+import { auditService, container,notificationService } from "@/di/container";
 import {
   BadRequestError,
   ForbiddenError,
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import broadcastRepository from "@/repositories/broadcast.repository";
-import userRepository from "@/repositories/user.repository";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
@@ -103,9 +101,9 @@ export async function getBroadcastStatsAction(): Promise<
 
     // get Stats Data
     const [totalUsers, totalBroadcasts, recentBroadcasts] = await Promise.all([
-      userRepository.count({}),
-      broadcastRepository.getCount({}),
-      broadcastRepository.getCount({
+      container.userRepository.count({}),
+      container.broadcastRepository.getCount({}),
+      container.broadcastRepository.getCount({
         where: {
           created_at: {
             gte: thirtyDaysAgo,

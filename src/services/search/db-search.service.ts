@@ -1,5 +1,13 @@
 import { Prisma } from "@/generated/client";
-import { prisma } from "@/lib/prisma";
+import {
+  CategoryRepository,
+  categoryRepository,
+} from "@/repositories/category.repository";
+import {
+  ProductRepository,
+  productRepository,
+} from "@/repositories/product.repository";
+import { ShopRepository, shopRepository } from "@/repositories/shop.repository";
 import { SearchResult } from "@/types/search.types";
 
 export type SortOrder = "asc" | "desc";
@@ -79,7 +87,13 @@ const PRODUCT_SORT_FIELDS: Record<string, Prisma.SortOrder> = {
   stock_quantity: "desc",
 };
 
-class DBSearchService {
+export class DBSearchService {
+  constructor(
+    private readonly productRepository: ProductRepository,
+    private readonly shopRepository: ShopRepository,
+    private readonly categoryRepository: CategoryRepository
+  ) {}
+
   async searchProducts(
     params: ProductSearchParams
   ): Promise<DBSearchResult<ProductDocument>> {
@@ -140,7 +154,7 @@ class DBSearchService {
       sortOrder === "asc" ? "asc" : "desc";
 
     const [products, total] = await Promise.all([
-      prisma.product.findMany({
+      this.productRepository.findMany({
         where,
         take: limit,
         skip: (page - 1) * limit,
@@ -152,7 +166,7 @@ class DBSearchService {
           [orderByField]: orderByDirection,
         },
       }),
-      prisma.product.count({ where }),
+      this.productRepository.count({ where }),
     ]);
 
     const hits = products.map((product) => ({
@@ -208,13 +222,13 @@ class DBSearchService {
     }
 
     const [shops, total] = await Promise.all([
-      prisma.shop.findMany({
+      this.shopRepository.findMany({
         where,
         take: limit,
         skip: (page - 1) * limit,
         orderBy: query?.trim() ? { name: "asc" } : { created_at: "desc" },
       }),
-      prisma.shop.count({ where }),
+      this.shopRepository.count({ where }),
     ]);
 
     const hits = shops.map((shop) => ({
@@ -248,13 +262,13 @@ class DBSearchService {
     }
 
     const [categories, total] = await Promise.all([
-      prisma.category.findMany({
+      this.categoryRepository.findMany({
         where,
         take: limit,
         skip: (page - 1) * limit,
         orderBy: { name: "asc" },
       }),
-      prisma.category.count({ where }),
+      this.categoryRepository.count({ where }),
     ]);
 
     const hits = categories.map((category) => ({
@@ -313,5 +327,9 @@ class DBSearchService {
   }
 }
 
-export const dbSearchService = new DBSearchService();
+export const dbSearchService = new DBSearchService(
+  productRepository,
+  shopRepository,
+  categoryRepository
+);
 export default dbSearchService;

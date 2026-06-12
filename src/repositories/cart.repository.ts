@@ -160,6 +160,43 @@ export class CartRepository extends BaseRepository<
 
     return Array.from(new Set(cartItems.map((item) => item.cart.user_id)));
   }
+
+  async findMany<T extends Prisma.CartFindManyArgs>(
+    args?: T
+  ): Promise<Prisma.Result<Prisma.CartDelegate, T, "findMany">>;
+  override async findMany(args?: Prisma.CartFindManyArgs): Promise<Cart[]>;
+  override async findMany(
+    args?: Prisma.CartFindManyArgs
+  ): Promise<
+    | Cart[]
+    | Prisma.Result<Prisma.CartDelegate, Prisma.CartFindManyArgs, "findMany">
+  > {
+    return this.prismaClient.cart.findMany(args);
+  }
+
+  async findUnique<T extends Prisma.CartFindUniqueArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.CartDelegate, T, "findUnique">>;
+  override async findUnique(
+    args: Prisma.CartFindUniqueArgs
+  ): Promise<Cart | null>;
+  override async findUnique(
+    args: Prisma.CartFindUniqueArgs
+  ): Promise<
+    | Cart
+    | null
+    | Prisma.Result<
+        Prisma.CartDelegate,
+        Prisma.CartFindUniqueArgs,
+        "findUnique"
+      >
+  > {
+    return this.prismaClient.cart.findUnique(args);
+  }
+
+  async count(args?: Prisma.CartCountArgs): Promise<number> {
+    return this.prismaClient.cart.count(args);
+  }
 }
 
 export const cartRepository = new CartRepository();

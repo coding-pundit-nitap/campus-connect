@@ -187,6 +187,10 @@ export class NotificationRepository extends BaseRepository<
 
     return { notifications, nextCursor };
   }
+
+  async count(args?: Prisma.NotificationCountArgs): Promise<number> {
+    return this.prismaClient.notification.count(args);
+  }
 }
 
 export const notificationRepository = new NotificationRepository();

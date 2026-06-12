@@ -406,7 +406,6 @@ cd campus-connect
 
 ```bash
 cp .env.example .env
-cp .env.local.example .env.local
 ```
 
 ### 3. Start the development environment
@@ -472,26 +471,6 @@ GRAFANA_ADMIN_USER=admin
 GRAFANA_ADMIN_PASSWORD=changeme
 ```
 
-### `.env.local` — App secrets (development)
-
-```env
-BETTER_AUTH_URL=http://localhost
-NEXT_PUBLIC_APP_URL=http://localhost
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
-### `.env.production` — Production overrides
-
-```env
-BETTER_AUTH_URL=https://your-production-auth-url
-
-NEXT_PUBLIC_APP_URL=https://your-production-app-url
-NEXT_PUBLIC_API_URL=/api
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
 ---
 
 ## 🐳 Docker Usage
@@ -512,9 +491,6 @@ pnpm docker:dev:down            # Stop and remove containers
 ### Production
 
 ```bash
-cp .env.production.example .env.production
-# Fill in all production values
-
 pnpm docker:prod:build
 docker compose --profile prod up -d
 

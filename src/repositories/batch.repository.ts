@@ -21,6 +21,12 @@ export class BatchRepository extends BaseRepository<
     super(prismaClient.batch);
   }
 
+  async findFirst<T extends Prisma.BatchFindFirstArgs>(
+    args: T
+  ): Promise<Prisma.Result<Prisma.BatchDelegate, T, "findFirst"> | null> {
+    return this.prismaClient.batch.findFirst(args) as any;
+  }
+
   async findById(batch_id: string): Promise<Batch | null>;
   async findById<T extends Omit<Prisma.BatchFindUniqueArgs, "where">>(
     batch_id: string,

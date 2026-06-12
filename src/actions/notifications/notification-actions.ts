@@ -1,8 +1,8 @@
 "use server";
 
+import { container } from "@/di/container";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationRepository } from "@/repositories/notification.repository";
 import { NotificationCategory } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
@@ -15,7 +15,7 @@ export async function markAllNotificationsAsReadAction(): Promise<
       throw new UnauthorizedError("Unauthorized: Please log in.");
     }
 
-    const result = await notificationRepository.markAllAsRead(userId);
+    const result = await container.notificationRepository.markAllAsRead(userId);
 
     return createSuccessResponse(result, "All notifications marked as read");
   } catch (error) {
@@ -45,11 +45,12 @@ export async function getNotificationsByCategoryAction(
       throw new UnauthorizedError("Unauthorized: Please log in.");
     }
 
-    const result = await notificationRepository.getNotificationsByCategory(
-      userId,
-      category,
-      { limit: options.limit || 20, cursor: options.cursor }
-    );
+    const result =
+      await container.notificationRepository.getNotificationsByCategory(
+        userId,
+        category,
+        { limit: options.limit || 20, cursor: options.cursor }
+      );
 
     return createSuccessResponse(
       result,
