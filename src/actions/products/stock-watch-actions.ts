@@ -1,5 +1,6 @@
 "use server";
 
+import { notificationService } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -8,7 +9,6 @@ import {
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationService } from "@/services/notification/notification.service";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 export async function toggleStockWatchAction(

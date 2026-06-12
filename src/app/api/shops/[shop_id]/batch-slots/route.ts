@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { batchService } from "@/di/container";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { batchService } from "@/services/batch";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
 export async function GET(

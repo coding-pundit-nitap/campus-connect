@@ -2,6 +2,7 @@
 
 import { randomInt } from "node:crypto";
 
+import { notificationService } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -12,7 +13,6 @@ import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
 import shopRepository from "@/repositories/shop.repository";
-import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 
 function generateOtp(): string {

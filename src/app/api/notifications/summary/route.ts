@@ -1,6 +1,6 @@
+import { notificationService } from "@/di/container";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 
 export async function GET() {

@@ -1,10 +1,9 @@
 "use server";
 
+import { batchService, notificationService } from "@/di/container";
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { batchService } from "@/services/batch";
-import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types";
 
 function generateOtp(): string {

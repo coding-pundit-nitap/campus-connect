@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { auditService, notificationService } from "@/di/container";
 import { Prisma, SellerVerificationStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -12,9 +13,7 @@ import {
 } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import shopRepository from "@/repositories/shop.repository";
-import { auditService } from "@/services/audit";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
-import { notificationService } from "@/services/notification/notification.service";
 import {
   ActionResponse,
   createSuccessResponse,

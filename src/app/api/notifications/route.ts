@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 
 import { MAX_PAGE_SIZE } from "@/config/constants";
+import { notificationService } from "@/di/container";
 import { Notification } from "@/generated/client";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationService } from "@/services/notification/notification.service";
 import {
   createErrorResponse,
   createSuccessResponse,

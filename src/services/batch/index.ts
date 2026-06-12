@@ -4,4 +4,4 @@ export type {
   BatchSummaryItem,
   DirectOrderInfo,
 } from "./batch.service";
-export { batchService } from "./batch.service";
+export { BatchService } from "./batch.service";

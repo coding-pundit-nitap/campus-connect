@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { notificationService } from "@/di/container";
 import { OrderStatus, PaymentStatus, Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -15,7 +16,6 @@ import {
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
 import orderRepository from "@/repositories/order.repository";
-import { notificationService } from "@/services/notification/notification.service";
 import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,

@@ -9,13 +9,11 @@ import {
   getZonedParts,
   zonedPartsToUtcDate,
 } from "@/lib/utils/timezone";
-import {
-  batchRepository,
-  orderRepository,
-  productRepository,
-  shopRepository,
-} from "@/repositories";
-import { notificationService } from "@/services/notification/notification.service";
+import { BatchRepository } from "@/repositories/batch.repository";
+import { OrderRepository } from "@/repositories/order.repository";
+import { ProductRepository } from "@/repositories/product.repository";
+import { ShopRepository } from "@/repositories/shop.repository";
+import { NotificationService } from "@/services/notification/notification.service";
 
 export interface BatchSummaryItem {
   product_id: string;
@@ -66,13 +64,20 @@ export interface BatchSlotWithAvailability extends BatchSlot {
   is_today_available: boolean;
 }
 
-class BatchService {
+export class BatchService {
+  constructor(
+    private readonly batchRepository: BatchRepository,
+    private readonly orderRepository: OrderRepository,
+    private readonly productRepository: ProductRepository,
+    private readonly shopRepository: ShopRepository,
+    private readonly notificationService: NotificationService
+  ) {}
   async getBatchSlotsWithAvailability(
     shopId: string
   ): Promise<BatchSlotWithAvailability[]> {
     await this.autoLockExpiredBatches(shopId);
 
-    const allSlots = await batchRepository.findActiveSlots(shopId);
+    const allSlots = await this.batchRepository.findActiveSlots(shopId);
 
     const now = new Date();
     const nowZoned = getZonedParts(now, APP_TIME_ZONE);
@@ -85,7 +90,7 @@ class BatchService {
       APP_TIME_ZONE
     );
 
-    const todayBatches = await batchRepository.findBatchesByTimeRange(
+    const todayBatches = await this.batchRepository.findBatchesByTimeRange(
       shopId,
       todayStart,
       todayEnd
@@ -121,7 +126,7 @@ class BatchService {
   ): Promise<
     { id: string; cutoff_time_minutes: number; sort_order: number }[]
   > {
-    return batchRepository.findActiveSlots(shopId, {
+    return this.batchRepository.findActiveSlots(shopId, {
       select: { id: true, cutoff_time_minutes: true, sort_order: true },
     });
   }
@@ -192,7 +197,7 @@ class BatchService {
   }
 
   async lockBatch(batchId: string, shopId: string): Promise<void> {
-    const batch = await batchRepository.findById(batchId, {
+    const batch = await this.batchRepository.findById(batchId, {
       select: { id: true, shop_id: true, status: true, cutoff_time: true },
     });
 
@@ -208,32 +213,32 @@ class BatchService {
       throw new Error("Only OPEN batches can be locked");
     }
 
-    await batchRepository.updateStatus(batchId, "LOCKED");
+    await this.batchRepository.updateStatus(batchId, "LOCKED");
 
-    const orders = await orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.getOrdersByIds([], {
       where: { batch_id: batchId },
       select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
-      await orderRepository.batchUpdateStatus(orderIds, "BATCHED");
+      await this.orderRepository.batchUpdateStatus(orderIds, "BATCHED");
     }
 
     await this.generateOtpForBatch(batchId);
   }
 
   async getBatchSummary(batchId: string): Promise<BatchSummaryItem[]> {
-    const batch = await batchRepository.findById(batchId);
+    const batch = await this.batchRepository.findById(batchId);
 
     if (!batch) {
       throw new NotFoundError("Batch not found");
     }
 
-    const items = await batchRepository.getOrderItemSummary(batchId);
+    const items = await this.batchRepository.getOrderItemSummary(batchId);
 
     const productIds = items.map((i) => i.product_id);
-    const products = await productRepository.findManyByShopId("", {
+    const products = await this.productRepository.findManyByShopId("", {
       where: { id: { in: productIds } },
       select: { id: true, name: true },
     });
@@ -283,7 +288,7 @@ class BatchService {
         is_open: boolean;
       }
   > {
-    const shop = await shopRepository.findById(shopId, {
+    const shop = await this.shopRepository.findById(shopId, {
       select: { id: true, is_active: true, accepting_orders: true },
     });
 
@@ -311,7 +316,7 @@ class BatchService {
       slots
     );
 
-    const openForCutoff = await batchRepository.findOpenBatchByCutoff(
+    const openForCutoff = await this.batchRepository.findOpenBatchByCutoff(
       shopId,
       cutoffTime,
       { select: { id: true } }
@@ -336,7 +341,7 @@ class BatchService {
       new Date(),
       slots
     );
-    const existing = await batchRepository.findOpenBatchByCutoff(
+    const existing = await this.batchRepository.findOpenBatchByCutoff(
       shopId,
       cutoffTime,
       { select: { id: true } }
@@ -389,10 +394,10 @@ class BatchService {
     };
 
     const [openBatches, activeBatches] = await Promise.all([
-      batchRepository.findOpenBatches(shopId, {
+      this.batchRepository.findOpenBatches(shopId, {
         include: { orders: { select: orderSelect } },
       }),
-      batchRepository.findActiveBatches(shopId, {
+      this.batchRepository.findActiveBatches(shopId, {
         include: { orders: { select: orderSelect } },
       }),
     ]);
@@ -444,7 +449,7 @@ class BatchService {
       }
     }
 
-    const directOrdersRaw = await orderRepository.getOrdersByIds([], {
+    const directOrdersRaw = await this.orderRepository.getOrdersByIds([], {
       where: {
         shop_id: shopId,
         order_status: { notIn: ["COMPLETED", "CANCELLED"] },
@@ -498,7 +503,7 @@ class BatchService {
   }
 
   async unlockBatch(batchId: string): Promise<void> {
-    const batch = await batchRepository.findById(batchId);
+    const batch = await this.batchRepository.findById(batchId);
 
     if (!batch) {
       throw new NotFoundError("Batch not found");
@@ -508,16 +513,16 @@ class BatchService {
       throw new Error("Only LOCKED batches can be unlocked");
     }
 
-    await batchRepository.updateStatus(batchId, "OPEN");
+    await this.batchRepository.updateStatus(batchId, "OPEN");
 
-    const orders = await orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.getOrdersByIds([], {
       where: { batch_id: batchId },
       select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
-      await orderRepository.batchUpdateOrders(orderIds, {
+      await this.orderRepository.batchUpdateOrders(orderIds, {
         order_status: "NEW",
         delivery_otp: null,
       });
@@ -525,7 +530,7 @@ class BatchService {
   }
 
   async startDelivery(batchId: string): Promise<void> {
-    const batch = await batchRepository.findById(batchId, {
+    const batch = await this.batchRepository.findById(batchId, {
       include: {
         orders: {
           select: {
@@ -546,17 +551,20 @@ class BatchService {
       throw new Error("Only LOCKED batches can start delivery");
     }
 
-    await batchRepository.updateStatus(batchId, "IN_TRANSIT");
+    await this.batchRepository.updateStatus(batchId, "IN_TRANSIT");
 
     const orderIds = batch.orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
-      await orderRepository.batchUpdateStatus(orderIds, "OUT_FOR_DELIVERY");
+      await this.orderRepository.batchUpdateStatus(
+        orderIds,
+        "OUT_FOR_DELIVERY"
+      );
 
       for (const order of batch.orders) {
         if (order.user_id) {
           try {
-            await notificationService.publishNotification(order.user_id, {
+            await this.notificationService.publishNotification(order.user_id, {
               title: "🚀 Order Out for Delivery!",
               message: `Your order ${order.display_id} is out for delivery in the batch run. Share OTP ${order.delivery_otp || ""} to complete delivery.`,
               type: "SUCCESS",
@@ -575,7 +583,7 @@ class BatchService {
   }
 
   async completeBatch(batchId: string): Promise<void> {
-    const batch = await batchRepository.findById(batchId);
+    const batch = await this.batchRepository.findById(batchId);
 
     if (!batch) {
       throw new NotFoundError("Batch not found");
@@ -585,17 +593,18 @@ class BatchService {
       throw new Error("Only IN_TRANSIT batches can be completed");
     }
 
-    const pendingOrders = await batchRepository.countPendingOrders(batchId);
+    const pendingOrders =
+      await this.batchRepository.countPendingOrders(batchId);
 
     if (pendingOrders > 0) {
       throw new Error(`${pendingOrders} orders still pending OTP verification`);
     }
 
-    await batchRepository.updateStatus(batchId, "COMPLETED");
+    await this.batchRepository.updateStatus(batchId, "COMPLETED");
   }
 
   async generateOtpForBatch(batchId: string): Promise<void> {
-    const orders = await orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.getOrdersByIds([], {
       where: { batch_id: batchId },
       select: { id: true },
     });
@@ -606,7 +615,9 @@ class BatchService {
 
     await Promise.all(
       orders.map((order) =>
-        orderRepository.update(order.id, { delivery_otp: this.generateOtp() })
+        this.orderRepository.update(order.id, {
+          delivery_otp: this.generateOtp(),
+        })
       )
     );
   }
@@ -616,7 +627,7 @@ class BatchService {
     otp: string,
     shopId: string
   ): Promise<{ success: boolean; message: string }> {
-    const order = await orderRepository.getOrderById(orderId, {
+    const order = await this.orderRepository.getOrderById(orderId, {
       select: {
         id: true,
         delivery_otp: true,
@@ -645,7 +656,7 @@ class BatchService {
       return { success: false, message: "Invalid OTP" };
     }
 
-    await orderRepository.update(orderId, {
+    await this.orderRepository.update(orderId, {
       order_status: "COMPLETED",
       actual_delivery_time: new Date(),
       delivery_otp: null,
@@ -654,7 +665,7 @@ class BatchService {
 
     if (order.user_id) {
       try {
-        await notificationService.publishNotification(order.user_id, {
+        await this.notificationService.publishNotification(order.user_id, {
           title: "🎉 Order Delivered!",
           message: `Your order ${order.display_id} was successfully delivered. Thank you!`,
           type: "SUCCESS",
@@ -673,7 +684,7 @@ class BatchService {
     batchId: string,
     _reason: string
   ): Promise<{ cancelled_orders: number }> {
-    const batch = await batchRepository.findById(batchId, {
+    const batch = await this.batchRepository.findById(batchId, {
       include: {
         orders: {
           select: {
@@ -696,7 +707,7 @@ class BatchService {
       throw new Error("Can only cancel LOCKED or IN_TRANSIT batches");
     }
 
-    await batchRepository.updateStatus(batchId, "CANCELLED");
+    await this.batchRepository.updateStatus(batchId, "CANCELLED");
 
     const orderIds = batch.orders.map((o) => o.id);
 
@@ -705,7 +716,7 @@ class BatchService {
         const paymentStatus =
           order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
 
-        await orderRepository.update(order.id, {
+        await this.orderRepository.update(order.id, {
           order_status: "CANCELLED",
           payment_status: paymentStatus,
           delivery_otp: null,
@@ -713,7 +724,7 @@ class BatchService {
 
         if (order.user_id) {
           try {
-            await notificationService.publishNotification(order.user_id, {
+            await this.notificationService.publishNotification(order.user_id, {
               title: "❌ Order Batch Cancelled",
               message: `Your order ${order.display_id} was cancelled because the delivery run was cancelled. A refund has been initiated if you paid online.`,
               type: "ERROR",
@@ -741,6 +752,3 @@ class BatchService {
     }
   }
 }
-
-export const batchService = new BatchService();
-export default batchService;

@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 
+import { productService } from "@/di/container";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeProduct } from "@/lib/utils";
-import { productService } from "@/services/product/product.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { SerializedProductDetail } from "@/types/product.types";
 

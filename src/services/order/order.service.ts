@@ -8,9 +8,9 @@ import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
-import { platformSettingsRepository } from "@/repositories";
-import orderRepository from "@/repositories/order.repository";
-import { notificationService } from "@/services/notification/notification.service";
+import { OrderRepository } from "@/repositories/order.repository";
+import { PlatformSettingsRepository } from "@/repositories/platform-settings.repository";
+import { NotificationService } from "@/services/notification/notification.service";
 import { DeliveryAddressSnapshot } from "@/types";
 
 type GetOrdersOptions = {
@@ -19,7 +19,12 @@ type GetOrdersOptions = {
   userId: string;
 };
 
-class OrderService {
+export class OrderService {
+  constructor(
+    private readonly orderRepository: OrderRepository,
+    private readonly platformSettingsRepository: PlatformSettingsRepository,
+    private readonly notificationService: NotificationService
+  ) {}
   private async generateDisplayId(
     tx: Prisma.TransactionClient
   ): Promise<string> {
@@ -116,7 +121,7 @@ class OrderService {
     const { page = 1, limit = 10, userId } = options;
     const skip = (page - 1) * limit;
 
-    const orders = await orderRepository.getOrdersByUserId(userId, {
+    const orders = await this.orderRepository.getOrdersByUserId(userId, {
       skip,
       take: limit,
       orderBy: {
@@ -268,7 +273,8 @@ class OrderService {
         ? Number(shop.direct_delivery_fee) || 0
         : 0;
       const deliveryFee = baseDeliveryFee + directDeliveryFee;
-      const platformFee = await platformSettingsRepository.getPlatformFee();
+      const platformFee =
+        await this.platformSettingsRepository.getPlatformFee();
       const totalPrice = itemTotal + deliveryFee + platformFee;
 
       const delivery_address_snapshot: DeliveryAddressSnapshot = {
@@ -338,7 +344,7 @@ class OrderService {
 
       if (shop.user) {
         try {
-          await notificationService.publishNotification(shop.user.id, {
+          await this.notificationService.publishNotification(shop.user.id, {
             title: "New Order Received",
             message: `You have received a new order with ID: ${order.display_id}`,
             action_url: getShopOrderUrl(order.id),
@@ -353,6 +359,3 @@ class OrderService {
     });
   }
 }
-
-export const orderService = new OrderService();
-export default orderService;

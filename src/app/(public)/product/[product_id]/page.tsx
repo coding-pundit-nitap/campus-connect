@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 
 import { JsonLdScript } from "@/components/shared/json-ld-script";
+import { productService } from "@/di/container";
 import {
   generateProductJsonLd,
   generateProductMetadata,
 } from "@/lib/metadata/product-metadata";
 import IndividualProductPage from "@/page-components/shops/individual-product";
-import { productService } from "@/services/product/product.service";
 
 export async function generateMetadata({
   params,

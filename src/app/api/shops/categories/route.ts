@@ -1,5 +1,5 @@
+import { categoryServices } from "@/di/container";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { categoryServices } from "@/services/category/category.service";
 import dbSearchService from "@/services/search/db-search.service";
 import {
   createErrorResponse,

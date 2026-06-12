@@ -1,7 +1,7 @@
+import { cartService } from "@/di/container";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { serializeFullCarts } from "@/lib/utils/product.utils";
-import { cartService } from "@/services/cart/cart.service";
 import {
   createErrorResponse,
   createSuccessResponse,

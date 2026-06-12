@@ -1,9 +1,9 @@
 "use server";
 
+import { batchService } from "@/di/container";
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { batchService } from "@/services/batch";
 import { createSuccessResponse } from "@/types";
 
 export async function lockBatchAction(batchId: string) {

@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { auditService, notificationService } from "@/di/container";
 import {
   BadRequestError,
   ForbiddenError,
@@ -10,8 +11,6 @@ import {
 } from "@/lib/custom-error";
 import broadcastRepository from "@/repositories/broadcast.repository";
 import userRepository from "@/repositories/user.repository";
-import { auditService } from "@/services/audit";
-import { notificationService } from "@/services/notification/notification.service";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 

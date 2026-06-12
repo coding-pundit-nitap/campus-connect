@@ -1,19 +1,21 @@
 import { Role } from "@/generated/client";
 import { ConflictError } from "@/lib/custom-error";
-import userRepository, { CreateUserDto } from "@/repositories/user.repository";
+import { CreateUserDto,UserRepository } from "@/repositories/user.repository";
 
-class UserService {
+export class UserService {
+  constructor(private readonly userRepository: UserRepository) {}
+
   async createUser(
     data: Omit<CreateUserDto, "hash_password"> & { password: string }
   ) {
     const { name, email } = data;
 
-    const existingUser = await userRepository.findByEmail(email);
+    const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {
       throw new ConflictError("A user with this email already exists.");
     }
 
-    return userRepository.create({
+    return this.userRepository.create({
       data: {
         name,
         email,
@@ -22,6 +24,3 @@ class UserService {
     });
   }
 }
-
-export const userService = new UserService();
-export default userService;

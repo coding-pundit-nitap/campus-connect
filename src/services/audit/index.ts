@@ -1,1 +1,1 @@
-export { auditService } from "./audit.service";
+export { AuditService } from "./audit.service";

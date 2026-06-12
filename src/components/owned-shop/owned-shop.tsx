@@ -1,5 +1,5 @@
+import { productService } from "@/di/container";
 import { getProductStates } from "@/lib/utils";
-import { productService } from "@/services/product/product.service";
 
 import { OwnedShopContainer } from "./owned-shop-container";
 

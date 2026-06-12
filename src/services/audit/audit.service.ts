@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { AdminAction, Prisma } from "@/generated/client";
 import { AuditJobData, auditQueue } from "@/lib/audit";
 
-class AuditService {
+export class AuditService {
   async log(
     adminId: string,
     action: AdminAction,
@@ -60,6 +60,3 @@ class AuditService {
     await auditQueue.add("audit-log", jobData);
   }
 }
-
-export const auditService = new AuditService();
-export default auditService;

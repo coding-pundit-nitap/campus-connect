@@ -4,12 +4,12 @@ import { ShopWithOwnerDetails } from "@/lib/shop-utils";
 import { ShopWithOwner } from "@/types";
 import { ActionResponse } from "@/types/response.types";
 
-interface PaginatedShopResponse {
+export interface PaginatedShopResponse {
   data: ShopWithOwnerDetails[];
   nextCursor: string | null;
 }
 
-class ShopAPIService {
+export class ShopAPIService {
   async fetchShop({ shop_id }: { shop_id: string }): Promise<Shop> {
     const url = `shops/${shop_id}`;
     const response = await axiosInstance.get<ActionResponse<Shop>>(url);
@@ -40,7 +40,3 @@ class ShopAPIService {
     return response.data.data;
   }
 }
-
-export const shopAPIService = new ShopAPIService();
-
-export default shopAPIService;

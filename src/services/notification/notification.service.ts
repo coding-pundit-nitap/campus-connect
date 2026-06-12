@@ -1,9 +1,14 @@
 import { Prisma } from "@/generated/client";
 import { notificationQueue } from "@/lib/notification/notification-producer";
-import broadcastRepository from "@/repositories/broadcast.repository";
-import { notificationRepository } from "@/repositories/notification.repository";
+import { BroadcastNotificationRepository } from "@/repositories/broadcast.repository";
+import { NotificationRepository } from "@/repositories/notification.repository";
 
-class NotificationService {
+export class NotificationService {
+  constructor(
+    private readonly broadcastRepository: BroadcastNotificationRepository,
+    private readonly notificationRepository: NotificationRepository
+  ) {}
+
   async publishNotification(
     user_id: string,
     data: Prisma.NotificationCreateWithoutUserInput
@@ -29,7 +34,7 @@ class NotificationService {
   }
 
   async getUserNotifications(user_id: string, limit = 20, cursor?: string) {
-    return await notificationRepository.getNotificationsByUserId(user_id, {
+    return await this.notificationRepository.getNotificationsByUserId(user_id, {
       limit,
       cursor,
     });
@@ -43,11 +48,11 @@ class NotificationService {
     const beforeDate = cursor ? new Date(cursor) : undefined;
 
     const [notifications, broadcasts] = await Promise.all([
-      notificationRepository.getByCreatedAtBefore(user_id, {
+      this.notificationRepository.getByCreatedAtBefore(user_id, {
         limit: limit + 1,
         beforeDate,
       }),
-      broadcastRepository.getByCreatedAtBefore(user_id, {
+      this.broadcastRepository.getByCreatedAtBefore(user_id, {
         limit: limit + 1,
         beforeDate,
       }),
@@ -89,7 +94,7 @@ class NotificationService {
     limit = 20,
     cursor?: string
   ) {
-    return await broadcastRepository.findUnreadForUser(user_id, {
+    return await this.broadcastRepository.findUnreadForUser(user_id, {
       limit,
       cursor,
     });
@@ -99,14 +104,17 @@ class NotificationService {
     user_id: string,
     notification_ids: string[]
   ): Promise<void> {
-    await notificationRepository.markManyAsRead(user_id, notification_ids);
+    await this.notificationRepository.markManyAsRead(user_id, notification_ids);
   }
 
   async markBroadcastsAsRead(
     user_id: string,
     broadcast_ids: string[]
   ): Promise<void> {
-    await broadcastRepository.markManyAsReadForUser(user_id, broadcast_ids);
+    await this.broadcastRepository.markManyAsReadForUser(
+      user_id,
+      broadcast_ids
+    );
   }
 
   async getNotificationSummary(user_id: string) {
@@ -114,8 +122,8 @@ class NotificationService {
       [unreadNotifications, notificationsCount],
       [unreadBroadcasts, broadcastsCount],
     ] = await Promise.all([
-      notificationRepository.getUnreadWithCount(user_id),
-      broadcastRepository.getUnreadWithCount(user_id),
+      this.notificationRepository.getUnreadWithCount(user_id),
+      this.broadcastRepository.getUnreadWithCount(user_id),
     ]);
 
     return {
@@ -129,6 +137,3 @@ class NotificationService {
     };
   }
 }
-
-export const notificationService = new NotificationService();
-export default notificationService;

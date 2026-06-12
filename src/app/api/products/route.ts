@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { productService } from "@/di/container";
 import { UnauthenticatedError } from "@/lib/custom-error";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { productService } from "@/services/product/product.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
 

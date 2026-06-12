@@ -1,4 +1,4 @@
-import { productService } from "@/services/product/product.service";
+import { productService } from "@/di/container";
 import { SerializedProduct } from "@/types/product.types";
 
 export async function getHomepageData() {

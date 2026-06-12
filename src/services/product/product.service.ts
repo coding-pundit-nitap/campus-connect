@@ -1,8 +1,8 @@
 import { Prisma, Product } from "@/generated/client";
 import { serializeProducts } from "@/lib/utils";
-import { productRepository } from "@/repositories";
 import {
   CreateProductDto,
+  ProductRepository,
   UpdateProductDto,
 } from "@/repositories/product.repository";
 import { SerializedProduct } from "@/types/product.types";
@@ -14,24 +14,26 @@ export type ServerProductData = {
   error?: string;
 };
 
-class ProductService {
+export class ProductService {
+  constructor(private readonly productRepository: ProductRepository) {}
+
   async createProduct(data: CreateProductDto): Promise<Product> {
-    return productRepository.create({ data });
+    return this.productRepository.create({ data });
   }
 
   async updateProduct(
     product_id: string,
     data: UpdateProductDto
   ): Promise<Product | null> {
-    return productRepository.update(product_id, data);
+    return this.productRepository.update(product_id, data);
   }
 
   async deleteProduct(product_id: string): Promise<Product | null> {
-    return productRepository.delete(product_id);
+    return this.productRepository.delete(product_id);
   }
 
   async getProductById(product_id: string) {
-    return productRepository.findById(product_id, {
+    return this.productRepository.findById(product_id, {
       include: {
         shop: {
           select: {
@@ -97,7 +99,7 @@ class ProductService {
         }
       : queryOptions;
 
-    const products = await productRepository.findMany(baseQuery);
+    const products = await this.productRepository.findMany(baseQuery);
 
     let hasNextPage = false;
     let nextCursor: string | null = null;
@@ -164,7 +166,7 @@ class ProductService {
       take: limit,
     };
 
-    return productRepository.findMany(queryOptions);
+    return this.productRepository.findMany(queryOptions);
   }
 
   async fetchShopProducts(shop_id: string): Promise<ServerProductData> {
@@ -185,7 +187,7 @@ class ProductService {
         },
       } as const;
 
-      const products = await productRepository.findManyByShopId(
+      const products = await this.productRepository.findManyByShopId(
         shop_id,
         queryOptions
       );
@@ -220,6 +222,3 @@ class ProductService {
     }
   }
 }
-
-export const productService = new ProductService();
-export default productService;

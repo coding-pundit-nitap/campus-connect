@@ -1,5 +1,6 @@
 "use server";
 
+import { batchService } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -9,7 +10,6 @@ import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import batchRepository from "@/repositories/batch.repository";
 import shopRepository from "@/repositories/shop.repository";
-import { batchService } from "@/services/batch";
 import { createSuccessResponse } from "@/types/response.types";
 
 export async function updateBatchCutoffTimeAction(

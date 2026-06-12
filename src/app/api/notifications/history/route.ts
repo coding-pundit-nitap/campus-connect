@@ -1,10 +1,10 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
+import { notificationService } from "@/di/container";
 import { UnauthenticatedError } from "@/lib/custom-error";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { notificationService } from "@/services/notification/notification.service";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
 

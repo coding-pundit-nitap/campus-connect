@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { productService } from "@/services/product/product.service";
+import { productService } from "@/di/container";
 export function getProductImageUrl(imageKey: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const bucket = process.env.NEXT_PUBLIC_MINIO_BUCKET || "products";

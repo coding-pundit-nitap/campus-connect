@@ -1,5 +1,6 @@
 "use server";
 
+import { categoryServices, notificationService } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -9,9 +10,7 @@ import { prisma } from "@/lib/prisma";
 import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import shopRepository from "@/repositories/shop.repository";
-import { categoryServices } from "@/services/category/category.service";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
-import { notificationService } from "@/services/notification/notification.service";
 import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 

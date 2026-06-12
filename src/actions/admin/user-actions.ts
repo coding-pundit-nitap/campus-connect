@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { auditService, notificationService } from "@/di/container";
 import { Prisma, Role, UserStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -11,8 +12,6 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import userRepository from "@/repositories/user.repository";
-import { auditService } from "@/services/audit";
-import { notificationService } from "@/services/notification/notification.service";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -210,14 +209,16 @@ export async function getUserStatsAction(): Promise<
     const [totalUsers, totalAdmins, recentUsers, activeUsers, inactiveUsers] =
       await Promise.all([
         userRepository.count({}),
-        userRepository.count({ role: Role.ADMIN }),
+        userRepository.count({ where: { role: Role.ADMIN } }),
         userRepository.count({
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          where: {
+            createdAt: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
           },
         }),
-        userRepository.count({ sessions: { some: {} } }),
-        userRepository.count({ sessions: { none: {} } }),
+        userRepository.count({ where: { sessions: { some: {} } } }),
+        userRepository.count({ where: { sessions: { none: {} } } }),
       ]);
 
     return createSuccessResponse(

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
+import { notificationService } from "@/di/container";
 import { Category } from "@/generated/client";
 import {
   BadRequestError,
@@ -21,7 +22,6 @@ import {
 } from "@/repositories";
 import productRepository from "@/repositories/product.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
-import { notificationService } from "@/services/notification/notification.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {

@@ -1,7 +1,7 @@
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 import { BackButton } from "@/components/shared/back-button";
 import { BatchCountdownBanner } from "@/components/shops/batch/batch-countdown-banner";
-import { cartService } from "@/services/cart/cart.service";
+import { cartService } from "@/di/container";
 
 export default async function CheckoutPageComponent({
   cart_id,

@@ -3,26 +3,30 @@ import { notFound } from "next/navigation";
 import { NotFoundError } from "@/lib/custom-error";
 import { cartUIService, serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import {
-  cartRepository,
-  platformSettingsRepository,
-  productRepository,
-} from "@/repositories";
+import { CartRepository } from "@/repositories/cart.repository";
+import { PlatformSettingsRepository } from "@/repositories/platform-settings.repository";
+import { ProductRepository } from "@/repositories/product.repository";
 import { FullCart } from "@/types";
 
-class CartService {
+export class CartService {
+  constructor(
+    private readonly cartRepository: CartRepository,
+    private readonly platformSettingsRepository: PlatformSettingsRepository,
+    private readonly productRepository: ProductRepository
+  ) {}
+
   async getAllUserCarts(user_id: string): Promise<FullCart[]> {
-    return cartRepository.getAllUserCartsWithItems(user_id);
+    return this.cartRepository.getAllUserCartsWithItems(user_id);
   }
 
   async getCartForShop(user_id: string, shop_id: string) {
-    return cartRepository.findOrCreate(user_id, shop_id);
+    return this.cartRepository.findOrCreate(user_id, shop_id);
   }
 
   async getCartData(cart_id: string) {
     const user_id = await authUtils.getUserId();
 
-    const fullCart = await cartRepository.getUserCartWithItemsByCartId(
+    const fullCart = await this.cartRepository.getUserCartWithItemsByCartId(
       user_id,
       cart_id
     );
@@ -36,7 +40,7 @@ class CartService {
     const item_total = cart.totalPrice;
     const delivery_fee = Number(shopData?.default_delivery_fee ?? 0);
     const direct_delivery_fee = Number(shopData?.direct_delivery_fee ?? 0);
-    const platform_fee = await platformSettingsRepository.getPlatformFee();
+    const platform_fee = await this.platformSettingsRepository.getPlatformFee();
     const total = item_total + delivery_fee + platform_fee;
 
     return {
@@ -57,23 +61,22 @@ class CartService {
   }
 
   async upsertCartItem(user_id: string, product_id: string, quantity: number) {
-    const product = await productRepository.findById(product_id);
+    const product = await this.productRepository.findById(product_id);
     if (!product) {
       throw new NotFoundError("Product not found.");
     }
 
-    const cart = await cartRepository.findOrCreate(user_id, product.shop_id);
+    const cart = await this.cartRepository.findOrCreate(
+      user_id,
+      product.shop_id
+    );
 
     if (quantity > 0) {
-      await cartRepository.upsertItem(cart.id, product_id, quantity);
+      await this.cartRepository.upsertItem(cart.id, product_id, quantity);
     } else {
-      await cartRepository.removeItem(cart.id, product_id);
+      await this.cartRepository.removeItem(cart.id, product_id);
     }
 
     return this.getCartForShop(user_id, product.shop_id);
   }
 }
-
-export const cartService = new CartService();
-
-export default cartService;
