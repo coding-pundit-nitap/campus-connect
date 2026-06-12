@@ -3,9 +3,11 @@ import { z } from "zod";
 
 import { productService } from "@/di/container";
 import { UnauthenticatedError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +26,7 @@ export async function GET(request: NextRequest) {
     const validation = productsQuerySchema.safeParse(params);
 
     if (!validation.success) {
-      console.log("Validation error: ", validation.error);
+      log.debug(`Validation error:  ${validation.error}`);
       return jsonResponse(createErrorResponse("Invalid query parameters"), 400);
     }
 
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
     const successResponse = createSuccessResponse(response);
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.error("Error fetching Products: ", error);
+    log.error({ err: error }, "Error fetching Products: ");
 
     if (error instanceof UnauthenticatedError) {
       return jsonResponse(createErrorResponse(error.message), 401);

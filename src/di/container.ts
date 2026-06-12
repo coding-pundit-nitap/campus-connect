@@ -23,7 +23,6 @@ import { OrderService } from "@/services/order/order.service";
 import { ProductService } from "@/services/product/product.service";
 import { ReviewService } from "@/services/review/review.service";
 import { DBSearchService } from "@/services/search/db-search.service";
-import { ShopAPIService } from "@/services/shop/shop.service";
 // Services
 import { UserService } from "@/services/user/user.service";
 
@@ -49,7 +48,6 @@ export const adminAuditRepository = new AdminAuditRepository(prisma);
 export const userService = new UserService(userRepository);
 export const productService = new ProductService(productRepository);
 export const categoryServices = new CategoryServices(categoryRepository);
-export const shopAPIService = new ShopAPIService();
 export const notificationService = new NotificationService(
   broadcastRepository,
   notificationRepository
@@ -105,7 +103,6 @@ export const container = {
   userService,
   productService,
   categoryServices,
-  shopAPIService,
   notificationService,
   orderService,
   cartService,

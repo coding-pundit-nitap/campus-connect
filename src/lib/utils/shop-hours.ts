@@ -1,3 +1,6 @@
+import { createLogger } from "@/lib/logger";
+const log = createLogger("shop-hours");
+
 export function parseTimeString(
   timeStr: string
 ): { hours: number; minutes: number } | null {
@@ -19,7 +22,7 @@ export function isShopOpen(opening: string, closing: string): boolean {
   const closingTime = parseTimeString(closing);
 
   if (!openingTime || !closingTime) {
-    console.warn(
+    log.warn(
       `Could not parse shop hours: opening=${opening}, closing=${closing}`
     );
     return true;

@@ -15,10 +15,10 @@ import {
   toggleProductStockAction,
   updateProductAction,
 } from "@/actions";
-import { shopAPIService } from "@/di/container";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
 import { productAPIService } from "@/services/product";
+import { shopAPIService } from "@/services/shop/shop-api.service";
 import { ProductUpdateActionFormData } from "@/validations/product";
 
 export function useShop(shop_id: string) {

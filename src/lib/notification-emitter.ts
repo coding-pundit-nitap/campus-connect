@@ -1,6 +1,9 @@
 import { EventEmitter } from "events";
 
+import { createLogger } from "@/lib/logger";
+
 import { redisSubscriber } from "./redis";
+const log = createLogger("notification-emitter");
 
 declare global {
   var notificationEmitter: NotificationEmitter | undefined;
@@ -23,9 +26,12 @@ class NotificationEmitter extends EventEmitter {
     if (currentCount === 0) {
       redisSubscriber.subscribe(channel, (error) => {
         if (error) {
-          console.error(`[Redis] Failed to subscribe to ${channel}`, error);
+          log.error(
+            { err: error },
+            `[Redis] Failed to subscribe to ${channel}`
+          );
         } else {
-          console.log(`[Redis] Subscribed to channel: ${channel}`);
+          log.debug(`[Redis] Subscribed to channel: ${channel}`);
         }
       });
     }
@@ -41,9 +47,12 @@ class NotificationEmitter extends EventEmitter {
     if (newCount === 0) {
       redisSubscriber.unsubscribe(channel, (err) => {
         if (err) {
-          console.error(`[Redis] Failed to unsubscribe from ${channel}`, err);
+          log.error(
+            { err: err },
+            `[Redis] Failed to unsubscribe from ${channel}`
+          );
         } else {
-          console.log(`[Redis] Unsubscribed from channel: ${channel}`);
+          log.debug(`[Redis] Unsubscribed from channel: ${channel}`);
         }
       });
       this.listenerCounts.delete(channel);

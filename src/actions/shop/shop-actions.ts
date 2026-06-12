@@ -6,13 +6,16 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
+import { createLogger } from "@/lib/logger";
 import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
+import batchRepository from "@/repositories/batch.repository";
 import shopRepository from "@/repositories/shop.repository";
+import userRepository from "@/repositories/user.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
+const log = createLogger("shop-actions");
 
 export async function createShopAction(formData: ShopActionFormData) {
   const uploadedFiles: string[] = [];
@@ -112,15 +115,15 @@ export async function createShopAction(formData: ShopActionFormData) {
     let batchCardsSaved = true;
     if (batch_slots && batch_slots.length > 0) {
       try {
-        await prisma.batchSlot.createMany({
-          data: batch_slots.map((card, idx) => ({
+        await batchRepository.createManySlots(
+          batch_slots.map((card, idx) => ({
             shop_id: newShop.id,
             cutoff_time_minutes: card.cutoff_time_minutes,
             label: card.label?.trim() || null,
             is_active: true,
             sort_order: idx,
-          })),
-        });
+          }))
+        );
       } catch {
         batchCardsSaved = false;
       }
@@ -137,14 +140,13 @@ export async function createShopAction(formData: ShopActionFormData) {
       try {
         await fileUploadService.deleteFile(fileKey);
       } catch (cleanupError) {
-        console.error(
-          `Failed to cleanup file ${fileKey} after shop creation failure:`,
-          cleanupError
+        log.error(
+          `Failed to cleanup file ${fileKey} after shop creation failure: ${cleanupError}`
         );
       }
     }
 
-    console.error("CREATE SHOP ERROR:", error);
+    log.error(`CREATE SHOP ERROR: ${error}`);
     if (
       error instanceof BadRequestError ||
       error instanceof UnauthorizedError
@@ -248,7 +250,7 @@ export async function updateShopAction(formData: ShopActionFormData) {
       "Shop updated successfully!"
     );
   } catch (error) {
-    console.error("UPDATE SHOP ERROR:", error);
+    log.error({ err: error }, "UPDATE SHOP ERROR:");
     throw new InternalServerError("Failed to update shop.");
   }
 }
@@ -273,17 +275,14 @@ export async function deleteShopAction() {
     if (context.image_key) {
       fileDeletionPromises.push(
         fileUploadService.deleteFile(context.image_key).catch((err) => {
-          console.error(
-            `Failed to delete shop image ${context.image_key}:`,
-            err
-          );
+          log.error(`Failed to delete shop image ${context.image_key}:`, err);
         })
       );
     }
     if (context.qr_image_key) {
       fileDeletionPromises.push(
         fileUploadService.deleteFile(context.qr_image_key).catch((err) => {
-          console.error(
+          log.error(
             `Failed to delete shop QR image ${context.qr_image_key}:`,
             err
           );
@@ -294,14 +293,11 @@ export async function deleteShopAction() {
 
     await shopRepository.delete(shop_id);
 
-    await prisma.user.update({
-      where: { id: user_id },
-      data: { shop_id: null },
-    });
+    await userRepository.update(user_id, { owned_shop: { disconnect: true } });
 
     return createSuccessResponse(null, "Shop deleted successfully");
   } catch (error) {
-    console.error("DELETE SHOP ERROR:", error);
+    log.error({ err: error }, "DELETE SHOP ERROR:");
     throw new InternalServerError("Failed to delete shop.");
   }
 }
@@ -328,10 +324,7 @@ export async function toggleAcceptingOrdersAction(acceptingOrders: boolean) {
       );
     }
 
-    await prisma.shop.update({
-      where: { id: shop.id },
-      data: { accepting_orders: acceptingOrders },
-    });
+    await shopRepository.update(shop.id, { accepting_orders: acceptingOrders });
 
     return createSuccessResponse(
       { accepting_orders: acceptingOrders },
@@ -340,7 +333,7 @@ export async function toggleAcceptingOrdersAction(acceptingOrders: boolean) {
         : "Shop is now paused - no new orders will be accepted"
     );
   } catch (error) {
-    console.error("TOGGLE ACCEPTING ORDERS ERROR:", error);
+    log.error({ err: error }, "TOGGLE ACCEPTING ORDERS ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError

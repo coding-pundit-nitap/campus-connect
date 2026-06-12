@@ -1,4 +1,6 @@
 import { environment } from "@/config/env.config";
+import { createLogger } from "@/lib/logger";
+const log = createLogger("image.utils");
 
 class ImageUtils {
   static extractImageKey(imageValue: string): string {
@@ -26,7 +28,7 @@ class ImageUtils {
     try {
       return this.extractImageKey(formImageKey);
     } catch (error) {
-      console.warn("Failed to extract image key, using fallback:", error);
+      log.warn(`Failed to extract image key, using fallback: ${error}`);
       return fallbackKey;
     }
   }

@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -19,6 +20,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("payout-actions");
 
 const PayoutStatusEnum = ["PENDING", "IN_TRANSIT", "PAID", "FAILED"] as const;
 
@@ -125,7 +127,7 @@ export async function getAllPayoutsAction(
       "Payouts retrieved successfully"
     );
   } catch (error) {
-    console.error("GET PAYOUTS ERROR:", error);
+    log.error({ err: error }, "GET PAYOUTS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -193,7 +195,7 @@ export async function updatePayoutStatusAction(
       `Payout status updated to ${status}`
     );
   } catch (error) {
-    console.error("UPDATE PAYOUT STATUS ERROR:", error);
+    log.error({ err: error }, "UPDATE PAYOUT STATUS ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -261,7 +263,7 @@ export async function getPayoutStatsAction(): Promise<
       "Payout statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET PAYOUT STATS ERROR:", error);
+    log.error({ err: error }, "GET PAYOUT STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

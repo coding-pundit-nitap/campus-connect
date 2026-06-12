@@ -1,10 +1,12 @@
 "use server";
 
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { userRepository } from "@/repositories";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+const log = createLogger("profile-image-action");
 
 function isUploadedImage(image: string | null | undefined): boolean {
   if (!image) return false;
@@ -38,7 +40,7 @@ export async function updateProfileImageAction(
       try {
         await fileUploadService.deleteFile(user.image);
       } catch (error) {
-        console.warn("Failed to delete old profile image:", error);
+        log.warn(`Failed to delete old profile image: ${error}`);
       }
     }
 
@@ -49,7 +51,7 @@ export async function updateProfileImageAction(
       "Profile picture updated successfully"
     );
   } catch (error) {
-    console.error("UPDATE PROFILE IMAGE ERROR:", error);
+    log.error({ err: error }, "UPDATE PROFILE IMAGE ERROR:");
     throw new InternalServerError("Failed to update profile picture.");
   }
 }

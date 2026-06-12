@@ -2,9 +2,11 @@ import { NextRequest } from "next/server";
 import z from "zod";
 
 import { notificationService } from "@/di/container";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { createErrorResponse, createSuccessResponse } from "@/types";
+const log = createLogger("route");
 
 const markAsReadSchema = z.object({
   notificationIds: z.cuid().array().optional(),
@@ -39,7 +41,7 @@ export async function PATCH(request: NextRequest) {
       200
     );
   } catch (error) {
-    console.error("Error marking notifications as read:", error);
+    log.error({ err: error }, "Error marking notifications as read:");
     return jsonResponse(
       createErrorResponse("Failed to mark notifications as read"),
       500

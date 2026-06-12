@@ -1,5 +1,7 @@
 import { InternalServerError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { ActionResponse } from "@/types";
+const log = createLogger("file-upload-api.service");
 
 interface PresignedUrlResponse {
   uploadUrl: string;
@@ -62,7 +64,7 @@ class FileUploadAPIService {
 
       return objectKey;
     } catch (error) {
-      console.error("Image upload failed:", error);
+      log.error({ err: error }, "Image upload failed:");
       throw new InternalServerError(
         "Could not upload the image. Please try again."
       );
@@ -79,7 +81,7 @@ class FileUploadAPIService {
         body: JSON.stringify({ objectKey }),
       });
     } catch (error) {
-      console.error("Image deletion failed:", error);
+      log.error({ err: error }, "Image deletion failed:");
     }
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import z from "zod";
 
 import { OrderStatus } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -19,6 +20,7 @@ import {
   dateRangeSchema,
   parseDate,
 } from "@/validations/pagination.validation";
+const log = createLogger("route");
 
 const orderQuerySchema = cursorPaginationSchema
   .extend(dateRangeSchema.shape)
@@ -69,7 +71,7 @@ export async function GET(request: NextRequest) {
         400
       );
     }
-    console.error("GET ORDERS ERROR:", error);
+    log.error({ err: error }, "GET ORDERS ERROR:");
     const errorResponse = createErrorResponse("Failed to fetch orders");
     return jsonResponse(errorResponse, 500);
   }

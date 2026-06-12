@@ -13,6 +13,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import {
@@ -30,6 +31,7 @@ import {
   ProductUpdateActionFormData,
   productUpdateActionSchema,
 } from "@/validations/product";
+const log = createLogger("product-actions");
 
 export async function createProductAction(
   formData: ProductActionFormData
@@ -69,7 +71,7 @@ export async function createProductAction(
       image_key = uploadResult.key;
       uploadedImageKey = image_key;
 
-      console.log(
+      log.debug(
         `Product image optimized: ${uploadResult.compressionRatio}% reduction`
       );
     }
@@ -116,14 +118,14 @@ export async function createProductAction(
       try {
         await fileUploadService.deleteFile(uploadedImageKey);
       } catch (cleanupError) {
-        console.error(
-          `Failed to cleanup file ${uploadedImageKey} after product creation failure:`,
-          cleanupError
+        log.error(
+          { err: cleanupError },
+          `Failed to cleanup file ${uploadedImageKey} after product creation failure:`
         );
       }
     }
 
-    console.error("CREATE PRODUCT ERROR:", error);
+    log.error({ err: error }, "CREATE PRODUCT ERROR:");
     throw new InternalServerError("Failed to create product.");
   }
 }
@@ -242,7 +244,7 @@ export async function updateProductAction(
       "Product updated successfully"
     );
   } catch (error) {
-    console.log("UPDATE PRODUCT ERROR:", error);
+    log.debug({ err: error }, "UPDATE PRODUCT ERROR:");
     throw new InternalServerError("Failed to update product");
   }
 }
@@ -279,7 +281,7 @@ export async function deleteProductAction(
             type: "WARNING",
           })
           .catch((err) =>
-            console.error(`Failed to notify user ${userId}:`, err)
+            log.error({ err: err }, `Failed to notify user ${userId}:`)
           )
       )
     );
@@ -292,7 +294,7 @@ export async function deleteProductAction(
 
     return createSuccessResponse(null, "Product deleted successfully");
   } catch (error) {
-    console.log("DELETE PRODUCT ERROR:", error);
+    log.debug({ err: error }, "DELETE PRODUCT ERROR:");
     throw new InternalServerError("Failed to delete product");
   }
 }
@@ -407,7 +409,7 @@ export async function bulkCreateProductsAction(
       const messages = error.issues.map((err) => err.message).join(", ");
       throw new ValidationError(messages);
     }
-    console.error("BULK CREATE PRODUCTS ERROR:", error);
+    log.error({ err: error }, "BULK CREATE PRODUCTS ERROR:");
     throw new InternalServerError("Failed to create products");
   }
 }
@@ -469,7 +471,7 @@ export async function toggleProductStockAction(
 
     return createSuccessResponse(serialized, "Stock toggled successfully.");
   } catch (error) {
-    console.error("TOGGLE PRODUCT STOCK ERROR:", error);
+    log.error({ err: error }, "TOGGLE PRODUCT STOCK ERROR:");
     if (
       error instanceof BadRequestError ||
       error instanceof ForbiddenError ||

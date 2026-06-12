@@ -4,8 +4,10 @@ import { unauthorized } from "next/navigation";
 
 import { reviewService } from "@/di/container";
 import { InternalServerError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
+const log = createLogger("review-action");
 
 export const updateReviewAction = async ({
   review_id,
@@ -33,7 +35,7 @@ export const updateReviewAction = async ({
 
     return createSuccessResponse(review);
   } catch (error) {
-    console.log("Error updating review:", error);
+    log.debug(`Error updating review: ${error}`);
     throw new InternalServerError("Failed to update review");
   }
 };
@@ -64,7 +66,7 @@ export const createReviewAction = async ({
 
     return createSuccessResponse(review);
   } catch (error) {
-    console.log("Error creating review:", error);
+    log.debug(`Error creating review: ${error}`);
     throw new InternalServerError("Failed to create review");
   }
 };

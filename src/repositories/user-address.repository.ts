@@ -283,6 +283,25 @@ export class UserAddressRepository extends BaseRepository<
     }
     return this.prismaClient.userAddress.delete(idOrArgs);
   }
+
+  async findBuildingById(id: string) {
+    return this.prismaClient.building.findFirst({
+      where: { id, is_active: true },
+    });
+  }
+
+  async findBuildingByName(name: string, hostel_block: string | null) {
+    return this.prismaClient.building.findFirst({
+      where: {
+        name: { equals: name, mode: "insensitive" },
+        hostel_block,
+      },
+    });
+  }
+
+  async createBuilding(data: { name: string; hostel_block: string | null }) {
+    return this.prismaClient.building.create({ data });
+  }
 }
 
 export const userAddressRepository = new UserAddressRepository(prisma);

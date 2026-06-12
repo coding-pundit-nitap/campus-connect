@@ -5,12 +5,14 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
 import { getOrderStatsAction } from "./order-actions";
 import { getShopStatsAction } from "./shop-actions";
 import { getUserStatsAction } from "./user-actions";
+const log = createLogger("analytics-actions");
 
 export async function getDashboardAnalyticsAction(): Promise<
   ActionResponse<{
@@ -74,7 +76,7 @@ export async function getDashboardAnalyticsAction(): Promise<
       "Dashboard analytics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET DASHBOARD ANALYTICS ERROR:", error);
+    log.error({ err: error }, "GET DASHBOARD ANALYTICS ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||

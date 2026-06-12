@@ -1,6 +1,9 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 
+import { createLogger } from "@/lib/logger";
+const log = createLogger("route");
+
 const s3Client = new S3Client({
   endpoint: process.env.MINIO_ENDPOINT!,
   region: process.env.AWS_REGION!,
@@ -53,7 +56,7 @@ export async function GET(
     if ((error as { name: string }).name === "NoSuchKey") {
       return new NextResponse("Image not found", { status: 404 });
     }
-    console.error("Error fetching image from MinIO:", error);
+    log.error({ err: error }, "Error fetching image from MinIO:");
     return new NextResponse("Internal server error", { status: 500 });
   }
 }

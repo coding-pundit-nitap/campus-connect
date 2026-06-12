@@ -1,5 +1,8 @@
 import Redis from "ioredis";
 
+import { createLogger } from "@/lib/logger";
+const log = createLogger("redis");
+
 declare global {
   var redis: Redis | undefined;
   var redisSubscriber: Redis | undefined;
@@ -26,11 +29,11 @@ redisSubscriber.removeAllListeners("error");
 redisSubscriber.removeAllListeners("close");
 redisSubscriber.removeAllListeners("ready");
 
-redis.on("error", (error) => console.log("Redis Error:", error));
+redis.on("error", (error) => log.debug(`Redis Error: ${error}`));
 redisSubscriber.on("error", (error) =>
-  console.log("Redis Subscriber Error: ", error)
+  log.debug(`Redis Subscriber Error: ${error}`)
 );
-redis.on("connect", () => console.log("✅ Redis clients initialized."));
+redis.on("connect", () => log.debug("✅ Redis clients initialized."));
 
 export const redisSSE = redis;
 export { redis as redisPublisher, redisSubscriber };

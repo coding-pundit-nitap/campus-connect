@@ -1,9 +1,11 @@
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export async function GET() {
   const startTime = performance.now();
@@ -20,7 +22,7 @@ export async function GET() {
     );
     return jsonResponse(response, 200);
   } catch (error) {
-    console.error("Database health check failed:", error);
+    log.error({ err: error }, "Database health check failed:");
     const response = createErrorResponse("Database is not accessible");
     return jsonResponse(response, 503);
   }

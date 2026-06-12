@@ -6,9 +6,11 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+const log = createLogger("reorder-action");
 
 export async function reorderAction(
   order_id: string
@@ -104,7 +106,7 @@ export async function reorderAction(
       `Added ${itemsAdded} items to your cart`
     );
   } catch (error) {
-    console.error("REORDER ERROR:", error);
+    log.error({ err: error }, "REORDER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof NotFoundError ||

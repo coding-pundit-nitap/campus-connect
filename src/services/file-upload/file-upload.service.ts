@@ -6,12 +6,15 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import { BadRequestError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   getCompressionRatio,
   getImageMetadata,
   isValidImage,
   optimizeForProductDetail,
 } from "@/lib/utils/image-optimizer";
+
+const log = createLogger("file-upload.service");
 
 export interface UploadOptions {
   maxSizeInMB?: number;
@@ -205,7 +208,7 @@ class FileUploadService {
       await this.internalS3Client.send(command);
       return objectKey;
     } catch (error) {
-      console.error("Error uploading to MinIO:", error);
+      log.error({ err: error }, "Error uploading to MinIO:");
       throw new Error("Failed to upload file to MinIO");
     }
   }
@@ -232,11 +235,13 @@ class FileUploadService {
     }
 
     const originalMetadata = await getImageMetadata(fileBuffer);
-    console.log("Original image:", {
-      size: `${(fileSize / 1024).toFixed(2)} KB`,
-      dimensions: `${originalMetadata?.width}x${originalMetadata?.height}`,
-      format: originalMetadata?.format,
-    });
+    log.debug(
+      `Original image: ${{
+        size: `${(fileSize / 1024).toFixed(2)} KB`,
+        dimensions: `${originalMetadata?.width}x${originalMetadata?.height}`,
+        format: originalMetadata?.format,
+      }}`
+    );
 
     const optimizedBuffer = await optimizeForProductDetail(fileBuffer);
     const optimizedMetadata = await getImageMetadata(optimizedBuffer);
@@ -246,12 +251,14 @@ class FileUploadService {
       optimizedBuffer.length
     );
 
-    console.log("Optimized image:", {
-      size: `${(optimizedBuffer.length / 1024).toFixed(2)} KB`,
-      dimensions: `${optimizedMetadata?.width}x${optimizedMetadata?.height}`,
-      compressionRatio: `${compressionRatio}%`,
-      savedBytes: `${((fileSize - optimizedBuffer.length) / 1024).toFixed(2)} KB`,
-    });
+    log.debug(
+      `Optimized image: ${{
+        size: `${(optimizedBuffer.length / 1024).toFixed(2)} KB`,
+        dimensions: `${optimizedMetadata?.width}x${optimizedMetadata?.height}`,
+        compressionRatio: `${compressionRatio}%`,
+        savedBytes: `${((fileSize - optimizedBuffer.length) / 1024).toFixed(2)} KB`,
+      }}`
+    );
 
     const objectKey = this.generateSecureFileName(fileName, prefix);
 
@@ -280,7 +287,7 @@ class FileUploadService {
         compressionRatio,
       };
     } catch (error) {
-      console.error("Error uploading optimized image to MinIO:", error);
+      log.error({ err: error }, "Error uploading optimized image to MinIO:");
       throw new Error("Failed to upload optimized image to MinIO");
     }
   }
@@ -315,7 +322,7 @@ class FileUploadService {
 
       return { uploadUrl, objectKey };
     } catch (error) {
-      console.error("Error generating presigned URL:", error);
+      log.error({ err: error }, "Error generating presigned URL:");
       throw new Error("Failed to generate upload URL");
     }
   }
@@ -335,7 +342,7 @@ class FileUploadService {
 
       await this.internalS3Client.send(command);
     } catch (error) {
-      console.error("Error deleting file from MinIO:", error);
+      log.error({ err: error }, "Error deleting file from MinIO:");
       throw new Error(`Failed to delete file from MinIO: ${objectKey}`);
     }
   }

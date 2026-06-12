@@ -1,3 +1,4 @@
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -11,6 +12,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -53,7 +55,7 @@ export async function GET() {
       200
     );
   } catch (error) {
-    console.error("GET active batch data error:", error);
+    log.error({ err: error }, "GET active batch data error:");
     return jsonResponse(
       createErrorResponse(
         error instanceof Error

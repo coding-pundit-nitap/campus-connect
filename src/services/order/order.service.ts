@@ -4,6 +4,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
@@ -12,6 +13,7 @@ import { OrderRepository } from "@/repositories/order.repository";
 import { PlatformSettingsRepository } from "@/repositories/platform-settings.repository";
 import { NotificationService } from "@/services/notification/notification.service";
 import { DeliveryAddressSnapshot } from "@/types";
+const log = createLogger("order.service");
 
 type GetOrdersOptions = {
   page?: number;
@@ -352,7 +354,7 @@ export class OrderService {
             type: "INFO",
           });
         } catch (error) {
-          console.error("Notification Error:", error);
+          log.error({ err: error }, "Notification Error:");
         }
       }
 

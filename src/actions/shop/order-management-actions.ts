@@ -9,11 +9,12 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
-import { prisma } from "@/lib/prisma";
+import { createLogger } from "@/lib/logger";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
 import shopRepository from "@/repositories/shop.repository";
 import { createSuccessResponse } from "@/types/response.types";
+const log = createLogger("order-management-actions");
 
 function generateOtp(): string {
   try {
@@ -58,13 +59,16 @@ export async function acceptOrderAction(orderId: string) {
           action_url: `/orders/${orderId}`,
         });
       } catch (notifyErr) {
-        console.error("Failed to send order accepted notification:", notifyErr);
+        log.error(
+          { err: notifyErr },
+          "Failed to send order accepted notification:"
+        );
       }
     }
 
     return createSuccessResponse(null, "Order accepted successfully.");
   } catch (error) {
-    console.error("ACCEPT ORDER ERROR:", error);
+    log.error({ err: error }, "ACCEPT ORDER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError
@@ -98,12 +102,9 @@ export async function startDirectDeliveryAction(orderId: string) {
 
     const otp = order.delivery_otp || generateOtp();
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        order_status: "OUT_FOR_DELIVERY",
-        delivery_otp: otp,
-      },
+    await orderRepository.update(orderId, {
+      order_status: "OUT_FOR_DELIVERY",
+      delivery_otp: otp,
     });
 
     if (order.user_id) {
@@ -116,16 +117,13 @@ export async function startDirectDeliveryAction(orderId: string) {
           action_url: `/orders/${orderId}`,
         });
       } catch (notifyErr) {
-        console.error(
-          "Failed to send direct delivery notification:",
-          notifyErr
-        );
+        log.error(`Failed to send direct delivery notification: ${notifyErr}`);
       }
     }
 
     return createSuccessResponse(null, "Direct delivery started.");
   } catch (error) {
-    console.error("START DIRECT DELIVERY ERROR:", error);
+    log.error({ err: error }, "START DIRECT DELIVERY ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError
@@ -167,15 +165,12 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
     const paymentStatus =
       order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        order_status: "CANCELLED",
-        payment_status: paymentStatus,
-        customer_notes: order.customer_notes
-          ? `${order.customer_notes}\n${rejectionNote}`
-          : rejectionNote,
-      },
+    await orderRepository.update(orderId, {
+      order_status: "CANCELLED",
+      payment_status: paymentStatus,
+      customer_notes: order.customer_notes
+        ? `${order.customer_notes}\n${rejectionNote}`
+        : rejectionNote,
     });
 
     if (order.user_id) {
@@ -188,16 +183,13 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
           action_url: `/orders/${orderId}`,
         });
       } catch (notifyErr) {
-        console.error(
-          "Failed to send order rejection notification:",
-          notifyErr
-        );
+        log.error(`Failed to send order rejection notification: ${notifyErr}`);
       }
     }
 
     return createSuccessResponse(null, "Order rejected successfully.");
   } catch (error) {
-    console.error("REJECT ORDER ERROR:", error);
+    log.error({ err: error }, "REJECT ORDER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError
@@ -235,15 +227,12 @@ export async function verifyDeliveryOtpAction(orderId: string, otp: string) {
       throw new BadRequestError("Invalid OTP provided.");
     }
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        order_status: "COMPLETED",
-        actual_delivery_time: new Date(),
-        delivery_otp: null,
-        payment_status:
-          order.payment_method === "CASH" ? "COMPLETED" : order.payment_status,
-      },
+    await orderRepository.update(orderId, {
+      order_status: "COMPLETED",
+      actual_delivery_time: new Date(),
+      delivery_otp: null,
+      payment_status:
+        order.payment_method === "CASH" ? "COMPLETED" : order.payment_status,
     });
 
     if (order.user_id) {
@@ -256,13 +245,16 @@ export async function verifyDeliveryOtpAction(orderId: string, otp: string) {
           action_url: `/orders/${orderId}`,
         });
       } catch (notifyErr) {
-        console.error("Failed to send order delivery notification:", notifyErr);
+        log.error(
+          { err: notifyErr },
+          "Failed to send order delivery notification:"
+        );
       }
     }
 
     return createSuccessResponse(null, "OTP verified and order completed.");
   } catch (error) {
-    console.error("VERIFY OTP ERROR:", error);
+    log.error({ err: error }, "VERIFY OTP ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError

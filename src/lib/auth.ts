@@ -1,3 +1,6 @@
+import { createLogger } from "@/lib/logger";
+const log = createLogger("auth");
+
 /**
  * Handles and normalizes errors from authentication actions.
  *
@@ -22,7 +25,7 @@ export const handleActionError = (
     return error;
   }
 
-  console.error("Unhandled error type:", error);
+  log.error({ err: error }, "Unhandled error type:");
   return defaultMessage;
 };
 

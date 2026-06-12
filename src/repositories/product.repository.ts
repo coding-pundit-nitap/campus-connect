@@ -202,6 +202,46 @@ export class ProductRepository extends BaseRepository<
     return this.prismaClient.product.count(args);
   }
 
+  async findStockWatch(user_id: string, product_id: string) {
+    return this.prismaClient.stockWatch.findUnique({
+      where: { user_id_product_id: { user_id, product_id } },
+    });
+  }
+
+  async createStockWatch(user_id: string, product_id: string) {
+    return this.prismaClient.stockWatch.create({
+      data: { user_id, product_id },
+    });
+  }
+
+  async deleteStockWatch(id: string) {
+    return this.prismaClient.stockWatch.delete({ where: { id } });
+  }
+
+  async getStockWatches(
+    user_id: string,
+    options?: Omit<Prisma.StockWatchFindManyArgs, "where">
+  ) {
+    return this.prismaClient.stockWatch.findMany({
+      where: { user_id },
+      ...options,
+    });
+  }
+
+  async getStockWatchersByProductId(
+    product_id: string,
+    options?: Omit<Prisma.StockWatchFindManyArgs, "where">
+  ) {
+    return this.prismaClient.stockWatch.findMany({
+      where: { product_id },
+      ...options,
+    });
+  }
+
+  async deleteStockWatchesByProductId(product_id: string) {
+    return this.prismaClient.stockWatch.deleteMany({ where: { product_id } });
+  }
+
   async searchProducts(
     searchTerm: string,
     limit: number = 10

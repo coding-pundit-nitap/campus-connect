@@ -1,7 +1,9 @@
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import reviewRepository from "@/repositories/reviews.repository";
 import { createErrorResponse, createSuccessResponse } from "@/types";
+const log = createLogger("route");
 
 export async function GET(
   _request: Request,
@@ -33,7 +35,7 @@ export async function GET(
 
     return jsonResponse(createSuccessResponse(review), 200);
   } catch (error) {
-    console.error("Error fetching review:", error);
+    log.error({ err: error }, "Error fetching review:");
     return jsonResponse(createErrorResponse("Failed to fetch review"), 500);
   }
 }

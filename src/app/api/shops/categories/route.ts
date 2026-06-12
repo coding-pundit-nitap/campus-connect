@@ -1,4 +1,5 @@
 import { categoryServices } from "@/di/container";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import dbSearchService from "@/services/search/db-search.service";
 import {
@@ -6,6 +7,7 @@ import {
   createSuccessResponse,
   SearchResult,
 } from "@/types";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -52,7 +54,7 @@ export async function GET(request: Request) {
       200
     );
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    log.error({ err: error }, "Error fetching categories:");
     return jsonResponse(createErrorResponse("Failed to fetch categories"), 500);
   }
 }

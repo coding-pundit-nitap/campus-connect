@@ -1,9 +1,11 @@
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +34,7 @@ export async function GET(
       200
     );
   } catch (error) {
-    console.error("GET shop delivery buildings error:", error);
+    log.error({ err: error }, "GET shop delivery buildings error:");
     return jsonResponse(
       createErrorResponse("Failed to fetch delivery buildings"),
       500

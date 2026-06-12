@@ -7,6 +7,7 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
@@ -24,6 +25,7 @@ import {
   PaginatedResponse,
 } from "@/types/response.types";
 import { validateDeliveryTime } from "@/validations/order.validation";
+const log = createLogger("order-actions");
 
 export async function getOrdersAction(options: {
   page?: number;
@@ -53,7 +55,7 @@ export async function getOrdersAction(options: {
       "Orders retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ORDERS ERROR:", error);
+    log.error({ err: error }, "GET ORDERS ERROR:");
     throw new InternalServerError("Failed to retrieve orders.");
   }
 }
@@ -132,7 +134,7 @@ export async function createOrderAction({
       "Order placed successfully!"
     );
   } catch (error) {
-    console.error("CREATE ORDER ERROR:", error);
+    log.error({ err: error }, "CREATE ORDER ERROR:");
     if (error instanceof ValidationError) {
       throw error;
     }
@@ -223,7 +225,7 @@ export async function updateOrderStatusAction({
           category: "ORDER",
         });
       } catch (error) {
-        console.error("Notification Error:", error);
+        log.error({ err: error }, "Notification Error:");
       }
     }
 
@@ -232,7 +234,7 @@ export async function updateOrderStatusAction({
       `Order status updated to ${status}`
     );
   } catch (error) {
-    console.error("UPDATE ORDER STATUS ERROR:", error);
+    log.error({ err: error }, "UPDATE ORDER STATUS ERROR:");
     throw new InternalServerError("Failed to update order status.");
   }
 }
@@ -265,7 +267,7 @@ export async function getOrderByIdAction(
       "Order details retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ORDER BY ID ERROR:", error);
+    log.error({ err: error }, "GET ORDER BY ID ERROR:");
     throw new InternalServerError("Failed to retrieve order details.");
   }
 }
@@ -321,7 +323,7 @@ export async function cancelOrderAction(
         type: "WARNING",
       });
     } catch (error) {
-      console.error("Notification Error:", error);
+      log.error({ err: error }, "Notification Error:");
     }
 
     return createSuccessResponse(null, "Order cancelled successfully.");
@@ -332,7 +334,7 @@ export async function cancelOrderAction(
     ) {
       throw error;
     }
-    console.error("CANCEL ORDER ERROR:", error);
+    log.error({ err: error }, "CANCEL ORDER ERROR:");
     throw new InternalServerError("Failed to cancel order.");
   }
 }
@@ -365,7 +367,7 @@ export async function getShopOrderByIdAction(
       "Order details retrieved successfully"
     );
   } catch (error) {
-    console.error("GET SHOP ORDER BY ID ERROR:", error);
+    log.error({ err: error }, "GET SHOP ORDER BY ID ERROR:");
     throw new InternalServerError("Failed to retrieve order details.");
   }
 }
@@ -489,7 +491,7 @@ export async function batchUpdateOrderStatusAction({
       `Successfully updated ${orderIds.length} orders to ${status}`
     );
   } catch (error) {
-    console.error("BATCH UPDATE ORDER STATUS ERROR:", error);
+    log.error({ err: error }, "BATCH UPDATE ORDER STATUS ERROR:");
     throw new InternalServerError("Failed to update order statuses.");
   }
 }

@@ -1,5 +1,8 @@
 import sharp from "sharp";
 
+import { createLogger } from "@/lib/logger";
+const log = createLogger("image-optimizer");
+
 export const IMAGE_SIZES = {
   OG: { width: 1200, height: 630, quality: 90 },
   DETAIL: { width: 1200, height: null, quality: 90 },
@@ -52,7 +55,7 @@ export async function optimizeImage(
       })
       .toBuffer();
   } catch (error) {
-    console.error("Image optimization error:", error);
+    log.error({ err: error }, "Image optimization error:");
     return buffer;
   }
 }
@@ -106,7 +109,7 @@ export async function getImageMetadata(buffer: Buffer) {
       hasAlpha: metadata.hasAlpha,
     };
   } catch (error) {
-    console.error("Failed to get image metadata:", error);
+    log.error({ err: error }, "Failed to get image metadata:");
     return null;
   }
 }
@@ -134,7 +137,7 @@ export async function convertToWebP(
   try {
     return await sharp(buffer).webp({ quality, effort: 6 }).toBuffer();
   } catch (error) {
-    console.error("WebP conversion error:", error);
+    log.error({ err: error }, "WebP conversion error:");
     return buffer;
   }
 }

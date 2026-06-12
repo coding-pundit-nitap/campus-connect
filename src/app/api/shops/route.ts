@@ -1,3 +1,4 @@
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -6,6 +7,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export async function GET() {
   try {
@@ -29,7 +31,7 @@ export async function GET() {
     );
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.error("GET SHOPS ERROR:", error);
+    log.error({ err: error }, "GET SHOPS ERROR:");
     const errorResponse = createErrorResponse("Internal Server Error");
     return jsonResponse(errorResponse, 500);
   }

@@ -40,3 +40,5 @@ export class ShopAPIService {
     return response.data.data;
   }
 }
+
+export const shopAPIService = new ShopAPIService();

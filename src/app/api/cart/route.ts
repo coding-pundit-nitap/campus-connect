@@ -1,3 +1,4 @@
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -6,6 +7,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export async function GET(request: Request) {
   try {
@@ -27,7 +29,7 @@ export async function GET(request: Request) {
     );
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.error("GET CART ERROR:", error);
+    log.error({ err: error }, "GET CART ERROR:");
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );

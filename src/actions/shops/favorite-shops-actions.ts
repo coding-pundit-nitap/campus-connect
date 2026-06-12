@@ -6,9 +6,11 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+const log = createLogger("favorite-shops-actions");
 
 export async function toggleFavoriteShopAction(
   shop_id: string
@@ -53,7 +55,7 @@ export async function toggleFavoriteShopAction(
       );
     }
   } catch (error) {
-    console.error("TOGGLE FAVORITE SHOP ERROR:", error);
+    log.error({ err: error }, "TOGGLE FAVORITE SHOP ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof NotFoundError ||
@@ -123,7 +125,7 @@ export async function getFavoriteShopsAction(): Promise<
 
     return createSuccessResponse(validFavorites, "Favorite shops retrieved");
   } catch (error) {
-    console.error("GET FAVORITE SHOPS ERROR:", error);
+    log.error({ err: error }, "GET FAVORITE SHOPS ERROR:");
     throw new InternalServerError("Failed to retrieve favorite shops.");
   }
 }
@@ -143,7 +145,7 @@ export async function isFavoriteShopAction(
 
     return createSuccessResponse(!!favorite, "Favorite status retrieved");
   } catch (error) {
-    console.error("IS FAVORITE SHOP ERROR:", error);
+    log.error({ err: error }, "IS FAVORITE SHOP ERROR:");
     return createSuccessResponse(false, "Error checking favorite status");
   }
 }

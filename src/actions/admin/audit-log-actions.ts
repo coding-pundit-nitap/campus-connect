@@ -10,6 +10,7 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -18,6 +19,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("audit-log-actions");
 
 const AdminActionEnum = [
   "SHOP_VERIFY",
@@ -164,7 +166,7 @@ export async function getAuditLogsAction(
       "Audit logs retrieved successfully"
     );
   } catch (error) {
-    console.error("GET AUDIT LOGS ERROR:", error);
+    log.error({ err: error }, "GET AUDIT LOGS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -243,7 +245,7 @@ export async function getAuditLogStatsAction(): Promise<
       "Audit log statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET AUDIT LOG STATS ERROR:", error);
+    log.error({ err: error }, "GET AUDIT LOG STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -296,7 +298,7 @@ export async function getRecentAuditLogsAction(
       "Recent audit logs retrieved successfully"
     );
   } catch (error) {
-    console.error("GET RECENT AUDIT LOGS ERROR:", error);
+    log.error({ err: error }, "GET RECENT AUDIT LOGS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

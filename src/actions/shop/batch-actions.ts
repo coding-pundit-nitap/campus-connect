@@ -6,11 +6,13 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 import batchRepository from "@/repositories/batch.repository";
 import shopRepository from "@/repositories/shop.repository";
 import { createSuccessResponse } from "@/types/response.types";
+const log = createLogger("batch-actions");
 
 export async function updateBatchCutoffTimeAction(
   batchId: string,
@@ -55,7 +57,7 @@ export async function updateBatchCutoffTimeAction(
 
     return createSuccessResponse(null, "Batch time updated successfully.");
   } catch (error) {
-    console.error("UPDATE BATCH TIME ERROR:", error);
+    log.error({ err: error }, "UPDATE BATCH TIME ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError
@@ -104,7 +106,7 @@ export async function closeBatchAction(batchId: string) {
 
     return createSuccessResponse(null, "Batch closed and locked for delivery.");
   } catch (error) {
-    console.error("CLOSE BATCH ERROR:", error);
+    log.error({ err: error }, "CLOSE BATCH ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof BadRequestError

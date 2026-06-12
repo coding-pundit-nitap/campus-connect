@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -19,6 +20,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("review-actions");
 
 const getReviewsSchema = searchSchema.extend({
   rating: z.coerce.number().min(1).max(5).optional(),
@@ -128,7 +130,7 @@ export async function getAllReviewsAction(
       "Reviews retrieved successfully"
     );
   } catch (error) {
-    console.error("GET REVIEWS ERROR:", error);
+    log.error({ err: error }, "GET REVIEWS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -209,7 +211,7 @@ export async function deleteReviewAction(
       "Review deleted successfully"
     );
   } catch (error) {
-    console.error("DELETE REVIEW ERROR:", error);
+    log.error({ err: error }, "DELETE REVIEW ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -269,7 +271,7 @@ export async function getReviewStatsAction(): Promise<
       "Review statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET REVIEW STATS ERROR:", error);
+    log.error({ err: error }, "GET REVIEW STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

@@ -1,7 +1,9 @@
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
+const log = createLogger("route");
 
 export async function GET() {
   try {
@@ -71,7 +73,7 @@ export async function GET() {
       200
     );
   } catch (error) {
-    console.error("GET vendor overview error:", error);
+    log.error({ err: error }, "GET vendor overview error:");
     return jsonResponse(
       {
         error:

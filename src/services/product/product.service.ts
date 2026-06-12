@@ -1,4 +1,5 @@
 import { Prisma, Product } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { serializeProducts } from "@/lib/utils";
 import {
   CreateProductDto,
@@ -6,6 +7,7 @@ import {
   UpdateProductDto,
 } from "@/repositories/product.repository";
 import { SerializedProduct } from "@/types/product.types";
+const log = createLogger("product.service");
 
 export type ServerProductData = {
   initialProducts: SerializedProduct[];
@@ -211,7 +213,7 @@ export class ProductService {
         nextCursor,
       };
     } catch (error) {
-      console.error("Error fetching shop products:", error);
+      log.error({ err: error }, "Error fetching shop products:");
 
       return {
         initialProducts: [],

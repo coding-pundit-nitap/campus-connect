@@ -1,11 +1,13 @@
 import { NextRequest } from "next/server";
 
 import { OrderStatus } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { serializeOrderWithDetails } from "@/lib/utils/order.utils";
 import { orderRepository } from "@/repositories";
 import { createErrorResponse, createSuccessResponse } from "@/types";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +47,7 @@ export async function GET(request: NextRequest) {
     });
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    log.error({ err: error }, "Error fetching orders:");
     const errorResponse = createErrorResponse("Internal Server Error");
     return jsonResponse(errorResponse, 500);
   }

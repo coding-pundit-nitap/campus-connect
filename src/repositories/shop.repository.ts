@@ -213,6 +213,44 @@ export class ShopRepository extends BaseRepository<
       take: limit,
     });
   }
+
+  async findFavoriteShop(user_id: string, shop_id: string) {
+    return this.prismaClient.favoriteShop.findUnique({
+      where: { user_id_shop_id: { user_id, shop_id } },
+    });
+  }
+
+  async addFavoriteShop(user_id: string, shop_id: string) {
+    return this.prismaClient.favoriteShop.create({
+      data: { user_id, shop_id },
+    });
+  }
+
+  async removeFavoriteShop(id: string) {
+    return this.prismaClient.favoriteShop.delete({ where: { id } });
+  }
+
+  async getFavoriteShops(
+    user_id: string,
+    options?: Omit<Prisma.FavoriteShopFindManyArgs, "where">
+  ) {
+    return this.prismaClient.favoriteShop.findMany({
+      where: { user_id },
+      ...options,
+    });
+  }
+
+  async deleteShopHard(shop_id: string, user_id?: string) {
+    return this.prismaClient.$transaction(async (tx) => {
+      if (user_id) {
+        await tx.user.update({
+          where: { id: user_id },
+          data: { owned_shop: { disconnect: true } },
+        });
+      }
+      return tx.shop.delete({ where: { id: shop_id } });
+    });
+  }
 }
 
 export const shopRepository = new ShopRepository();

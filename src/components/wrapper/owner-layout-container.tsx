@@ -1,5 +1,3 @@
-"use client";
-
 import React from "react";
 
 import { OwnerProvider } from "@/components/owned-shop/owner-context";

@@ -344,6 +344,14 @@ export class BatchRepository extends BaseRepository<
       select: { cutoff_time: true, status: true },
     });
   }
+
+  async createManySlots(
+    slots: Omit<BatchSlot, "id" | "created_at" | "updated_at">[]
+  ) {
+    return this.prismaClient.batchSlot.createMany({
+      data: slots,
+    });
+  }
 }
 
 export const batchRepository = new BatchRepository();

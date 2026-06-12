@@ -7,9 +7,11 @@ import {
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("settings-actions");
 
 export async function getSystemHealthAction(): Promise<
   ActionResponse<{
@@ -55,7 +57,7 @@ export async function getSystemHealthAction(): Promise<
       "System health check completed"
     );
   } catch (error) {
-    console.error("SYSTEM HEALTH CHECK ERROR:", error);
+    log.error({ err: error }, "SYSTEM HEALTH CHECK ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -118,7 +120,7 @@ export async function getCleanupStatsAction(): Promise<
       "Cleanup statistics retrieved"
     );
   } catch (error) {
-    console.error("CLEANUP STATS ERROR:", error);
+    log.error({ err: error }, "CLEANUP STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -185,7 +187,7 @@ export async function runCleanupAction(
       `Cleaned up ${deletedCount} ${type}`
     );
   } catch (error) {
-    console.error("CLEANUP ERROR:", error);
+    log.error({ err: error }, "CLEANUP ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -309,7 +311,7 @@ export async function getPlatformOverviewAction(): Promise<
       "Platform overview retrieved"
     );
   } catch (error) {
-    console.error("PLATFORM OVERVIEW ERROR:", error);
+    log.error({ err: error }, "PLATFORM OVERVIEW ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -334,7 +336,7 @@ export async function getPlatformSettingsAction(): Promise<
       "Platform settings retrieved"
     );
   } catch (error) {
-    console.error("GET PLATFORM SETTINGS ERROR:", error);
+    log.error({ err: error }, "GET PLATFORM SETTINGS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -373,7 +375,7 @@ export async function updatePlatformFeeAction(
       "Platform fee updated successfully"
     );
   } catch (error) {
-    console.error("UPDATE PLATFORM FEE ERROR:", error);
+    log.error({ err: error }, "UPDATE PLATFORM FEE ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||

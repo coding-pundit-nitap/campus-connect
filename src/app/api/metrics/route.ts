@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Counter, Histogram, Registry } from "prom-client";
 
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
+const log = createLogger("route");
 
 let register: Registry | null = null;
 export let httpRequestDuration: Histogram | null = null;
@@ -57,9 +59,9 @@ async function initializeMetrics() {
       registers: [register],
     });
 
-    console.log("[Metrics] Prometheus metrics initialized for production");
+    log.debug("[Metrics] Prometheus metrics initialized for production");
   } catch (error) {
-    console.error("[Metrics] Failed to initialize Prometheus:", error);
+    log.error({ err: error }, "[Metrics] Failed to initialize Prometheus:");
     initialized = false;
   }
 }
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for");
   const realIp = request.headers.get("x-real-ip");
 
-  console.log("[Metrics] Request from:", { forwardedFor, realIp });
+  log.debug(`[Metrics] Request from: ${forwardedFor}, ${realIp}`);
 
   try {
     await initializeMetrics();
@@ -92,7 +94,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[Metrics] Error generating metrics:", error);
+    log.error({ err: error }, "[Metrics] Error generating metrics:");
     return jsonResponse({ error: "Failed to generate metrics" }, 500);
   }
 }

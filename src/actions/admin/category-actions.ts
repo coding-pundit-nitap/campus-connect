@@ -10,6 +10,7 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   ActionResponse,
   createSuccessResponse,
@@ -18,6 +19,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("category-actions");
 
 const getCategoriesSchema = searchSchema;
 
@@ -86,7 +88,7 @@ export async function getAllCategoriesAction(
       "Categories retrieved successfully"
     );
   } catch (error) {
-    console.error("GET CATEGORIES ERROR:", error);
+    log.error({ err: error }, "GET CATEGORIES ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -137,7 +139,7 @@ export async function getCategoryStatsAction(): Promise<
       "Category statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET CATEGORY STATS ERROR:", error);
+    log.error({ err: error }, "GET CATEGORY STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

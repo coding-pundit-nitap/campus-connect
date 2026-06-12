@@ -1,11 +1,14 @@
+import { createLogger } from "@/lib/logger";
+
 import { authClient } from "../auth-client";
+const log = createLogger("login.utils");
 
 class LoginUIService {
   handleGoogleLogin = async (): Promise<void> => {
     try {
       await authClient.signIn.social({ provider: "google" });
     } catch (err) {
-      console.error("Google login failed:", err);
+      log.error({ err: err }, "Google login failed:");
       throw new Error("Failed to initiate Google login.");
     }
   };

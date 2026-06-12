@@ -4,10 +4,12 @@ import {
   UnauthenticatedError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { cartRepository } from "@/repositories";
 import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
+const log = createLogger("cart-actions");
 
 export const upsertCartItem = async (formData: UpsertItemData) => {
   try {
@@ -26,7 +28,7 @@ export const upsertCartItem = async (formData: UpsertItemData) => {
 
     return serializeFullCart(updatedCart);
   } catch (error) {
-    console.error("Error updating cart item:", error);
+    log.error({ err: error }, "Error updating cart item:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof UnauthenticatedError

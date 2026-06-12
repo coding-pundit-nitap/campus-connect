@@ -129,7 +129,7 @@ export async function proxy(req: NextRequest) {
     }
 
     /**
-     * 📊 Metrics Tracking (Production Only)
+     * Metrics Tracking (Production Only)
      */
     if (
       process.env.NODE_ENV === "production" &&

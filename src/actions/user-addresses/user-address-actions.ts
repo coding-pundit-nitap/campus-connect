@@ -5,10 +5,12 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { userAddressRepository } from "@/repositories";
 import { createSuccessResponse } from "@/types/response.types";
+const log = createLogger("user-address-actions");
 
 export async function getUserAddressesAction() {
   try {
@@ -20,7 +22,7 @@ export async function getUserAddressesAction() {
     const addresses = await userAddressRepository.findByUserId(user_id);
     return createSuccessResponse(addresses, "Addresses fetched successfully!");
   } catch (error) {
-    console.error("GET USER ADDRESSES ERROR:", error);
+    log.error({ err: error }, "GET USER ADDRESSES ERROR:");
     throw new InternalServerError("Failed to fetch addresses.");
   }
 }
@@ -101,7 +103,7 @@ export async function createAddressAction(data: CreateAddressFormData) {
     );
     return createSuccessResponse(address, "Address created successfully!");
   } catch (error) {
-    console.error("CREATE ADDRESS ERROR:", error);
+    log.error({ err: error }, "CREATE ADDRESS ERROR:");
     throw new InternalServerError("Failed to create address.");
   }
 }
@@ -135,7 +137,7 @@ export async function updateAddressAction({
     if (error instanceof ForbiddenError) {
       throw error;
     }
-    console.error("UPDATE ADDRESS ERROR:", error);
+    log.error({ err: error }, "UPDATE ADDRESS ERROR:");
     throw new InternalServerError("Failed to update address.");
   }
 }
@@ -161,7 +163,7 @@ export async function deleteAddressAction(id: string) {
     if (error instanceof ForbiddenError) {
       throw error;
     }
-    console.error("DELETE ADDRESS ERROR:", error);
+    log.error({ err: error }, "DELETE ADDRESS ERROR:");
     throw new InternalServerError("Failed to delete address.");
   }
 }
@@ -179,7 +181,7 @@ export async function setDefaultAddressAction(id: string) {
       "Default address updated successfully!"
     );
   } catch (error) {
-    console.error("SET DEFAULT ADDRESS ERROR:", error);
+    log.error({ err: error }, "SET DEFAULT ADDRESS ERROR:");
     throw new InternalServerError("Failed to set default address.");
   }
 }

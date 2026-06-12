@@ -7,12 +7,12 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-import { shopAPIService } from "@/di/container";
 import { useFavoriteShops } from "@/hooks/queries/useProfileData";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { isShopOpen } from "@/lib/shop-utils";
 import { ImageUtils } from "@/lib/utils";
+import { shopAPIService } from "@/services/shop/shop-api.service";
 
 interface CanteenCircleCardProps {
   shop: {

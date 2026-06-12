@@ -2,17 +2,19 @@
 
 import z from "zod";
 
-import { auditService, container,notificationService } from "@/di/container";
+import { auditService, container, notificationService } from "@/di/container";
 import {
   BadRequestError,
   ForbiddenError,
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("broadcast-actions");
 
 const sendBroadcastNotificationSchema = z.object({
   title: z
@@ -74,7 +76,7 @@ export async function sendBroadcastNotificationAction(
       "Broadcast notification queued successfully"
     );
   } catch (error) {
-    console.error("SEND BROADCAST NOTIFICATION ERROR:", error);
+    log.error({ err: error }, "SEND BROADCAST NOTIFICATION ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -121,7 +123,7 @@ export async function getBroadcastStatsAction(): Promise<
       "Broadcast statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET BROADCAST STATS ERROR:", error);
+    log.error({ err: error }, "GET BROADCAST STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

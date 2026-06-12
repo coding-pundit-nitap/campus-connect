@@ -1,5 +1,8 @@
 import { ConnectionOptions } from "bullmq";
 
+import { createLogger } from "@/lib/logger";
+const log = createLogger("redis-connection");
+
 const getRedisConfig = (): ConnectionOptions => {
   if (process.env.REDIS_URL) {
     try {
@@ -10,7 +13,7 @@ const getRedisConfig = (): ConnectionOptions => {
         maxRetriesPerRequest: null,
       };
     } catch (e) {
-      console.error("Invalid REDIS_URL, falling back to defaults", e);
+      log.error({ err: e }, "Invalid REDIS_URL, falling back to defaults");
     }
   }
 

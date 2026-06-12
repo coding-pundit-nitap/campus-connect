@@ -214,6 +214,23 @@ export class ReviewRepository extends BaseRepository<
     return this.prismaClient.review.count(args);
   }
 
+  async deleteReviewWithRatingUpdate(
+    review_id: string,
+    product_id: string,
+    rating: number
+  ): Promise<void> {
+    await this.prismaClient.$transaction(async (tx) => {
+      await tx.review.delete({ where: { id: review_id } });
+      await tx.product.update({
+        where: { id: product_id },
+        data: {
+          rating_sum: { decrement: rating },
+          review_count: { decrement: 1 },
+        },
+      });
+    });
+  }
+
   async aggregate<T extends Prisma.ReviewAggregateArgs>(args: T) {
     return this.prismaClient.review.aggregate(args);
   }

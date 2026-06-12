@@ -2,9 +2,11 @@
 
 import { batchService, notificationService } from "@/di/container";
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
+const log = createLogger("individual-delivery-actions");
 
 function generateOtp(): string {
   return Math.floor(1000 + Math.random() * 9000).toString();
@@ -59,9 +61,9 @@ export async function startIndividualDeliveryAction(orderId: string) {
         action_url: `/orders/${orderId}`,
       });
     } catch (notifyErr) {
-      console.error(
-        "Failed to send individual delivery notification:",
-        notifyErr
+      log.error(
+        `Failed to send individual delivery notification:
+        ${notifyErr}`
       );
     }
   }

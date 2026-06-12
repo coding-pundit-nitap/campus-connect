@@ -7,9 +7,9 @@ import {
 import { toast } from "sonner";
 
 import { toggleAcceptingOrdersAction } from "@/actions";
-import { shopAPIService } from "@/di/container";
 import { queryKeys } from "@/lib/query-keys";
 import { ShopWithOwnerDetails } from "@/lib/shop-utils";
+import { shopAPIService } from "@/services/shop/shop-api.service";
 type Props = {
   initialData: ShopWithOwnerDetails[];
   initialNextCursor: string | null;

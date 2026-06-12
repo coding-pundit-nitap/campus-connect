@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { Prisma } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -10,6 +11,7 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -105,7 +107,7 @@ export async function GET(
         400
       );
     }
-    console.error("GET PRODUCTS ERROR:", error);
+    log.error({ err: error }, "GET PRODUCTS ERROR:");
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );

@@ -1,6 +1,6 @@
 import { Role } from "@/generated/client";
 import { ConflictError } from "@/lib/custom-error";
-import { CreateUserDto,UserRepository } from "@/repositories/user.repository";
+import { CreateUserDto, UserRepository } from "@/repositories/user.repository";
 
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}

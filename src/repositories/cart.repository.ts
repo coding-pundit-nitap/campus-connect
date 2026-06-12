@@ -120,6 +120,46 @@ export class CartRepository extends BaseRepository<
     });
   }
 
+  async clearAllItems(cart_id: string) {
+    return await this.prismaClient.cartItem.deleteMany({
+      where: { cart_id },
+    });
+  }
+
+  async upsertCartItem(args: {
+    cart_id: string;
+    product_id: string;
+    quantity: number;
+  }) {
+    return await this.prismaClient.cartItem.upsert({
+      where: {
+        cart_id_product_id: {
+          cart_id: args.cart_id,
+          product_id: args.product_id,
+        },
+      },
+      update: { quantity: { increment: args.quantity } },
+      create: {
+        cart_id: args.cart_id,
+        product_id: args.product_id,
+        quantity: args.quantity,
+      },
+    });
+  }
+
+  async findOrCreateByUserAndShop(
+    user_id: string,
+    shop_id: string
+  ): Promise<Cart> {
+    const existing = await this.prismaClient.cart.findUnique({
+      where: { user_id_shop_id: { user_id, shop_id } },
+    });
+    if (existing) return existing;
+    return this.prismaClient.cart.create({
+      data: { user_id, shop_id },
+    });
+  }
+
   async getAllUserCartsWithItems(user_id: string): Promise<FullCart[]> {
     return this.prismaClient.cart.findMany({
       where: {

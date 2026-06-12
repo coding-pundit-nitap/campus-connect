@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { userRepository } from "@/repositories";
 import { updateUserSchema } from "@/validations/user.validation";
+const log = createLogger("route");
 
 export async function GET() {
   try {
@@ -15,7 +17,7 @@ export async function GET() {
 
     return jsonResponse(userWithAddress, 200);
   } catch (error) {
-    console.error("[USER_GET]", error);
+    log.error({ err: error }, "[USER_GET]");
     return jsonResponse({ error: "Internal error" }, 500);
   }
 }
@@ -39,7 +41,7 @@ export async function PUT(req: Request) {
 
     return jsonResponse(updatedUser, 200);
   } catch (error) {
-    console.error("[USER_UPDATE]", error);
+    log.error({ err: error }, "[USER_UPDATE]");
     return jsonResponse({ error: "Internal error" }, 500);
   }
 }

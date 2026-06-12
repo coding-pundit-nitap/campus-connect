@@ -7,9 +7,11 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+const log = createLogger("stock-watch-actions");
 
 export async function toggleStockWatchAction(
   product_id: string
@@ -57,7 +59,7 @@ export async function toggleStockWatchAction(
       );
     }
   } catch (error) {
-    console.error("TOGGLE STOCK WATCH ERROR:", error);
+    log.error({ err: error }, "TOGGLE STOCK WATCH ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof NotFoundError ||
@@ -86,7 +88,7 @@ export async function isWatchingStockAction(
 
     return createSuccessResponse(!!watch, "Stock watch status retrieved");
   } catch (error) {
-    console.error("IS WATCHING STOCK ERROR:", error);
+    log.error({ err: error }, "IS WATCHING STOCK ERROR:");
     return createSuccessResponse(false, "Error checking stock watch status");
   }
 }
@@ -146,7 +148,7 @@ export async function getStockWatchesAction(): Promise<
 
     return createSuccessResponse(validWatches, "Stock watches retrieved");
   } catch (error) {
-    console.error("GET STOCK WATCHES ERROR:", error);
+    log.error({ err: error }, "GET STOCK WATCHES ERROR:");
     throw new InternalServerError("Failed to retrieve stock watches.");
   }
 }
@@ -182,7 +184,7 @@ export async function notifyStockWatchers(
 
     return watchers.length;
   } catch (error) {
-    console.error("NOTIFY STOCK WATCHERS ERROR:", error);
+    log.error({ err: error }, "NOTIFY STOCK WATCHERS ERROR:");
     return 0;
   }
 }

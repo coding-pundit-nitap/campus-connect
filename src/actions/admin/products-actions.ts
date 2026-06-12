@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import productRepository from "@/repositories/product.repository";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import {
@@ -21,6 +22,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("products-actions");
 
 const getAllProductsSchema = searchSchema.extend({
   shop_id: z.string().optional(),
@@ -99,7 +101,7 @@ export async function getAllProductsAction(
       "Products retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ALL PRODUCTS ERROR:", error);
+    log.error({ err: error }, "GET ALL PRODUCTS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -150,7 +152,7 @@ export async function deleteProductAction(
       try {
         await fileUploadService.deleteFile(product.image_key);
       } catch (error) {
-        console.error("Error deleting product image:", error);
+        log.error({ err: error }, "Error deleting product image:");
       }
     }
 
@@ -176,7 +178,7 @@ export async function deleteProductAction(
       `Successfully deleted product "${product.name}"`
     );
   } catch (error) {
-    console.error("DELETE PRODUCT ERROR:", error);
+    log.error({ err: error }, "DELETE PRODUCT ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -221,7 +223,7 @@ export async function getProductStatsAction(): Promise<
       "Product statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET PRODUCT STATS ERROR:", error);
+    log.error({ err: error }, "GET PRODUCT STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

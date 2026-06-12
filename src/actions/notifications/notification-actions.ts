@@ -2,9 +2,11 @@
 
 import { container } from "@/di/container";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { NotificationCategory } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+const log = createLogger("notification-actions");
 
 export async function markAllNotificationsAsReadAction(): Promise<
   ActionResponse<{ count: number }>
@@ -19,7 +21,7 @@ export async function markAllNotificationsAsReadAction(): Promise<
 
     return createSuccessResponse(result, "All notifications marked as read");
   } catch (error) {
-    console.error("MARK ALL NOTIFICATIONS READ ERROR:", error);
+    log.error({ err: error }, "MARK ALL NOTIFICATIONS READ ERROR:");
     throw new InternalServerError("Failed to mark notifications as read.");
   }
 }
@@ -57,7 +59,7 @@ export async function getNotificationsByCategoryAction(
       "Notifications retrieved successfully"
     );
   } catch (error) {
-    console.error("GET NOTIFICATIONS BY CATEGORY ERROR:", error);
+    log.error({ err: error }, "GET NOTIFICATIONS BY CATEGORY ERROR:");
     throw new InternalServerError("Failed to retrieve notifications.");
   }
 }

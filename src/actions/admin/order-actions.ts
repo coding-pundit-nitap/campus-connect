@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -25,6 +26,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("order-actions");
 
 const getAllOrderSchema = searchSchema.extend({
   order_status: z.enum(OrderStatus).optional(),
@@ -93,7 +95,7 @@ export async function getAllOrdersAction(
       "Orders retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ALL ORDERS ERROR:", error);
+    log.error({ err: error }, "GET ALL ORDERS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -187,7 +189,7 @@ export async function updateOrderStatusAdminAction(
       `Successfully updated order #${updatedOrder.display_id} status to ${order_status}`
     );
   } catch (error) {
-    console.error("UPDATE ORDER STATUS ERROR:", error);
+    log.error({ err: error }, "UPDATE ORDER STATUS ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -258,7 +260,7 @@ export async function updatePaymentStatusAction(
       `Successfully updated payment status for order #${updatedOrder.display_id}`
     );
   } catch (error) {
-    console.error("UPDATE PAYMENT STATUS ERROR:", error);
+    log.error({ err: error }, "UPDATE PAYMENT STATUS ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -348,7 +350,7 @@ export async function getOrderStatsAction(): Promise<
       "Order statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ORDER STATS ERROR:", error);
+    log.error({ err: error }, "GET ORDER STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

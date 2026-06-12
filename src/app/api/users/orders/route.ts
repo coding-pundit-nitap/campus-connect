@@ -1,3 +1,4 @@
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
 import orderRepository from "@/repositories/order.repository";
@@ -5,6 +6,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export async function GET() {
   try {
@@ -19,7 +21,7 @@ export async function GET() {
 
     return jsonResponse(createSuccessResponse(orders), 200);
   } catch (error) {
-    console.error("GET USER ORDERS ERROR:", error);
+    log.error({ err: error }, "GET USER ORDERS ERROR:");
     return jsonResponse(
       createErrorResponse("An internal server error occurred."),
       500

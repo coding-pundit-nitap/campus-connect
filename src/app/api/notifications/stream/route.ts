@@ -8,6 +8,7 @@ import {
   SSE_REPLAY_USER_LIMIT,
 } from "@/config/constants";
 import { BroadcastNotification, Notification } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import notificationEmitter from "@/lib/notification-emitter";
 import { prisma } from "@/lib/prisma";
 import { redisSSE } from "@/lib/redis";
@@ -16,6 +17,7 @@ import {
   trackConnectionAtomic,
 } from "@/lib/redis-script";
 import { authUtils } from "@/lib/utils/auth.utils.server";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -117,7 +119,7 @@ async function untrackConnection(
     const key = `sse:connections:${userId}`;
     await redisSSE.zrem(key, connectionId);
   } catch (error) {
-    console.error("Failed to untrack SSE connection:", error);
+    log.error({ err: error }, "Failed to untrack SSE connection:");
   }
 }
 
@@ -137,7 +139,7 @@ export async function GET(req: NextRequest) {
       SSE_CONNECTION_TTL
     );
   } catch (error) {
-    console.error("Failed to track SSE connection:", error);
+    log.error({ err: error }, "Failed to track SSE connection:");
     allowed = true;
   }
 
@@ -265,7 +267,7 @@ export async function GET(req: NextRequest) {
 
           controller.enqueue(encoder.encode(sseData));
         } catch (error) {
-          console.error("SSE message handler error:", error);
+          log.error({ err: error }, "SSE message handler error:");
         }
       };
 
@@ -285,7 +287,7 @@ export async function GET(req: NextRequest) {
             SSE_CONNECTION_TTL
           );
         } catch (error) {
-          console.error("Failed to refresh SSE connection TTL", error);
+          log.error({ err: error }, "Failed to refresh SSE connection TTL");
           controller.close();
           clearInterval(heartbeatInterval);
           listeners.forEach(({ channel, handler }) => {

@@ -1,10 +1,12 @@
 import { NextRequest } from "next/server";
 
 import { productService } from "@/di/container";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeProduct } from "@/lib/utils";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { SerializedProductDetail } from "@/types/product.types";
+const log = createLogger("route");
 
 export async function GET(
   _request: NextRequest,
@@ -29,7 +31,7 @@ export async function GET(
 
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.log("GET PRODUCT ERROR:", error);
+    log.debug(`GET PRODUCT ERROR: ${error}`);
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );

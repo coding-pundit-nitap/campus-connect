@@ -1,5 +1,7 @@
 import { Category } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { CategoryRepository } from "@/repositories/category.repository";
+const log = createLogger("category.service");
 
 export class CategoryServices {
   constructor(private readonly categoryRepository: CategoryRepository) {}
@@ -10,7 +12,7 @@ export class CategoryServices {
         await this.categoryRepository.deleteEmptyCategories();
       return deletedCategoryIds;
     } catch (error) {
-      console.error("Error cleaning up empty categories:", error);
+      log.error({ err: error }, "Error cleaning up empty categories:");
       return [];
     }
   }
@@ -20,7 +22,7 @@ export class CategoryServices {
         await this.categoryRepository.deleteEmptyCategories();
       return deletedCategoryIds;
     } catch (error) {
-      console.error("Error cleaning up all empty categories:", error);
+      log.error({ err: error }, "Error cleaning up all empty categories:");
       return [];
     }
   }
@@ -29,7 +31,10 @@ export class CategoryServices {
     try {
       return await this.categoryRepository.deleteIfEmpty(category_id);
     } catch (error) {
-      console.error(`Error safely deleting category ${category_id}:`, error);
+      log.error(
+        { err: error },
+        `Error safely deleting category ${category_id}:`
+      );
       return false;
     }
   }
@@ -38,7 +43,7 @@ export class CategoryServices {
     try {
       return await this.categoryRepository.getActiveCategories();
     } catch (error) {
-      console.error("Error fetching active categories in service:", error);
+      log.error({ err: error }, "Error fetching active categories in service:");
       return [];
     }
   }

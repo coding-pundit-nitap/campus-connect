@@ -1,1 +1,1 @@
-export * from "./shop.service";
+export * from "./shop-api.service";

@@ -2,6 +2,7 @@ import { randomInt } from "node:crypto";
 
 import { BatchSlot, BatchStatus } from "@/generated/client";
 import { NotFoundError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import {
   addZonedDays,
@@ -14,6 +15,7 @@ import { OrderRepository } from "@/repositories/order.repository";
 import { ProductRepository } from "@/repositories/product.repository";
 import { ShopRepository } from "@/repositories/shop.repository";
 import { NotificationService } from "@/services/notification/notification.service";
+const log = createLogger("batch.service");
 
 export interface BatchSummaryItem {
   product_id: string;
@@ -275,7 +277,7 @@ export class BatchService {
       try {
         await this.lockBatch(batch.id, shopId);
       } catch (err) {
-        console.error(`Failed to auto-lock batch ${batch.id}:`, err);
+        log.error({ err: err }, `Failed to auto-lock batch ${batch.id}:`);
       }
     }
   }
@@ -573,9 +575,9 @@ export class BatchService {
               action_url: `/orders/${order.id}`,
             });
           } catch (notifyErr) {
-            console.error(
-              `Failed to send delivery notification for order ${order.id}:`,
-              notifyErr
+            log.error(
+              { err: notifyErr },
+              `Failed to send delivery notification for order ${order.id}:`
             );
           }
         }
@@ -674,7 +676,10 @@ export class BatchService {
           action_url: `/orders/${orderId}`,
         });
       } catch (notifyErr) {
-        console.error("Failed to send order delivery notification:", notifyErr);
+        log.error(
+          { err: notifyErr },
+          "Failed to send order delivery notification:"
+        );
       }
     }
 
@@ -733,10 +738,11 @@ export class BatchService {
               action_url: `/orders/${order.id}`,
             });
           } catch (notifyErr) {
-            console.error(
-              `Failed to send batch cancellation notification for order ${order.id}:`,
-              notifyErr
-            );
+            log.error({
+              err: notifyErr,
+              message: "Failed to send batch cancellation notification",
+              orderId: order.id,
+            });
           }
         }
       }

@@ -6,8 +6,10 @@ import {
   InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types/response.types";
+const log = createLogger("building-actions");
 
 export type BuildingInput = {
   name: string;
@@ -66,7 +68,7 @@ export async function createBuildingAction(input: BuildingInput) {
       "Building created successfully."
     );
   } catch (error) {
-    console.error("CREATE BUILDING ERROR:", error);
+    log.error({ err: error }, "CREATE BUILDING ERROR:");
     if (
       error instanceof BadRequestError ||
       error instanceof UnauthorizedError
@@ -110,7 +112,7 @@ export async function addShopDeliveryBuildingAction(buildingId: string) {
 
     return createSuccessResponse(null, "Delivery building added.");
   } catch (error) {
-    console.error("ADD SHOP DELIVERY BUILDING ERROR:", error);
+    log.error({ err: error }, "ADD SHOP DELIVERY BUILDING ERROR:");
     if (
       error instanceof BadRequestError ||
       error instanceof UnauthorizedError
@@ -138,7 +140,7 @@ export async function removeShopDeliveryBuildingAction(buildingId: string) {
 
     return createSuccessResponse(null, "Delivery building removed.");
   } catch (error) {
-    console.error("REMOVE SHOP DELIVERY BUILDING ERROR:", error);
+    log.error({ err: error }, "REMOVE SHOP DELIVERY BUILDING ERROR:");
     if (error instanceof UnauthorizedError) {
       throw error;
     }

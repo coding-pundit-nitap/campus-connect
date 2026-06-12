@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { Prisma } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
@@ -10,6 +11,7 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
+const log = createLogger("route");
 
 export async function GET(request: Request) {
   try {
@@ -49,7 +51,7 @@ export async function GET(request: Request) {
         400
       );
     }
-    console.error("GET SHOPS ERROR:", error);
+    log.error({ err: error }, "GET SHOPS ERROR:");
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );

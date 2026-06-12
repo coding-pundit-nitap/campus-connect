@@ -3,10 +3,12 @@ import z from "zod";
 
 import { notificationService } from "@/di/container";
 import { UnauthenticatedError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
+const log = createLogger("route");
 
 export async function GET(request: NextRequest) {
   try {
@@ -30,7 +32,7 @@ export async function GET(request: NextRequest) {
         400
       );
     }
-    console.error("Error fetching notifications:", error);
+    log.error({ err: error }, "Error fetching notifications:");
     if (error instanceof UnauthenticatedError) {
       return jsonResponse(createErrorResponse(error.message), 401);
     }

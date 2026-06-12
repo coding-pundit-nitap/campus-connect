@@ -1,3 +1,6 @@
+import { createLogger } from "@/lib/logger";
+const log = createLogger("database.utils");
+
 export async function checkDatabaseConnectivity(): Promise<boolean> {
   try {
     const controller = new AbortController();
@@ -21,7 +24,7 @@ export async function checkDatabaseConnectivity(): Promise<boolean> {
 
     return false;
   } catch (error) {
-    console.warn("Database connectivity check failed:", error);
+    log.warn(`Database connectivity check failed: ${error}`);
     return false;
   }
 }

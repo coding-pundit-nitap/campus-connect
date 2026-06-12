@@ -2,7 +2,7 @@
 
 import z from "zod";
 
-import { auditService, container,notificationService } from "@/di/container";
+import { auditService, container, notificationService } from "@/di/container";
 import { Prisma, SellerVerificationStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import {
   ActionResponse,
@@ -20,6 +21,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("shop-actions");
 
 const getAllShopsSchema = searchSchema.extend({
   is_active: z.boolean().optional(),
@@ -111,7 +113,7 @@ export async function getAllShopsAction(
       "Shops retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ALL SHOPS ERROR:", error);
+    log.error({ err: error }, "GET ALL SHOPS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -163,7 +165,7 @@ export async function activateShopAction(
       `Successfully activated shop "${updatedShop.name}"`
     );
   } catch (error) {
-    console.error("ACTIVATE SHOP ERROR:", error);
+    log.error({ err: error }, "ACTIVATE SHOP ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -249,7 +251,7 @@ export async function deactivateShopAction(
       `Successfully deactivated shop "${updatedShop.name}". ${affectedUserIds.length} user carts were cleared.`
     );
   } catch (error) {
-    console.error("DEACTIVATE SHOP ERROR:", error);
+    log.error({ err: error }, "DEACTIVATE SHOP ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -281,17 +283,17 @@ export async function deleteShopAction(
     if (shop.image_key) {
       fileDeletionPromises.push(
         fileUploadService.deleteFile(shop.image_key).catch((err) => {
-          console.error(`Error deleting shop image ${shop.image_key}:`, err);
+          log.error(
+            { err: err },
+            `Error deleting shop image ${shop.image_key}:`
+          );
         })
       );
     }
     if (shop.qr_image_key) {
       fileDeletionPromises.push(
         fileUploadService.deleteFile(shop.qr_image_key).catch((err) => {
-          console.error(
-            `Error deleting shop QR image ${shop.qr_image_key}:`,
-            err
-          );
+          log.error(`Error deleting shop QR image ${shop.qr_image_key}:`, err);
         })
       );
     }
@@ -316,7 +318,10 @@ export async function deleteShopAction(
           category: "SYSTEM",
         });
       } catch (notifyErr) {
-        console.error("Failed to send shop deletion notification:", notifyErr);
+        log.error(
+          { err: notifyErr },
+          "Failed to send shop deletion notification:"
+        );
       }
     }
 
@@ -333,7 +338,7 @@ export async function deleteShopAction(
       `Successfully deleted shop "${shop.name}"`
     );
   } catch (error) {
-    console.error("DELETE SHOP ERROR:", error);
+    log.error({ err: error }, "DELETE SHOP ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -423,7 +428,7 @@ export async function updateShopVerificationAction(
       `Successfully updated verification status for "${updatedShop.name}"`
     );
   } catch (error) {
-    console.error("UPDATE SHOP VERIFICATION ERROR:", error);
+    log.error({ err: error }, "UPDATE SHOP VERIFICATION ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -484,7 +489,7 @@ export async function getShopStatsAction(): Promise<
       "Shop statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET SHOP STATS ERROR:", error);
+    log.error({ err: error }, "GET SHOP STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }

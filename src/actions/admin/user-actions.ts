@@ -11,6 +11,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import userRepository from "@/repositories/user.repository";
 import {
   ActionResponse,
@@ -20,6 +21,7 @@ import {
 import { searchSchema } from "@/validations";
 
 import { verifyAdmin } from "../authentication/admin";
+const log = createLogger("user-actions");
 
 const getAllUsersSchema = searchSchema.extend({
   role: z.enum(Role).optional(),
@@ -89,7 +91,7 @@ export async function getAllUsersAction(
       "Users retrieved successfully"
     );
   } catch (error) {
-    console.error("GET ALL USERS ERROR:", error);
+    log.error({ err: error }, "GET ALL USERS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -131,7 +133,7 @@ export async function makeUserAdminAction(
       `Successfully promoted ${updatedUser.email} to admin`
     );
   } catch (error) {
-    console.error("MAKE USER ADMIN ERROR:", error);
+    log.error({ err: error }, "MAKE USER ADMIN ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -181,7 +183,7 @@ export async function removeUserAdminAction(
       `Successfully removed admin privileges from ${updatedUser.email}`
     );
   } catch (error) {
-    console.error("REMOVE USER ADMIN ERROR:", error);
+    log.error({ err: error }, "REMOVE USER ADMIN ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -233,7 +235,7 @@ export async function getUserStatsAction(): Promise<
       "User statistics retrieved successfully"
     );
   } catch (error) {
-    console.error("GET USER STATS ERROR:", error);
+    log.error({ err: error }, "GET USER STATS ERROR:");
     if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
       throw error;
     }
@@ -265,7 +267,7 @@ export async function forceSignOutUserAction(
       `Successfully signed out user ${targetUser.email} from all devices`
     );
   } catch (error) {
-    console.error("FORCE SIGN OUT USER ERROR:", error);
+    log.error({ err: error }, "FORCE SIGN OUT USER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -321,7 +323,7 @@ export async function deleteUserAction(
       `Successfully deleted user ${deletedUser.email}`
     );
   } catch (error) {
-    console.error("DELETE USER ERROR:", error);
+    log.error({ err: error }, "DELETE USER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -387,7 +389,7 @@ export async function suspendUserAction(
       `Successfully suspended user ${updatedUser.email}`
     );
   } catch (error) {
-    console.error("SUSPEND USER ERROR:", error);
+    log.error({ err: error }, "SUSPEND USER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||
@@ -443,7 +445,7 @@ export async function unsuspendUserAction(
       `Successfully unsuspended user ${updatedUser.email}`
     );
   } catch (error) {
-    console.error("UNSUSPEND USER ERROR:", error);
+    log.error({ err: error }, "UNSUSPEND USER ERROR:");
     if (
       error instanceof UnauthorizedError ||
       error instanceof ForbiddenError ||

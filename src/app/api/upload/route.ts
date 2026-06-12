@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { fileUploadService } from "@/services/file-upload/file-upload.service";
@@ -8,6 +9,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 const deleteSchema = z.object({
   objectKey: z.string().min(1, "Object key is required."),
@@ -52,7 +54,7 @@ export async function DELETE(request: NextRequest) {
       200
     );
   } catch (error) {
-    console.error("Delete File API Error:", error);
+    log.error({ err: error }, "Delete File API Error:");
     return jsonResponse(createErrorResponse("File deletion failed."), 500);
   }
 }
@@ -92,7 +94,7 @@ export async function POST(request: Request) {
       200
     );
   } catch (error) {
-    console.error("Upload API Error:", error);
+    log.error({ err: error }, "Upload API Error:");
     return jsonResponse(createErrorResponse("Upload preparation failed."), 500);
   }
 }

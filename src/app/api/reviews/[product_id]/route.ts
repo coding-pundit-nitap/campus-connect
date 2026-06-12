@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import z from "zod";
 
 import { Prisma } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import reviewRepository from "@/repositories/reviews.repository";
@@ -11,6 +12,7 @@ import {
 } from "@/types/response.types";
 import { ReviewWithUser } from "@/types/review.type";
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
+const log = createLogger("route");
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +63,7 @@ export async function GET(
         400
       );
     }
-    console.error("Error fetching paginated reviews:", error);
+    log.error({ err: error }, "Error fetching paginated reviews:");
     return jsonResponse(createErrorResponse("Failed to fetch reviews"), 500);
   }
 }

@@ -5,10 +5,12 @@ import {
   OrderReceiptData,
   OrderReceiptPDF,
 } from "@/components/pdf/order-receipt-pdf";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createErrorResponse, DeliveryAddressSnapshot } from "@/types";
+const log = createLogger("route");
 
 export async function GET(
   request: NextRequest,
@@ -130,7 +132,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error("PDF Generation Error:", error);
+    log.error({ err: error }, "PDF Generation Error:");
     const errorResponse = createErrorResponse("Failed to generate PDF");
     return jsonResponse(errorResponse, 500);
   }

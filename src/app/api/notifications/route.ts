@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { MAX_PAGE_SIZE } from "@/config/constants";
 import { notificationService } from "@/di/container";
 import { Notification } from "@/generated/client";
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import {
@@ -10,6 +11,7 @@ import {
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types";
+const log = createLogger("route");
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     return jsonResponse(createSuccessResponse(paginatedNotifications), 200);
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    log.error({ err: error }, "Error fetching notifications:");
     const errorResponse = createErrorResponse("Failed to fetch notifications");
     return jsonResponse(errorResponse, 500);
   }
@@ -59,7 +61,7 @@ export async function PATCH(request: NextRequest) {
       200
     );
   } catch (error) {
-    console.error("Error marking notifications as read:", error);
+    log.error({ err: error }, "Error marking notifications as read:");
     return jsonResponse(
       createErrorResponse("Failed to mark notifications as read"),
       500

@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import shopRepository from "@/repositories/shop.repository";
@@ -7,6 +8,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
 } from "@/types/response.types";
+const log = createLogger("route");
 
 export async function GET(
   _request: NextRequest,
@@ -30,7 +32,7 @@ export async function GET(
     );
     return jsonResponse(successResponse, 200);
   } catch (error) {
-    console.error("GET SHOP ERROR:", error);
+    log.error({ err: error }, "GET SHOP ERROR:");
     const errorResponse = createErrorResponse(
       "An internal server error occurred."
     );
