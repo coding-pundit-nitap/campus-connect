@@ -99,16 +99,10 @@ jobs:
 
   build-app:
     needs: [validate, detect-changes]
-    if: needs.detect-changes.outputs.app == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    if: needs.detect-changes.outputs.app == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Lowercase owner
-        id: owner
-        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
-        env:
-          OWNER: ${{ github.repository_owner }}
 
       - uses: docker/setup-buildx-action@v3
 
@@ -122,7 +116,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-app
+          images: ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-app
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-
@@ -144,16 +138,10 @@ jobs:
 
   build-worker:
     needs: [validate, detect-changes]
-    if: needs.detect-changes.outputs.worker == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    if: needs.detect-changes.outputs.worker == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Lowercase owner
-        id: owner
-        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
-        env:
-          OWNER: ${{ github.repository_owner }}
 
       - uses: docker/setup-buildx-action@v3
 
@@ -167,7 +155,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-worker
+          images: ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-worker
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-
@@ -189,16 +177,10 @@ jobs:
 
   build-migrator:
     needs: [validate, detect-changes]
-    if: needs.detect-changes.outputs.migrator == 'true' || needs.detect-changes.outputs.docker-base == 'true'
+    if: needs.detect-changes.outputs.migrator == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Lowercase owner
-        id: owner
-        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
-        env:
-          OWNER: ${{ github.repository_owner }}
 
       - uses: docker/setup-buildx-action@v3
 
@@ -212,7 +194,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-migrator
+          images: ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-migrator
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-
@@ -239,12 +221,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Lowercase owner
-        id: owner
-        run: echo "value=${OWNER,,}" >> $GITHUB_OUTPUT
-        env:
-          OWNER: ${{ github.repository_owner }}
-
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
@@ -257,7 +233,7 @@ jobs:
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ steps.owner.outputs.value }}/campus-connect-nginx
+          images: ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-nginx
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
             type=sha,prefix=sha-
