@@ -134,14 +134,38 @@ export class OrderService {
       };
     }
 
-    return await tx.batch.create({
-      data: {
-        shop_id,
-        cutoff_time: cutoffTime,
-        status: "OPEN",
-        slot_id: matchingSlot.id,
-      },
-    });
+    try {
+      return await tx.batch.create({
+        data: {
+          shop_id,
+          cutoff_time: cutoffTime,
+          status: "OPEN",
+          slot_id: matchingSlot.id,
+        },
+      });
+    } catch (err: any) {
+      if (err.code === "P2002") {
+        // Batch was created concurrently. Fetch and lock it.
+        const lockedBatch = await tx.$queryRaw<any[]>`
+          SELECT id, status, cutoff_time FROM "Batch" 
+          WHERE shop_id = ${shop_id} AND cutoff_time = ${cutoffTime} FOR UPDATE
+        `;
+        if (!lockedBatch || lockedBatch.length === 0) {
+          throw new ValidationError("The selected batch does not exist.");
+        }
+        if (lockedBatch[0].status !== "OPEN") {
+          throw new ValidationError(
+            "This batch has already been locked. Please pick another slot or use direct delivery."
+          );
+        }
+        return {
+          id: lockedBatch[0].id,
+          cutoff_time: new Date(lockedBatch[0].cutoff_time),
+          status: lockedBatch[0].status,
+        };
+      }
+      throw err;
+    }
   }
 
   async getOrders(options: GetOrdersOptions) {
@@ -198,10 +222,6 @@ export class OrderService {
     }
     const { order, shopOwnerId } = await this.prismaClient.$transaction(
       async (tx) => {
-        await tx.$executeRaw`
-        SELECT id FROM "Shop" WHERE id = ${shop_id} FOR UPDATE
-      `;
-
         const cart = await tx.cart.findUnique({
           where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
           include: {
@@ -288,11 +308,12 @@ export class OrderService {
         const productIds = [
           ...new Set(cart.items.map((item) => item.product_id)),
         ].sort();
-        await tx.$executeRaw`
-        SELECT id FROM "Product" 
-        WHERE id = ANY(${productIds}::text[])
-        FOR UPDATE
-      `;
+        await tx.$queryRaw`
+          SELECT id FROM "Product" 
+          WHERE id = ANY(${productIds}::text[])
+          ORDER BY id
+          FOR UPDATE
+        `;
 
         const productDetailsMap = new Map<
           string,
@@ -308,11 +329,14 @@ export class OrderService {
               name: true,
               price: true,
               discount: true,
+              deleted_at: true,
             },
           });
 
-          if (!product) {
-            throw new ValidationError("Product not found.");
+          if (!product || product.deleted_at) {
+            throw new ValidationError(
+              `Product ${product?.name || "Unknown"} is no longer available.`
+            );
           }
           if (item.quantity <= 0) {
             throw new ValidationError(
