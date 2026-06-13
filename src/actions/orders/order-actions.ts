@@ -4,6 +4,7 @@ import { notificationService, orderService } from "@/di/container";
 import { OrderStatus, PaymentMethod } from "@/generated/client";
 import {
   InternalServerError,
+  NotFoundError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
@@ -138,7 +139,11 @@ export async function createOrderAction({
     );
   } catch (error) {
     log.error({ err: error }, "CREATE ORDER ERROR:");
-    if (error instanceof ValidationError) {
+    if (
+      error instanceof ValidationError ||
+      error instanceof NotFoundError ||
+      error instanceof UnauthorizedError
+    ) {
       throw error;
     }
     throw new InternalServerError("Failed to create order.");

@@ -191,7 +191,16 @@ export class OrderService {
         "Batch delivery orders must specify a batch ID or requested delivery time."
       );
     }
+    if (!is_direct_delivery && batch_id && requested_delivery_time) {
+      throw new ValidationError(
+        "Provide either batch ID or requested delivery time, not both."
+      );
+    }
     return this.prismaClient.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        SELECT id FROM "Shop" WHERE id = ${shop_id} FOR UPDATE
+      `;
+
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
         include: {
@@ -273,27 +282,43 @@ export class OrderService {
         }
       }
 
-      const productIds = cart.items.map((item) => item.product_id);
+      const productIds = [
+        ...new Set(cart.items.map((item) => item.product_id)),
+      ].sort();
       await tx.$executeRaw`
         SELECT id FROM "Product" 
         WHERE id = ANY(${productIds}::text[])
         FOR UPDATE
       `;
 
+      const productDetailsMap = new Map<
+        string,
+        { price: Prisma.Decimal; name: string }
+      >();
+
       let itemTotalPaise = 0;
       for (const item of cart.items) {
         const product = await tx.product.findUnique({
           where: { id: item.product_id },
-          select: { stock_quantity: true, name: true },
+          select: {
+            stock_quantity: true,
+            name: true,
+            price: true,
+            discount: true,
+          },
         });
 
         if (!product || product.stock_quantity < item.quantity) {
           throw new ValidationError(
-            `Insufficient stock for: ${item.product.name}`
+            `Insufficient stock for: ${product?.name ?? item.product.name}`
           );
         }
-        const pricePaise = Math.round(Number(item.product.price) * 100);
-        const discountPercent = Number(item.product.discount) || 0;
+        productDetailsMap.set(item.product_id, {
+          price: product.price,
+          name: product.name,
+        });
+        const pricePaise = Math.round(Number(product.price) * 100);
+        const discountPercent = Number(product.discount) || 0;
         const discountPaise = Math.round((pricePaise * discountPercent) / 100);
         const discountedPricePaise = pricePaise - discountPaise;
         itemTotalPaise += discountedPricePaise * item.quantity;
@@ -376,11 +401,14 @@ export class OrderService {
           customer_notes,
           is_direct_delivery: is_direct_delivery ?? false,
           items: {
-            create: cart.items.map((item) => ({
-              product_id: item.product_id,
-              quantity: item.quantity,
-              price: item.product.price,
-            })),
+            create: cart.items.map((item) => {
+              const prod = productDetailsMap.get(item.product_id);
+              return {
+                product_id: item.product_id,
+                quantity: item.quantity,
+                price: prod ? prod.price : item.product.price,
+              };
+            }),
           },
         },
       });
