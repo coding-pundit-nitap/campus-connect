@@ -27,8 +27,8 @@ class NavigationUIService {
     return [
       { id: "home", title: "Home", url: "/", icon: Home },
       { id: "shops", title: "Shops", url: "/shops", icon: Store },
-      { id: "search", title: "Search", url: "/search", icon: Search },
-      { id: "feed", title: "Feed", url: "/feed", icon: Rss },
+      { id: "search", title: "Search", url: "/search" as Route, icon: Search },
+      { id: "feed", title: "Feed", url: "/feed" as Route, icon: Rss },
       { id: "orders", title: "My Orders", url: "/orders", icon: ShoppingBag },
     ];
   }
@@ -40,11 +40,16 @@ class NavigationUIService {
         items: [
           { id: "home", title: "Home", url: "/", icon: Home },
           { id: "shops", title: "Shops", url: "/shops", icon: Store },
-          { id: "search", title: "Search", url: "/search", icon: Search },
+          {
+            id: "search",
+            title: "Search",
+            url: "/search" as Route,
+            icon: Search,
+          },
           {
             id: "feed",
             title: "Deals & Announcements",
-            url: "/feed",
+            url: "/feed" as Route,
             icon: Rss,
           },
         ],
@@ -173,12 +178,6 @@ class NavigationUIService {
             icon: LayoutDashboard,
           },
           {
-            id: "orders",
-            title: "Orders",
-            url: "/owner-shops/orders",
-            icon: ShoppingBag,
-          },
-          {
             id: "products",
             title: "Products",
             url: "/owner-shops/products",
@@ -187,7 +186,7 @@ class NavigationUIService {
           {
             id: "announcements",
             title: "Announcements",
-            url: "/owner-shops/announcements",
+            url: "/owner-shops/announcements" as Route,
             icon: Megaphone,
           },
         ],

@@ -144,8 +144,8 @@ export const queryKeys = {
         hostelBlock?: string;
       }
     ) => ["search", "orders", searchTerm, filters] as const,
+    brands: (shopType: string) => ["search", "brands", shopType] as const,
   },
-
   /**
    * Notification system query keys for real-time updates and messaging.
    */

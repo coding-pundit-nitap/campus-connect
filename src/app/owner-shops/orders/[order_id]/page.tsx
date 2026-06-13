@@ -76,11 +76,7 @@ export default async function ShopOrderDetailPage({ params }: Props) {
 
   return (
     <div className="container mx-auto p-4 md:p-8">
-      <BackButton
-        href="/owner-shops/orders"
-        label="Back to Orders"
-        className="mb-4"
-      />
+      <BackButton href="/owner-shops" label="Back to Orders" className="mb-4" />
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
