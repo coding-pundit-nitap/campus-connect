@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Phone, Store, XCircle } from "lucide-react";
+import { Bike, Loader2, Phone, Store, XCircle } from "lucide-react";
 import { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
@@ -62,6 +62,20 @@ export default function OrderDetailsActions({ order }: Props) {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3 sm:flex-row">
+        {(order_status === "BATCHED" ||
+          order_status === "OUT_FOR_DELIVERY") && (
+          <Button
+            variant="default"
+            className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-md border-none bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white font-bold h-10 flex items-center justify-center cursor-pointer"
+            asChild
+          >
+            <Link href={`/orders/${order.id}/track` as Route}>
+              <Bike className="h-4 w-4 animate-bounce" />
+              Track Live Delivery
+            </Link>
+          </Button>
+        )}
+
         {shopId ? (
           <Button
             variant="outline"

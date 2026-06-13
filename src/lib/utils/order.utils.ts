@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import {
+  BatchMilestone,
   Order,
   OrderItem,
   OrderStatus,
@@ -100,10 +101,8 @@ export const orderWithDetailsInclude = {
     },
   },
   batch: {
-    select: {
-      id: true,
-      cutoff_time: true,
-      status: true,
+    include: {
+      delivery_status: true,
     },
   },
   user: {
@@ -129,6 +128,27 @@ export const serializeOrderWithDetails = (
           id: order.batch.id,
           cutoff_time: transformDateToLocaleString(order.batch.cutoff_time),
           status: order.batch.status,
+          delivery_status: order.batch.delivery_status
+            ? {
+                id: order.batch.delivery_status.id,
+                batch_id: order.batch.delivery_status.batch_id,
+                current_milestone: order.batch.delivery_status
+                  .current_milestone as BatchMilestone,
+                estimated_arrival: order.batch.delivery_status.estimated_arrival
+                  ? transformDateToLocaleString(
+                      order.batch.delivery_status.estimated_arrival
+                    )
+                  : null,
+                rider_name: order.batch.delivery_status.rider_name,
+                rider_phone: order.batch.delivery_status.rider_phone,
+                created_at: transformDateToLocaleString(
+                  order.batch.delivery_status.created_at
+                ),
+                updated_at: transformDateToLocaleString(
+                  order.batch.delivery_status.updated_at
+                ),
+              }
+            : null,
         }
       : null,
     user: {

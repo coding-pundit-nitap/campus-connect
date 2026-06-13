@@ -2,6 +2,7 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ import {
   batchUpdateOrderStatusAction,
   cancelOrderAction,
   createOrderAction,
+  getOrderByIdAction,
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
 import { OrderStatus } from "@/generated/client";
@@ -241,6 +243,21 @@ export function useDownloadOrderPDF() {
     onError: (error: Error) => {
       toast.error(error.message || "Failed to download PDF");
     },
+  });
+}
+
+export function useOrderDetails(orderId: string, enabled: boolean = true) {
+  return useQuery({
+    queryKey: queryKeys.orders.detail(orderId),
+    queryFn: async () => {
+      const res = await getOrderByIdAction(orderId);
+      if (!res.success) {
+        throw new Error(res.details || "Failed to fetch order details.");
+      }
+      return res.data;
+    },
+    enabled: !!orderId && enabled,
+    refetchInterval: 5000, // Poll every 5 seconds for live status!
   });
 }
 

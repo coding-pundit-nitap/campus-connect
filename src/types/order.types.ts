@@ -1,4 +1,5 @@
 import {
+  BatchMilestone,
   BatchStatus,
   Category,
   Order,
@@ -25,6 +26,16 @@ export type OrderWithDetails = Order & {
     id: string;
     cutoff_time: Date;
     status: BatchStatus;
+    delivery_status: {
+      id: string;
+      batch_id: string;
+      current_milestone: BatchMilestone;
+      estimated_arrival: Date | null;
+      rider_name: string | null;
+      rider_phone: string | null;
+      created_at: Date;
+      updated_at: Date;
+    } | null;
   } | null;
   user: {
     name: string;
@@ -99,6 +110,16 @@ export type SerializedOrderWithDetails = SerializedOrder & {
     id: string;
     cutoff_time: string;
     status: BatchStatus;
+    delivery_status: {
+      id: string;
+      batch_id: string;
+      current_milestone: BatchMilestone;
+      estimated_arrival: string | null;
+      rider_name: string | null;
+      rider_phone: string | null;
+      created_at: string;
+      updated_at: string;
+    } | null;
   } | null;
   user: {
     name: string;
