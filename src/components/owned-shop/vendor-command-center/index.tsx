@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BatchMilestone } from "@/generated/client";
 import {
   useAcceptOrder,
   useCloseBatch,
@@ -264,7 +265,7 @@ export function VendorCommandCenter() {
   }, [activeBatch, completeBatchMutation]);
 
   const handleUpdateMilestone = useCallback(
-    (milestone: OrderBatchMilestone) => {
+    (milestone: BatchMilestone) => {
       if (!activeBatch) return;
       updateMilestoneMutation.mutate({
         batchId: activeBatch.id,

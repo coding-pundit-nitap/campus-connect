@@ -9,14 +9,17 @@ import { announcementAPIService } from "@/services/announcement";
 // Extend queryKeys object locally for announcements
 const announcementKeys = {
   all: ["announcements"] as const,
-  list: () => ["announcements", "list"] as const,
+  list: (shopType: "ALL" | "CANTEEN" | "STATIONERY") =>
+    ["announcements", "list", shopType] as const,
   shopList: () => ["announcements", "shop-list"] as const,
 };
 
-export function useAnnouncements() {
+export function useAnnouncements(
+  shopType: "ALL" | "CANTEEN" | "STATIONERY" = "ALL"
+) {
   return useQuery({
-    queryKey: announcementKeys.list(),
-    queryFn: () => announcementAPIService.fetchAnnouncements(),
+    queryKey: announcementKeys.list(shopType),
+    queryFn: () => announcementAPIService.fetchAnnouncements(shopType),
     staleTime: 10_000,
   });
 }

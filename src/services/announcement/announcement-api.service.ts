@@ -3,11 +3,14 @@ import axiosInstance from "@/lib/axios";
 import { ActionResponse } from "@/types";
 
 class AnnouncementAPIService {
-  async fetchAnnouncements(): Promise<SerializedAnnouncement[]> {
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedAnnouncement[]>>(
-        "announcements"
-      );
+  async fetchAnnouncements(
+    shopType?: "ALL" | "CANTEEN" | "STATIONERY"
+  ): Promise<SerializedAnnouncement[]> {
+    const response = await axiosInstance.get<
+      ActionResponse<SerializedAnnouncement[]>
+    >("announcements", {
+      params: shopType && shopType !== "ALL" ? { type: shopType } : {},
+    });
     return response.data.data;
   }
 

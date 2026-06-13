@@ -31,8 +31,10 @@ import {
 import { formatCurrency } from "@/lib/utils/currency";
 
 export default function FeedPage() {
-  const { data: announcements, isLoading } = useAnnouncements();
   const [filter, setFilter] = useState<"ALL" | "CANTEEN" | "STATIONERY">("ALL");
+
+  // Filter is applied at the backend; each unique filter value is cached separately
+  const { data: announcements = [], isLoading } = useAnnouncements(filter);
 
   const { onAddToCart, isAddingToCart } = useProductActions({
     mode: "user",
@@ -45,14 +47,6 @@ export default function FeedPage() {
   const activeWatchesSet = useMemo(() => {
     return new Set(stockWatches.map((w) => w.product.id));
   }, [stockWatches]);
-
-  const filteredAnnouncements = useMemo(() => {
-    if (!announcements) return [];
-    return announcements.filter((ann: SerializedAnnouncement) => {
-      if (filter === "ALL") return true;
-      return ann.shop_type === filter;
-    });
-  }, [announcements, filter]);
 
   if (isLoading) {
     return (
@@ -132,7 +126,7 @@ export default function FeedPage() {
 
       {/* Announcements List */}
       <div className="space-y-6">
-        {filteredAnnouncements.length === 0 ? (
+        {announcements.length === 0 ? (
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-border/70 rounded-2xl p-12 text-center bg-card/25 backdrop-blur-xl">
             <Megaphone className="h-12 w-12 text-muted-foreground/30 mb-3" />
             <h3 className="font-bold text-foreground">
@@ -146,7 +140,7 @@ export default function FeedPage() {
         ) : (
           <div className="grid gap-6">
             <AnimatePresence mode="popLayout">
-              {filteredAnnouncements.map(
+              {announcements.map(
                 (ann: SerializedAnnouncement, index: number) => {
                   const expiresAt = new Date(ann.expires_at);
                   const isCanteen = ann.shop_type === "CANTEEN";

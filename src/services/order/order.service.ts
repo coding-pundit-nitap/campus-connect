@@ -156,7 +156,6 @@ export class OrderService {
         err !== null &&
         (err as { code?: string }).code === "P2002"
       ) {
-        // Batch was created concurrently. Fetch and lock it.
         const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
           SELECT id, status, cutoff_time FROM "Batch" 
           WHERE shop_id = ${shop_id} AND cutoff_time = ${cutoffTime} FOR UPDATE
