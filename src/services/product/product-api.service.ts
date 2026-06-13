@@ -69,6 +69,50 @@ class ProductAPIService {
     );
     return response.data.data;
   }
+
+  async fetchStockWatches(): Promise<
+    Array<{
+      id: string;
+      product: {
+        id: string;
+        name: string;
+        price: string;
+        image_key: string;
+        stock_quantity: number;
+        shop: { name: string };
+      };
+    }>
+  > {
+    const url = `products/stock-watch`;
+    const response = await axiosInstance.get<
+      ActionResponse<
+        Array<{
+          id: string;
+          product: {
+            id: string;
+            name: string;
+            price: string;
+            image_key: string;
+            stock_quantity: number;
+            shop: { name: string };
+          };
+        }>
+      >
+    >(url);
+    return response.data.data;
+  }
+
+  async checkIsWatchingStock({
+    product_id,
+  }: {
+    product_id: string;
+  }): Promise<boolean> {
+    const url = `products/stock-watch`;
+    const response = await axiosInstance.get<ActionResponse<boolean>>(url, {
+      params: { product_id },
+    });
+    return response.data.data;
+  }
 }
 
 export const productAPIService = new ProductAPIService();

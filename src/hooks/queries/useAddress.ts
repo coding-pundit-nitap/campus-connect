@@ -5,16 +5,16 @@ import { toast } from "sonner";
 import {
   createAddressAction,
   deleteAddressAction,
-  getUserAddressesAction,
   setDefaultAddressAction,
   updateAddressAction,
 } from "@/actions/user-addresses/user-address-actions";
 import { queryKeys } from "@/lib/query-keys";
+import { userAPIService } from "@/services";
 
 export function useUserAddresses() {
   return useQuery({
     queryKey: queryKeys.users.addresses(),
-    queryFn: getUserAddressesAction,
+    queryFn: userAPIService.fetchUserAddresses,
   });
 }
 

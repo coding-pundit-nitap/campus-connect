@@ -87,10 +87,10 @@ export default function ProductActions({
 
         <Button
           size="lg"
-          variant={isWatching?.data ? "outline" : "default"}
+          variant={isWatching ? "outline" : "default"}
           className={cn(
             "w-full h-14 text-base font-bold gap-2 transition-all duration-300",
-            isWatching?.data && "border-primary text-primary"
+            isWatching && "border-primary text-primary"
           )}
           onClick={handleToggleWatch}
           disabled={isPendingWatch || isCheckingWatch}
@@ -100,7 +100,7 @@ export default function ProductActions({
               <Loader2 className="h-5 w-5 animate-spin" />
               {isCheckingWatch ? "Loading..." : "Updating..."}
             </>
-          ) : isWatching?.data ? (
+          ) : isWatching ? (
             <>
               <BellOff className="h-5 w-5" />
               Stop Watching
@@ -116,7 +116,7 @@ export default function ProductActions({
         {isAuthenticated && (
           <Button
             size="lg"
-            variant={isWatching?.data ? "outline" : "secondary"}
+            variant={isWatching ? "outline" : "secondary"}
             className="w-full h-12 gap-2"
             onClick={handleToggleWatch}
             disabled={isPendingWatch || isCheckingWatch}
@@ -126,7 +126,7 @@ export default function ProductActions({
                 <Loader2 className="h-4 w-4 animate-spin" />
                 {isCheckingWatch ? "Loading..." : "Updating..."}
               </>
-            ) : isWatching?.data ? (
+            ) : isWatching ? (
               <>
                 <BellOff className="h-4 w-4" />
                 Remove from Watchlist
@@ -211,7 +211,7 @@ export default function ProductActions({
       {isAuthenticated && (
         <Button
           size="lg"
-          variant={isWatching?.data ? "outline" : "secondary"}
+          variant={isWatching ? "outline" : "secondary"}
           className="w-full h-12 gap-2"
           onClick={handleToggleWatch}
           disabled={isPendingWatch || isCheckingWatch}
@@ -221,7 +221,7 @@ export default function ProductActions({
               <Loader2 className="h-4 w-4 animate-spin" />
               {isCheckingWatch ? "Loading..." : "Updating..."}
             </>
-          ) : isWatching?.data ? (
+          ) : isWatching ? (
             <>
               <BellOff className="h-4 w-4" />
               Remove from Watchlist

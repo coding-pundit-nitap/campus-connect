@@ -161,9 +161,27 @@ export async function GET(req: NextRequest) {
 
   const channels = [`user:${user_id}:notifications`, `broadcast:notifications`];
 
-  let heartbeatInterval: NodeJS.Timeout;
+  let heartbeatInterval: NodeJS.Timeout | undefined;
   const listeners: { channel: string; handler: (message: string) => void }[] =
     [];
+
+  let isCleanedUp = false;
+  const cleanup = () => {
+    if (isCleanedUp) return;
+    isCleanedUp = true;
+
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+    }
+
+    listeners.forEach(({ channel, handler }) => {
+      notificationEmitter.unsubscribe(channel, handler);
+    });
+
+    untrackConnection(user_id, connectionId).catch((error) => {
+      log.error({ err: error }, "Failed to untrack connection during cleanup:");
+    });
+  };
 
   let missedNotifications: (Notification | BroadcastNotification)[] = [];
   let replayTruncated = false;
@@ -235,6 +253,15 @@ export async function GET(req: NextRequest) {
     start(controller) {
       const encoder = new TextEncoder();
 
+      req.signal.addEventListener("abort", () => {
+        cleanup();
+        try {
+          controller.close();
+        } catch {
+          // Ignore if already closed/cancelled
+        }
+      });
+
       controller.enqueue(
         encoder.encode(
           `event: connected\ndata: ${JSON.stringify({
@@ -288,27 +315,18 @@ export async function GET(req: NextRequest) {
           );
         } catch (error) {
           log.error({ err: error }, "Failed to refresh SSE connection TTL");
-          controller.close();
-          clearInterval(heartbeatInterval);
-          listeners.forEach(({ channel, handler }) => {
-            notificationEmitter.unsubscribe(channel, handler);
-          });
+          cleanup();
+          try {
+            controller.close();
+          } catch {
+            // Ignore if already closed/cancelled
+          }
         }
       }, SSE_HEARTBEAT_INTERVAL);
     },
 
     async cancel() {
-      clearInterval(heartbeatInterval);
-
-      listeners.forEach(({ channel, handler }) => {
-        notificationEmitter.unsubscribe(channel, handler);
-      });
-
-      try {
-        await untrackConnection(user_id, connectionId);
-      } catch {
-        // Worker may have exited, ignore cleanup errors
-      }
+      cleanup();
     },
   });
 

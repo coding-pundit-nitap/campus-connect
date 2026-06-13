@@ -3,15 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  getStockWatchesAction,
-  isWatchingStockAction,
-  toggleStockWatchAction,
-} from "@/actions/products/stock-watch-actions";
+import { toggleStockWatchAction } from "@/actions/products/stock-watch-actions";
 import { toggleFavoriteShopAction } from "@/actions/shops/favorite-shops-actions";
 import { authClient } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import { shopAPIService } from "@/services";
+import { productAPIService, shopAPIService } from "@/services";
 
 export function useFavoriteShops(enabled: boolean = true) {
   return useQuery({
@@ -43,11 +39,7 @@ export function useToggleFavoriteShop() {
 export function useStockWatches(enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.users.stockWatches,
-    queryFn: async () => {
-      const response = await getStockWatchesAction();
-      if (!response.success) throw new Error(response.details);
-      return response.data;
-    },
+    queryFn: productAPIService.fetchStockWatches,
     enabled,
   });
 }
@@ -88,7 +80,8 @@ export function useOrderStats() {
 export function useIsWatchingStock(productId: string, enabled: boolean = true) {
   return useQuery({
     queryKey: ["stock-watch", productId],
-    queryFn: async () => isWatchingStockAction(productId),
+    queryFn: () =>
+      productAPIService.checkIsWatchingStock({ product_id: productId }),
     enabled: !!productId && enabled,
   });
 }

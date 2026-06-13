@@ -12,21 +12,6 @@ import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("user-address-actions");
 
-export async function getUserAddressesAction() {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
-    }
-
-    const addresses = await userAddressRepository.findByUserId(user_id);
-    return createSuccessResponse(addresses, "Addresses fetched successfully!");
-  } catch (error) {
-    log.error({ err: error }, "GET USER ADDRESSES ERROR:");
-    throw new InternalServerError("Failed to fetch addresses.");
-  }
-}
-
 export type CreateAddressFormData = {
   label: string;
   building_id?: string;

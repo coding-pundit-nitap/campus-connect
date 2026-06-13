@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useDeferredValue, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { UserProductCard } from "@/components/shared/product-card";
@@ -83,6 +83,14 @@ export default function SearchPage() {
     () => searchParamsObj.get("q") || ""
   );
   const deferredQuery = useDeferredValue(inputValue);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const tt = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(tt);
+  }, []);
 
   const { onAddToCart, onViewDetails, isAddingToCart } = useProductActions({
     mode: "user",
@@ -177,6 +185,9 @@ export default function SearchPage() {
     !!deferredQuery || activeTab !== "ALL" || isVegOnly || !!selectedBrand;
 
   const isPending = deferredQuery !== inputValue || isFetching;
+
+  const showSkeletons = mounted && isPending && mappedProducts.length === 0;
+  const showGrid = mounted && mappedProducts.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50/40 via-slate-50 to-indigo-50/30 dark:from-zinc-950 dark:via-zinc-900/95 dark:to-zinc-950 py-10 px-4 sm:px-6 lg:px-8">
@@ -320,7 +331,9 @@ export default function SearchPage() {
             className="text-sm font-medium text-slate-500 dark:text-zinc-400"
             suppressHydrationWarning
           >
-            {isPending ? (
+            {!mounted ? (
+              <span>Browsing campus catalog...</span>
+            ) : isPending ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
                 Updating catalog...
@@ -346,7 +359,7 @@ export default function SearchPage() {
           ) : null}
         </div>
 
-        {isPending && mappedProducts.length === 0 ? (
+        {showSkeletons ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <div
@@ -362,7 +375,7 @@ export default function SearchPage() {
               </div>
             ))}
           </div>
-        ) : mappedProducts.length > 0 ? (
+        ) : showGrid ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {mappedProducts.map((product, index) => (
               <div
