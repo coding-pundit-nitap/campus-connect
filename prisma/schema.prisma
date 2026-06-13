@@ -100,6 +100,13 @@ enum ShopType {
   GROCERY
 }
 
+enum BatchMilestone {
+  PACKING
+  CLIMB_STARTED
+  MIDWAY_100M_HILL
+  ARRIVED
+}
+
 // ----------------------------------------
 // Batch Scheduling Models
 // ----------------------------------------
@@ -250,6 +257,7 @@ model Shop {
 
   @@index([verification_status])
   @@index([deleted_at])
+  @@index([shop_type])
 }
 
 model Category {
@@ -306,6 +314,11 @@ model ShopAnnouncement {
   product_id  String?
   product     Product?  @relation(fields: [product_id], references: [id], onDelete: SetNull)
   created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([shop_id])
+  @@index([expires_at])
+  @@index([product_id])
 }
 
 // ----------------------------------------
@@ -576,7 +589,7 @@ model Batch {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  @@unique([shop_id, cutoff_time, status])
+  @@unique([shop_id, cutoff_time])
   @@index([shop_id])
   @@index([cutoff_time])
   @@index([status])
@@ -584,15 +597,15 @@ model Batch {
 }
 
 model BatchDeliveryStatus {
-  id                String    @id @default(cuid())
-  batch_id          String    @unique
-  batch             Batch     @relation(fields: [batch_id], references: [id], onDelete: Cascade)
-  current_milestone String    @default("PACKING")
+  id                String         @id @default(cuid())
+  batch_id          String         @unique
+  batch             Batch          @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  current_milestone BatchMilestone @default(PACKING)
   estimated_arrival DateTime?
   rider_name        String?
   rider_phone       String?
-  created_at        DateTime  @default(now())
-  updated_at        DateTime  @updatedAt
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
 }
 
 // ----------------------------------------
