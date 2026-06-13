@@ -6,6 +6,7 @@ import {
 } from "./batch/batch-closer";
 import { loggers } from "./lib/logger";
 import { prisma } from "./lib/prisma";
+import { redisPublisher } from "./lib/redis";
 import {
   closeNotificationDlqQueue,
   notificationWorker,
@@ -22,6 +23,7 @@ const gracefulShutdown = async (signal: string) => {
     closeBatchCloserQueues(),
     closeNotificationDlqQueue(),
   ]);
+  await redisPublisher.quit();
   await prisma.$disconnect();
   logger.info("Workers closed. Exiting.");
   process.exit(0);
@@ -32,6 +34,11 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 async function main() {
   try {
+    const repeatableJobs = await batchCloserQueue.getRepeatableJobs();
+    for (const job of repeatableJobs) {
+      await batchCloserQueue.removeRepeatableByKey(job.key);
+    }
+
     await batchCloserQueue.add(
       "batch-closer-job",
       {},
