@@ -124,53 +124,70 @@ export async function runBatchCloserLogic(): Promise<void> {
         `🔒 Found ${expiredBatches.length} expired batches. Locking them...`
       );
 
-      const batchIds = expiredBatches.map((b) => b.id);
+      const batchIds = expiredBatches.map((b) => b.id).sort();
 
-      const processedBatchIds = await prisma.$transaction(async (tx) => {
-        const locked: { id: string; status: string }[] = await tx.$queryRaw`
+      const { openBatchIds, countMap } = await prisma.$transaction(
+        async (tx) => {
+          const locked: { id: string; status: string }[] = await tx.$queryRaw`
           SELECT id, status FROM "Batch"
           WHERE id = ANY(${batchIds}::text[]) AND status = 'OPEN'
+          ORDER BY id
           FOR UPDATE
         `;
-        const openBatchIds = locked.map((b) => b.id);
-        if (openBatchIds.length === 0) return [];
+          const openBatchIds = locked.map((b) => b.id);
+          if (openBatchIds.length === 0) {
+            return { openBatchIds: [], countMap: new Map<string, number>() };
+          }
 
-        // 1. Batch updates (status: "LOCKED")
-        await tx.batch.updateMany({
-          where: {
-            id: { in: openBatchIds },
-          },
-          data: {
-            status: "LOCKED",
-          },
-        });
+          // 1. Batch updates (status: "LOCKED")
+          await tx.batch.updateMany({
+            where: {
+              id: { in: openBatchIds },
+            },
+            data: {
+              status: "LOCKED",
+            },
+          });
 
-        // 2 & 3. Transition orders to BATCHED and generate delivery OTPs
-        await tx.$executeRaw`
+          // 2 & 3. Transition orders to BATCHED and generate delivery OTPs
+          await tx.$executeRaw`
           UPDATE "Order"
           SET order_status = 'BATCHED',
-              delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text
-          WHERE batch_id = ANY(${openBatchIds}::text[]) AND order_status IN ('NEW', 'BATCHED')
+              delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text,
+              updated_at = NOW()
+          WHERE batch_id = ANY(${openBatchIds}::text[]) AND order_status = 'NEW'
         `;
 
-        return openBatchIds;
-      });
+          const orderCounts = await tx.order.groupBy({
+            by: ["batch_id"],
+            where: {
+              batch_id: { in: openBatchIds },
+              order_status: "BATCHED",
+            },
+            _count: { id: true },
+          });
+          const countMap = new Map(
+            orderCounts.map((c) => [c.batch_id ?? "", c._count.id])
+          );
 
-      if (processedBatchIds.length > 0) {
-        logger.info(
-          `✅ Successfully LOCKED ${processedBatchIds.length} batches.`
-        );
+          return { openBatchIds, countMap };
+        }
+      );
+
+      if (openBatchIds.length > 0) {
+        logger.info(`✅ Successfully LOCKED ${openBatchIds.length} batches.`);
 
         const processedBatches = expiredBatches.filter((b) =>
-          processedBatchIds.includes(b.id)
+          openBatchIds.includes(b.id)
         );
 
         for (const batch of processedBatches) {
+          const activeOrderCount = countMap.get(batch.id) ?? 0;
           logger.info(
-            `--> Generated OTPs for ${batch.orders.length} orders in batch ${batch.id}`
+            `--> Generated OTPs for ${activeOrderCount} orders in batch ${batch.id}`
           );
 
-          if (batch.shop.user && batch.orders.length > 0) {
+          if (batch.shop.user && activeOrderCount > 0) {
             try {
               await notificationQueue.add("batch-ready", {
                 type: "SEND_NOTIFICATION",
@@ -179,7 +196,7 @@ export async function runBatchCloserLogic(): Promise<void> {
                   user_id: batch.shop.user.id,
                   data: {
                     title: "🚀 Batch Ready!",
-                    message: `Batch for ${batch.shop.name} is ready with ${batch.orders.length} orders. Start preparing!`,
+                    message: `Batch for ${batch.shop.name} is ready with ${activeOrderCount} orders. Start preparing!`,
                     type: "SUCCESS",
                     category: "ORDER",
                     action_url: `/owner-shops/dashboard`,
@@ -187,7 +204,7 @@ export async function runBatchCloserLogic(): Promise<void> {
                 },
               });
               logger.info(
-                `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${batch.orders.length} orders)`
+                `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${activeOrderCount} orders)`
               );
             } catch (notifError) {
               logger.error(

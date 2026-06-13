@@ -5,6 +5,7 @@ import {
   closeBatchCloserQueues,
 } from "./batch/batch-closer";
 import { loggers } from "./lib/logger";
+import { prisma } from "./lib/prisma";
 import {
   closeNotificationDlqQueue,
   notificationWorker,
@@ -21,6 +22,7 @@ const gracefulShutdown = async (signal: string) => {
     closeBatchCloserQueues(),
     closeNotificationDlqQueue(),
   ]);
+  await prisma.$disconnect();
   logger.info("Workers closed. Exiting.");
   process.exit(0);
 };
