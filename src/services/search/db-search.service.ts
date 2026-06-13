@@ -1,4 +1,4 @@
-import { Prisma } from "@/generated/client";
+import { Prisma, ShopType } from "@/generated/client";
 import {
   CategoryRepository,
   categoryRepository,
@@ -29,6 +29,9 @@ export interface ProductSearchParams extends PaginationParams, SortParams {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
+  brand?: string;
+  is_veg?: boolean;
+  shop_type?: ShopType;
 }
 
 export interface ShopSearchParams extends PaginationParams {
@@ -54,6 +57,8 @@ export interface ProductDocument {
   shop_is_active: boolean;
   created_at: string;
   updated_at: string;
+  brand: string | null;
+  is_veg: boolean | null;
 }
 
 export interface ShopDocument {
@@ -104,18 +109,27 @@ export class DBSearchService {
       minPrice,
       maxPrice,
       inStock,
+      brand,
+      is_veg,
+      shop_type,
       page = DEFAULT_PAGE,
       limit = DEFAULT_LIMIT,
       sortBy = "created_at",
       sortOrder = "desc",
     } = params;
 
+    const shopWhere: Prisma.ShopWhereInput = {
+      is_active: true,
+      deleted_at: null,
+    };
+
+    if (shop_type) {
+      shopWhere.shop_type = shop_type;
+    }
+
     const where: Prisma.ProductWhereInput = {
       deleted_at: null,
-      shop: {
-        is_active: true,
-        deleted_at: null,
-      },
+      shop: shopWhere,
     };
 
     if (shopId) {
@@ -137,6 +151,14 @@ export class DBSearchService {
       where.stock_quantity = { gt: 0 };
     } else if (inStock === false) {
       where.stock_quantity = { lte: 0 };
+    }
+
+    if (brand) {
+      where.brand = brand;
+    }
+
+    if (typeof is_veg === "boolean") {
+      where.is_veg = is_veg;
     }
 
     if (query && query.trim()) {
@@ -184,6 +206,8 @@ export class DBSearchService {
       shop_is_active: product.shop.is_active,
       created_at: product.created_at.toISOString(),
       updated_at: product.updated_at.toISOString(),
+      brand: product.brand ?? null,
+      is_veg: product.is_veg ?? null,
     }));
 
     return {
