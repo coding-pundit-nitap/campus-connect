@@ -99,8 +99,10 @@ export async function createOrderAction({
       );
     }
 
+    let deliveryTime: Date | undefined = undefined;
+
     if (requested_delivery_time) {
-      const deliveryTime = new Date(requested_delivery_time);
+      deliveryTime = new Date(requested_delivery_time);
       if (isNaN(deliveryTime.getTime())) {
         throw new ValidationError("Invalid delivery time.");
       }
@@ -126,7 +128,7 @@ export async function createOrderAction({
       payment_method,
       delivery_address_id,
       pg_payment_id,
-      requested_delivery_time,
+      deliveryTime,
       upi_transaction_id,
       customer_notes,
       is_direct_delivery,
