@@ -71,14 +71,6 @@ class NavigationUIService {
           },
         ],
       },
-      {
-        label: "Information",
-        items: [
-          { id: "about", title: "About Us", url: "/about", icon: Info },
-          { id: "faq", title: "FAQ", url: "/faq", icon: HelpCircle },
-          { id: "contact", title: "Contact Us", url: "/contact", icon: Mail },
-        ],
-      },
     ];
   }
 

@@ -28,6 +28,7 @@ import {
   useStockWatches,
   useToggleStockWatch,
 } from "@/hooks/queries/useProfileData";
+import { ImageUtils } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/currency";
 
 export default function FeedPage() {
@@ -199,7 +200,9 @@ export default function FeedPage() {
                                 <div className="h-12 w-12 rounded-xl bg-card border border-border/40 overflow-hidden flex items-center justify-center shrink-0">
                                   {product.image_key ? (
                                     <Image
-                                      src={`/api/images/${product.image_key}`}
+                                      src={ImageUtils.getImageUrl(
+                                        product.image_key
+                                      )}
                                       alt={product.name}
                                       className="h-full w-full object-cover"
                                       width={48}
