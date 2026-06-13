@@ -154,7 +154,8 @@ export class OrderService {
     requested_delivery_time?: Date,
     upi_transaction_id?: string,
     customer_notes?: string,
-    is_direct_delivery?: boolean
+    is_direct_delivery?: boolean,
+    batch_id?: string
   ) {
     return this.prismaClient.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
@@ -289,20 +290,39 @@ export class OrderService {
 
       const display_id = await this.generateDisplayId(tx);
 
-      const batch = requested_delivery_time
-        ? await this.findOrCreateBatchForRequestedTime(
-            tx,
-            shop_id,
-            requested_delivery_time
-          )
-        : null;
+      let batchIdToLink: string | undefined = undefined;
+
+      if (batch_id) {
+        const lockedBatch = await tx.$queryRaw<any[]>`
+          SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${batch_id} FOR UPDATE
+        `;
+        if (!lockedBatch || lockedBatch.length === 0) {
+          throw new ValidationError("The selected batch does not exist.");
+        }
+        if (lockedBatch[0].status !== "OPEN") {
+          throw new ValidationError(
+            "This batch has already been locked. Please choose another batch."
+          );
+        }
+        batchIdToLink = lockedBatch[0].id;
+        requested_delivery_time = new Date(lockedBatch[0].cutoff_time);
+      } else if (requested_delivery_time) {
+        const batch = await this.findOrCreateBatchForRequestedTime(
+          tx,
+          shop_id,
+          requested_delivery_time
+        );
+        if (batch) {
+          batchIdToLink = batch.id;
+        }
+      }
 
       const order = await tx.order.create({
         data: {
           display_id,
           user_id: user_id,
           shop_id: shop_id,
-          ...(batch ? { batch_id: batch.id } : {}),
+          ...(batchIdToLink ? { batch_id: batchIdToLink } : {}),
           item_total: itemTotal,
           delivery_fee: deliveryFee,
           platform_fee: platformFee,

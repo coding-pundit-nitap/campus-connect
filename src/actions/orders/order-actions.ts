@@ -68,6 +68,7 @@ export async function createOrderAction({
   upi_transaction_id,
   customer_notes,
   is_direct_delivery,
+  batch_id,
 }: {
   shop_id: string;
   payment_method: PaymentMethod;
@@ -76,6 +77,7 @@ export async function createOrderAction({
   upi_transaction_id?: string;
   customer_notes?: string;
   is_direct_delivery?: boolean;
+  batch_id?: string;
 }) {
   try {
     const user_id = await authUtils.getUserId();
@@ -126,7 +128,8 @@ export async function createOrderAction({
       requested_delivery_time,
       upi_transaction_id,
       customer_notes,
-      is_direct_delivery
+      is_direct_delivery,
+      batch_id
     );
 
     return createSuccessResponse(
