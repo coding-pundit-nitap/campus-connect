@@ -13,8 +13,9 @@ import {
   X,
 } from "lucide-react";
 import type { Route } from "next";
-import { useRouter,useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import { UserProductCard } from "@/components/shared/product-card";
 import { Button } from "@/components/ui/button";
@@ -110,8 +111,8 @@ export default function SearchPage({ searchAction }: SearchPageProps) {
       try {
         const data = await searchAction(params);
         setResults(data);
-      } catch {
-        // Search failed silently
+      } catch (err) {
+        toast.error("Failed to perform search. Please try again.");
       }
     });
 

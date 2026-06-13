@@ -90,8 +90,8 @@ export async function getAnnouncementsAction() {
       serialized,
       "Announcements retrieved successfully"
     );
-  } catch {
-    throw new Error("Failed to retrieve announcements");
+  } catch (error: any) {
+    throw new Error(error?.message || "Failed to retrieve announcements");
   }
 }
 
@@ -119,6 +119,18 @@ export async function createAnnouncementAction({
   }
   if (expires_at.getTime() <= Date.now()) {
     throw new ValidationError("Expiration time must be in the future");
+  }
+
+  if (product_id) {
+    const product = await prisma.product.findUnique({
+      where: { id: product_id },
+      select: { shop_id: true, deleted_at: true },
+    });
+    if (!product || product.deleted_at || product.shop_id !== shopId) {
+      throw new ValidationError(
+        "Invalid product: Product does not exist or belongs to another shop."
+      );
+    }
   }
 
   const announcement = await prisma.shopAnnouncement.create({

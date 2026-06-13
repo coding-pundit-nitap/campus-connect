@@ -315,15 +315,15 @@ export default function OrderTrackingPage({ orderId }: Props) {
                       Room{" "}
                       {order.delivery_address_snapshot?.room_number || "N/A"}
                     </span>
-                    {order.delivery_address_snapshot?.building && (
+                    {order.delivery_address_snapshot?.building ? (
                       <span className="text-muted-foreground/80 block text-[10px]">
                         {order.delivery_address_snapshot.building}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
-                {deliveryStatus?.estimated_arrival && (
+                {deliveryStatus?.estimated_arrival ? (
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4 text-blue-600 shrink-0" />
                     <div>
@@ -338,7 +338,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                       </span>
                     </div>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
 
@@ -387,7 +387,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                       </span>
                     </div>
                   </div>
-                  {deliveryStatus.rider_phone && (
+                  {deliveryStatus.rider_phone ? (
                     <Button
                       variant="outline"
                       size="sm"
@@ -399,7 +399,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                         Call
                       </a>
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               )}
             </div>
