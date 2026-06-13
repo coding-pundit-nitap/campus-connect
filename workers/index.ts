@@ -1,9 +1,10 @@
-import { Queue } from "bullmq";
-
 import { auditWorker } from "./audit/consumer";
-import { batchCloserWorker } from "./batch/batch-closer";
+import {
+  batchCloserQueue,
+  batchCloserWorker,
+  closeBatchCloserQueues,
+} from "./batch/batch-closer";
 import { loggers } from "./lib/logger";
-import { redisConnection } from "./lib/redis-connection";
 import {
   closeNotificationDlqQueue,
   notificationWorker,
@@ -11,18 +12,13 @@ import {
 
 export const logger = loggers.worker;
 
-const BATCH_CLOSER_QUEUE_NAME = "batch-closer-queue";
-const cronQueue = new Queue(BATCH_CLOSER_QUEUE_NAME, {
-  connection: redisConnection,
-});
-
 const gracefulShutdown = async (signal: string) => {
   logger.info({ signal }, "Received shutdown signal, closing workers...");
   await Promise.all([
     notificationWorker.close(),
     auditWorker.close(),
     batchCloserWorker.close(),
-    cronQueue.close(),
+    closeBatchCloserQueues(),
     closeNotificationDlqQueue(),
   ]);
   logger.info("Workers closed. Exiting.");
@@ -35,12 +31,12 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 async function main() {
   try {
     // Clean up existing repeatable jobs to avoid duplicates, then add
-    const repeatableJobs = await cronQueue.getRepeatableJobs();
+    const repeatableJobs = await batchCloserQueue.getRepeatableJobs();
     for (const job of repeatableJobs) {
-      await cronQueue.removeRepeatableByKey(job.key);
+      await batchCloserQueue.removeRepeatableByKey(job.key);
     }
 
-    await cronQueue.add(
+    await batchCloserQueue.add(
       "batch-closer-job",
       {},
       {

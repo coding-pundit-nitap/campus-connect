@@ -24,8 +24,9 @@ export const batchCloserQueue = new Queue(BATCH_CLOSER_QUEUE_NAME, {
   connection: redisConnection,
 });
 
-function generateOtp(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
+export async function closeBatchCloserQueues(): Promise<void> {
+  await batchCloserQueue.close();
+  await notificationQueue.close();
 }
 
 async function checkStaleBatches(): Promise<void> {
@@ -58,20 +59,24 @@ async function checkStaleBatches(): Promise<void> {
         (Date.now() - batch.cutoff_time.getTime()) / 60000
       );
 
-      await notificationQueue.add("vendor-idle-alert", {
-        type: "SEND_NOTIFICATION",
-        payload: {
+      await notificationQueue.add(
+        "vendor-idle-alert",
+        {
           type: "SEND_NOTIFICATION",
-          user_id: batch.shop.user.id,
-          data: {
-            title: "⚠️ Orders Waiting!",
-            message: `You have ${batch._count.orders} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
-            type: "WARNING",
-            category: "ORDER",
-            action_url: `/owner-shops/dashboard`,
+          payload: {
+            type: "SEND_NOTIFICATION",
+            user_id: batch.shop.user.id,
+            data: {
+              title: "⚠️ Orders Waiting!",
+              message: `You have ${batch._count.orders} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
+              type: "WARNING",
+              category: "ORDER",
+              action_url: `/owner-shops/dashboard`,
+            },
           },
         },
-      });
+        { jobId: `vendor-idle-alert:${batch.id}` }
+      );
 
       logger.warn(
         `⚠️ Stale batch ${batch.id} for shop "${batch.shop.name}" - ${minutesLate} mins late`
@@ -111,66 +116,73 @@ export async function runBatchCloserLogic(): Promise<void> {
 
       const batchIds = expiredBatches.map((b) => b.id);
 
-      await prisma.$transaction(async (tx) => {
+      const processedBatchIds = await prisma.$transaction(async (tx) => {
+        const locked: { id: string; status: string }[] = await tx.$queryRaw`
+          SELECT id, status FROM "Batch"
+          WHERE id = ANY(${batchIds}::text[]) AND status = 'OPEN'
+          FOR UPDATE
+        `;
+        const openBatchIds = locked.map((b) => b.id);
+        if (openBatchIds.length === 0) return [];
+
         await tx.batch.updateMany({
           where: {
-            id: { in: batchIds },
-            status: "OPEN",
+            id: { in: openBatchIds },
           },
           data: {
             status: "LOCKED",
           },
         });
 
-        await tx.order.updateMany({
-          where: { batch_id: { in: batchIds } },
-          data: { order_status: "BATCHED" },
-        });
-        const orders = await tx.order.findMany({
-          where: { batch_id: { in: batchIds } },
-          select: { id: true },
-        });
+        await tx.$executeRaw`
+          UPDATE "Order"
+          SET order_status = 'BATCHED',
+              delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text
+          WHERE batch_id = ANY(${openBatchIds}::text[])
+        `;
 
-        for (const order of orders) {
-          const otp = generateOtp();
-          await tx.order.update({
-            where: { id: order.id },
-            data: { delivery_otp: otp },
-          });
-        }
+        return openBatchIds;
       });
 
-      logger.info(`✅ Successfully LOCKED ${expiredBatches.length} batches.`);
-
-      for (const batch of expiredBatches) {
+      if (processedBatchIds.length > 0) {
         logger.info(
-          `--> Generated OTPs for ${batch._count.orders} orders in batch ${batch.id}`
+          `✅ Successfully LOCKED ${processedBatchIds.length} batches.`
         );
 
-        if (batch.shop.user && batch._count.orders > 0) {
-          try {
-            await notificationQueue.add("batch-ready", {
-              type: "SEND_NOTIFICATION",
-              payload: {
+        const processedBatches = expiredBatches.filter((b) =>
+          processedBatchIds.includes(b.id)
+        );
+
+        for (const batch of processedBatches) {
+          logger.info(
+            `--> Generated OTPs for ${batch._count.orders} orders in batch ${batch.id}`
+          );
+
+          if (batch.shop.user && batch._count.orders > 0) {
+            try {
+              await notificationQueue.add("batch-ready", {
                 type: "SEND_NOTIFICATION",
-                user_id: batch.shop.user.id,
-                data: {
-                  title: "🚀 Batch Ready!",
-                  message: `Batch for ${batch.shop.name} is ready with ${batch._count.orders} orders. Start preparing!`,
-                  type: "SUCCESS",
-                  category: "ORDER",
-                  action_url: `/owner-shops/dashboard`,
+                payload: {
+                  type: "SEND_NOTIFICATION",
+                  user_id: batch.shop.user.id,
+                  data: {
+                    title: "🚀 Batch Ready!",
+                    message: `Batch for ${batch.shop.name} is ready with ${batch._count.orders} orders. Start preparing!`,
+                    type: "SUCCESS",
+                    category: "ORDER",
+                    action_url: `/owner-shops/dashboard`,
+                  },
                 },
-              },
-            });
-            logger.info(
-              `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${batch._count.orders} orders)`
-            );
-          } catch (notifError) {
-            logger.error(
-              { err: notifError, batchId: batch.id },
-              "Failed to queue batch notification"
-            );
+              });
+              logger.info(
+                `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${batch._count.orders} orders)`
+              );
+            } catch (notifError) {
+              logger.error(
+                { err: notifError, batchId: batch.id },
+                "Failed to queue batch notification"
+              );
+            }
           }
         }
       }
