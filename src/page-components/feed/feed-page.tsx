@@ -61,7 +61,6 @@ export default function FeedPage() {
 
   return (
     <main className="container mx-auto max-w-4xl py-10 px-4 space-y-8">
-      {/* Header section with gradient background card */}
       <div className="relative overflow-hidden rounded-3xl border-2 border-border/80 bg-card p-6 md:p-8 shadow-xl before:absolute before:top-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-10">
         <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
@@ -83,7 +82,6 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Tabs list */}
       <div className="flex flex-wrap items-center gap-2 border-b border-border/60 pb-3">
         <Button
           size="sm"
@@ -124,7 +122,6 @@ export default function FeedPage() {
         </Button>
       </div>
 
-      {/* Announcements List */}
       <div className="space-y-6">
         {announcements.length === 0 ? (
           <div className="flex flex-col items-center justify-center border-2 border-dashed border-border/70 rounded-2xl p-12 text-center bg-card/25 backdrop-blur-xl">
@@ -237,7 +234,6 @@ export default function FeedPage() {
                               </div>
 
                               <div className="flex gap-2 w-full sm:w-auto z-10 justify-end">
-                                {/* Stock watch (Watchlist) if out of stock, else Add to Cart */}
                                 {product.stock_quantity <= 0 ? (
                                   <Button
                                     type="button"

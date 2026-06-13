@@ -39,7 +39,6 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
         )}
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Minimum Order Value */}
           <FormField
             control={form.control}
             name="min_order_value"
@@ -70,7 +69,6 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
             )}
           />
 
-          {/* Default Delivery Fee */}
           <FormField
             control={form.control}
             name="default_delivery_fee"
@@ -101,7 +99,6 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
             )}
           />
 
-          {/* Direct Delivery Fee */}
           <FormField
             control={form.control}
             name="direct_delivery_fee"
@@ -133,7 +130,6 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
           />
         </div>
 
-        {/* Submit & Cancel Buttons */}
         <div className="flex items-center justify-end gap-3 pt-5 border-t border-border/40 mt-6">
           <Button
             type="button"

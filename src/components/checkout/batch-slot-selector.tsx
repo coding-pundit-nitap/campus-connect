@@ -162,7 +162,6 @@ export function BatchSlotSelector({
       </CardHeader>
       <CardContent className="space-y-6 px-0 pb-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Direct Delivery Selector Card */}
           <div
             onClick={() => onSlotSelect(null)}
             className={cn(
@@ -243,7 +242,6 @@ export function BatchSlotSelector({
           </div>
         </div>
 
-        {/* Batch Slots selection details */}
         {!isDirectDelivery && slots.length > 0 && (
           <div className="space-y-4 pt-4 border-t border-border/20 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">

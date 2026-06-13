@@ -59,7 +59,6 @@ export function UserProductCard({
           </div>
         </Link>
 
-        {/* Desktop layout */}
         <div className="hidden md:block">
           <div className="relative">
             <ProductCardImage />

@@ -186,9 +186,7 @@ export function ShopSettingsCard() {
           </TabsList>
         </div>
 
-        {/* Added pb-24 to ensure content doesn't get hidden behind the absolute footer */}
         <CardContent className="flex-1 pt-6 pb-24">
-          {/* --- GENERAL TAB --- */}
           <TabsContent
             value="general"
             className="space-y-4 mt-0 animate-in fade-in zoom-in-95 duration-200"
@@ -252,7 +250,6 @@ export function ShopSettingsCard() {
             </div>
           </TabsContent>
 
-          {/* --- SCHEDULE TAB --- */}
           <TabsContent
             value="schedule"
             className="space-y-4 mt-0 animate-in fade-in zoom-in-95 duration-200"
@@ -316,7 +313,6 @@ export function ShopSettingsCard() {
             </div>
           </TabsContent>
 
-          {/* --- FEES TAB --- */}
           <TabsContent
             value="fees"
             className="space-y-4 mt-0 animate-in fade-in zoom-in-95 duration-200"
@@ -353,7 +349,6 @@ export function ShopSettingsCard() {
             </div>
           </TabsContent>
 
-          {/* --- PAYMENT TAB --- */}
           <TabsContent
             value="payment"
             className="space-y-4 mt-0 animate-in fade-in zoom-in-95 duration-200"
@@ -389,7 +384,6 @@ export function ShopSettingsCard() {
         </CardContent>
       </Tabs>
 
-      {/* --- STICKY FOOTER (Quick Actions) --- */}
       <div className="absolute bottom-0 left-0 right-0 border-t border-border/30 bg-background/80 backdrop-blur-md px-6 py-4 flex flex-wrap items-center justify-between gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.02)] z-10">
         <span className="text-xs font-extrabold uppercase tracking-wider text-muted-foreground/85 hidden sm:inline-block">
           Quick Actions

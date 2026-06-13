@@ -45,7 +45,6 @@ export function CheckoutStepper({
 
   return (
     <div className={cn("w-full py-2", className)}>
-      {/* Desktop Stepper */}
       <div className="hidden md:flex items-center justify-center gap-2">
         {steps.map((step, index) => {
           const StepIcon = step.icon;
@@ -104,7 +103,6 @@ export function CheckoutStepper({
         })}
       </div>
 
-      {/* Mobile Stepper */}
       <div className="md:hidden">
         <div className="flex items-center justify-between mb-3 bg-muted/30 p-1.5 rounded-lg border border-border/20">
           {steps.map((step, index) => {

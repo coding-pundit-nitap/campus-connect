@@ -62,7 +62,6 @@ export function OwnedShopContainer({
 
   return (
     <div className="container mx-auto space-y-6 p-4 md:p-6">
-      {/* Page Header (Flattened) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl font-bold tracking-tight">
@@ -75,7 +74,6 @@ export function OwnedShopContainer({
         <ShopAction />
       </div>
 
-      {/* Filter Panel (Isolated) */}
       <Card className="shadow-sm">
         <CardContent className="p-4">
           <ProductFiltersContainer

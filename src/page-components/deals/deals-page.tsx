@@ -36,7 +36,6 @@ export default function DealsPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Premium Flame Header Banner */}
       <div className="relative w-full border-b border-muted/80 bg-orange-500/5 py-8 px-4 md:px-8 mb-6 shadow-sm overflow-hidden group">
         <div className="absolute -right-8 -top-8 w-40 h-40 bg-red-500/15 dark:bg-red-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-8 -bottom-8 w-40 h-40 bg-orange-500/15 dark:bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />

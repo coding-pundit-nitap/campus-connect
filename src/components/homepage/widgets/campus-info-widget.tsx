@@ -12,7 +12,6 @@ export default function CampusInfoWidget() {
       </h3>
 
       <div className="relative flex flex-col gap-6 pl-4 border-l-2 border-dotted border-primary/30 py-2">
-        {/* Hostel Top Step */}
         <div className="relative flex items-start gap-3">
           <div className="absolute -left-[25px] top-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center border-2 border-background shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -32,7 +31,6 @@ export default function CampusInfoWidget() {
           </div>
         </div>
 
-        {/* The Climb Indicator */}
         <div className="relative flex items-start gap-3">
           <div className="absolute -left-[25px] top-1 w-4 h-4 rounded-full bg-orange-500 flex items-center justify-center border-2 border-background shadow-sm animate-pulse">
             <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -52,7 +50,6 @@ export default function CampusInfoWidget() {
           </div>
         </div>
 
-        {/* Lower Market Bottom Step */}
         <div className="relative flex items-start gap-3">
           <div className="absolute -left-[25px] top-1 w-4 h-4 rounded-full bg-muted-foreground flex items-center justify-center border-2 border-background shadow-sm">
             <div className="w-1.5 h-1.5 rounded-full bg-white" />

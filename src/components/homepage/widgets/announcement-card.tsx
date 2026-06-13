@@ -12,7 +12,6 @@ export default function AnnouncementCard() {
       </h3>
 
       <div className="space-y-4">
-        {/* Notice 1 */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-orange-500" />
@@ -27,7 +26,6 @@ export default function AnnouncementCard() {
           </p>
         </div>
 
-        {/* Notice 2 */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-500" />

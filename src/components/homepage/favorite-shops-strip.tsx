@@ -40,7 +40,6 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
             : "hover:border-red-500/50 hover:shadow-red-500/5 dark:hover:shadow-red-950/20"
         )}
       >
-        {/* Shop Avatar */}
         <div className="relative w-12 h-12 md:w-14 md:h-14 overflow-hidden rounded-xl border border-muted bg-muted/20 flex items-center justify-center">
           {shop.image_key ? (
             <Image
@@ -63,12 +62,10 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
           )}
         </div>
 
-        {/* Shop Title */}
         <span className="text-[11px] md:text-xs font-heading font-black text-center text-foreground max-w-full truncate block capitalize tracking-wide leading-tight">
           {shop.name}
         </span>
 
-        {/* Status Pill */}
         {open ? (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

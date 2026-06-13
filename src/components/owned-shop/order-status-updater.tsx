@@ -142,7 +142,6 @@ export function OrderStatusUpdater({
         </SelectContent>
       </Select>
 
-      {/* Replaced text with a cleaner spinner */}
       {isPending && (
         <div className="flex items-center text-sm font-medium text-muted-foreground gap-2 animate-in fade-in duration-200">
           <Loader2 className="h-4 w-4 animate-spin text-primary" />

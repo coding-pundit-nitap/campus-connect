@@ -38,7 +38,6 @@ export default function FavoritesPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Custom Glassmorphic Page Header */}
       <div className="relative w-full border-b border-muted/80 bg-violet-50/30 dark:from-indigo-950/15 dark:via-background dark:to-violet-950/15 py-8 px-4 md:px-8 mb-6 shadow-sm overflow-hidden group">
         <div className="absolute -right-8 -top-8 w-40 h-40 bg-indigo-500/15 dark:bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -left-8 -bottom-8 w-40 h-40 bg-violet-500/15 dark:bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -92,7 +91,6 @@ export default function FavoritesPage() {
         </div>
       </div>
 
-      {/* Main Grid Area */}
       <div className="flex-1 max-w-7xl mx-auto w-full px-4 md:px-8 pb-12">
         {isLoading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

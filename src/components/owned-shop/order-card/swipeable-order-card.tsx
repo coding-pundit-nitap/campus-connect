@@ -60,7 +60,6 @@ export function SwipeableOrderCard({
       ref={containerRef}
       className="relative overflow-hidden w-full rounded-xl mb-4 shadow-sm border bg-card touch-pan-y"
     >
-      {/* Background Actions */}
       <div className="absolute inset-0 flex justify-between items-center px-6">
         <div
           className={`flex items-center justify-start w-1/2 h-full text-white ${acceptColor}`}
@@ -76,7 +75,6 @@ export function SwipeableOrderCard({
         </div>
       </div>
 
-      {/* Foreground Draggable Card */}
       <motion.div
         ref={cardRef}
         animate={controls}

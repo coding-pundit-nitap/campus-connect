@@ -178,16 +178,12 @@ export default function OrderTrackingPage({ orderId }: Props) {
           </div>
         </CardHeader>
         <CardContent className="space-y-6 pt-2">
-          {/* Main Visual Stepper: vertical climbing representation */}
           <div className="relative border border-border/30 rounded-2xl bg-muted/20 p-6 flex flex-col md:flex-row gap-8 items-stretch justify-between overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-orange-500/[0.02]" />
 
-            {/* Left side: Uphill climb stepper indicator */}
             <div className="relative flex-1 min-h-[300px] flex items-stretch">
-              {/* Back track line */}
               <div className="absolute left-5 top-4 bottom-4 w-1 bg-border/40 rounded-full" />
 
-              {/* Progress active path */}
               <motion.div
                 className="absolute left-5 top-4 w-1 bg-gradient-to-b from-blue-500 to-orange-500 rounded-full origin-top"
                 initial={{ scaleY: 0 }}
@@ -196,7 +192,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
                 style={{ bottom: "16px" }}
               />
 
-              {/* Steps milestone layout */}
               <div className="relative flex flex-col justify-between w-full pl-12 py-2">
                 {steps.map((step, index) => {
                   const isDone = index < activeIndex;
@@ -209,7 +204,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
                         isActive ? "scale-102" : "opacity-75"
                       }`}
                     >
-                      {/* Badge Marker */}
                       <div className="absolute left-[-42px] top-0.5 z-10 flex h-6 w-6 items-center justify-center rounded-full border-2 bg-background transition-all duration-300">
                         {isDone ? (
                           <div className="h-full w-full rounded-full bg-emerald-500 flex items-center justify-center text-white">
@@ -244,7 +238,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
               </div>
             </div>
 
-            {/* Right side: Interactive map marker / 100m Hill illustration */}
             <div className="w-full md:w-48 bg-card/60 border border-border/40 rounded-xl p-4 flex flex-col justify-between items-center text-center relative overflow-hidden shrink-0">
               <div className="space-y-1 z-10">
                 <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block">
@@ -255,9 +248,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                 </span>
               </div>
 
-              {/* Graphic animation */}
               <div className="w-full h-32 relative flex items-end justify-center py-2 z-10">
-                {/* Hill Slant line */}
                 <svg
                   className="w-full h-full absolute inset-0 text-muted-foreground/15"
                   viewBox="0 0 100 100"
@@ -272,7 +263,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
                   />
                 </svg>
 
-                {/* Rider animation placement */}
                 <motion.div
                   className="absolute"
                   animate={{
@@ -295,9 +285,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
 
           <Separator className="bg-border/40" />
 
-          {/* Bottom logistics: security code / delivery details */}
           <div className="grid gap-4 sm:grid-cols-2">
-            {/* Delivery Details */}
             <div className="border border-border/30 rounded-2xl p-4 bg-muted/10 space-y-3">
               <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block">
                 DELIVERY INFORMATION
@@ -342,7 +330,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
               </div>
             </div>
 
-            {/* Rider Details & OTP Verification */}
             <div className="border border-border/35 rounded-2xl p-4 bg-gradient-to-br from-blue-500/[0.01] to-orange-500/[0.01] space-y-3 relative overflow-hidden flex flex-col justify-between">
               <div>
                 <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block mb-1">
@@ -371,7 +358,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
                 )}
               </div>
 
-              {/* Rider card */}
               {deliveryStatus?.rider_name && (
                 <div className="flex items-center justify-between bg-card border border-border/50 rounded-xl p-2.5 mt-2 shadow-xs">
                   <div className="flex items-center gap-2 min-w-0">
@@ -407,7 +393,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
 
           <Separator className="bg-border/40" />
 
-          {/* Interactive Item Checklist */}
           <div className="space-y-3">
             <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block">
               ITEM CHECKLIST

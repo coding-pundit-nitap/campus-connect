@@ -210,7 +210,6 @@ export function BatchCardsManager() {
       </CardHeader>
 
       <CardContent className="p-4 space-y-3">
-        {/* Inline Add Row */}
         {isAdding && (
           <div className="rounded-xl border border-primary/40 bg-primary/5 p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
             <div className="grid gap-4 sm:grid-cols-12 sm:items-end">

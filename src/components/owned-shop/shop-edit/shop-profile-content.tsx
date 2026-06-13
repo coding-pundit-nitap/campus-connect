@@ -66,7 +66,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Shop Banner Header */}
       <div className="relative h-44 sm:h-52 w-full rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 to-orange-500 shadow-md">
         {hasImage && (
           <Image
@@ -79,7 +78,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
         )}
         <div className="absolute inset-0 bg-black/45" />
 
-        {/* Floating Actions inside Banner */}
         <button
           onClick={() => setIsEditing(true)}
           className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/25 rounded-xl px-4 py-2 font-bold text-xs transition-all hover:scale-102 active:scale-98 shadow-sm flex items-center gap-1.5 cursor-pointer"
@@ -88,7 +86,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
           Edit Shop
         </button>
 
-        {/* Canteen Logo / Brand Name Floating Info */}
         <div className="absolute bottom-6 left-6 flex items-center gap-4 text-white">
           <div className="relative h-16 w-16 sm:h-20 sm:w-20 rounded-full border-4 border-white/90 bg-card overflow-hidden flex items-center justify-center shrink-0 shadow-lg">
             {hasImage ? (
@@ -116,9 +113,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Main Details Area */}
         <div className="md:col-span-8 space-y-6">
-          {/* Shop Description */}
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-3 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-blue-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -140,7 +135,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
             )}
           </div>
 
-          {/* Logistics & Delivery Details */}
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-4 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
@@ -206,9 +200,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
           </div>
         </div>
 
-        {/* Sidebar Info Area */}
         <div className="md:col-span-4 space-y-6">
-          {/* Payouts / Billing details */}
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-4 shadow-sm flex flex-col justify-between">
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-orange-500 to-orange-400/20" />
             <div className="space-y-3">
@@ -257,7 +249,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
             </div>
           </div>
 
-          {/* Account Owner Details */}
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-5 relative overflow-hidden space-y-3.5 shadow-sm">
             <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

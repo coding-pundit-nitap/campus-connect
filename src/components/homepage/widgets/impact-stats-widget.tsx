@@ -12,7 +12,6 @@ export default function ImpactStatsWidget() {
       </h3>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Stat 1 */}
         <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 rounded-xl p-3.5 flex flex-col justify-between">
           <span className="text-[10px] font-heading font-black uppercase text-muted-foreground tracking-wider">
             Climbs Batched
@@ -27,7 +26,6 @@ export default function ImpactStatsWidget() {
           </div>
         </div>
 
-        {/* Stat 2 */}
         <div className="bg-orange-500/5 dark:bg-orange-500/10 border border-orange-500/10 rounded-xl p-3.5 flex flex-col justify-between">
           <span className="text-[10px] font-heading font-black uppercase text-muted-foreground tracking-wider">
             Campus Shops
@@ -42,7 +40,6 @@ export default function ImpactStatsWidget() {
           </div>
         </div>
 
-        {/* Stat 3 */}
         <div className="bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/10 rounded-xl p-3.5 flex flex-col justify-between">
           <span className="text-[10px] font-heading font-black uppercase text-muted-foreground tracking-wider">
             Carbon Saved
@@ -57,7 +54,6 @@ export default function ImpactStatsWidget() {
           </div>
         </div>
 
-        {/* Stat 4 */}
         <div className="bg-violet-500/5 dark:bg-violet-500/10 border border-violet-500/10 rounded-xl p-3.5 flex flex-col justify-between">
           <span className="text-[10px] font-heading font-black uppercase text-muted-foreground tracking-wider">
             Walk Steps Saved

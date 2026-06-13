@@ -70,7 +70,6 @@ export function OwnerSidebarFooter() {
 
   return (
     <div className="flex flex-col gap-4 p-4 border-t border-sidebar-border mt-auto bg-sidebar-accent/5">
-      {/* Operating State Panel */}
       <div className="rounded-lg border border-sidebar-border bg-sidebar-background p-3 shadow-xs space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
@@ -116,7 +115,6 @@ export function OwnerSidebarFooter() {
         )}
       </div>
 
-      {/* Profile Info Block */}
       <div className="flex items-center gap-3">
         <Avatar className="h-9 w-9 border shadow-xs">
           <AvatarImage src={userImageUrl} alt={userName} />
@@ -134,7 +132,6 @@ export function OwnerSidebarFooter() {
         </div>
       </div>
 
-      {/* Back to Customer View Link */}
       <Button
         variant="outline"
         size="sm"
@@ -147,7 +144,6 @@ export function OwnerSidebarFooter() {
         </Link>
       </Button>
 
-      {/* AlertDialog Confirmation Popover */}
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

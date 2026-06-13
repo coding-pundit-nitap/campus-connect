@@ -40,7 +40,6 @@ export function ProductPreviewCard({
       </div>
 
       <div className="border border-border/30 bg-card/65 backdrop-blur-xl shadow-[4px_4px_0px_0px_rgba(37,99,235,0.12)] hover:shadow-[6px_6px_0px_0px_rgba(249,115,22,0.25)] hover:border-primary/45 rounded-2xl flex flex-col overflow-hidden transition-all duration-300 max-w-sm">
-        {/* Image area */}
         <div className="relative aspect-square overflow-hidden bg-gradient-to-tr from-primary/5 to-transparent flex items-center justify-center border-b border-border/50 min-h-[260px]">
           {imagePreview ? (
             <div className="relative w-full h-full p-4">
@@ -60,7 +59,6 @@ export function ProductPreviewCard({
             </div>
           )}
 
-          {/* Badges overlay */}
           <div className="absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10">
             {hasDiscount && (
               <Badge className="border border-orange-600/20 bg-orange-500 text-white font-black rounded-md shadow-xs uppercase tracking-wider text-[9px] px-2 py-0.5">
@@ -89,7 +87,6 @@ export function ProductPreviewCard({
           )}
         </div>
 
-        {/* Details area */}
         <div className="p-5 space-y-4 flex flex-col justify-between flex-1">
           <div className="space-y-3">
             <div className="flex items-center justify-between text-xs gap-2">

@@ -129,7 +129,6 @@ export function DeliveryBuildingsManager() {
       <Separator className="bg-border/20" />
 
       <div className="space-y-4">
-        {/* Existing Building Addition */}
         <div className="space-y-1.5">
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
             Add Existing Campus Location
@@ -168,7 +167,6 @@ export function DeliveryBuildingsManager() {
           </div>
         </div>
 
-        {/* New Building Creation */}
         <div className="space-y-1.5 pt-1">
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
             Create Custom Location

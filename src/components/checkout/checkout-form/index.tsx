@@ -324,7 +324,6 @@ export function CheckoutForm({
     <>
       <div className="grid lg:grid-cols-3 gap-8 items-start">
         <div className="lg:col-span-2 space-y-4">
-          {/* Step 1: Address */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
@@ -406,7 +405,6 @@ export function CheckoutForm({
             </AnimatePresence>
           </Card>
 
-          {/* Step 2: Timing */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
@@ -480,7 +478,6 @@ export function CheckoutForm({
             </AnimatePresence>
           </Card>
 
-          {/* Step 3: Payment */}
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
               className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${

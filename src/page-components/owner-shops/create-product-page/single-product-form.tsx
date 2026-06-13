@@ -69,11 +69,9 @@ export function SingleProductForm({
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border/40 bg-card/60 backdrop-blur-xl shadow-2xl shadow-violet-500/[0.04]">
-      {/* Top accent bar */}
       <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-500" />
 
       <div className="p-6 sm:p-8 space-y-6">
-        {/* Section header */}
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400">
             <Package className="w-4 h-4" />
@@ -90,7 +88,6 @@ export function SingleProductForm({
 
         <Separator className="bg-border/30" />
 
-        {/* Error banner */}
         {state.error ? (
           <div className="flex items-start gap-2.5 p-3.5 bg-destructive/8 border border-destructive/20 text-destructive text-xs rounded-xl font-medium">
             <span className="shrink-0 mt-0.5">⚠</span>
@@ -100,7 +97,6 @@ export function SingleProductForm({
 
         <Form {...form}>
           <form onSubmit={onFormSubmit} className="space-y-5">
-            {/* Product Name */}
             <FormField
               control={form.control}
               name="name"
@@ -122,7 +118,6 @@ export function SingleProductForm({
               )}
             />
 
-            {/* Category */}
             <FormField
               control={form.control}
               name="category"
@@ -178,7 +173,6 @@ export function SingleProductForm({
               )}
             />
 
-            {/* Description */}
             <FormField
               control={form.control}
               name="description"
@@ -203,7 +197,6 @@ export function SingleProductForm({
               )}
             />
 
-            {/* Price + Discount row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-1">
               <FormField
                 control={form.control}
@@ -261,7 +254,6 @@ export function SingleProductForm({
               />
             </div>
 
-            {/* Price preview */}
             {price > 0 ? (
               <div className="bg-violet-500/[0.04] dark:bg-violet-500/[0.03] border border-violet-500/15 rounded-xl p-3.5 flex items-center justify-between text-xs">
                 <div className="space-y-0.5">
@@ -284,7 +276,6 @@ export function SingleProductForm({
               </div>
             ) : null}
 
-            {/* Stock Quantity */}
             <FormField
               control={form.control}
               name="stock_quantity"
@@ -344,7 +335,6 @@ export function SingleProductForm({
               )}
             />
 
-            {/* Product Image */}
             <FormField
               control={form.control}
               name="image"
@@ -371,7 +361,6 @@ export function SingleProductForm({
               )}
             />
 
-            {/* Submit */}
             <Button
               type="submit"
               disabled={isDisabled}

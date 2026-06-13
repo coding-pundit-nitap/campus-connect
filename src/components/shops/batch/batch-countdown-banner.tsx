@@ -119,7 +119,6 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
       className={`rounded-xl border px-4 py-3 shadow-sm transition-colors ${styles.container}`}
     >
       <AlertDescription className="flex items-center justify-between gap-4">
-        {/* Left Content */}
         <div className="flex items-start gap-3 min-w-0">
           <div className="mt-0.5 shrink-0">
             {isCritical || isUrgent ? (
@@ -137,7 +136,6 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
           </div>
         </div>
 
-        {/* Right Countdown */}
         <Badge
           variant="secondary"
           className={`shrink-0 font-medium ${styles.badge}`}

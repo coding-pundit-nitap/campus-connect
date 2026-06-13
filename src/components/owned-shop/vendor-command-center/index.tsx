@@ -49,11 +49,7 @@ import { KpiPill } from "./kpi-pill";
 import { PrepCard } from "./prep-card";
 import { SectionHeader } from "./section-header";
 
-/* ─── Constants ─── */
-
 const EMPTY_ORDERS: SerializedOrderWithDetails[] = [];
-
-/* ─── Notification Sound Hook ─── */
 
 function useNewOrderAlert(currentCount: number) {
   const prevRef = useRef(currentCount);
@@ -111,8 +107,6 @@ function useNewOrderAlert(currentCount: number) {
   }, [currentCount]);
 }
 
-/* ─── Main Component ─── */
-
 export function VendorCommandCenter() {
   const { data, isLoading, isFetching, isError, error } = useOrderConsoleData();
 
@@ -128,8 +122,6 @@ export function VendorCommandCenter() {
 
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
-
-  /* ─── Derived data ─── */
 
   const batchOrders = data?.batchOrders ?? EMPTY_ORDERS;
   const directOrders = data?.directOrders ?? EMPTY_ORDERS;
@@ -191,11 +183,7 @@ export function VendorCommandCenter() {
     verifyOtpMutation.isPending ||
     updateMilestoneMutation.isPending;
 
-  /* ─── New order notification ─── */
-
   useNewOrderAlert(intakeOrders.length);
-
-  /* ─── Handlers ─── */
 
   const acceptOrder = useCallback(
     (id: string) => acceptMutation.mutate(id),
@@ -279,8 +267,6 @@ export function VendorCommandCenter() {
     setOtpInputs((prev) => ({ ...prev, [id]: val.slice(0, 4) }));
   }, []);
 
-  /* ─── Loading ─── */
-
   if (isLoading) {
     return (
       <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
@@ -295,8 +281,6 @@ export function VendorCommandCenter() {
       </main>
     );
   }
-
-  /* ─── Error ─── */
 
   if (isError) {
     return (
@@ -315,8 +299,6 @@ export function VendorCommandCenter() {
       </main>
     );
   }
-
-  /* ─── Empty (no data at all — likely no shop) ─── */
 
   if (!data) {
     return (
@@ -351,12 +333,9 @@ export function VendorCommandCenter() {
   const totalActive =
     intakeOrders.length + prepOrders.length + deliveryOrders.length;
 
-  /* ─── Render ─── */
-
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col">
       <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 p-4 md:p-6 pb-24 no-print">
-        {/* ── Header ── */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between border-b border-border/20 pb-4">
           <div>
             <h1 className="text-2xl font-black font-heading tracking-tight sm:text-3xl text-foreground">
@@ -392,7 +371,6 @@ export function VendorCommandCenter() {
           </div>
         </div>
 
-        {/* ── KPI Strip ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <KpiPill
             label="New Tickets"
@@ -411,7 +389,6 @@ export function VendorCommandCenter() {
           />
         </div>
 
-        {/* ── Section: Intake ── */}
         <section className="space-y-4">
           <SectionHeader
             icon={<Clock className="h-5 w-5 text-amber-500" />}
@@ -439,7 +416,6 @@ export function VendorCommandCenter() {
           )}
         </section>
 
-        {/* ── Section: Prep ── */}
         <section className="space-y-4">
           <SectionHeader
             icon={<PackageCheck className="h-5 w-5 text-emerald-600" />}
@@ -448,7 +424,6 @@ export function VendorCommandCenter() {
             themeColor="emerald"
           />
 
-          {/* Aggregated item summary */}
           {prepSummary.length > 0 && (
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {prepSummary.map((item) => (
@@ -486,7 +461,6 @@ export function VendorCommandCenter() {
           )}
         </section>
 
-        {/* ── Section: Dispatch ── */}
         <section className="space-y-4">
           <SectionHeader
             icon={<Truck className="h-5 w-5 text-blue-600" />}
@@ -497,7 +471,6 @@ export function VendorCommandCenter() {
 
           {deliveryOrders.length > 0 ? (
             <div className="space-y-6">
-              {/* Hostel tabs */}
               <div className="flex gap-2 overflow-x-auto rounded-2xl border border-border/20 bg-muted/15 p-1.5 scrollbar-none">
                 {dispatchEntries.map(([hostel, orders]) => {
                   const isSelected = hostel === activeHostel;
@@ -536,7 +509,6 @@ export function VendorCommandCenter() {
                 })}
               </div>
 
-              {/* Active hostel orders */}
               {activeHostel && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between gap-3 border-b border-border/20 pb-3">
@@ -579,7 +551,6 @@ export function VendorCommandCenter() {
           )}
         </section>
 
-        {/* Bottom spacer when no active orders */}
         {totalActive === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Package className="h-12 w-12 text-muted-foreground/20 mb-4" />
@@ -592,7 +563,6 @@ export function VendorCommandCenter() {
         )}
       </main>
 
-      {/* ── Batch Control Bar ── */}
       <BatchControlBar
         activeBatch={activeBatch}
         batchNewCount={batchNewCount}
@@ -607,7 +577,6 @@ export function VendorCommandCenter() {
         onUpdateMilestone={handleUpdateMilestone}
       />
 
-      {/* ── Print-only KOT section ── */}
       <div id="kot-print-section" className="print-only hidden p-6 font-sans">
         <div className="border-b-2 border-black pb-4 mb-4">
           <h1 className="text-2xl font-bold uppercase">
