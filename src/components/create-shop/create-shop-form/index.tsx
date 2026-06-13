@@ -226,7 +226,6 @@ export function CreateShopForm() {
     <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-12 py-8 px-4 sm:px-6">
       <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
         <AlertDialogContent className="max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl">
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold tracking-tight text-foreground">
               Resume previous setup?
@@ -245,7 +244,7 @@ export function CreateShopForm() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRestore}
-              className="h-10 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white cursor-pointer border-none shadow shadow-orange-500/10"
+              className="h-10 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer border-none shadow shadow-blue-500/10"
             >
               Resume Setup
             </AlertDialogAction>
@@ -272,13 +271,12 @@ export function CreateShopForm() {
         </div>
         <Progress
           value={(step / 5) * 100}
-          className="h-1.5 bg-muted rounded-full [&_div]:bg-gradient-to-r [&_div]:from-blue-600 [&_div]:to-orange-500"
+          className="h-1.5 bg-muted rounded-full [&_div]:bg-blue-600"
         />
       </div>
 
       <div className="md:col-span-8 lg:col-span-9 col-span-12">
         <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 shadow-xl shadow-blue-500/[0.01] overflow-hidden relative flex flex-col h-full min-h-[500px]">
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
           <Form {...form}>
             <form
               onSubmit={handlers.onSubmit}
@@ -325,7 +323,7 @@ export function CreateShopForm() {
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="h-11 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-blue-500 hover:opacity-90 text-white text-xs shadow shadow-blue-500/10 cursor-pointer border-none"
+                      className="h-11 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white text-xs shadow shadow-blue-500/10 cursor-pointer border-none"
                     >
                       Continue
                     </Button>
@@ -335,7 +333,7 @@ export function CreateShopForm() {
                       <Button
                         type="submit"
                         disabled={isSubmitting || isLoading}
-                        className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] text-white shadow-lg shadow-orange-500/25 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
+                        className="h-11 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 hover:scale-[1.01] active:scale-[0.98] text-white shadow-md shadow-blue-500/10 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
                       >
                         {isSubmitting || isLoading
                           ? "Launching portal..."

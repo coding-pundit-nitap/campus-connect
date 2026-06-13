@@ -57,7 +57,6 @@ export async function ShopDetails({ shop_id }: Props) {
 
   return (
     <Card className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01] overflow-hidden relative">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <CardContent className="p-6 sm:p-8">
         <div className="flex flex-col gap-6 md:flex-row items-start">
           <Avatar className="h-24 w-24 border border-border/20 rounded-2xl overflow-hidden shadow-md shrink-0">

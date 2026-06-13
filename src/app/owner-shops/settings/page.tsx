@@ -60,7 +60,6 @@ export default async function ShopSettingsPage() {
         <div className="border-t border-border/40 pt-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
           <div className="lg:col-span-7">
             <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 p-6 sm:p-8 relative shadow-xl shadow-blue-500/[0.01] overflow-hidden">
-              <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-blue-500/20" />
               <ShopSettingsForm shop={shop} />
             </div>
           </div>

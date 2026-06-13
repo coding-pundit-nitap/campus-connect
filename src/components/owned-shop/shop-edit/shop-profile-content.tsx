@@ -32,7 +32,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
   if (isEditing) {
     return (
       <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 shadow-xl overflow-hidden relative">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
         <div className="p-6 sm:p-8 space-y-6">
           <div className="flex items-center justify-between">
             <div>
@@ -66,7 +65,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
 
   return (
     <div className="space-y-6">
-      <div className="relative h-44 sm:h-52 w-full rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 to-orange-500 shadow-md">
+      <div className="relative h-44 sm:h-52 w-full rounded-2xl overflow-hidden bg-muted shadow-md">
         {hasImage && (
           <Image
             src={ImageUtils.getImageUrl(shop.image_key)}
@@ -115,7 +114,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div className="md:col-span-8 space-y-6">
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-3 shadow-sm">
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-blue-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Store className="w-3.5 h-3.5 text-blue-600" />
               About Canteen
@@ -136,7 +134,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
           </div>
 
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-4 shadow-sm">
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-600" />
               Logistics & Delivery Settings
@@ -202,7 +199,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
 
         <div className="md:col-span-4 space-y-6">
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-4 shadow-sm flex flex-col justify-between">
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-orange-500 to-orange-400/20" />
             <div className="space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <CreditCard className="w-3.5 h-3.5 text-orange-500" />
@@ -250,7 +246,6 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
           </div>
 
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-5 relative overflow-hidden space-y-3.5 shadow-sm">
-            <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500/20" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <User className="w-3.5 h-3.5 text-blue-600" />
               Merchant Owner Account

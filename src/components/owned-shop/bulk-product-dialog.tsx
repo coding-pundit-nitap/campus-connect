@@ -193,7 +193,6 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-card border border-border/30 rounded-2xl shadow-2xl p-6 sm:p-8">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
         <DialogHeader className="space-y-1">
           <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
             Bulk Import Products
@@ -326,7 +325,7 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
           <Button
             onClick={handleSubmit}
             disabled={products.length === 0 || isPending}
-            className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white text-xs cursor-pointer border-none shadow shadow-orange-500/10 disabled:from-muted disabled:to-muted disabled:text-muted-foreground"
+            className="h-11 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer border-none shadow shadow-blue-500/10 disabled:bg-muted disabled:text-muted-foreground"
           >
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Import {products.length} Products

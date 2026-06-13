@@ -350,7 +350,7 @@ export default function OwnerAnnouncementsPage() {
         </Dialog>
       </div>
 
-      <Card className="rounded-3xl border-2 border-border/85 bg-card/65 backdrop-blur-xl shadow-xl overflow-hidden relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-10">
+      <Card className="rounded-3xl border-2 border-border/85 bg-card/65 backdrop-blur-xl shadow-xl overflow-hidden relative">
         <CardHeader>
           <CardTitle className="text-xl font-black font-heading flex items-center gap-2">
             <Megaphone className="h-5 w-5 text-blue-600 animate-pulse" />

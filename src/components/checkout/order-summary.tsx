@@ -27,7 +27,6 @@ export default function OrderSummary({
 }: OrderSummaryProps) {
   return (
     <Card className="sticky top-6 border border-border/30 bg-card/50 backdrop-blur-2xl shadow-xl shadow-blue-500/[0.01] rounded-2xl overflow-hidden">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <CardHeader className="pb-3 pt-5">
         <CardTitle className="text-lg font-bold tracking-tight text-foreground">
           Order Summary
@@ -68,7 +67,7 @@ export default function OrderSummary({
             <span className="text-sm font-bold text-foreground">
               Total Amount
             </span>
-            <span className="text-xl font-black bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+            <span className="text-xl font-black text-blue-600 dark:text-blue-400">
               ₹{total.toFixed(2)}
             </span>
           </div>

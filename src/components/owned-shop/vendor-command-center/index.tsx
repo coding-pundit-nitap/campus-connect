@@ -318,7 +318,7 @@ export function VendorCommandCenter() {
           </div>
           <Button
             asChild
-            className="w-full sm:w-auto shadow-sm gap-2 h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 text-white border-none cursor-pointer"
+            className="w-full sm:w-auto shadow-sm gap-2 h-11 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 text-white border-none cursor-pointer"
           >
             <Link href="/create-shop">
               <Plus className="h-4 w-4" />

@@ -39,7 +39,6 @@ export function PhoneDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl p-6">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
         <DialogHeader className="space-y-2">
           <DialogTitle className="flex items-center gap-2 text-lg font-bold text-foreground">
             <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-blue-600/10 text-blue-600 shrink-0">
@@ -93,7 +92,7 @@ export function PhoneDialog({
               <Button
                 type="submit"
                 disabled={isUpdatingPhone}
-                className="h-10 px-6 rounded-xl font-semibold bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 active:scale-95 text-white shadow shadow-orange-500/10 cursor-pointer border-none"
+                className="h-10 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 active:scale-95 text-white shadow shadow-blue-500/10 cursor-pointer border-none"
               >
                 {isUpdatingPhone ? "Saving..." : "Save & Continue"}
               </Button>

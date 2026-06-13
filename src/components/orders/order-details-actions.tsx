@@ -66,7 +66,7 @@ export default function OrderDetailsActions({ order }: Props) {
           order_status === "OUT_FOR_DELIVERY") && (
           <Button
             variant="default"
-            className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-md border-none bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 text-white font-bold h-10 flex items-center justify-center cursor-pointer"
+            className="flex-1 gap-2 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-98 shadow-md border-none bg-blue-600 hover:bg-blue-700 text-white font-bold h-10 flex items-center justify-center cursor-pointer"
             asChild
           >
             <Link href={`/orders/${order.id}/track` as Route}>

@@ -38,7 +38,6 @@ export function BatchControlBar({
 
   return (
     <div className="sticky bottom-0 z-30 border-t border-border/40 bg-background/80 backdrop-blur-xl px-4 py-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] no-print">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <div className="mx-auto flex max-w-5xl flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-500/10 text-blue-600 rounded-lg shrink-0">

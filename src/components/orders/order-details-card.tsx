@@ -16,7 +16,7 @@ type Props = {
 
 export default function OrderDetailsCard({ order }: Props) {
   return (
-    <div className="mx-auto max-w-4xl space-y-6 rounded-2xl border-2 border-border/80 bg-card p-4 sm:p-6 shadow-md relative overflow-hidden before:absolute before:top-0 before:left-0 before:right-0 before:h-[3px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-10">
+    <div className="mx-auto max-w-4xl space-y-6 rounded-2xl border-2 border-border/80 bg-card p-4 sm:p-6 shadow-md relative overflow-hidden">
       <OrderDetailsHeader order={order} />
       <Separator />
 

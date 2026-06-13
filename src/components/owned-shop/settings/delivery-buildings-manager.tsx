@@ -74,7 +74,6 @@ export function DeliveryBuildingsManager() {
 
   return (
     <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative shadow-xl shadow-blue-500/[0.01] overflow-hidden space-y-5">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-orange-500 to-orange-400/20" />
       <div className="flex items-start gap-3">
         <div className="rounded-xl border border-border/40 bg-blue-500/10 p-2.5 shrink-0 mt-0.5">
           <MapPin className="h-5 w-5 text-blue-600" />

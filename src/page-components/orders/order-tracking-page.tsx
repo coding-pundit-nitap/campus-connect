@@ -152,7 +152,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
         </Badge>
       </div>
 
-      <Card className="rounded-3xl border-2 border-border/85 bg-card/65 backdrop-blur-xl shadow-xl overflow-hidden relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-10">
+      <Card className="rounded-3xl border-2 border-border/85 bg-card/65 backdrop-blur-xl shadow-xl overflow-hidden relative">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-start">
             <div>
@@ -179,13 +179,13 @@ export default function OrderTrackingPage({ orderId }: Props) {
         </CardHeader>
         <CardContent className="space-y-6 pt-2">
           <div className="relative border border-border/30 rounded-2xl bg-muted/20 p-6 flex flex-col md:flex-row gap-8 items-stretch justify-between overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] to-orange-500/[0.02]" />
+            <div className="absolute inset-0 bg-blue-600/[0.02]" />
 
             <div className="relative flex-1 min-h-[300px] flex items-stretch">
               <div className="absolute left-5 top-4 bottom-4 w-1 bg-border/40 rounded-full" />
 
               <motion.div
-                className="absolute left-5 top-4 w-1 bg-gradient-to-b from-blue-500 to-orange-500 rounded-full origin-top"
+                className="absolute left-5 top-4 w-1 bg-blue-600 rounded-full origin-top"
                 initial={{ scaleY: 0 }}
                 animate={{ scaleY: progressPercentage / 100 }}
                 transition={{ duration: 1, ease: "easeOut" }}
@@ -210,7 +210,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                             <CheckCircle2 className="h-4 w-4" />
                           </div>
                         ) : isActive ? (
-                          <div className="h-full w-full rounded-full bg-orange-500 flex items-center justify-center text-white ring-4 ring-orange-500/20 animate-pulse">
+                          <div className="h-full w-full rounded-full bg-blue-600 flex items-center justify-center text-white ring-4 ring-blue-600/20 animate-pulse">
                             <Bike className="h-3.5 w-3.5" />
                           </div>
                         ) : (
@@ -221,7 +221,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                       <span
                         className={`text-xs font-black tracking-wide uppercase ${
                           isActive
-                            ? "text-orange-500"
+                            ? "text-blue-600"
                             : isDone
                               ? "text-emerald-600"
                               : "text-muted-foreground"
@@ -271,7 +271,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
                   }}
                   transition={{ duration: 1.2, ease: "easeOut" }}
                 >
-                  <div className="p-2 bg-gradient-to-tr from-blue-600 to-orange-500 text-white rounded-full shadow-lg shadow-orange-500/10">
+                  <div className="p-2 bg-blue-600 text-white rounded-full shadow-md shadow-blue-500/10">
                     <Bike className="h-5 w-5 animate-pulse" />
                   </div>
                 </motion.div>
@@ -330,7 +330,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
               </div>
             </div>
 
-            <div className="border border-border/35 rounded-2xl p-4 bg-gradient-to-br from-blue-500/[0.01] to-orange-500/[0.01] space-y-3 relative overflow-hidden flex flex-col justify-between">
+            <div className="border border-border/35 rounded-2xl p-4 bg-blue-600/[0.01] space-y-3 relative overflow-hidden flex flex-col justify-between">
               <div>
                 <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block mb-1">
                   SECURITY CODE

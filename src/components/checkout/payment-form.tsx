@@ -268,7 +268,7 @@ export function PaymentForm({
 
             {paymentMethod === PaymentMethod.ONLINE && (
               <div className="space-y-5 border border-border/20 rounded-2xl p-5 bg-muted/20 relative overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-tr from-blue-600/10 to-orange-500/10 rounded-full blur-xl pointer-events-none" />
+                <div className="absolute top-0 right-0 h-24 w-24 bg-blue-600/5 rounded-full blur-xl pointer-events-none" />
                 <div className="space-y-1">
                   <h4 className="font-bold text-sm text-foreground">
                     UPI QR Verification
@@ -377,7 +377,7 @@ export function PaymentForm({
                   (paymentMethod === PaymentMethod.ONLINE &&
                     !upiTransactionId.trim())
                 }
-                className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] text-white shadow-lg shadow-orange-500/20 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer"
+                className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-blue-600 hover:bg-blue-700 hover:scale-[1.01] active:scale-[0.98] text-white shadow-md shadow-blue-500/10 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer"
                 size="lg"
               >
                 {isPending

@@ -50,7 +50,7 @@ export function TimingStep({
         batchSlots.length === 0) && (
         <Button
           onClick={onConfirm}
-          className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-500 hover:opacity-90 text-white font-bold rounded-xl shadow shadow-blue-500/10 mt-2 flex items-center justify-center gap-1 cursor-pointer"
+          className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow shadow-blue-500/10 mt-2 flex items-center justify-center gap-1 cursor-pointer"
         >
           Confirm Slot & Next <ChevronRight className="h-4 w-4" />
         </Button>

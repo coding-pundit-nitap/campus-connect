@@ -62,9 +62,9 @@ export default function FeedPage() {
 
   return (
     <main className="container mx-auto max-w-4xl py-10 px-4 space-y-8">
-      <div className="relative overflow-hidden rounded-3xl border-2 border-border/80 bg-card p-6 md:p-8 shadow-xl before:absolute before:top-0 before:left-0 before:right-0 before:h-[4px] before:bg-gradient-to-r before:from-blue-600 before:to-orange-500 before:z-10">
+      <div className="relative overflow-hidden rounded-3xl border-2 border-border/80 bg-card p-6 md:p-8 shadow-xl ">
         <div className="absolute top-[-100px] right-[-100px] w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-[-100px] left-[-100px] w-64 h-64 bg-blue-600/[0.02] rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 space-y-4">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 text-xs font-black uppercase tracking-wider">
@@ -156,7 +156,7 @@ export default function FeedPage() {
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
                       <Card className="rounded-2xl border-2 border-border/80 bg-card/65 backdrop-blur-xl hover:scale-[1.01] hover:border-blue-500/20 hover:shadow-lg transition-all duration-200 overflow-hidden relative">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-blue-500 to-orange-500" />
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600" />
                         <CardHeader className="pb-3 pl-8">
                           <div className="flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
@@ -195,7 +195,7 @@ export default function FeedPage() {
 
                           {product && (
                             <div className="rounded-xl border border-border/60 bg-muted/20 p-3.5 flex flex-col sm:flex-row gap-4 items-center justify-between relative overflow-hidden">
-                              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.01] to-orange-500/[0.01]" />
+                              <div className="absolute inset-0 bg-blue-600/[0.01]" />
                               <div className="flex items-center gap-3.5 min-w-0 z-10 w-full sm:w-auto">
                                 <div className="h-12 w-12 rounded-xl bg-card border border-border/40 overflow-hidden flex items-center justify-center shrink-0">
                                   {product.image_key ? (
@@ -246,8 +246,8 @@ export default function FeedPage() {
                                     disabled={isWatchingPending}
                                     className={`rounded-lg h-8 px-3.5 text-[10px] font-bold cursor-pointer transition-all hover:scale-102 active:scale-98 shadow-xs ${
                                       isLiked
-                                        ? "bg-orange-500 hover:bg-orange-600 text-white border-none"
-                                        : "border-border/60 bg-card hover:border-orange-500/30 hover:text-orange-500"
+                                        ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
+                                        : "border-border/60 bg-card hover:border-blue-600/30 hover:text-blue-600"
                                     }`}
                                   >
                                     {isLiked ? (

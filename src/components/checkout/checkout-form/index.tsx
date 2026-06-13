@@ -312,7 +312,7 @@ export function CheckoutForm({
       <Button
         onClick={handlePlaceOrder}
         disabled={isDisabled || isPlacingOrder}
-        className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] text-white shadow-lg shadow-orange-500/20 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer"
+        className="w-full h-12 rounded-xl font-bold transition-all duration-300 bg-blue-600 hover:bg-blue-700 hover:scale-[1.01] active:scale-[0.98] text-white shadow-md shadow-blue-500/10 disabled:bg-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer"
         size="lg"
       >
         {isPlacingOrder ? "Processing Order..." : buttonText}
@@ -339,7 +339,7 @@ export function CheckoutForm({
                     completedSteps.address
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "address"
-                        ? "bg-orange-500 border-orange-500 text-white shadow shadow-orange-500/20"
+                        ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
                   }`}
                 >
@@ -418,7 +418,7 @@ export function CheckoutForm({
                     completedSteps.timing
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "timing"
-                        ? "bg-orange-500 border-orange-500 text-white shadow shadow-orange-500/20"
+                        ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
                   }`}
                 >
@@ -493,7 +493,7 @@ export function CheckoutForm({
                     completedSteps.payment
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "payment"
-                        ? "bg-orange-500 border-orange-500 text-white shadow shadow-orange-500/20"
+                        ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
                   }`}
                 >

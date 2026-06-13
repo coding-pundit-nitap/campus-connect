@@ -215,7 +215,7 @@ export function BatchSlotSelector({
             )}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 text-white shadow shadow-blue-500/10">
+              <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-blue-600 text-white shadow shadow-blue-500/10">
                 <Clock className="h-4.5 w-4.5" />
               </div>
               {!isDirectDelivery && selectedSlot && (

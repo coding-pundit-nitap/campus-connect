@@ -11,7 +11,6 @@ interface BulkImportTabProps {
 export function BulkImportTab({ onSuccess }: BulkImportTabProps) {
   return (
     <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 shadow-xl overflow-hidden relative max-w-4xl">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <div className="p-6 sm:p-8 space-y-6">
         <div className="flex items-center gap-2.5">
           <div className="p-2 rounded-lg bg-orange-500/10 text-orange-500">

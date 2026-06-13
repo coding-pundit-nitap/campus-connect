@@ -40,7 +40,7 @@ export function StepSidebar({
         </div>
         <Progress
           value={(step / 5) * 100}
-          className="h-1.5 bg-muted rounded-full [&_div]:bg-gradient-to-r [&_div]:from-blue-600 [&_div]:to-orange-500"
+          className="h-1.5 bg-muted rounded-full [&_div]:bg-blue-600"
         />
         <p className="text-[10px] text-muted-foreground/80 font-medium mt-1">
           {stepEstimates[step]}
@@ -69,7 +69,7 @@ export function StepSidebar({
                   isCompleted
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
                     : isActive
-                      ? "border-orange-500 bg-orange-500/10 text-orange-500 scale-110 shadow-lg shadow-orange-500/[0.08]"
+                      ? "border-blue-600 bg-blue-600/10 text-blue-600 scale-110 shadow-lg shadow-blue-600/[0.08]"
                       : "border-border/60 bg-muted/20 text-muted-foreground/60"
                 )}
               >

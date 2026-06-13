@@ -48,7 +48,7 @@ export function UserAddressListEmpty({
         action={
           <Button
             onClick={onAddNewAddress}
-            className="bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 active:scale-95 transition-all text-white border-none cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all text-white border-none cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Address

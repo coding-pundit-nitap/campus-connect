@@ -55,7 +55,7 @@ export function PaymentStep({
               : "border-border/40 hover:border-border/80"
           )}
         >
-          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-500 text-white shrink-0 shadow">
+          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-blue-600 text-white shrink-0 shadow">
             <Wallet className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -82,7 +82,7 @@ export function PaymentStep({
               : "border-border/40 hover:border-border/80"
           )}
         >
-          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 text-white shrink-0 shadow">
+          <div className="flex items-center justify-center h-9 w-9 rounded-xl bg-blue-600 text-white shrink-0 shadow">
             <QrCode className="h-4.5 w-4.5" />
           </div>
           <div className="flex-1 min-w-0">
@@ -103,7 +103,7 @@ export function PaymentStep({
 
       {paymentMethod === PaymentMethod.ONLINE && (
         <div className="p-5 border border-border/20 rounded-2xl bg-muted/20 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 h-24 w-24 bg-gradient-to-tr from-blue-600/10 to-orange-500/10 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute top-0 right-0 h-24 w-24 bg-blue-600/5 rounded-full blur-xl pointer-events-none" />
 
           <div className="space-y-1">
             <h4 className="font-bold text-sm text-foreground">
@@ -154,7 +154,7 @@ export function PaymentStep({
               <p className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground/80">
                 Paying Amount
               </p>
-              <p className="text-xs font-black text-orange-500 mt-0.5">
+              <p className="text-xs font-black text-blue-600 mt-0.5">
                 ₹{total.toFixed(2)}
               </p>
             </div>

@@ -84,7 +84,6 @@ export function ShopSettingsCard() {
   if (isLoading) {
     return (
       <Card className="min-h-125 bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01] overflow-hidden relative">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
         <CardHeader>
           <Skeleton className="h-6 w-48 rounded-lg" />
           <Skeleton className="h-4 w-64 rounded-lg mt-2" />
@@ -102,7 +101,6 @@ export function ShopSettingsCard() {
   if (!shop) {
     return (
       <Card className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01] overflow-hidden relative">
-        <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
         <CardHeader>
           <CardTitle className="text-xl font-black font-heading tracking-tight text-foreground">
             No Shop Found
@@ -114,7 +112,7 @@ export function ShopSettingsCard() {
         <CardContent>
           <Button
             asChild
-            className="rounded-xl bg-gradient-to-r from-blue-600 to-orange-500 hover:opacity-90 transition-all font-bold cursor-pointer text-white shadow-md shadow-blue-500/10"
+            className="rounded-xl bg-blue-600 hover:bg-blue-700 transition-all font-bold cursor-pointer text-white shadow-md shadow-blue-500/10"
           >
             <Link href="/create-shop">Create Shop</Link>
           </Button>
@@ -127,7 +125,6 @@ export function ShopSettingsCard() {
 
   return (
     <Card className="flex flex-col relative overflow-hidden min-h-137.5 bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01]">
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-blue-600 to-orange-500" />
       <CardHeader className="flex flex-row items-start justify-between border-b border-border/20 bg-muted/5 pb-5 shrink-0 pt-6">
         <div>
           <CardTitle className="text-xl font-black font-heading tracking-tight text-foreground">

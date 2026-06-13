@@ -147,7 +147,7 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
           <Button
             type="submit"
             disabled={isSaving}
-            className="h-11 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 text-white shadow shadow-orange-500/15 disabled:from-muted disabled:to-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
+            className="h-11 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200 text-white shadow shadow-blue-500/15 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
           >
             {isSaving ? (
               <>
