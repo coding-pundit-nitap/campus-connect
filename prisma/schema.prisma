@@ -94,6 +94,12 @@ enum BatchStatus {
   CANCELLED
 }
 
+enum ShopType {
+  CANTEEN
+  STATIONERY
+  GROCERY
+}
+
 // ----------------------------------------
 // Batch Scheduling Models
 // ----------------------------------------
@@ -222,6 +228,7 @@ model Shop {
   accepting_orders    Boolean                  @default(true)
   pg_seller_id        String?                  @unique
   verification_status SellerVerificationStatus @default(NOT_STARTED)
+  shop_type           ShopType                 @default(CANTEEN)
   deleted_at          DateTime?
   created_at          DateTime                 @default(now())
   updated_at          DateTime                 @updatedAt
@@ -239,6 +246,7 @@ model Shop {
   user               User?                  @relation("owned_shop")
   favorited_by       FavoriteShop[]
   delivery_buildings ShopDeliveryBuilding[]
+  announcements      ShopAnnouncement[]
 
   @@index([verification_status])
   @@index([deleted_at])
@@ -262,23 +270,42 @@ model Product {
   rating_sum     Int       @default(0)
   review_count   Int       @default(0)
   image_key      String
+  brand          String?
+  is_veg         Boolean?
+  is_preorder    Boolean   @default(false)
   deleted_at     DateTime?
   created_at     DateTime  @default(now())
   updated_at     DateTime  @updatedAt
 
   // Relations
   shop_id       String
-  shop          Shop         @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  shop          Shop               @relation(fields: [shop_id], references: [id], onDelete: Cascade)
   category_id   String?
-  category      Category?    @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  category      Category?          @relation(fields: [category_id], references: [id], onDelete: SetNull)
   reviews       Review[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
   stock_watches StockWatch[]
+  announcements ShopAnnouncement[]
 
   @@index([shop_id])
   @@index([category_id])
   @@index([deleted_at])
+  @@index([brand])
+  @@index([is_veg])
+}
+
+model ShopAnnouncement {
+  id          String    @id @default(cuid())
+  shop_id     String
+  shop        Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  image_key   String?
+  expires_at  DateTime
+  product_id  String?
+  product     Product?  @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  created_at  DateTime  @default(now())
 }
 
 // ----------------------------------------
@@ -543,15 +570,29 @@ model Batch {
   cutoff_time DateTime
   status      BatchStatus @default(OPEN)
 
-  orders Order[]
+  orders          Order[]
+  delivery_status BatchDeliveryStatus?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
+  @@unique([shop_id, cutoff_time, status])
   @@index([shop_id])
   @@index([cutoff_time])
   @@index([status])
   @@index([slot_id])
+}
+
+model BatchDeliveryStatus {
+  id                String    @id @default(cuid())
+  batch_id          String    @unique
+  batch             Batch     @relation(fields: [batch_id], references: [id], onDelete: Cascade)
+  current_milestone String    @default("PACKING")
+  estimated_arrival DateTime?
+  rider_name        String?
+  rider_phone       String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 }
 
 // ----------------------------------------
