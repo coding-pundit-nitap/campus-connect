@@ -1,11 +1,8 @@
 import {
   Bell,
   CalendarClock,
-  HelpCircle,
   Home,
-  Info,
   LayoutDashboard,
-  Mail,
   Megaphone,
   Package,
   Rss,
