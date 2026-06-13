@@ -50,9 +50,12 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
 
   if (!data.is_open) {
     return (
-      <Alert className="rounded-xl border bg-card px-4 py-3 shadow-sm">
+      <Alert className="rounded-xl border-2 border-border bg-muted/10 px-4 py-3 shadow-sm">
         <AlertDescription className="flex items-center gap-3">
-          <PauseCircle className="h-4 w-4 text-muted-foreground" />
+          <PauseCircle
+            className="h-4 w-4 text-muted-foreground"
+            aria-hidden="true"
+          />
 
           <div>
             <p className="font-medium text-foreground">
@@ -84,26 +87,28 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
   const getStyles = () => {
     if (isCritical) {
       return {
-        container: "border-red-300 bg-red-50 dark:bg-red-950/20",
+        container:
+          "border-red-500 bg-red-500/[0.03] dark:bg-red-500/[0.05] text-red-950 dark:text-red-100",
         icon: "text-red-600 dark:text-red-400",
-        badge: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+        badge: "bg-red-600 text-white hover:bg-red-600 border-none shadow-sm",
       };
     }
 
     if (isUrgent) {
       return {
-        container: "border-orange-300 bg-orange-50 dark:bg-orange-950/20",
+        container:
+          "border-orange-500 bg-orange-500/[0.03] dark:bg-orange-500/[0.05] text-orange-950 dark:text-orange-100",
         icon: "text-orange-600 dark:text-orange-400",
         badge:
-          "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+          "bg-orange-500 text-white hover:bg-orange-500 border-none shadow-sm",
       };
     }
 
     return {
-      container: "border-amber-200 bg-amber-50 dark:bg-amber-950/20",
-      icon: "text-amber-600 dark:text-amber-400",
-      badge:
-        "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+      container:
+        "border-blue-500 bg-blue-500/[0.03] dark:bg-blue-500/[0.05] text-blue-900 dark:text-blue-100",
+      icon: "text-blue-600 dark:text-blue-400",
+      badge: "bg-blue-600 text-white hover:bg-blue-600 border-none shadow-sm",
     };
   };
 
@@ -125,15 +130,15 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
 
   return (
     <Alert
-      className={`rounded-xl border px-4 py-3 shadow-sm transition-colors ${styles.container}`}
+      className={`rounded-xl border-2 px-4 py-3 shadow-sm transition-colors ${styles.container}`}
     >
       <AlertDescription className="flex items-center justify-between gap-4">
         <div className="flex items-start gap-3 min-w-0">
           <div className="mt-0.5 shrink-0">
             {isCritical || isUrgent ? (
-              <Zap className={`h-4 w-4 ${styles.icon}`} />
+              <Zap className={`h-4 w-4 ${styles.icon}`} aria-hidden="true" />
             ) : (
-              <Clock className={`h-4 w-4 ${styles.icon}`} />
+              <Clock className={`h-4 w-4 ${styles.icon}`} aria-hidden="true" />
             )}
           </div>
 
@@ -149,6 +154,9 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
           variant="secondary"
           className={`shrink-0 font-medium ${styles.badge}`}
         >
+          {isCritical && (
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse mr-1.5 inline-block" />
+          )}
           {formatDuration(minutesRemaining)}
         </Badge>
       </AlertDescription>
