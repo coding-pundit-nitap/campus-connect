@@ -1,9 +1,11 @@
 "use server";
 
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
+const log = createLogger("announcement-actions");
 
 export type SerializedAnnouncement = {
   id: string;
@@ -90,8 +92,13 @@ export async function getAnnouncementsAction() {
       serialized,
       "Announcements retrieved successfully"
     );
-  } catch (error: any) {
-    throw new Error(error?.message || "Failed to retrieve announcements");
+  } catch (error) {
+    log.error(`Failed to retrieve announcements ${error}`);
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : "Failed to retrieve announcements"
+    );
   }
 }
 

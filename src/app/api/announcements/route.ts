@@ -12,7 +12,7 @@ const log = createLogger("announcements-api");
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const announcements = await prisma.shopAnnouncement.findMany({
       where: {

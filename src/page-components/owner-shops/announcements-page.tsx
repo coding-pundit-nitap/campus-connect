@@ -379,7 +379,7 @@ export default function OwnerAnnouncementsPage() {
             </div>
           ) : (
             <div className="divide-y divide-border/20 border border-border/30 rounded-2xl bg-card overflow-hidden">
-              {announcements.map((ann: any) => {
+              {announcements.map((ann) => {
                 const expiresAt = new Date(ann.expires_at);
                 const isExpired = expiresAt.getTime() <= now;
 

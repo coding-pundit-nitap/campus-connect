@@ -116,18 +116,32 @@ export default function SearchPage() {
       const next = new URLSearchParams(searchParamsObj.toString());
 
       if ("q" in updates) {
-        updates.q ? next.set("q", updates.q) : next.delete("q");
+        if (updates.q) {
+          next.set("q", updates.q);
+        } else {
+          next.delete("q");
+        }
       }
       if ("type" in updates) {
-        updates.type && updates.type !== "ALL"
-          ? next.set("type", updates.type)
-          : next.delete("type");
+        if (updates.type && updates.type !== "ALL") {
+          next.set("type", updates.type);
+        } else {
+          next.delete("type");
+        }
       }
       if ("veg" in updates) {
-        updates.veg ? next.set("veg", "true") : next.delete("veg");
+        if (updates.veg) {
+          next.set("veg", "true");
+        } else {
+          next.delete("veg");
+        }
       }
       if ("brand" in updates) {
-        updates.brand ? next.set("brand", updates.brand) : next.delete("brand");
+        if (updates.brand) {
+          next.set("brand", updates.brand);
+        } else {
+          next.delete("brand");
+        }
       }
 
       router.replace(`/search?${next.toString()}` as Route, { scroll: false });

@@ -15,6 +15,13 @@ import { NotificationService } from "@/services/notification/notification.servic
 import { DeliveryAddressSnapshot } from "@/types";
 const log = createLogger("order.service");
 
+/** Shape of rows returned by raw Batch lock queries */
+type BatchQueryRow = {
+  id: string;
+  status: string;
+  cutoff_time: string | Date;
+};
+
 type GetOrdersOptions = {
   page?: number;
   limit?: number;
@@ -111,7 +118,7 @@ export class OrderService {
         );
       }
 
-      const lockedBatch = await tx.$queryRaw<any[]>`
+      const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
         SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${existingBatch.id} FOR UPDATE
       `;
       if (!lockedBatch || lockedBatch.length === 0) {
@@ -143,10 +150,14 @@ export class OrderService {
           slot_id: matchingSlot.id,
         },
       });
-    } catch (err: any) {
-      if (err.code === "P2002") {
+    } catch (err: unknown) {
+      if (
+        typeof err === "object" &&
+        err !== null &&
+        (err as { code?: string }).code === "P2002"
+      ) {
         // Batch was created concurrently. Fetch and lock it.
-        const lockedBatch = await tx.$queryRaw<any[]>`
+        const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
           SELECT id, status, cutoff_time FROM "Batch" 
           WHERE shop_id = ${shop_id} AND cutoff_time = ${cutoffTime} FOR UPDATE
         `;
@@ -392,7 +403,7 @@ export class OrderService {
         let batchIdToLink: string | undefined = undefined;
 
         if (batch_id) {
-          const lockedBatch = await tx.$queryRaw<any[]>`
+          const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
           SELECT id, status, cutoff_time FROM "Batch" 
           WHERE id = ${batch_id} AND shop_id = ${shop_id} FOR UPDATE
         `;

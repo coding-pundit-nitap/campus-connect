@@ -264,7 +264,7 @@ export function VendorCommandCenter() {
   }, [activeBatch, completeBatchMutation]);
 
   const handleUpdateMilestone = useCallback(
-    (milestone: any) => {
+    (milestone: OrderBatchMilestone) => {
       if (!activeBatch) return;
       updateMilestoneMutation.mutate({
         batchId: activeBatch.id,
