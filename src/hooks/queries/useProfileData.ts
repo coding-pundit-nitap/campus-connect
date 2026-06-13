@@ -8,21 +8,15 @@ import {
   isWatchingStockAction,
   toggleStockWatchAction,
 } from "@/actions/products/stock-watch-actions";
-import {
-  getFavoriteShopsAction,
-  toggleFavoriteShopAction,
-} from "@/actions/shops/favorite-shops-actions";
+import { toggleFavoriteShopAction } from "@/actions/shops/favorite-shops-actions";
 import { authClient } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
+import { shopAPIService } from "@/services";
 
 export function useFavoriteShops(enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.users.favorites,
-    queryFn: async () => {
-      const response = await getFavoriteShopsAction();
-      if (!response.success) throw new Error(response.details);
-      return response.data;
-    },
+    queryFn: shopAPIService.fetchFavoriteShops,
     enabled,
   });
 }
