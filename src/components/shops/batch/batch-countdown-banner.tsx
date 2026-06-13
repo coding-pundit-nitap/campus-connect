@@ -11,6 +11,15 @@ interface BatchCountdownBannerProps {
   shopId: string;
 }
 
+const formatDuration = (minutes: number) => {
+  if (minutes > 60) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMins = minutes % 60;
+    return remainingMins > 0 ? `${hours}h ${remainingMins}m` : `${hours}h`;
+  }
+  return `${minutes} min`;
+};
+
 export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
   const { data, isLoading, isError } = useNextSlot(shopId);
 
@@ -103,7 +112,7 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
   const getTitle = () => {
     if (isCritical) return "Batch closes in under a minute";
     if (isUrgent) return "Last chance to order";
-    return `Next batch closes in ${minutesRemaining} min`;
+    return `Next batch closes in ${formatDuration(minutesRemaining)}`;
   };
 
   const getSubtitle = () => {
@@ -140,7 +149,7 @@ export function BatchCountdownBanner({ shopId }: BatchCountdownBannerProps) {
           variant="secondary"
           className={`shrink-0 font-medium ${styles.badge}`}
         >
-          {minutesRemaining} min
+          {formatDuration(minutesRemaining)}
         </Badge>
       </AlertDescription>
     </Alert>
