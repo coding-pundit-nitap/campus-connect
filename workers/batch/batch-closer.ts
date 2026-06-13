@@ -17,11 +17,19 @@ const notificationQueue = new Queue<NotificationJobData>(
   NOTIFICATION_QUEUE_NAME,
   {
     connection: redisConnection,
+    defaultJobOptions: {
+      removeOnComplete: true,
+      removeOnFail: 100,
+    },
   }
 );
 
 export const batchCloserQueue = new Queue(BATCH_CLOSER_QUEUE_NAME, {
   connection: redisConnection,
+  defaultJobOptions: {
+    removeOnComplete: true,
+    removeOnFail: 100,
+  },
 });
 
 export async function closeBatchCloserQueues(): Promise<void> {
@@ -36,25 +44,22 @@ async function checkStaleBatches(): Promise<void> {
   const staleBatches = await prisma.batch.findMany({
     where: {
       status: "LOCKED",
-      cutoff_time: {
-        lt: idleThreshold,
-      },
+      cutoff_time: { lt: idleThreshold },
+      orders: { some: { order_status: "BATCHED" } },
     },
     select: {
       id: true,
       cutoff_time: true,
-      shop: {
-        select: {
-          name: true,
-          user: { select: { id: true } },
-        },
+      shop: { select: { name: true, user: { select: { id: true } } } },
+      orders: {
+        where: { order_status: "BATCHED" },
+        select: { id: true },
       },
-      _count: { select: { orders: true } },
     },
   });
 
   for (const batch of staleBatches) {
-    if (batch.shop.user && batch._count.orders > 0) {
+    if (batch.shop.user && batch.orders.length > 0) {
       const minutesLate = Math.round(
         (Date.now() - batch.cutoff_time.getTime()) / 60000
       );
@@ -68,14 +73,18 @@ async function checkStaleBatches(): Promise<void> {
             user_id: batch.shop.user.id,
             data: {
               title: "⚠️ Orders Waiting!",
-              message: `You have ${batch._count.orders} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
+              message: `You have ${batch.orders.length} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
               type: "WARNING",
               category: "ORDER",
               action_url: `/owner-shops/dashboard`,
             },
           },
         },
-        { jobId: `vendor-idle-alert:${batch.id}` }
+        {
+          jobId: `vendor-idle-alert:${batch.id}`,
+          removeOnComplete: { age: 7200 }, // Clean up after 2 hours
+          removeOnFail: { age: 86400 }, // Clean up after 24 hours
+        }
       );
 
       logger.warn(
@@ -92,9 +101,7 @@ export async function runBatchCloserLogic(): Promise<void> {
     const expiredBatches = await prisma.batch.findMany({
       where: {
         status: "OPEN",
-        cutoff_time: {
-          lt: now,
-        },
+        cutoff_time: { lt: now },
       },
       select: {
         id: true,
@@ -105,7 +112,10 @@ export async function runBatchCloserLogic(): Promise<void> {
             user: { select: { id: true } },
           },
         },
-        _count: { select: { orders: true } },
+        orders: {
+          where: { order_status: "NEW" },
+          select: { id: true },
+        },
       },
     });
 
@@ -125,6 +135,7 @@ export async function runBatchCloserLogic(): Promise<void> {
         const openBatchIds = locked.map((b) => b.id);
         if (openBatchIds.length === 0) return [];
 
+        // 1. Batch updates (status: "LOCKED")
         await tx.batch.updateMany({
           where: {
             id: { in: openBatchIds },
@@ -134,11 +145,12 @@ export async function runBatchCloserLogic(): Promise<void> {
           },
         });
 
+        // 2 & 3. Transition orders to BATCHED and generate delivery OTPs
         await tx.$executeRaw`
           UPDATE "Order"
           SET order_status = 'BATCHED',
               delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text
-          WHERE batch_id = ANY(${openBatchIds}::text[])
+          WHERE batch_id = ANY(${openBatchIds}::text[]) AND order_status IN ('NEW', 'BATCHED')
         `;
 
         return openBatchIds;
@@ -155,10 +167,10 @@ export async function runBatchCloserLogic(): Promise<void> {
 
         for (const batch of processedBatches) {
           logger.info(
-            `--> Generated OTPs for ${batch._count.orders} orders in batch ${batch.id}`
+            `--> Generated OTPs for ${batch.orders.length} orders in batch ${batch.id}`
           );
 
-          if (batch.shop.user && batch._count.orders > 0) {
+          if (batch.shop.user && batch.orders.length > 0) {
             try {
               await notificationQueue.add("batch-ready", {
                 type: "SEND_NOTIFICATION",
@@ -167,7 +179,7 @@ export async function runBatchCloserLogic(): Promise<void> {
                   user_id: batch.shop.user.id,
                   data: {
                     title: "🚀 Batch Ready!",
-                    message: `Batch for ${batch.shop.name} is ready with ${batch._count.orders} orders. Start preparing!`,
+                    message: `Batch for ${batch.shop.name} is ready with ${batch.orders.length} orders. Start preparing!`,
                     type: "SUCCESS",
                     category: "ORDER",
                     action_url: `/owner-shops/dashboard`,
@@ -175,7 +187,7 @@ export async function runBatchCloserLogic(): Promise<void> {
                 },
               });
               logger.info(
-                `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${batch._count.orders} orders)`
+                `--> Notified Shop "${batch.shop.name}": Batch ${batch.id} is ready (${batch.orders.length} orders)`
               );
             } catch (notifError) {
               logger.error(
@@ -187,10 +199,14 @@ export async function runBatchCloserLogic(): Promise<void> {
         }
       }
     }
+  } catch (error) {
+    logger.error({ err: error }, "🔥 Error in Batch Closer locking logic");
+  }
 
+  try {
     await checkStaleBatches();
   } catch (error) {
-    logger.error({ err: error }, "🔥 Error in Batch Closer");
+    logger.error({ err: error }, "🔥 Error in stale batches check");
   }
 }
 

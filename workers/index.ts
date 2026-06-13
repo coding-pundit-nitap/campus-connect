@@ -30,17 +30,13 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 async function main() {
   try {
-    // Clean up existing repeatable jobs to avoid duplicates, then add
-    const repeatableJobs = await batchCloserQueue.getRepeatableJobs();
-    for (const job of repeatableJobs) {
-      await batchCloserQueue.removeRepeatableByKey(job.key);
-    }
-
     await batchCloserQueue.add(
       "batch-closer-job",
       {},
       {
         repeat: { pattern: "* * * * *" },
+        removeOnComplete: true,
+        removeOnFail: 100,
       }
     );
 
