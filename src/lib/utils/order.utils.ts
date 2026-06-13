@@ -94,6 +94,7 @@ export const orderWithDetailsInclude = {
               name: true,
               qr_image_key: true,
               upi_id: true,
+              shop_type: true,
             },
           },
         },

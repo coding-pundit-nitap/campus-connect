@@ -1,4 +1,4 @@
-import { Category, Product } from "@/generated/client";
+import { Category, Product, ShopType } from "@/generated/client";
 
 export type SerializedProduct = Omit<
   Product,
@@ -8,11 +8,11 @@ export type SerializedProduct = Omit<
   discount: number | null;
   category?: Category | null;
   rating: number;
-  shop: { name: string; id: string } | null;
+  shop: { name: string; id: string; shop_type?: ShopType } | null;
 };
 
 export type SerializedProductDetail = SerializedProduct & {
-  shop: { name: string; id: string } | null;
+  shop: { name: string; id: string; shop_type?: ShopType } | null;
 };
 
 export type ProductDataDetails = {

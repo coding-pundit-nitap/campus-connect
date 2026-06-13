@@ -1,4 +1,4 @@
-import { Category, Product } from "@/generated/client";
+import { Category, Product, ShopType } from "@/generated/client";
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 import { ProductActionFormData } from "@/validations";
@@ -113,7 +113,7 @@ export const createDefaultFilterState = (): FilterState => ({
 
 export const serializeProduct = (
   product: Product & { category?: Category | null } & {
-    shop: { id: string; name: string } | null;
+    shop: { id: string; name: string; shop_type?: ShopType } | null;
   }
 ): SerializedProduct => ({
   ...product,
@@ -126,7 +126,7 @@ export const serializeProduct = (
 
 export const serializeProducts = (
   products: (Product & { category: Category | null } & {
-    shop: { id: string; name: string };
+    shop: { id: string; name: string; shop_type?: ShopType };
   })[]
 ): SerializedProduct[] => products.map(serializeProduct);
 

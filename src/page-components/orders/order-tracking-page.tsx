@@ -11,7 +11,6 @@ import {
   MapPin,
   Phone,
   ShieldAlert,
-  Sparkles,
   User,
 } from "lucide-react";
 import type { Route } from "next";
@@ -30,7 +29,7 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BatchMilestone } from "@/generated/client";
+import { BatchMilestone, ShopType } from "@/generated/client";
 import { useOrderDetails } from "@/hooks/queries/useOrders";
 import { formatCurrency } from "@/lib/utils/currency";
 
@@ -45,39 +44,48 @@ type MilestoneStep = {
   percentage: number;
 };
 
-const STEPS: MilestoneStep[] = [
-  {
-    milestone: BatchMilestone.PACKING,
-    label: "Packing Order",
-    description:
-      "The vendor is carefully packing and preparing items for the run.",
-    percentage: 10,
-  },
-  {
-    milestone: BatchMilestone.CLIMB_STARTED,
-    label: "Uphill Climb Started",
-    description:
-      "The rider has started the climb up the 100m hill to the hostel area.",
-    percentage: 40,
-  },
-  {
-    milestone: BatchMilestone.MIDWAY_100M_HILL,
-    label: "Midway Uphill",
-    description:
-      "The rider is currently ascending the hill and making good progress.",
-    percentage: 70,
-  },
-  {
-    milestone: BatchMilestone.ARRIVED,
-    label: "Arrived at Hostel",
-    description:
-      "The rider has reached the hostel building! Meet them to collect your items.",
-    percentage: 100,
-  },
-];
+const getMilestoneSteps = (shopType?: ShopType): MilestoneStep[] => {
+  const isCanteen = shopType === "CANTEEN";
+  return [
+    {
+      milestone: BatchMilestone.PACKING,
+      label: "Packing Order",
+      description:
+        "The vendor is carefully packing and preparing items for the run.",
+      percentage: 10,
+    },
+    {
+      milestone: BatchMilestone.CLIMB_STARTED,
+      label: isCanteen ? "Uphill Climb Started" : "Delivery Started",
+      description: isCanteen
+        ? "The rider has started the climb up the 100m hill to the hostel area."
+        : "The rider has started the delivery run to your hostel block.",
+      percentage: 40,
+    },
+    {
+      milestone: BatchMilestone.MIDWAY_100M_HILL,
+      label: isCanteen ? "Midway Uphill" : "In Transit",
+      description: isCanteen
+        ? "The rider is currently ascending the hill and making good progress."
+        : "The rider is currently on the way and making good progress.",
+      percentage: 70,
+    },
+    {
+      milestone: BatchMilestone.ARRIVED,
+      label: "Arrived at Hostel",
+      description:
+        "The rider has reached the hostel building! Meet them to collect your items.",
+      percentage: 100,
+    },
+  ];
+};
 
 export default function OrderTrackingPage({ orderId }: Props) {
   const { data: order, isLoading, isError } = useOrderDetails(orderId);
+
+  const shopType = order?.items?.[0]?.product?.shop?.shop_type;
+  const isCanteen = shopType === "CANTEEN";
+  const steps = useMemo(() => getMilestoneSteps(shopType), [shopType]);
 
   // Derive current milestone or default to PACKING
   const currentMilestone = useMemo(() => {
@@ -91,13 +99,13 @@ export default function OrderTrackingPage({ orderId }: Props) {
   }, [order]);
 
   const activeIndex = useMemo(() => {
-    return STEPS.findIndex((s) => s.milestone === currentMilestone);
-  }, [currentMilestone]);
+    return steps.findIndex((s) => s.milestone === currentMilestone);
+  }, [currentMilestone, steps]);
 
   const progressPercentage = useMemo(() => {
     if (activeIndex === -1) return 0;
-    return STEPS[activeIndex].percentage;
-  }, [activeIndex]);
+    return steps[activeIndex].percentage;
+  }, [activeIndex, steps]);
 
   if (isLoading) {
     return (
@@ -122,7 +130,6 @@ export default function OrderTrackingPage({ orderId }: Props) {
   }
 
   const deliveryStatus = order.batch?.delivery_status;
-  const isDirect = order.is_direct_delivery;
 
   return (
     <div className="container mx-auto max-w-2xl py-8 px-4 space-y-6">
@@ -191,10 +198,9 @@ export default function OrderTrackingPage({ orderId }: Props) {
 
               {/* Steps milestone layout */}
               <div className="relative flex flex-col justify-between w-full pl-12 py-2">
-                {STEPS.map((step, index) => {
+                {steps.map((step, index) => {
                   const isDone = index < activeIndex;
                   const isActive = index === activeIndex;
-                  const isPending = index > activeIndex;
 
                   return (
                     <div
@@ -242,10 +248,10 @@ export default function OrderTrackingPage({ orderId }: Props) {
             <div className="w-full md:w-48 bg-card/60 border border-border/40 rounded-xl p-4 flex flex-col justify-between items-center text-center relative overflow-hidden shrink-0">
               <div className="space-y-1 z-10">
                 <span className="text-[10px] text-muted-foreground/80 tracking-wider uppercase font-bold block">
-                  Uphill elevation
+                  {isCanteen ? "Uphill elevation" : "Delivery route"}
                 </span>
                 <span className="text-xl font-black font-heading text-foreground">
-                  100m Hill Climb
+                  {isCanteen ? "100m Hill Climb" : "Campus Delivery"}
                 </span>
               </div>
 
@@ -407,7 +413,7 @@ export default function OrderTrackingPage({ orderId }: Props) {
               ITEM CHECKLIST
             </span>
             <div className="divide-y divide-border/20 border border-border/30 rounded-2xl bg-card overflow-hidden">
-              {order.items?.map((item: any) => (
+              {order.items?.map((item) => (
                 <div
                   key={item.id}
                   className="flex justify-between items-center p-3 text-xs font-semibold"
