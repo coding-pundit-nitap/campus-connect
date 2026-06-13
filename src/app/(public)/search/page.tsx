@@ -2,10 +2,6 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 
 import SearchPage from "@/page-components/search/search-page";
-import {
-  dbSearchService,
-  ProductSearchParams,
-} from "@/services/search/db-search.service";
 
 export const metadata: Metadata = {
   title: "Search Products | Campus Connect",
@@ -14,11 +10,6 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  async function searchAction(params: ProductSearchParams) {
-    "use server";
-    return dbSearchService.searchProducts(params);
-  }
-
   return (
     <Suspense
       fallback={
@@ -32,7 +23,7 @@ export default function Page() {
         </div>
       }
     >
-      <SearchPage searchAction={searchAction} />
+      <SearchPage />
     </Suspense>
   );
 }

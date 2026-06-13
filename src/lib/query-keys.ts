@@ -125,6 +125,16 @@ export const queryKeys = {
     /** Search query key factory for product search  */
     products: (searchTerm: string) =>
       ["search", "products", searchTerm] as const,
+    /**
+     * Full-filter product search key for the search page.
+     * Each unique combination of (query + shopType + veg + brand) is cached independently.
+     */
+    productSearch: (params: {
+      query: string;
+      shopType: string;
+      isVeg: boolean;
+      brand: string | null;
+    }) => ["search", "productSearch", params] as const,
     /** Search query key factory for order search  */
     orders: (
       searchTerm: string,
