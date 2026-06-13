@@ -166,7 +166,7 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
 
   const downloadTemplate = () => {
     const template =
-      "name,description,price,stock_quantity,discount,category\nProduct Name,Description here,1000,10,5,Category Name";
+      "name,description,price,stock_quantity,discount,category,brand\nProduct Name,Description here,1000,10,5,Category Name,Brand Name";
     const blob = new Blob([template], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

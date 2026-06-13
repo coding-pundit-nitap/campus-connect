@@ -22,10 +22,18 @@ const categorySchema = z
   .string()
   .min(1, "Category is required")
   .min(2, "Category name is too short");
+const brandSchema = z
+  .string()
+  .min(1, "Brand is required")
+  .min(2, "Brand name is too short");
 
 const categoryOptionalSchema = z
   .string()
   .min(2, "Category name is too short")
+  .optional();
+const brandOptionalSchema = z
+  .string()
+  .min(2, "Brand name is too short")
   .optional();
 
 export const productSchema = z.object({
@@ -36,6 +44,7 @@ export const productSchema = z.object({
   image_key: image_keySchema,
   discount: discountSchema,
   category: categorySchema,
+  brand: brandSchema,
 });
 
 export type ProductFormData = z.infer<typeof productSchema>;
@@ -48,6 +57,7 @@ export const productUpdateSchema = z.object({
   image_key: image_keySchema,
   discount: discountSchema,
   category: categoryOptionalSchema,
+  brand: brandOptionalSchema,
 });
 
 export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>;

@@ -1,9 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { productService } from "@/di/container";
+import { productService, reviewRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { serializeProduct } from "@/lib/utils/product.utils";
-import reviewRepository from "@/repositories/reviews.repository";
 import { ReviewWithUser } from "@/types/review.type";
 
 export async function getProductPageData(product_id: string) {

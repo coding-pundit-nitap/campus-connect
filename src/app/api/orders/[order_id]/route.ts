@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { orderRepository } from "@/di/container";
 import {
   ForbiddenError,
   UnauthenticatedError,
@@ -12,7 +13,6 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
-import { orderRepository } from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

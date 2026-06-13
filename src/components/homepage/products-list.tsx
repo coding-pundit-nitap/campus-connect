@@ -12,7 +12,6 @@ import CategoryPills from "./category-pills";
 import FavoriteShopsStrip from "./favorite-shops-strip";
 import HotDeals from "./hot-deals";
 import OrderAgain from "./order-again";
-// import SmartHero from "./smart-hero";
 import AnnouncementCard from "./widgets/announcement-card";
 import CampusInfoWidget from "./widgets/campus-info-widget";
 import ImpactStatsWidget from "./widgets/impact-stats-widget";
@@ -35,9 +34,6 @@ export default function ProductsList({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
-
-  // const { data: categories = [] } = useActiveCategories();
-  // const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   const {
     allProducts: displayProducts,
@@ -62,12 +58,7 @@ export default function ProductsList({
   return (
     <div className="flex-1 hide-scrollbar overflow-y-auto w-full max-w-7xl mx-auto py-2 px-1 pb-12">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Main Feed Content Area */}
         <div className="lg:col-span-8 space-y-6">
-          {/* <SmartHero
-            selectedCategoryName={selectedCategory?.title}
-            onClearCategory={() => setSelectedCategoryId(null)}
-          /> */}
           <div
             id="category-pills-section"
             className="animate-fade-in [animation-delay:100ms]"

@@ -15,10 +15,10 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ShopStatusBadge } from "@/components/ui/shop-status-badge";
+import { shopRepository } from "@/di/container";
 import { sanitizeHTML } from "@/lib/sanitize";
 import { formatShopData } from "@/lib/shop-utils";
 import { ImageUtils } from "@/lib/utils/image.utils";
-import shopRepository from "@/repositories/shop.repository";
 
 type Props = {
   shop_id: string;

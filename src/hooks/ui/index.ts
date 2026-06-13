@@ -1,5 +1,6 @@
 export * from "./useAdminShopFilters";
 export * from "./useAdminUserFilters";
+export * from "./useBrandSearch";
 export * from "./useBroadcastForm";
 export * from "./useCartDrawer";
 export * from "./useCategorySearch";

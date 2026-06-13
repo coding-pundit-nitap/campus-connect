@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
+import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
@@ -10,7 +11,6 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
-import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

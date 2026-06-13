@@ -55,7 +55,7 @@ function mapDocumentToProduct(
     discount: hit.discount,
     stock_quantity: hit.stock_quantity,
     image_key: hit.image_key,
-    brand: hit.brand,
+    brand_id: hit.brand_id,
     is_veg: hit.is_veg,
     is_preorder: false,
     deleted_at: null,

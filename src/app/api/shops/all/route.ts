@@ -1,11 +1,11 @@
 import z from "zod";
 
+import { shopRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
-import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

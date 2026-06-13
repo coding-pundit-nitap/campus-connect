@@ -1,7 +1,6 @@
-import { categoryServices } from "@/di/container";
+import { categoryServices, dbSearchService } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import dbSearchService from "@/services/search/db-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,

@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 
+import { dbSearchService } from "@/di/container";
 import { ShopType } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { dbSearchService } from "@/services/search/db-search.service";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -20,14 +20,14 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("q") ?? undefined;
     const shopType = searchParams.get("type") as ShopType | null;
     const isVeg = searchParams.get("veg") === "true";
-    const brand = searchParams.get("brand") ?? undefined;
+    const brand_id = searchParams.get("brand_id") ?? undefined;
     const limit = parseInt(searchParams.get("limit") ?? "24", 10);
 
     const results = await dbSearchService.searchProducts({
       query: query?.trim(),
       shop_type: shopType ?? undefined,
       is_veg: shopType === "CANTEEN" && isVeg ? true : undefined,
-      brand: shopType === "STATIONERY" && brand ? brand : undefined,
+      brand_id: shopType === "STATIONERY" && brand_id ? brand_id : undefined,
       limit,
     });
 

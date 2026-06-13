@@ -9,7 +9,11 @@ import { useWatch } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCategorySearch, useCreateProductForm } from "@/hooks";
+import {
+  useBrandSearch,
+  useCategorySearch,
+  useCreateProductForm,
+} from "@/hooks";
 
 import { BulkImportTab } from "./bulk-import-tab";
 import { ProductPreviewCard } from "./product-preview-card";
@@ -18,8 +22,16 @@ import { SingleProductForm } from "./single-product-form";
 export default function CreateProductPage() {
   const router = useRouter();
   const { form, state, handlers } = useCreateProductForm();
-  const { suggestions, isLoadingSuggestions, onSearchQuery } =
-    useCategorySearch();
+  const {
+    suggestions: categorySuggestions,
+    isLoadingSuggestions: isLoadingCategorySuggestions,
+    onSearchQuery: onSearchCategoryQuery,
+  } = useCategorySearch();
+  const {
+    suggestions: brandSuggestions,
+    isLoadingSuggestions: isLoadingBrandSuggestions,
+    onSearchQuery: onSearchBrandQuery,
+  } = useBrandSearch();
 
   const [
     watchedImage,
@@ -27,6 +39,7 @@ export default function CreateProductPage() {
     watchedDiscount,
     watchedStockQuantity,
     watchedCategory,
+    watchedBrand,
     watchedName,
     watchedDescription,
   ] = useWatch({
@@ -37,6 +50,7 @@ export default function CreateProductPage() {
       "discount",
       "stock_quantity",
       "category",
+      "brand",
       "name",
       "description",
     ],
@@ -69,7 +83,7 @@ export default function CreateProductPage() {
     router.push("/owner-shops/products");
   };
 
-  const onFormSubmit = async (e: React.FormEvent) => {
+  const onFormSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     handlers.onSubmit(e)?.then(() => handleFormSuccess());
   };
@@ -128,9 +142,12 @@ export default function CreateProductPage() {
               <SingleProductForm
                 form={form}
                 state={state}
-                suggestions={suggestions}
-                isLoadingSuggestions={isLoadingSuggestions}
-                onSearchQuery={onSearchQuery}
+                categorySuggestions={categorySuggestions}
+                isLoadingCategorySuggestions={isLoadingCategorySuggestions}
+                onSearchCategoryQuery={onSearchCategoryQuery}
+                brandSuggestions={brandSuggestions}
+                isLoadingBrandSuggestions={isLoadingBrandSuggestions}
+                onSearchBrandQuery={onSearchBrandQuery}
                 price={price}
                 discount={discount}
                 discountedPrice={discountedPrice}
@@ -145,6 +162,7 @@ export default function CreateProductPage() {
                 imagePreview={imagePreview}
                 watchedName={watchedName}
                 watchedCategory={watchedCategory}
+                watchedBrand={watchedBrand}
                 watchedDescription={watchedDescription}
                 price={price}
                 discountedPrice={discountedPrice}

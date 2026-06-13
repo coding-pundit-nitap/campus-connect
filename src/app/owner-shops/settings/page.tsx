@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 
 import { DeliveryBuildingsManager } from "@/components/owned-shop/settings/delivery-buildings-manager";
 import { ShopSettingsForm } from "@/components/owned-shop/settings/shop-settings-form";
+import { shopRepository } from "@/di/container";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { shopRepository } from "@/repositories";
 import { ShopUpdateFormShop } from "@/types/shop.types";
 
 export default async function ShopSettingsPage() {

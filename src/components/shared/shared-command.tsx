@@ -19,7 +19,7 @@ export interface SuggestionItem {
   id: string;
   title: string;
   subtitle: string;
-  type?: "shop" | "product" | "category";
+  type?: "shop" | "product" | "category" | "brand";
 }
 
 /**
@@ -120,6 +120,8 @@ export function SharedCommand({
                         <Store className="h-4 w-4 text-blue-500" />
                       ) : item.type === "category" ? (
                         <Grid2x2 className="h-4 w-4 text-purple-500" />
+                      ) : item.type === "brand" ? (
+                        <Grid2x2 className="h-4 w-4 text-purple-500" />
                       ) : (
                         <Package className="h-4 w-4 text-green-500" />
                       )}
@@ -135,7 +137,9 @@ export function SharedCommand({
                           ? "Shop"
                           : item.type === "category"
                             ? "Category"
-                            : item.subtitle}
+                            : item.type === "brand"
+                              ? "Brand"
+                              : item.subtitle}
                       </span>
                     )}
                   </div>

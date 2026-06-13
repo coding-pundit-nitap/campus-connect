@@ -114,3 +114,4 @@ class VendorApiService {
 }
 
 export const vendorApiService = new VendorApiService();
+export default vendorApiService;

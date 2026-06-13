@@ -4,8 +4,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
-import { notificationService } from "@/di/container";
-import { Category } from "@/generated/client";
+import {
+  brandRepository,
+  cartRepository,
+  categoryRepository,
+  fileUploadService,
+  notificationService,
+  productRepository,
+  shopRepository,
+} from "@/di/container";
+import { Brand, Category, Prisma } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,
@@ -16,13 +24,6 @@ import {
 import { createLogger } from "@/lib/logger";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import {
-  cartRepository,
-  categoryRepository,
-  shopRepository,
-} from "@/repositories";
-import productRepository from "@/repositories/product.repository";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {
@@ -52,6 +53,7 @@ export async function createProductAction(
     const parsedData = productActionSchema.parse(formData);
 
     const category = await categoryRepository.findOrCreate(parsedData.category);
+    const brand = await brandRepository.findOrCreate(parsedData.brand);
 
     const { image, name, price, stock_quantity, description, discount } =
       parsedData;
@@ -75,27 +77,31 @@ export async function createProductAction(
         `Product image optimized: ${uploadResult.compressionRatio}% reduction`
       );
     }
-    const productData = {
+    const productData: Prisma.ProductCreateInput = {
       image_key,
       name,
       price,
       stock_quantity,
       description,
       discount,
+      shop: {
+        connect: { id: shop_id },
+      },
+      category: {
+        connect: { id: category.id },
+      },
+      brand: {
+        connect: {
+          id: brand.id,
+        },
+      },
     };
 
     const newProduct = await productRepository.create({
-      data: {
-        ...productData,
-        shop: {
-          connect: { id: shop_id },
-        },
-        category: {
-          connect: { id: category.id },
-        },
-      },
+      data: productData,
       include: {
         category: true,
+        brand: true,
         shop: {
           select: {
             id: true,
@@ -141,12 +147,21 @@ export async function updateProductAction(
     }
 
     const currentProduct = await productRepository.findById(product_id, {
-      select: { category_id: true, image_key: true, stock_quantity: true },
+      select: {
+        category_id: true,
+        image_key: true,
+        stock_quantity: true,
+        brand_id: true,
+      },
     });
 
     const parsedData = productUpdateActionSchema.parse(formData);
-
+    let brand: Brand | null = null;
     let category: Category | null = null;
+
+    if (parsedData.brand) {
+      brand = await brandRepository.findOrCreate(parsedData.brand);
+    }
     if (parsedData.category) {
       category = await categoryRepository.findOrCreate(parsedData.category);
     }
@@ -182,9 +197,7 @@ export async function updateProductAction(
     };
 
     const updateData: {
-      data: typeof productData & {
-        category?: { connect: { id: string } } | { disconnect: true };
-      };
+      data: Prisma.ProductUpdateInput;
     } = {
       data: {
         ...productData,
@@ -200,6 +213,15 @@ export async function updateProductAction(
         disconnect: true,
       };
     }
+    if (brand) {
+      updateData.data.brand = {
+        connect: { id: brand.id },
+      };
+    } else {
+      updateData.data.brand = {
+        disconnect: true,
+      };
+    }
 
     const updatedProduct = await productRepository.update(
       product_id,
@@ -207,6 +229,7 @@ export async function updateProductAction(
       {
         include: {
           category: true,
+          brand: true,
           shop: {
             select: {
               id: true,
@@ -233,6 +256,10 @@ export async function updateProductAction(
       currentProduct.category_id !== category?.id
     ) {
       await categoryRepository.deleteIfEmpty(currentProduct.category_id);
+    }
+
+    if (currentProduct?.brand_id && currentProduct.brand_id !== brand?.id) {
+      await brandRepository.deleteIfEmpty(currentProduct.brand_id);
     }
 
     const serializedProduct = serializeProduct(updatedProduct);
@@ -262,7 +289,7 @@ export async function deleteProductAction(
     }
 
     const productToDelete = await productRepository.findById(product_id, {
-      select: { category_id: true, shop_id: true, name: true },
+      select: { category_id: true, shop_id: true, name: true, brand_id: true },
     });
 
     if (!productToDelete) {
@@ -292,6 +319,10 @@ export async function deleteProductAction(
       await categoryRepository.deleteIfEmpty(productToDelete.category_id);
     }
 
+    if (productToDelete?.brand_id) {
+      await brandRepository.deleteIfEmpty(productToDelete.brand_id);
+    }
+
     return createSuccessResponse(null, "Product deleted successfully");
   } catch (error) {
     log.debug({ err: error }, "DELETE PRODUCT ERROR:");
@@ -306,6 +337,7 @@ export interface BulkProductInput {
   stock_quantity: number;
   discount?: number;
   category?: string;
+  brand?: string;
 }
 
 export interface BulkCreateResult {
@@ -333,6 +365,12 @@ const bulkProductInputSchema = z.object({
     .min(2, "Category name is too short")
     .optional()
     .or(z.literal("")),
+  brand: z
+    .string()
+    .trim()
+    .min(2, "Brand name is too short")
+    .optional()
+    .or(z.literal("")),
 });
 
 export async function bulkCreateProductsAction(
@@ -357,22 +395,23 @@ export async function bulkCreateProductsAction(
       throw new InternalServerError("Maximum 50 products per batch");
     }
 
-    // 1. Validate and parse all products first (ensures fail-fast and trims inputs)
     const validatedProducts = products.map((product) =>
       bulkProductInputSchema.parse(product)
     );
 
     const createdProducts: Array<{ id: string; name: string }> = [];
 
-    // 2. Perform insertions using the validated/trimmed products
     for (const productData of validatedProducts) {
-      let category = null;
+      let category: Category | null = null;
       if (productData.category && productData.category.trim()) {
         category = await categoryRepository.findOrCreate(
           productData.category.trim()
         );
       }
-
+      let brand: Brand | null = null;
+      if (productData.brand && productData.brand.trim()) {
+        brand = await brandRepository.findOrCreate(productData.brand.trim());
+      }
       const newProduct = await productRepository.create({
         data: {
           name: productData.name, // Will be trimmed correctly
@@ -387,6 +426,11 @@ export async function bulkCreateProductsAction(
           ...(category && {
             category: {
               connect: { id: category.id },
+            },
+          }),
+          ...(brand && {
+            brand: {
+              connect: { id: brand.id },
             },
           }),
         },
@@ -449,6 +493,7 @@ export async function toggleProductStockAction(
       {
         include: {
           category: true,
+          brand: true,
           shop: {
             select: {
               id: true,
@@ -459,7 +504,6 @@ export async function toggleProductStockAction(
       }
     );
 
-    // Notify stock watchers if transitioning from out of stock to in stock
     const wasOutOfStock = product.stock_quantity <= 0;
     const isNowInStock = updated.stock_quantity > 0;
     if (wasOutOfStock && isNowInStock) {

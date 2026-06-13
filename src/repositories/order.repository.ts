@@ -380,6 +380,3 @@ export class OrderRepository extends BaseRepository<
     return this.prismaClient.order.count(args);
   }
 }
-
-export const orderRepository = new OrderRepository();
-export default orderRepository;

@@ -1,6 +1,11 @@
 "use server";
 import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
-import { notificationService, orderService } from "@/di/container";
+import {
+  notificationService,
+  orderRepository,
+  orderService,
+  shopRepository,
+} from "@/di/container";
 import { OrderStatus, PaymentMethod } from "@/generated/client";
 import {
   InternalServerError,
@@ -17,8 +22,6 @@ import {
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
 import { getOrderUrl } from "@/lib/utils/url.utils";
-import orderRepository from "@/repositories/order.repository";
-import { shopRepository } from "@/repositories/shop.repository";
 import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,

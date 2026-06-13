@@ -2,7 +2,7 @@ import { forbidden } from "next/navigation";
 import React from "react";
 
 import authUtils from "@/lib/utils/auth.utils.server";
-import CreateProductPage from "@/page-components/owner-shop/create-product-page";
+import CreateProductPage from "@/page-components/owner-shops/create-product-page";
 
 export const metadata = {
   title: "Add New Product",

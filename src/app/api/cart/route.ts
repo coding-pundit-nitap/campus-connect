@@ -1,8 +1,8 @@
+import { cartRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import cartRepository from "@/repositories/cart.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

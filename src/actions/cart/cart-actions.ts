@@ -1,4 +1,5 @@
 "use server";
+import { cartRepository } from "@/di/container";
 import {
   InternalServerError,
   UnauthenticatedError,
@@ -7,7 +8,6 @@ import {
 import { createLogger } from "@/lib/logger";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { cartRepository } from "@/repositories";
 import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
 const log = createLogger("cart-actions");
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { userAddressRepository } from "@/di/container";
 import {
   ForbiddenError,
   InternalServerError,
@@ -8,7 +9,6 @@ import {
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
-import { userAddressRepository } from "@/repositories";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("user-address-actions");
 

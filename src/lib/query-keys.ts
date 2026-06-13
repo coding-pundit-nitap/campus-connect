@@ -53,6 +53,8 @@ export const queryKeys = {
     products: (shop_id: string) => ["shops", shop_id, "products"] as const,
     /** Shop-specific categories query key factory */
     categories: (query: string) => ["shops", "categories", { query }] as const,
+    /** Shop-specific brands query key factory */
+    brands: (query: string) => ["shops", "brands", { query }] as const,
     byUser: () => ["shops", "user", "current"] as const,
   },
 

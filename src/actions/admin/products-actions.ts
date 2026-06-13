@@ -2,7 +2,11 @@
 
 import z from "zod";
 
-import { notificationService } from "@/di/container";
+import {
+  fileUploadService,
+  notificationService,
+  productRepository,
+} from "@/di/container";
 import { Prisma } from "@/generated/client";
 import {
   BadRequestError,
@@ -12,8 +16,6 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import productRepository from "@/repositories/product.repository";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import {
   ActionResponse,
   createSuccessResponse,

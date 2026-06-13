@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 
+import { dbSearchService } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { dbSearchService } from "@/services/search/db-search.service";
 import { SearchResult } from "@/types";
 import {
   createErrorResponse,

@@ -1,3 +1,4 @@
+import { batchRepository, shopRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -6,8 +7,6 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
-import batchRepository from "@/repositories/batch.repository";
-import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

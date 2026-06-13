@@ -26,18 +26,25 @@ interface SingleProductFormProps {
     isSubmitting: boolean;
     error: string | null;
   };
-  suggestions: {
+  categorySuggestions: {
     id: string;
     title: string;
     subtitle: string;
   }[];
-  isLoadingSuggestions: boolean;
-  onSearchQuery: (query: string) => void;
+  isLoadingCategorySuggestions: boolean;
+  onSearchCategoryQuery: (query: string) => void;
+  brandSuggestions: {
+    id: string;
+    title: string;
+    subtitle: string;
+  }[];
+  isLoadingBrandSuggestions: boolean;
+  onSearchBrandQuery: (query: string) => void;
   price: number;
   discount: number;
   discountedPrice: number;
   hasDiscount: boolean;
-  onFormSubmit: (e: React.FormEvent) => void;
+  onFormSubmit: (e: React.SubmitEvent) => void;
 }
 
 const inputClass =
@@ -46,9 +53,12 @@ const inputClass =
 export function SingleProductForm({
   form,
   state,
-  suggestions,
-  isLoadingSuggestions,
-  onSearchQuery,
+  categorySuggestions,
+  isLoadingCategorySuggestions,
+  onSearchCategoryQuery,
+  brandSuggestions,
+  isLoadingBrandSuggestions,
+  onSearchBrandQuery,
   price,
   discount,
   discountedPrice,
@@ -127,14 +137,41 @@ export function SingleProductForm({
                       onChange={field.onChange}
                       placeholder="E.g., Beverages, Mains, Desserts..."
                       disabled={isDisabled}
-                      suggestions={suggestions}
-                      isLoadingSuggestions={isLoadingSuggestions}
-                      onSearchQuery={onSearchQuery}
+                      suggestions={categorySuggestions}
+                      isLoadingSuggestions={isLoadingCategorySuggestions}
+                      onSearchQuery={onSearchCategoryQuery}
                       className={inputClass}
                     />
                   </FormControl>
                   <FormDescription className="text-[10px] text-muted-foreground/80 font-medium">
                     Type to search or create a new category.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="brand"
+              render={({ field }) => (
+                <FormItem className="space-y-1.5">
+                  <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Brand
+                  </FormLabel>
+                  <FormControl>
+                    <SharedCategoryInput
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      placeholder="E.g., Classmate,Snickers, ..."
+                      disabled={isDisabled}
+                      suggestions={brandSuggestions}
+                      isLoadingSuggestions={isLoadingBrandSuggestions}
+                      onSearchQuery={onSearchBrandQuery}
+                      className={inputClass}
+                    />
+                  </FormControl>
+                  <FormDescription className="text-[10px] text-muted-foreground/80 font-medium">
+                    Type to search or create a new Brand.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

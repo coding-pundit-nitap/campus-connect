@@ -224,6 +224,3 @@ export class BroadcastNotificationRepository extends BaseRepository<
     return this.prismaClient.broadcastNotification.count(args);
   }
 }
-
-export const broadcastRepository = new BroadcastNotificationRepository();
-export default broadcastRepository;

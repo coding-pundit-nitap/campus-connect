@@ -1,4 +1,4 @@
-import { Category, Product, ShopType } from "@/generated/client";
+import { Brand, Category, Product, ShopType } from "@/generated/client";
 
 export type SerializedProduct = Omit<
   Product,
@@ -7,6 +7,7 @@ export type SerializedProduct = Omit<
   price: number;
   discount: number | null;
   category?: Category | null;
+  brand?: Brand | null;
   rating: number;
   shop: { name: string; id: string; shop_type?: ShopType } | null;
 };

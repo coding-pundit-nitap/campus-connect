@@ -2,7 +2,11 @@
 
 import { randomInt } from "node:crypto";
 
-import { notificationService } from "@/di/container";
+import {
+  notificationService,
+  orderRepository,
+  shopRepository,
+} from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -11,8 +15,6 @@ import {
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import authUtils from "@/lib/utils/auth.utils.server";
-import orderRepository from "@/repositories/order.repository";
-import shopRepository from "@/repositories/shop.repository";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("order-management-actions");
 

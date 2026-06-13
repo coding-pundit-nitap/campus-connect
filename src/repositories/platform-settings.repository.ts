@@ -42,6 +42,3 @@ export class PlatformSettingsRepository extends BaseRepository<
     return Number(settings.platform_fee);
   }
 }
-
-export const platformSettingsRepository = new PlatformSettingsRepository();
-export default platformSettingsRepository;

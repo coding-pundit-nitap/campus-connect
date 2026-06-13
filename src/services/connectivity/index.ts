@@ -1,1 +1,1 @@
-export * from "./connectivity.service";
+export * from "./connectivity-api.service";

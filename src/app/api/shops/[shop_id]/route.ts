@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 
+import { shopRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
-import shopRepository from "@/repositories/shop.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

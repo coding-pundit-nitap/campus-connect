@@ -2,7 +2,7 @@
 
 import React from "react";
 
-import { useActiveCategories } from "@/hooks/queries/useProductCategoriesSearch";
+import { useActiveCategories } from "@/hooks/queries/useProductCategorySearch";
 import { cn } from "@/lib/cn";
 
 type Props = {

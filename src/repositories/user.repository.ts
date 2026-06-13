@@ -178,6 +178,3 @@ export class UserRepository extends BaseRepository<
     await this.prismaClient.session.deleteMany({ where: { userId } });
   }
 }
-
-export const userRepository = new UserRepository(prisma);
-export default userRepository;

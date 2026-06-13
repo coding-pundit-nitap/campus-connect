@@ -3,8 +3,8 @@ import { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { ShopProfileContent } from "@/components/owned-shop/shop-edit";
+import { shopRepository } from "@/di/container";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { shopRepository } from "@/repositories";
 import { ShopUpdateFormShop } from "@/types/shop.types";
 
 export const metadata: Metadata = {

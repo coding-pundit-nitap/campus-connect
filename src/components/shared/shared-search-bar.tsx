@@ -17,7 +17,7 @@ export interface SharedSearchBarProps {
     id: string;
     title: string;
     subtitle: string;
-    type?: "shop" | "product" | "category";
+    type?: "shop" | "product" | "category" | "brand";
   }[];
   showSuggestionsDropdown: boolean;
   isLoading?: boolean;

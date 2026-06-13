@@ -1,10 +1,9 @@
 "use server";
 
+import { fileUploadService, userRepository } from "@/di/container";
 import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { userRepository } from "@/repositories";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 const log = createLogger("profile-image-action");
 

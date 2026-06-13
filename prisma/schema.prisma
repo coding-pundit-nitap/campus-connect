@@ -278,7 +278,6 @@ model Product {
   rating_sum     Int       @default(0)
   review_count   Int       @default(0)
   image_key      String
-  brand          String?
   is_veg         Boolean?
   is_preorder    Boolean   @default(false)
   deleted_at     DateTime?
@@ -290,6 +289,8 @@ model Product {
   shop          Shop               @relation(fields: [shop_id], references: [id], onDelete: Cascade)
   category_id   String?
   category      Category?          @relation(fields: [category_id], references: [id], onDelete: SetNull)
+  brand_id      String?
+  brand         Brand?             @relation(fields: [brand_id], references: [id], onDelete: SetNull)
   reviews       Review[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
@@ -298,9 +299,16 @@ model Product {
 
   @@index([shop_id])
   @@index([category_id])
+  @@index([brand_id])
   @@index([deleted_at])
-  @@index([brand])
   @@index([is_veg])
+}
+
+model Brand {
+  id   String @id @default(cuid())
+  name String @unique
+
+  products Product[]
 }
 
 model ShopAnnouncement {

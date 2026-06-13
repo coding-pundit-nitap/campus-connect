@@ -132,7 +132,6 @@ export default function SharedSidebar({
     }
     return (url as UrlObject).pathname || "/";
   };
-
   const isItemActive = (
     url: Route | UrlObject,
     currentPath: string
@@ -142,11 +141,11 @@ export default function SharedSidebar({
     if (normalizedUrl === "/") {
       return currentPath === "/";
     }
-    if (normalizedUrl === "/admin") {
-      return currentPath === "/admin";
-    }
 
-    return currentPath.startsWith(normalizedUrl);
+    return (
+      currentPath === normalizedUrl ||
+      currentPath.startsWith(`${normalizedUrl}/ `)
+    );
   };
 
   const Header = () => {

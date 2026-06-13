@@ -1,6 +1,6 @@
 "use server";
 
-import { batchService } from "@/di/container";
+import { batchRepository, batchService, shopRepository } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -9,8 +9,6 @@ import {
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
-import batchRepository from "@/repositories/batch.repository";
-import shopRepository from "@/repositories/shop.repository";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("batch-actions");
 

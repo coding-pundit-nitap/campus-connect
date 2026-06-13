@@ -353,6 +353,3 @@ export class BatchRepository extends BaseRepository<
     });
   }
 }
-
-export const batchRepository = new BatchRepository();
-export default batchRepository;

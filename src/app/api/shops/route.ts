@@ -1,8 +1,8 @@
+import { shopRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { formatShopData } from "@/lib/shop-utils";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { shopRepository } from "@/repositories";
 import {
   createErrorResponse,
   createSuccessResponse,

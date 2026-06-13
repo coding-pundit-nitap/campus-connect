@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 
+import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { serializeOrderWithDetails } from "@/lib/utils/order.utils";
-import { orderRepository } from "@/repositories";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 const log = createLogger("route");
 

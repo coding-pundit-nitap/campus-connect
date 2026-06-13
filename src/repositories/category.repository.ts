@@ -281,6 +281,3 @@ export class CategoryRepository extends BaseRepository<
     return this.prismaClient.category.count(args);
   }
 }
-
-export const categoryRepository = new CategoryRepository();
-export default categoryRepository;

@@ -285,6 +285,3 @@ export class ProductRepository extends BaseRepository<
     });
   }
 }
-
-export const productRepository = new ProductRepository();
-export default productRepository;

@@ -1,4 +1,4 @@
-import { Category, Product, ShopType } from "@/generated/client";
+import { Brand, Category, Product, ShopType } from "@/generated/client";
 import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
 import { ProductActionFormData } from "@/validations";
@@ -114,12 +114,13 @@ export const createDefaultFilterState = (): FilterState => ({
 export const serializeProduct = (
   product: Product & { category?: Category | null } & {
     shop: { id: string; name: string; shop_type?: ShopType } | null;
-  }
+  } & { brand?: Brand | null }
 ): SerializedProduct => ({
   ...product,
   price: Number(product.price),
   discount: product.discount ? Number(product.discount) : null,
   category: product.category || null,
+  brand: product.brand || null,
   rating:
     product.review_count === 0 ? 0 : product.rating_sum / product.review_count,
 });
@@ -127,7 +128,7 @@ export const serializeProduct = (
 export const serializeProducts = (
   products: (Product & { category: Category | null } & {
     shop: { id: string; name: string; shop_type?: ShopType };
-  })[]
+  } & { brand: Brand | null })[]
 ): SerializedProduct[] => products.map(serializeProduct);
 
 export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
@@ -143,6 +144,7 @@ export const serializeFullCart = (cart: FullCart): SerializedFullCart => ({
         min_order_value: item.product.shop.min_order_value.toString(),
       },
       category: item.product.category,
+      brand: item.product.brand,
     },
   })),
 });

@@ -2,7 +2,11 @@
 
 import z from "zod";
 
-import { auditService, notificationService } from "@/di/container";
+import {
+  auditService,
+  notificationService,
+  userRepository,
+} from "@/di/container";
 import { Prisma, Role, UserStatus } from "@/generated/client";
 import {
   BadRequestError,
@@ -12,7 +16,6 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import userRepository from "@/repositories/user.repository";
 import {
   ActionResponse,
   createSuccessResponse,

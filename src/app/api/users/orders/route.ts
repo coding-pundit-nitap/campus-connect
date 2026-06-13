@@ -1,7 +1,7 @@
+import { orderRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
-import orderRepository from "@/repositories/order.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

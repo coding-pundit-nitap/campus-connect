@@ -80,6 +80,7 @@ export async function GET(
           orderBy: { [effectiveSortBy]: parsed.sortOrder },
           include: {
             category: true,
+            brand: true,
             shop: {
               select: {
                 id: true,

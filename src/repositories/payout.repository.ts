@@ -60,6 +60,3 @@ export class PayoutRepository extends BaseRepository<
     return this.prismaClient.payout.aggregate(args);
   }
 }
-
-export const payoutRepository = new PayoutRepository();
-export default payoutRepository;

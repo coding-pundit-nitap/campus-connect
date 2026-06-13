@@ -73,7 +73,6 @@ async function main() {
     data: {
       id: "cat-1",
       name: "Thali Meals",
-      shop_id: "test-shop-1",
     },
   });
 
@@ -143,7 +142,6 @@ async function main() {
       payment_status: "COMPLETED",
       order_status: "BATCHED",
       delivery_address_snapshot: "Satpura Hostel, Room 302",
-      delivery_address_id: "address-1",
       user_id: "customer-user-1",
       shop_id: "test-shop-1",
       batch_id: "batch-open-1",
@@ -172,7 +170,6 @@ async function main() {
       payment_status: "COMPLETED",
       order_status: "BATCHED",
       delivery_address_snapshot: "Satpura Hostel, Room 302",
-      delivery_address_id: "address-1",
       user_id: "customer-user-1",
       shop_id: "test-shop-1",
       batch_id: "batch-locked-1",
@@ -201,7 +198,6 @@ async function main() {
       payment_status: "COMPLETED",
       order_status: "OUT_FOR_DELIVERY",
       delivery_address_snapshot: "Satpura Hostel, Room 302",
-      delivery_address_id: "address-1",
       user_id: "customer-user-1",
       shop_id: "test-shop-1",
       batch_id: "batch-transit-1",
@@ -231,7 +227,6 @@ async function main() {
       payment_status: "COMPLETED",
       order_status: "NEW",
       delivery_address_snapshot: "Satpura Hostel, Room 302",
-      delivery_address_id: "address-1",
       user_id: "customer-user-1",
       shop_id: "test-shop-1",
       is_direct_delivery: true,
@@ -260,7 +255,6 @@ async function main() {
       payment_status: "COMPLETED",
       order_status: "OUT_FOR_DELIVERY",
       delivery_address_snapshot: "Satpura Hostel, Room 302",
-      delivery_address_id: "address-1",
       user_id: "customer-user-1",
       shop_id: "test-shop-1",
       is_direct_delivery: true,

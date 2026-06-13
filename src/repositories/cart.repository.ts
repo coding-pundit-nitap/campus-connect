@@ -6,12 +6,13 @@ import { BaseRepository } from "./base.repository";
 
 export type CartFindOptions = Omit<Prisma.CartFindManyArgs, "where">;
 
-export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
+export const fullCartInclude = {
   items: {
     include: {
       product: {
         include: {
           category: true,
+          brand: true,
           shop: {
             select: {
               id: true,
@@ -45,7 +46,7 @@ export const fullCartInclude = Prisma.validator<Prisma.CartInclude>()({
     },
     orderBy: { id: Prisma.SortOrder.asc },
   },
-});
+} satisfies Prisma.CartInclude;
 
 export class CartRepository extends BaseRepository<
   Cart,
@@ -238,6 +239,3 @@ export class CartRepository extends BaseRepository<
     return this.prismaClient.cart.count(args);
   }
 }
-
-export const cartRepository = new CartRepository();
-export default cartRepository;

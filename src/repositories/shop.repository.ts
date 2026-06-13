@@ -252,6 +252,3 @@ export class ShopRepository extends BaseRepository<
     });
   }
 }
-
-export const shopRepository = new ShopRepository();
-export default shopRepository;

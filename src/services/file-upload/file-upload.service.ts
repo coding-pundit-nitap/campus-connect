@@ -61,7 +61,7 @@ const DANGEROUS_EXTENSIONS = [
   ".ps1",
 ];
 
-class FileUploadService {
+export class FileUploadService {
   // Client for SERVER -> MINIO communication
   private internalS3Client = new S3Client({
     endpoint: process.env.MINIO_ENDPOINT!,
@@ -347,6 +347,3 @@ class FileUploadService {
     }
   }
 }
-
-export const fileUploadService = new FileUploadService();
-export default fileUploadService;

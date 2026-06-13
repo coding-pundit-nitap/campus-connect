@@ -90,6 +90,7 @@ export class ProductService {
           },
         },
         category: true,
+        brand: true,
       },
     };
 
@@ -186,6 +187,7 @@ export class ProductService {
             },
           },
           category: true,
+          brand: true,
         },
       } as const;
 

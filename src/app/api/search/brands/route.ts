@@ -19,21 +19,23 @@ export async function GET(request: NextRequest) {
     const shopType =
       typeParam && typeParam !== "ALL" ? (typeParam as ShopType) : undefined;
 
-    const rawBrands = await prisma.product.findMany({
+    const rawBrands = await prisma.brand.findMany({
       where: {
-        brand: { not: null },
-        deleted_at: null,
-        ...(shopType
-          ? { shop: { shop_type: shopType, is_active: true } }
-          : { shop: { is_active: true } }),
+        products: {
+          some: {
+            deleted_at: null,
+            ...(shopType
+              ? { shop: { shop_type: shopType, is_active: true } }
+              : { shop: { is_active: true } }),
+          },
+        },
       },
-      select: { brand: true },
-      distinct: ["brand"],
-      orderBy: { brand: "asc" },
+      select: { name: true },
+      orderBy: { name: "asc" },
     });
 
     const brands = rawBrands
-      .map((p) => p.brand)
+      .map((p) => p.name)
       .filter((b): b is string => b !== null && b.trim().length > 0);
 
     return jsonResponse(

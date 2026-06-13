@@ -242,6 +242,3 @@ export class ReviewRepository extends BaseRepository<
     });
   }
 }
-
-export const reviewRepository = new ReviewRepository();
-export default reviewRepository;

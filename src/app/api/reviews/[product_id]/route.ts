@@ -1,11 +1,11 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
+import { reviewRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import reviewRepository from "@/repositories/reviews.repository";
 import {
   createErrorResponse,
   createSuccessResponse,

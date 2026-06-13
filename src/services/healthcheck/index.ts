@@ -1,1 +1,1 @@
-export * from "./healthcheck.service";
+export * from "./healthcheck-api.service";

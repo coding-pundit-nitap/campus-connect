@@ -303,6 +303,3 @@ export class UserAddressRepository extends BaseRepository<
     return this.prismaClient.building.create({ data });
   }
 }
-
-export const userAddressRepository = new UserAddressRepository(prisma);
-export default userAddressRepository;

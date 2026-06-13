@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
+import { userRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { userRepository } from "@/repositories";
 import { updateUserSchema } from "@/validations/user.validation";
 const log = createLogger("route");
 

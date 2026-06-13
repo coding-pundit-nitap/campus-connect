@@ -1,5 +1,6 @@
 import {
   BatchSlot,
+  Brand,
   Cart,
   CartItem,
   Category,
@@ -67,6 +68,7 @@ export type SerializedFullCart = Cart & {
         >[];
       };
       category: Category | null;
+      brand: Brand | null;
     };
   })[];
 };
@@ -92,6 +94,7 @@ export type FullCart = Cart & {
         >[];
       };
       category: Category | null;
+      brand: Brand | null;
     };
   })[];
 };

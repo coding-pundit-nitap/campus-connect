@@ -1,6 +1,13 @@
 "use server";
 
-import { categoryServices, notificationService } from "@/di/container";
+import {
+  batchRepository,
+  categoryServices,
+  fileUploadService,
+  notificationService,
+  shopRepository,
+  userRepository,
+} from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -9,10 +16,6 @@ import {
 import { createLogger } from "@/lib/logger";
 import { convertPrismaDecimals } from "@/lib/serializers/prisma-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
-import batchRepository from "@/repositories/batch.repository";
-import shopRepository from "@/repositories/shop.repository";
-import userRepository from "@/repositories/user.repository";
-import { fileUploadService } from "@/services/file-upload/file-upload.service";
 import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 const log = createLogger("shop-actions");

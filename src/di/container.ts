@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { AdminAuditRepository } from "@/repositories/admin-audit.repository";
 import { BatchRepository } from "@/repositories/batch.repository";
+import { BrandRepository } from "@/repositories/brand.repository";
 import { BroadcastNotificationRepository } from "@/repositories/broadcast.repository";
 import { CartRepository } from "@/repositories/cart.repository";
 import { CategoryRepository } from "@/repositories/category.repository";
@@ -16,8 +17,10 @@ import { UserRepository } from "@/repositories/user.repository";
 import { UserAddressRepository } from "@/repositories/user-address.repository";
 import { AuditService } from "@/services/audit/audit.service";
 import { BatchService } from "@/services/batch/batch.service";
+import { BrandServices } from "@/services/brand/brand.service";
 import { CartService } from "@/services/cart/cart.service";
 import { CategoryServices } from "@/services/category/category.service";
+import { FileUploadService } from "@/services/file-upload/file-upload.service";
 import { NotificationService } from "@/services/notification/notification.service";
 import { OrderService } from "@/services/order/order.service";
 import { ProductService } from "@/services/product/product.service";
@@ -30,6 +33,7 @@ import { UserService } from "@/services/user/user.service";
 export const userRepository = new UserRepository(prisma);
 export const productRepository = new ProductRepository(prisma);
 export const categoryRepository = new CategoryRepository(prisma);
+export const brandRepository = new BrandRepository(prisma);
 export const shopRepository = new ShopRepository(prisma);
 export const orderRepository = new OrderRepository(prisma);
 export const cartRepository = new CartRepository(prisma);
@@ -48,6 +52,8 @@ export const adminAuditRepository = new AdminAuditRepository(prisma);
 export const userService = new UserService(userRepository);
 export const productService = new ProductService(productRepository);
 export const categoryServices = new CategoryServices(categoryRepository);
+export const brandServices = new BrandServices(brandRepository);
+export const fileUploadService = new FileUploadService();
 export const notificationService = new NotificationService(
   broadcastRepository,
   notificationRepository
@@ -78,7 +84,8 @@ export const auditService = new AuditService();
 export const dbSearchService = new DBSearchService(
   productRepository,
   shopRepository,
-  categoryRepository
+  categoryRepository,
+  brandRepository
 );
 
 export const container = {
@@ -87,6 +94,8 @@ export const container = {
   userRepository,
   productRepository,
   categoryRepository,
+  brandRepository,
+  fileUploadService,
   shopRepository,
   orderRepository,
   cartRepository,
@@ -103,6 +112,7 @@ export const container = {
   userService,
   productService,
   categoryServices,
+  brandServices,
   notificationService,
   orderService,
   cartService,

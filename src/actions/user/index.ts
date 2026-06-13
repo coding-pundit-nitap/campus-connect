@@ -1,9 +1,9 @@
 "use server";
 import z from "zod";
 
+import { userAddressRepository, userRepository } from "@/di/container";
 import { ValidationError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
-import { userAddressRepository, userRepository } from "@/repositories";
 import {
   updateUserSchema,
   userAddressSchema,

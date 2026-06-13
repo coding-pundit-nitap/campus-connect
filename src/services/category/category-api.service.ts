@@ -3,7 +3,7 @@ import { ActionResponse, SearchResult } from "@/types";
 
 class CategoryAPIService {
   async search(query: string): Promise<SearchResult[]> {
-    const url = `shops/categories`;
+    const url = `shops/category`;
     const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
       url,
       {

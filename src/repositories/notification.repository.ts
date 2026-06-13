@@ -192,6 +192,3 @@ export class NotificationRepository extends BaseRepository<
     return this.prismaClient.notification.count(args);
   }
 }
-
-export const notificationRepository = new NotificationRepository();
-export default NotificationRepository;

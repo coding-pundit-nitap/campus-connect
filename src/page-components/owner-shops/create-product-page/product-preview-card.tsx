@@ -10,6 +10,7 @@ interface ProductPreviewCardProps {
   imagePreview: string | null;
   watchedName: string;
   watchedCategory: string;
+  watchedBrand: string;
   watchedDescription: string | undefined;
   price: number;
   discountedPrice: number;
@@ -22,6 +23,7 @@ export function ProductPreviewCard({
   imagePreview,
   watchedName,
   watchedCategory,
+  watchedBrand,
   watchedDescription,
   price,
   discountedPrice,
@@ -102,6 +104,18 @@ export function ProductPreviewCard({
                 ) : (
                   <span className="text-[10px] text-muted-foreground/60 italic font-medium">
                     Uncategorized
+                  </span>
+                )}
+                {watchedBrand ? (
+                  <Badge
+                    variant="outline"
+                    className="bg-indigo-500/5 text-indigo-600 border border-indigo-500/20 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/25 font-semibold text-[11px] rounded-full px-2.5 py-0.5"
+                  >
+                    {watchedBrand}
+                  </Badge>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground/60 italic font-medium">
+                    Unbranded
                   </span>
                 )}
                 <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-muted/40 px-1.5 py-0.5 rounded-md">

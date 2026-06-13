@@ -82,7 +82,7 @@ export async function getAnnouncementsAction() {
               : null,
             stock_quantity: ann.product.stock_quantity,
             image_key: ann.product.image_key,
-            brand: ann.product.brand,
+            brand: ann.product.brand?.name || null,
             is_veg: ann.product.is_veg,
           }
         : null,

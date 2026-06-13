@@ -1,13 +1,10 @@
 import { Prisma, ShopType } from "@/generated/client";
 import {
+  BrandRepository,
   CategoryRepository,
-  categoryRepository,
-} from "@/repositories/category.repository";
-import {
   ProductRepository,
-  productRepository,
-} from "@/repositories/product.repository";
-import { ShopRepository, shopRepository } from "@/repositories/shop.repository";
+  ShopRepository,
+} from "@/repositories";
 import { SearchResult } from "@/types/search.types";
 
 export type SortOrder = "asc" | "desc";
@@ -29,7 +26,7 @@ export interface ProductSearchParams extends PaginationParams, SortParams {
   minPrice?: number;
   maxPrice?: number;
   inStock?: boolean;
-  brand?: string;
+  brand_id?: string;
   is_veg?: boolean;
   shop_type?: ShopType;
 }
@@ -40,6 +37,10 @@ export interface ShopSearchParams extends PaginationParams {
 }
 
 export interface CategorySearchParams extends PaginationParams {
+  query?: string;
+}
+
+export interface BrandSearchParams extends PaginationParams {
   query?: string;
 }
 
@@ -57,7 +58,8 @@ export interface ProductDocument {
   shop_is_active: boolean;
   created_at: string;
   updated_at: string;
-  brand: string | null;
+  brand_id: string | null;
+  brand_name: string | null;
   is_veg: boolean | null;
 }
 
@@ -71,6 +73,10 @@ export interface ShopDocument {
 }
 
 export interface CategoryDocument {
+  name: string;
+}
+
+export interface BrandDocument {
   name: string;
 }
 
@@ -96,7 +102,8 @@ export class DBSearchService {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly shopRepository: ShopRepository,
-    private readonly categoryRepository: CategoryRepository
+    private readonly categoryRepository: CategoryRepository,
+    private readonly brandRepository: BrandRepository
   ) {}
 
   async searchProducts(
@@ -109,7 +116,7 @@ export class DBSearchService {
       minPrice,
       maxPrice,
       inStock,
-      brand,
+      brand_id,
       is_veg,
       shop_type,
       page = DEFAULT_PAGE,
@@ -153,8 +160,8 @@ export class DBSearchService {
       where.stock_quantity = { lte: 0 };
     }
 
-    if (brand) {
-      where.brand = brand;
+    if (brand_id) {
+      where.brand_id = brand_id;
     }
 
     if (typeof is_veg === "boolean") {
@@ -167,6 +174,7 @@ export class DBSearchService {
         { name: { contains: trimmed, mode: "insensitive" } },
         { description: { contains: trimmed, mode: "insensitive" } },
         { category: { name: { contains: trimmed, mode: "insensitive" } } },
+        { brand: { name: { contains: trimmed, mode: "insensitive" } } },
         { shop: { name: { contains: trimmed, mode: "insensitive" } } },
       ];
     }
@@ -183,6 +191,7 @@ export class DBSearchService {
         include: {
           category: true,
           shop: { select: { id: true, name: true, is_active: true } },
+          brand: true,
         },
         orderBy: {
           [orderByField]: orderByDirection,
@@ -206,7 +215,8 @@ export class DBSearchService {
       shop_is_active: product.shop.is_active,
       created_at: product.created_at.toISOString(),
       updated_at: product.updated_at.toISOString(),
-      brand: product.brand ?? null,
+      brand_id: product.brand_id,
+      brand_name: product.brand?.name ?? null,
       is_veg: product.is_veg ?? null,
     }));
 
@@ -307,6 +317,40 @@ export class DBSearchService {
       total_pages: Math.ceil(total / limit),
     };
   }
+  async searchBrands(
+    params: BrandSearchParams
+  ): Promise<DBSearchResult<BrandDocument>> {
+    const { query, page = DEFAULT_PAGE, limit = DEFAULT_LIMIT } = params;
+
+    const where: Prisma.BrandWhereInput = {};
+
+    if (query && query.trim()) {
+      const trimmed = query.trim();
+      where.name = { contains: trimmed, mode: "insensitive" };
+    }
+
+    const [brands, total] = await Promise.all([
+      this.brandRepository.findMany({
+        where,
+        take: limit,
+        skip: (page - 1) * limit,
+        orderBy: { name: "asc" },
+      }),
+      this.brandRepository.count({ where }),
+    ]);
+
+    const hits = brands.map((brand) => ({
+      id: brand.id,
+      name: brand.name,
+    }));
+
+    return {
+      hits,
+      total,
+      page,
+      total_pages: Math.ceil(total / limit),
+    };
+  }
 
   async globalSearch(
     query: string,
@@ -316,11 +360,13 @@ export class DBSearchService {
       return [];
     }
 
-    const [shopResults, productResults, categoryResults] = await Promise.all([
-      this.searchShops({ query, limit }),
-      this.searchProducts({ query, limit }),
-      this.searchCategories({ query, limit }),
-    ]);
+    const [shopResults, productResults, categoryResults, brandResults] =
+      await Promise.all([
+        this.searchShops({ query, limit }),
+        this.searchProducts({ query, limit }),
+        this.searchCategories({ query, limit }),
+        this.searchBrands({ query, limit }),
+      ]);
 
     const results: SearchResult[] = [
       ...shopResults.hits.map((shop) => ({
@@ -345,15 +391,15 @@ export class DBSearchService {
         type: "category" as const,
         image_key: null,
       })),
+      ...brandResults.hits.map((brand) => ({
+        id: brand.id,
+        title: brand.name,
+        subtitle: "brand",
+        type: "brand" as const,
+        image_key: null,
+      })),
     ];
 
     return results;
   }
 }
-
-export const dbSearchService = new DBSearchService(
-  productRepository,
-  shopRepository,
-  categoryRepository
-);
-export default dbSearchService;

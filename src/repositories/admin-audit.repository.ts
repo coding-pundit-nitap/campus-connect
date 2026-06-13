@@ -103,6 +103,3 @@ export class AdminAuditRepository extends BaseRepository<
     });
   }
 }
-
-export const adminAuditRepository = new AdminAuditRepository();
-export default adminAuditRepository;
