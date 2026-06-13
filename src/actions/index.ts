@@ -9,6 +9,7 @@ export * from "@/actions/shop/shop-actions";
 export * from "@/actions/shops/favorite-shops-actions";
 export * from "@/actions/user";
 export * from "@/actions/user-addresses/user-address-actions";
+export * from "@/actions/vendor/announcement-actions";
 export * from "@/actions/vendor/batch-actions";
 export * from "@/actions/vendor/batch-slot-actions";
 export * from "@/actions/vendor/individual-delivery-actions";

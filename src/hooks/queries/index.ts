@@ -1,4 +1,5 @@
 export * from "./useAddress";
+export * from "./useAnnouncements";
 export * from "./useBatch";
 export * from "./useBroadcast";
 export * from "./useBuildings";
