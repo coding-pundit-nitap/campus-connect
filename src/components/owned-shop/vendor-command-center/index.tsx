@@ -30,6 +30,7 @@ import {
   useStartDelivery,
   useStartDirectDelivery,
   useUpdateBatchCutoffTime,
+  useUpdateBatchMilestone,
   useVerifyDeliveryOtp,
 } from "@/hooks/queries/useBatch";
 import { cn } from "@/lib/cn";
@@ -122,6 +123,7 @@ export function VendorCommandCenter() {
   const startDeliveryMutation = useStartDelivery();
   const completeBatchMutation = useCompleteBatch();
   const verifyOtpMutation = useVerifyDeliveryOtp();
+  const updateMilestoneMutation = useUpdateBatchMilestone();
 
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
@@ -185,7 +187,8 @@ export function VendorCommandCenter() {
     closeBatchMutation.isPending ||
     startDeliveryMutation.isPending ||
     completeBatchMutation.isPending ||
-    verifyOtpMutation.isPending;
+    verifyOtpMutation.isPending ||
+    updateMilestoneMutation.isPending;
 
   /* ─── New order notification ─── */
 
@@ -259,6 +262,17 @@ export function VendorCommandCenter() {
     if (!activeBatch) return;
     completeBatchMutation.mutate(activeBatch.id);
   }, [activeBatch, completeBatchMutation]);
+
+  const handleUpdateMilestone = useCallback(
+    (milestone: any) => {
+      if (!activeBatch) return;
+      updateMilestoneMutation.mutate({
+        batchId: activeBatch.id,
+        milestone,
+      });
+    },
+    [activeBatch, updateMilestoneMutation]
+  );
 
   const handleOtpChange = useCallback((id: string, val: string) => {
     setOtpInputs((prev) => ({ ...prev, [id]: val.slice(0, 4) }));
@@ -588,6 +602,8 @@ export function VendorCommandCenter() {
         onCloseBatch={closeBatch}
         onStartRun={startRun}
         onCompleteRun={completeRun}
+        currentMilestone={activeBatch?.delivery_status?.current_milestone}
+        onUpdateMilestone={handleUpdateMilestone}
       />
 
       {/* ── Print-only KOT section ── */}

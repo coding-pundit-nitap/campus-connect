@@ -31,8 +31,12 @@ export async function GET() {
     }
 
     const [openBatch, activeBatches] = await Promise.all([
-      batchRepository.findOpenBatchByShopId(shop.id),
-      batchRepository.findActiveBatches(shop.id),
+      batchRepository.findOpenBatchByShopId(shop.id, {
+        include: { delivery_status: true },
+      }),
+      batchRepository.findActiveBatches(shop.id, {
+        include: { delivery_status: true },
+      }),
     ]);
     const activeBatch = openBatch ?? activeBatches[0] ?? null;
 

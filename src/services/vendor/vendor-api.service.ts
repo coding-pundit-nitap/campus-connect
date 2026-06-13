@@ -1,4 +1,4 @@
-import { BatchStatus } from "@/generated/client";
+import { BatchMilestone, BatchStatus } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
 import type { ActionResponse, SerializedOrderWithDetails } from "@/types";
 
@@ -16,6 +16,16 @@ export interface SerializedBatch {
   status: BatchStatus;
   created_at: string;
   updated_at: string;
+  delivery_status?: {
+    id: string;
+    batch_id: string;
+    current_milestone: BatchMilestone;
+    estimated_arrival: string | null;
+    rider_name: string | null;
+    rider_phone: string | null;
+    created_at: string;
+    updated_at: string;
+  } | null;
 }
 
 export interface ActiveBatchResponse {

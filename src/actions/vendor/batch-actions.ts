@@ -1,6 +1,7 @@
 "use server";
 
 import { batchService } from "@/di/container";
+import { BatchMilestone } from "@/generated/client";
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
@@ -119,4 +120,40 @@ export async function verifyOrderOtpAction(orderId: string, otp: string) {
   }
 
   return createSuccessResponse(null, result.message);
+}
+
+export async function updateBatchMilestoneAction({
+  batchId,
+  milestone,
+  riderName,
+  riderPhone,
+  estimatedArrival,
+}: {
+  batchId: string;
+  milestone: BatchMilestone;
+  riderName?: string;
+  riderPhone?: string;
+  estimatedArrival?: Date;
+}) {
+  const shopId = await authUtils.getOwnedShopId();
+  if (!shopId) {
+    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
+  }
+
+  const batch = await prisma.batch.findUnique({
+    where: { id: batchId },
+    select: { shop_id: true },
+  });
+  if (!batch || batch.shop_id !== shopId) {
+    throw new ValidationError("Batch not found or unauthorized");
+  }
+
+  await batchService.updateBatchMilestone(
+    batchId,
+    milestone,
+    riderName,
+    riderPhone,
+    estimatedArrival
+  );
+  return createSuccessResponse(null, "Batch milestone updated successfully.");
 }

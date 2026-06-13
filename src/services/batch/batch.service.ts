@@ -1,6 +1,6 @@
 import { randomInt } from "node:crypto";
 
-import { BatchSlot, BatchStatus } from "@/generated/client";
+import { BatchMilestone, BatchSlot, BatchStatus } from "@/generated/client";
 import { NotFoundError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -217,6 +217,12 @@ export class BatchService {
     }
 
     await this.batchRepository.updateStatus(batchId, "LOCKED");
+
+    await this.prismaClient.batchDeliveryStatus.upsert({
+      where: { batch_id: batchId },
+      update: { current_milestone: BatchMilestone.PACKING },
+      create: { batch_id: batchId, current_milestone: BatchMilestone.PACKING },
+    });
 
     const orders = await this.orderRepository.getOrdersByIds([], {
       where: { batch_id: batchId },
@@ -556,6 +562,15 @@ export class BatchService {
 
     await this.batchRepository.updateStatus(batchId, "IN_TRANSIT");
 
+    await this.prismaClient.batchDeliveryStatus.upsert({
+      where: { batch_id: batchId },
+      update: { current_milestone: BatchMilestone.CLIMB_STARTED },
+      create: {
+        batch_id: batchId,
+        current_milestone: BatchMilestone.CLIMB_STARTED,
+      },
+    });
+
     const orderIds = batch.orders.map((o) => o.id);
 
     if (orderIds.length > 0) {
@@ -604,6 +619,12 @@ export class BatchService {
     }
 
     await this.batchRepository.updateStatus(batchId, "COMPLETED");
+
+    await this.prismaClient.batchDeliveryStatus.upsert({
+      where: { batch_id: batchId },
+      update: { current_milestone: BatchMilestone.ARRIVED },
+      create: { batch_id: batchId, current_milestone: BatchMilestone.ARRIVED },
+    });
   }
 
   async generateOtpForBatch(batchId: string): Promise<void> {
@@ -749,6 +770,31 @@ export class BatchService {
     }
 
     return { cancelled_orders: orderIds.length };
+  }
+
+  async updateBatchMilestone(
+    batchId: string,
+    milestone: BatchMilestone,
+    riderName?: string,
+    riderPhone?: string,
+    estimatedArrival?: Date
+  ): Promise<void> {
+    await this.prismaClient.batchDeliveryStatus.upsert({
+      where: { batch_id: batchId },
+      update: {
+        current_milestone: milestone,
+        rider_name: riderName || undefined,
+        rider_phone: riderPhone || undefined,
+        estimated_arrival: estimatedArrival || undefined,
+      },
+      create: {
+        batch_id: batchId,
+        current_milestone: milestone,
+        rider_name: riderName,
+        rider_phone: riderPhone,
+        estimated_arrival: estimatedArrival,
+      },
+    });
   }
 
   private generateOtp(): string {

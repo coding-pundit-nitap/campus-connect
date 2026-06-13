@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { TimerReset, Truck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { BatchMilestone } from "@/generated/client";
 
 export function BatchControlBar({
   activeBatch,
@@ -13,8 +14,15 @@ export function BatchControlBar({
   onCloseBatch,
   onStartRun,
   onCompleteRun,
+  currentMilestone,
+  onUpdateMilestone,
 }: {
-  activeBatch: { id: string; cutoff_time: string; status: string } | null;
+  activeBatch: {
+    id: string;
+    cutoff_time: string;
+    status: string;
+    delivery_status?: { current_milestone: string } | null;
+  } | null;
   batchNewCount: number;
   batchAcceptedCount: number;
   remainingDispatch: number;
@@ -23,6 +31,8 @@ export function BatchControlBar({
   onCloseBatch: () => void;
   onStartRun: () => void;
   onCompleteRun: () => void;
+  currentMilestone?: string | null;
+  onUpdateMilestone?: (milestone: BatchMilestone) => void;
 }) {
   if (!activeBatch) return null;
 
@@ -90,6 +100,63 @@ export function BatchControlBar({
             <Truck className="mr-1 h-3.5 w-3.5" />
             Start Run
           </Button>
+          {activeBatch.status === "IN_TRANSIT" && onUpdateMilestone && (
+            <div className="flex items-center gap-1 border border-border/40 rounded-xl p-0.5 bg-card/40 shadow-inner mr-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={
+                  currentMilestone === "CLIMB_STARTED" ? "default" : "outline"
+                }
+                onClick={() =>
+                  onUpdateMilestone("CLIMB_STARTED" as BatchMilestone)
+                }
+                disabled={pending}
+                className={`h-8 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                  currentMilestone === "CLIMB_STARTED"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
+                    : "border-transparent hover:bg-muted/60 text-foreground"
+                }`}
+              >
+                Climb Started
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={
+                  currentMilestone === "MIDWAY_100M_HILL"
+                    ? "default"
+                    : "outline"
+                }
+                onClick={() =>
+                  onUpdateMilestone("MIDWAY_100M_HILL" as BatchMilestone)
+                }
+                disabled={pending}
+                className={`h-8 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                  currentMilestone === "MIDWAY_100M_HILL"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
+                    : "border-transparent hover:bg-muted/60 text-foreground"
+                }`}
+              >
+                Midway Hill
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={currentMilestone === "ARRIVED" ? "default" : "outline"}
+                onClick={() => onUpdateMilestone("ARRIVED" as BatchMilestone)}
+                disabled={pending}
+                className={`h-8 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                  currentMilestone === "ARRIVED"
+                    ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
+                    : "border-transparent hover:bg-muted/60 text-foreground"
+                }`}
+              >
+                Arrived
+              </Button>
+            </div>
+          )}
+
           <Button
             type="button"
             variant="outline"

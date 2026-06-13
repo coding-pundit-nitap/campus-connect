@@ -9,6 +9,7 @@ import {
   lockBatchAction,
   startBatchDeliveryAction,
   unlockBatchAction,
+  updateBatchMilestoneAction,
   verifyOrderOtpAction,
 } from "@/actions";
 import {
@@ -284,6 +285,22 @@ export function useVerifyDeliveryOtp() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to verify OTP");
+    },
+  });
+}
+
+export function useUpdateBatchMilestone() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateBatchMilestoneAction,
+    onSuccess: () => {
+      toast.success("Batch milestone updated successfully!");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update milestone");
     },
   });
 }
