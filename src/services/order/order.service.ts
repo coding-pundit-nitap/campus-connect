@@ -100,14 +100,23 @@ export class OrderService {
       select: { id: true, status: true },
     });
 
-    if (existingBatch && existingBatch.status !== "OPEN") {
-      throw new ValidationError(
-        "This batch has already been locked. Please pick another slot or use direct delivery."
-      );
-    }
-
     if (existingBatch) {
-      return await tx.batch.findUnique({ where: { id: existingBatch.id } });
+      const lockedBatch = await tx.$queryRaw<any[]>`
+        SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${existingBatch.id} FOR UPDATE
+      `;
+      if (!lockedBatch || lockedBatch.length === 0) {
+        throw new ValidationError("The selected batch does not exist.");
+      }
+      if (lockedBatch[0].status !== "OPEN") {
+        throw new ValidationError(
+          "This batch has already been locked. Please pick another slot or use direct delivery."
+        );
+      }
+      return {
+        id: lockedBatch[0].id,
+        cutoff_time: new Date(lockedBatch[0].cutoff_time),
+        status: lockedBatch[0].status,
+      };
     }
 
     return await tx.batch.create({
@@ -157,6 +166,11 @@ export class OrderService {
     is_direct_delivery?: boolean,
     batch_id?: string
   ) {
+    if (is_direct_delivery && (batch_id || requested_delivery_time)) {
+      throw new ValidationError(
+        "Direct delivery orders cannot be scheduled or assigned to a batch."
+      );
+    }
     return this.prismaClient.$transaction(async (tx) => {
       const cart = await tx.cart.findUnique({
         where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
@@ -294,7 +308,8 @@ export class OrderService {
 
       if (batch_id) {
         const lockedBatch = await tx.$queryRaw<any[]>`
-          SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${batch_id} FOR UPDATE
+          SELECT id, status, cutoff_time FROM "Batch" 
+          WHERE id = ${batch_id} AND shop_id = ${shop_id} FOR UPDATE
         `;
         if (!lockedBatch || lockedBatch.length === 0) {
           throw new ValidationError("The selected batch does not exist.");
@@ -304,8 +319,13 @@ export class OrderService {
             "This batch has already been locked. Please choose another batch."
           );
         }
+        const now = new Date();
+        const cutoffTime = new Date(lockedBatch[0].cutoff_time);
+        if (cutoffTime.getTime() <= now.getTime()) {
+          throw new ValidationError("The selected batch has already expired.");
+        }
         batchIdToLink = lockedBatch[0].id;
-        requested_delivery_time = new Date(lockedBatch[0].cutoff_time);
+        requested_delivery_time = cutoffTime;
       } else if (requested_delivery_time) {
         const batch = await this.findOrCreateBatchForRequestedTime(
           tx,
