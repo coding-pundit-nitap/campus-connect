@@ -95,17 +95,32 @@ export class OrderService {
       where: {
         shop_id,
         cutoff_time: cutoffTime,
-        status: { in: ["OPEN", "LOCKED", "IN_TRANSIT", "COMPLETED"] },
       },
       select: { id: true, status: true },
     });
 
     if (existingBatch) {
+      if (existingBatch.status === "CANCELLED") {
+        throw new ValidationError(
+          "This batch slot is no longer available (Cancelled)."
+        );
+      }
+      if (existingBatch.status !== "OPEN") {
+        throw new ValidationError(
+          "This batch has already been locked. Please pick another slot or use direct delivery."
+        );
+      }
+
       const lockedBatch = await tx.$queryRaw<any[]>`
         SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${existingBatch.id} FOR UPDATE
       `;
       if (!lockedBatch || lockedBatch.length === 0) {
         throw new ValidationError("The selected batch does not exist.");
+      }
+      if (lockedBatch[0].status === "CANCELLED") {
+        throw new ValidationError(
+          "This batch slot is no longer available (Cancelled)."
+        );
       }
       if (lockedBatch[0].status !== "OPEN") {
         throw new ValidationError(
@@ -169,6 +184,11 @@ export class OrderService {
     if (is_direct_delivery && (batch_id || requested_delivery_time)) {
       throw new ValidationError(
         "Direct delivery orders cannot be scheduled or assigned to a batch."
+      );
+    }
+    if (!is_direct_delivery && !batch_id && !requested_delivery_time) {
+      throw new ValidationError(
+        "Batch delivery orders must specify a batch ID or requested delivery time."
       );
     }
     return this.prismaClient.$transaction(async (tx) => {
@@ -316,7 +336,7 @@ export class OrderService {
         }
         if (lockedBatch[0].status !== "OPEN") {
           throw new ValidationError(
-            "This batch has already been locked. Please choose another batch."
+            `This batch is no longer accepting orders (Status: ${lockedBatch[0].status}).`
           );
         }
         const now = new Date();
