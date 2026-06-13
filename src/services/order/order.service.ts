@@ -196,257 +196,280 @@ export class OrderService {
         "Provide either batch ID or requested delivery time, not both."
       );
     }
-    return this.prismaClient.$transaction(async (tx) => {
-      await tx.$executeRaw`
+    const { order, shopOwnerId } = await this.prismaClient.$transaction(
+      async (tx) => {
+        await tx.$executeRaw`
         SELECT id FROM "Shop" WHERE id = ${shop_id} FOR UPDATE
       `;
 
-      const cart = await tx.cart.findUnique({
-        where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
-        include: {
-          items: { include: { product: true } },
-          user: { select: { name: true, phone: true } },
-        },
-      });
+        const cart = await tx.cart.findUnique({
+          where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
+          include: {
+            items: { include: { product: true } },
+            user: { select: { name: true, phone: true } },
+          },
+        });
 
-      const shop = await tx.shop.findFirst({
-        where: { id: shop_id, deleted_at: null },
-        select: {
-          id: true,
-          name: true,
-          is_active: true,
-          accepting_orders: true,
-          min_order_value: true,
-          default_delivery_fee: true,
-          direct_delivery_fee: true,
-          user: { select: { id: true } },
-        },
-      });
+        const shop = await tx.shop.findFirst({
+          where: { id: shop_id, deleted_at: null },
+          select: {
+            id: true,
+            name: true,
+            is_active: true,
+            accepting_orders: true,
+            min_order_value: true,
+            default_delivery_fee: true,
+            direct_delivery_fee: true,
+            user: { select: { id: true } },
+          },
+        });
 
-      const deliveryAddress = await tx.userAddress.findUnique({
-        where: { id: delivery_address_id },
-      });
+        const deliveryAddress = await tx.userAddress.findUnique({
+          where: { id: delivery_address_id },
+        });
 
-      if (!cart || cart.items.length === 0) {
-        throw new NotFoundError("Cart is empty.");
-      }
-      if (!shop) {
-        throw new NotFoundError("Shop not found.");
-      }
-      if (!shop.is_active) {
-        throw new ValidationError("Shop is currently not accepting orders.");
-      }
-      if (!shop.accepting_orders) {
-        throw new ValidationError(
-          "Shop is not accepting orders at the moment. Please try again later."
-        );
-      }
-      if (!deliveryAddress) {
-        throw new NotFoundError("Delivery address not found.");
-      }
-      if (deliveryAddress.user_id !== user_id) {
-        throw new UnauthorizedError("Address does not belong to user.");
-      }
-
-      const configuredDeliveryBuildings = await tx.shopDeliveryBuilding.count({
-        where: { shop_id, is_active: true },
-      });
-      if (configuredDeliveryBuildings > 0) {
-        const canDeliver = deliveryAddress.building_id
-          ? await tx.shopDeliveryBuilding.findFirst({
-              where: {
-                shop_id,
-                building_id: deliveryAddress.building_id,
-                is_active: true,
-              },
-              select: { id: true },
-            })
-          : await tx.shopDeliveryBuilding.findFirst({
-              where: {
-                shop_id,
-                is_active: true,
-                building: {
-                  name: {
-                    equals: deliveryAddress.building,
-                    mode: "insensitive",
-                  },
-                },
-              },
-              select: { id: true },
-            });
-
-        if (!canDeliver) {
+        if (!cart || cart.items.length === 0) {
+          throw new NotFoundError("Cart is empty.");
+        }
+        if (!shop) {
+          throw new NotFoundError("Shop not found.");
+        }
+        if (!shop.is_active) {
+          throw new ValidationError("Shop is currently not accepting orders.");
+        }
+        if (!shop.accepting_orders) {
           throw new ValidationError(
-            "This shop does not deliver to the selected building."
+            "Shop is not accepting orders at the moment. Please try again later."
           );
         }
-      }
+        if (!deliveryAddress) {
+          throw new NotFoundError("Delivery address not found.");
+        }
+        if (deliveryAddress.user_id !== user_id) {
+          throw new UnauthorizedError("Address does not belong to user.");
+        }
 
-      const productIds = [
-        ...new Set(cart.items.map((item) => item.product_id)),
-      ].sort();
-      await tx.$executeRaw`
+        const configuredDeliveryBuildings = await tx.shopDeliveryBuilding.count(
+          {
+            where: { shop_id, is_active: true },
+          }
+        );
+        if (configuredDeliveryBuildings > 0) {
+          const canDeliver = deliveryAddress.building_id
+            ? await tx.shopDeliveryBuilding.findFirst({
+                where: {
+                  shop_id,
+                  building_id: deliveryAddress.building_id,
+                  is_active: true,
+                },
+                select: { id: true },
+              })
+            : await tx.shopDeliveryBuilding.findFirst({
+                where: {
+                  shop_id,
+                  is_active: true,
+                  building: {
+                    name: {
+                      equals: deliveryAddress.building,
+                      mode: "insensitive",
+                    },
+                  },
+                },
+                select: { id: true },
+              });
+
+          if (!canDeliver) {
+            throw new ValidationError(
+              "This shop does not deliver to the selected building."
+            );
+          }
+        }
+
+        const productIds = [
+          ...new Set(cart.items.map((item) => item.product_id)),
+        ].sort();
+        await tx.$executeRaw`
         SELECT id FROM "Product" 
         WHERE id = ANY(${productIds}::text[])
         FOR UPDATE
       `;
 
-      const productDetailsMap = new Map<
-        string,
-        { price: Prisma.Decimal; name: string }
-      >();
+        const productDetailsMap = new Map<
+          string,
+          { price: number; name: string }
+        >();
 
-      let itemTotalPaise = 0;
-      for (const item of cart.items) {
-        const product = await tx.product.findUnique({
-          where: { id: item.product_id },
-          select: {
-            stock_quantity: true,
-            name: true,
-            price: true,
-            discount: true,
-          },
-        });
+        let itemTotalPaise = 0;
+        for (const item of cart.items) {
+          const product = await tx.product.findUnique({
+            where: { id: item.product_id },
+            select: {
+              stock_quantity: true,
+              name: true,
+              price: true,
+              discount: true,
+            },
+          });
 
-        if (!product || product.stock_quantity < item.quantity) {
+          if (!product) {
+            throw new ValidationError("Product not found.");
+          }
+          if (item.quantity <= 0) {
+            throw new ValidationError(
+              `Invalid quantity for product: ${product.name}`
+            );
+          }
+          if (product.stock_quantity < item.quantity) {
+            throw new ValidationError(
+              `Insufficient stock for: ${product.name}`
+            );
+          }
+
+          const pricePaise = Math.round(Number(product.price) * 100);
+          const discountPercent = Number(product.discount) || 0;
+          const discountPaise = Math.round(
+            (pricePaise * discountPercent) / 100
+          );
+          const discountedPrice = (pricePaise - discountPaise) / 100;
+
+          productDetailsMap.set(item.product_id, {
+            price: discountedPrice,
+            name: product.name,
+          });
+
+          const discountedPricePaise = pricePaise - discountPaise;
+          itemTotalPaise += discountedPricePaise * item.quantity;
+        }
+        const itemTotal = Math.round(itemTotalPaise) / 100;
+        const minOrderValue = Number(shop.min_order_value);
+        if (itemTotal < minOrderValue) {
           throw new ValidationError(
-            `Insufficient stock for: ${product?.name ?? item.product.name}`
+            `Minimum order value is ₹${minOrderValue}. Your cart total is ₹${itemTotal}.`
           );
         }
-        productDetailsMap.set(item.product_id, {
-          price: product.price,
-          name: product.name,
-        });
-        const pricePaise = Math.round(Number(product.price) * 100);
-        const discountPercent = Number(product.discount) || 0;
-        const discountPaise = Math.round((pricePaise * discountPercent) / 100);
-        const discountedPricePaise = pricePaise - discountPaise;
-        itemTotalPaise += discountedPricePaise * item.quantity;
-      }
-      const itemTotal = Math.round(itemTotalPaise) / 100;
-      const minOrderValue = Number(shop.min_order_value);
-      if (itemTotal < minOrderValue) {
-        throw new ValidationError(
-          `Minimum order value is ₹${minOrderValue}. Your cart total is ₹${itemTotal}.`
-        );
-      }
 
-      const baseDeliveryFee = Number(shop.default_delivery_fee) || 0;
-      const directDeliveryFee = is_direct_delivery
-        ? Number(shop.direct_delivery_fee) || 0
-        : 0;
-      const deliveryFee = baseDeliveryFee + directDeliveryFee;
-      const platformFee =
-        await this.platformSettingsRepository.getPlatformFee();
-      const totalPrice = itemTotal + deliveryFee + platformFee;
+        const deliveryFee = is_direct_delivery
+          ? Number(shop.direct_delivery_fee) || 0
+          : Number(shop.default_delivery_fee) || 0;
+        const platformFee =
+          await this.platformSettingsRepository.getPlatformFee();
+        const totalPrice =
+          Math.round((itemTotal + deliveryFee + platformFee) * 100) / 100;
 
-      const delivery_address_snapshot: DeliveryAddressSnapshot = {
-        hostel_block: deliveryAddress.hostel_block,
-        building: deliveryAddress.building,
-        room_number: deliveryAddress.room_number,
-        notes: deliveryAddress.notes,
-      };
+        const delivery_address_snapshot: DeliveryAddressSnapshot = {
+          hostel_block: deliveryAddress.hostel_block,
+          building: deliveryAddress.building,
+          room_number: deliveryAddress.room_number,
+          notes: deliveryAddress.notes,
+        };
 
-      const display_id = await this.generateDisplayId(tx);
+        const display_id = await this.generateDisplayId(tx);
 
-      let batchIdToLink: string | undefined = undefined;
+        let batchIdToLink: string | undefined = undefined;
 
-      if (batch_id) {
-        const lockedBatch = await tx.$queryRaw<any[]>`
+        if (batch_id) {
+          const lockedBatch = await tx.$queryRaw<any[]>`
           SELECT id, status, cutoff_time FROM "Batch" 
           WHERE id = ${batch_id} AND shop_id = ${shop_id} FOR UPDATE
         `;
-        if (!lockedBatch || lockedBatch.length === 0) {
-          throw new ValidationError("The selected batch does not exist.");
-        }
-        if (lockedBatch[0].status !== "OPEN") {
-          throw new ValidationError(
-            `This batch is no longer accepting orders (Status: ${lockedBatch[0].status}).`
-          );
-        }
-        const now = new Date();
-        const cutoffTime = new Date(lockedBatch[0].cutoff_time);
-        if (cutoffTime.getTime() <= now.getTime()) {
-          throw new ValidationError("The selected batch has already expired.");
-        }
-        batchIdToLink = lockedBatch[0].id;
-        requested_delivery_time = cutoffTime;
-      } else if (requested_delivery_time) {
-        const batch = await this.findOrCreateBatchForRequestedTime(
-          tx,
-          shop_id,
-          requested_delivery_time
-        );
-        if (batch) {
-          batchIdToLink = batch.id;
-        }
-      }
-
-      const order = await tx.order.create({
-        data: {
-          display_id,
-          user_id: user_id,
-          shop_id: shop_id,
-          ...(batchIdToLink ? { batch_id: batchIdToLink } : {}),
-          item_total: itemTotal,
-          delivery_fee: deliveryFee,
-          platform_fee: platformFee,
-          total_price: totalPrice,
-          payment_method,
-          payment_status: payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
-          pg_payment_id,
-          upi_transaction_id,
-          delivery_address_snapshot,
-          requested_delivery_time,
-          customer_notes,
-          is_direct_delivery: is_direct_delivery ?? false,
-          items: {
-            create: cart.items.map((item) => {
-              const prod = productDetailsMap.get(item.product_id);
-              return {
-                product_id: item.product_id,
-                quantity: item.quantity,
-                price: prod ? prod.price : item.product.price,
-              };
-            }),
-          },
-        },
-      });
-
-      await Promise.all(
-        cart.items.map(async (item) => {
-          const result = await tx.product.updateMany({
-            where: {
-              id: item.product_id,
-              stock_quantity: { gte: item.quantity },
-            },
-            data: { stock_quantity: { decrement: item.quantity } },
-          });
-
-          if (result.count === 0) {
+          if (!lockedBatch || lockedBatch.length === 0) {
+            throw new ValidationError("The selected batch does not exist.");
+          }
+          if (lockedBatch[0].status !== "OPEN") {
             throw new ValidationError(
-              `Insufficient stock for: ${item.product.name}`
+              `This batch is no longer accepting orders (Status: ${lockedBatch[0].status}).`
             );
           }
-        })
-      );
-
-      await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
-
-      if (shop.user) {
-        try {
-          await this.notificationService.publishNotification(shop.user.id, {
-            title: "New Order Received",
-            message: `You have received a new order with ID: ${order.display_id}`,
-            action_url: getShopOrderUrl(order.id),
-            type: "INFO",
-          });
-        } catch (error) {
-          log.error({ err: error }, "Notification Error:");
+          const now = new Date();
+          const cutoffTime = new Date(lockedBatch[0].cutoff_time);
+          if (cutoffTime.getTime() <= now.getTime()) {
+            throw new ValidationError(
+              "The selected batch has already expired."
+            );
+          }
+          batchIdToLink = lockedBatch[0].id;
+          requested_delivery_time = cutoffTime;
+        } else if (requested_delivery_time) {
+          const batch = await this.findOrCreateBatchForRequestedTime(
+            tx,
+            shop_id,
+            requested_delivery_time
+          );
+          if (batch) {
+            batchIdToLink = batch.id;
+            requested_delivery_time = new Date(batch.cutoff_time);
+          }
         }
-      }
 
-      return order;
-    });
+        const order = await tx.order.create({
+          data: {
+            display_id,
+            user_id: user_id,
+            shop_id: shop_id,
+            ...(batchIdToLink ? { batch_id: batchIdToLink } : {}),
+            item_total: itemTotal,
+            delivery_fee: deliveryFee,
+            platform_fee: platformFee,
+            total_price: totalPrice,
+            payment_method,
+            payment_status:
+              payment_method === "ONLINE" ? "COMPLETED" : "PENDING",
+            pg_payment_id,
+            upi_transaction_id,
+            delivery_address_snapshot,
+            requested_delivery_time,
+            customer_notes,
+            is_direct_delivery: is_direct_delivery ?? false,
+            items: {
+              create: cart.items.map((item) => {
+                const prod = productDetailsMap.get(item.product_id);
+                return {
+                  product_id: item.product_id,
+                  quantity: item.quantity,
+                  price: prod ? prod.price : item.product.price,
+                };
+              }),
+            },
+          },
+        });
+
+        await Promise.all(
+          cart.items.map(async (item) => {
+            const result = await tx.product.updateMany({
+              where: {
+                id: item.product_id,
+                stock_quantity: { gte: item.quantity },
+              },
+              data: { stock_quantity: { decrement: item.quantity } },
+            });
+
+            if (result.count === 0) {
+              throw new ValidationError(
+                `Insufficient stock for: ${item.product.name}`
+              );
+            }
+          })
+        );
+
+        await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
+
+        return { order, shopOwnerId: shop.user?.id };
+      }
+    );
+
+    if (shopOwnerId) {
+      try {
+        await this.notificationService.publishNotification(shopOwnerId, {
+          title: "New Order Received",
+          message: `You have received a new order with ID: ${order.display_id}`,
+          action_url: getShopOrderUrl(order.id),
+          type: "INFO",
+        });
+      } catch (error) {
+        log.error({ err: error }, "Notification Error:");
+      }
+    }
+
+    return order;
   }
 }
