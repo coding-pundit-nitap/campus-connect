@@ -105,14 +105,14 @@ export default function CreateProductPage() {
           <TabsList className="grid w-full max-w-xs sm:max-w-md grid-cols-2 bg-muted/30 p-1 rounded-xl border border-border/20">
             <TabsTrigger
               value="single"
-              className="gap-2 rounded-lg text-xs font-bold uppercase tracking-wider py-2 transition-all cursor-pointer data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-blue-600"
+              className="gap-2 rounded-lg text-xs font-bold uppercase tracking-wider py-2 transition-all cursor-pointer data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-violet-600"
             >
               <Package className="h-3.5 w-3.5" />
               Single Product
             </TabsTrigger>
             <TabsTrigger
               value="bulk"
-              className="gap-2 rounded-lg text-xs font-bold uppercase tracking-wider py-2 transition-all cursor-pointer data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-orange-500"
+              className="gap-2 rounded-lg text-xs font-bold uppercase tracking-wider py-2 transition-all cursor-pointer data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-violet-500"
             >
               <Upload className="h-3.5 w-3.5" />
               Bulk Import

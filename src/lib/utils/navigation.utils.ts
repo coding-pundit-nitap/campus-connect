@@ -6,7 +6,10 @@ import {
   Info,
   LayoutDashboard,
   Mail,
+  Megaphone,
   Package,
+  Rss,
+  Search,
   Settings,
   ShoppingBag,
   Store,
@@ -22,97 +25,63 @@ import {
 class NavigationUIService {
   getNavigationItems(): NavigationItem[] {
     return [
-      {
-        id: "home",
-        title: "Home",
-        url: "/",
-        icon: Home,
-      },
-      {
-        id: "shops",
-        title: "Shops",
-        url: "/shops",
-        icon: Store,
-      },
-      {
-        id: "orders",
-        title: "My Orders",
-        url: "/orders",
-        icon: ShoppingBag,
-      },
+      { id: "home", title: "Home", url: "/", icon: Home },
+      { id: "shops", title: "Shops", url: "/shops", icon: Store },
+      { id: "search", title: "Search", url: "/search", icon: Search },
+      { id: "feed", title: "Feed", url: "/feed", icon: Rss },
+      { id: "orders", title: "My Orders", url: "/orders", icon: ShoppingBag },
     ];
   }
 
   getNavigationGroups(): NavigationGroup[] {
     return [
       {
-        label: "Main",
+        label: "Discover",
         items: [
+          { id: "home", title: "Home", url: "/", icon: Home },
+          { id: "shops", title: "Shops", url: "/shops", icon: Store },
+          { id: "search", title: "Search", url: "/search", icon: Search },
           {
-            id: "home",
-            title: "Home",
-            url: "/",
-            icon: Home,
+            id: "feed",
+            title: "Deals & Announcements",
+            url: "/feed",
+            icon: Rss,
           },
-          {
-            id: "shops",
-            title: "Shops",
-            url: "/shops",
-            icon: Store,
-          },
+        ],
+      },
+      {
+        label: "My Account",
+        items: [
           {
             id: "orders",
             title: "My Orders",
             url: "/orders",
             icon: ShoppingBag,
           },
+          {
+            id: "notifications",
+            title: "Notifications",
+            url: "/notifications",
+            icon: Bell,
+          },
         ],
       },
       {
         label: "Information",
         items: [
-          {
-            id: "about",
-            title: "About Us",
-            url: "/about",
-            icon: Info,
-          },
-          {
-            id: "faq",
-            title: "FAQ",
-            url: "/faq",
-            icon: HelpCircle,
-          },
-          {
-            id: "contact",
-            title: "Contact Us",
-            url: "/contact",
-            icon: Mail,
-          },
+          { id: "about", title: "About Us", url: "/about", icon: Info },
+          { id: "faq", title: "FAQ", url: "/faq", icon: HelpCircle },
+          { id: "contact", title: "Contact Us", url: "/contact", icon: Mail },
         ],
       },
     ];
   }
+
   getProNavigationItems(): NavigationItem[] {
     return [
-      {
-        id: "dashboard",
-        title: "Dashboard",
-        url: "/admin",
-        icon: Home,
-      },
-      {
-        id: "users",
-        title: "Users",
-        url: "/admin/users",
-        icon: Users,
-      },
-      {
-        id: "shops",
-        title: "Shops",
-        url: "/admin/shops",
-        icon: Store,
-      },
+      { id: "dashboard", title: "Dashboard", url: "/admin", icon: Home },
+      { id: "users", title: "Users", url: "/admin/users", icon: Users },
+      { id: "shops", title: "Shops", url: "/admin/shops", icon: Store },
       {
         id: "products",
         title: "Products",
@@ -139,34 +108,20 @@ class NavigationUIService {
       },
     ];
   }
+
   getProNavigationGroups(): NavigationGroup[] {
     return [
       {
         label: "Platform",
         items: [
-          {
-            id: "dashboard",
-            title: "Dashboard",
-            url: "/admin",
-            icon: Home,
-          },
+          { id: "dashboard", title: "Dashboard", url: "/admin", icon: Home },
         ],
       },
       {
         label: "Management",
         items: [
-          {
-            id: "users",
-            title: "Users",
-            url: "/admin/users",
-            icon: Users,
-          },
-          {
-            id: "shops",
-            title: "Shops",
-            url: "/admin/shops",
-            icon: Store,
-          },
+          { id: "users", title: "Users", url: "/admin/users", icon: Users },
+          { id: "shops", title: "Shops", url: "/admin/shops", icon: Store },
           {
             id: "products",
             title: "Products",
@@ -205,6 +160,7 @@ class NavigationUIService {
       },
     ];
   }
+
   getOwnerNavigationGroups(): NavigationGroup[] {
     return [
       {
@@ -227,6 +183,12 @@ class NavigationUIService {
             title: "Products",
             url: "/owner-shops/products",
             icon: Package,
+          },
+          {
+            id: "announcements",
+            title: "Announcements",
+            url: "/owner-shops/announcements",
+            icon: Megaphone,
           },
         ],
       },
