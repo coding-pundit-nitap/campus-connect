@@ -15,6 +15,7 @@ import {
   Sparkles,
   Store,
 } from "lucide-react";
+import Image from "next/image";
 import React, { useMemo, useState } from "react";
 
 import type { SerializedAnnouncement } from "@/actions/vendor/announcement-actions";
@@ -42,7 +43,7 @@ export default function FeedPage() {
     useToggleStockWatch();
 
   const activeWatchesSet = useMemo(() => {
-    return new Set(stockWatches.map((w: any) => w.product_id));
+    return new Set(stockWatches.map((w) => w.product.id));
   }, [stockWatches]);
 
   const filteredAnnouncements = useMemo(() => {
@@ -206,10 +207,12 @@ export default function FeedPage() {
                               <div className="flex items-center gap-3.5 min-w-0 z-10 w-full sm:w-auto">
                                 <div className="h-12 w-12 rounded-xl bg-card border border-border/40 overflow-hidden flex items-center justify-center shrink-0">
                                   {product.image_key ? (
-                                    <img
+                                    <Image
                                       src={`/api/images/${product.image_key}`}
                                       alt={product.name}
                                       className="h-full w-full object-cover"
+                                      width={48}
+                                      height={48}
                                     />
                                   ) : (
                                     <ShoppingBag className="h-5 w-5 text-muted-foreground/30" />
@@ -219,22 +222,22 @@ export default function FeedPage() {
                                   <span className="text-xs font-bold text-foreground truncate block">
                                     {product.name}
                                   </span>
-                                  {product.brand && (
+                                  {product.brand ? (
                                     <span className="text-[10px] text-muted-foreground font-semibold block">
                                       Brand: {product.brand}
                                     </span>
-                                  )}
+                                  ) : null}
                                   <div className="flex items-center gap-2 mt-1">
                                     <span className="text-xs font-extrabold text-foreground font-mono">
                                       {formatCurrency(product.price)}
                                     </span>
-                                    {product.discount && (
+                                    {product.discount ? (
                                       <span className="text-[10px] text-muted-foreground font-mono line-through">
                                         {formatCurrency(
                                           product.price + product.discount
                                         )}
                                       </span>
-                                    )}
+                                    ) : null}
                                   </div>
                                 </div>
                               </div>
