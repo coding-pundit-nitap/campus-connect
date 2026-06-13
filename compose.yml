@@ -65,6 +65,8 @@ services:
 
   migrator-dev:
     <<: [*dev-build, *dev-env]
+    tty: true
+    stdin_open: true
     container_name: campus_connect_migrator_dev
     restart: "no"
     command: >
