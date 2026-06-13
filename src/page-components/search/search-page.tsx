@@ -321,7 +321,10 @@ export default function SearchPage() {
 
         {/* Results Info Bar */}
         <div className="flex items-center justify-between mb-6 px-1">
-          <div className="text-sm font-medium text-slate-500 dark:text-zinc-400">
+          <div
+            className="text-sm font-medium text-slate-500 dark:text-zinc-400"
+            suppressHydrationWarning
+          >
             {isPending ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin text-violet-500" />
