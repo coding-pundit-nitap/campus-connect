@@ -1,7 +1,6 @@
 import { Queue, Worker } from "bullmq";
 
-import { batchService } from "@/di/container";
-
+import { batchService } from "../../src/di/container";
 import { loggers } from "../lib/logger";
 import { redisConnection } from "../lib/redis-connection";
 
@@ -30,7 +29,7 @@ export async function runBatchCloserLogic(): Promise<void> {
 
 export const batchCloserWorker = new Worker(
   BATCH_CLOSER_QUEUE_NAME,
-  async (job) => {
+  async (_job) => {
     logger.info("Executing batch closer job...");
     await runBatchCloserLogic();
   },
