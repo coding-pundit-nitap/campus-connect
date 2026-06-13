@@ -49,6 +49,13 @@ class OrderAPIService {
     });
     return response.data;
   }
+
+  async fetchOrderById(order_id: string): Promise<SerializedOrderWithDetails> {
+    const url = `orders/${order_id}`;
+    const response =
+      await axiosInstance.get<ActionResponse<SerializedOrderWithDetails>>(url);
+    return response.data.data;
+  }
 }
 
 export const orderAPIService = new OrderAPIService();

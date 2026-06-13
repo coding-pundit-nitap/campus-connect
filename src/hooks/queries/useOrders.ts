@@ -17,7 +17,6 @@ import {
   batchUpdateOrderStatusAction,
   cancelOrderAction,
   createOrderAction,
-  getOrderByIdAction,
   updateOrderStatusAction,
 } from "@/actions/orders/order-actions";
 import { OrderStatus } from "@/generated/client";
@@ -249,13 +248,7 @@ export function useDownloadOrderPDF() {
 export function useOrderDetails(orderId: string, enabled: boolean = true) {
   return useQuery({
     queryKey: queryKeys.orders.detail(orderId),
-    queryFn: async () => {
-      const res = await getOrderByIdAction(orderId);
-      if (!res.success) {
-        throw new Error(res.details || "Failed to fetch order details.");
-      }
-      return res.data;
-    },
+    queryFn: () => orderAPIService.fetchOrderById(orderId),
     enabled: !!orderId && enabled,
     refetchInterval: 5000, // Poll every 5 seconds for live status!
   });

@@ -3,12 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import {
-  createAnnouncementAction,
-  deleteAnnouncementAction,
-  getAnnouncementsAction,
-  getShopAnnouncementsAction,
-} from "@/actions";
+import { createAnnouncementAction, deleteAnnouncementAction } from "@/actions";
+import { announcementAPIService } from "@/services/announcement";
 
 // Extend queryKeys object locally for announcements
 const announcementKeys = {
@@ -20,13 +16,7 @@ const announcementKeys = {
 export function useAnnouncements() {
   return useQuery({
     queryKey: announcementKeys.list(),
-    queryFn: async () => {
-      const res = await getAnnouncementsAction();
-      if (!res.success) {
-        throw new Error(res.details || "Failed to fetch announcements");
-      }
-      return res.data;
-    },
+    queryFn: () => announcementAPIService.fetchAnnouncements(),
     staleTime: 10_000,
   });
 }
@@ -34,13 +24,7 @@ export function useAnnouncements() {
 export function useShopAnnouncements() {
   return useQuery({
     queryKey: announcementKeys.shopList(),
-    queryFn: async () => {
-      const res = await getShopAnnouncementsAction();
-      if (!res.success) {
-        throw new Error(res.details || "Failed to fetch shop announcements");
-      }
-      return res.data;
-    },
+    queryFn: () => announcementAPIService.fetchShopAnnouncements(),
   });
 }
 
