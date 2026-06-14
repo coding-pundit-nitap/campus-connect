@@ -1,6 +1,6 @@
 import { Queue, Worker } from "bullmq";
 
-import { batchService } from "../../src/di/container";
+import { batchService } from "../di/container";
 import { loggers } from "../lib/logger";
 import { redisConnection } from "../lib/redis-connection";
 
