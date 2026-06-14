@@ -362,6 +362,7 @@ campus-connect/
 │   └── lib/                       # Worker-local infrastructure singletons
 │       ├── prisma.ts              # Own Prisma singleton (workers/generated/client)
 │       ├── redis.ts
+│       ├── email.ts               # Nodemailer transporter for worker email sending
 │       ├── redis-connection.ts
 │       └── logger.ts
 └── src/
@@ -376,12 +377,24 @@ campus-connect/
     │   │   └── upload/            # Presigned MinIO URLs
     │   ├── actions/               # Next.js Server Actions
     │   │   ├── admin/             # 12 admin action files
-    │   │   └── vendor/            # batch, batch-slot, individual-delivery
+    │   │   ├── authentication/
+    │   │   ├── building/
+    │   │   ├── cart/
+    │   │   ├── notifications/
+    │   │   ├── orders/
+    │   │   ├── product/
+    │   │   ├── products/
+    │   │   ├── shop/
+    │   │   ├── shops/
+    │   │   ├── user/
+    │   │   ├── user-addresses/
+    │   │   └── vendor/            # announcement-actions, batch-actions, batch-slot-actions, individual-delivery
     │   ├── (public)/              # Unauthenticated pages
     │   ├── (private)/             # Auth-required pages
     │   └── (protected)/           # Admin-only pages
+    ├── page-components/         # Page-level UI components (co-located by page/route)
     ├── components/                # ~200 components
-    │   ├── ui/                    # shadcn/ui primitives (35 components)
+    │   ├── ui/                    # shadcn/ui primitives (37 components)
     │   ├── shared/                # Cross-feature components
     │   ├── owned-shop/            # Vendor dashboard components
     │   └── admin/                 # Admin data tables, dialogs
@@ -389,12 +402,13 @@ campus-connect/
     │   ├── queries/               # TanStack Query v5 hooks
     │   ├── ui/                    # Form/filter/drawer state hooks
     │   └── utils/                 # useInfiniteScroll, useLiveNotifications, useOnlineStatus
-    ├── repositories/              # Data access layer — 13 repository files
+    ├── repositories/              # Data access layer — 17 repository files
     ├── services/                  # Business logic — 19 service domains
     ├── di/
     │   └── container.ts           # Dependency injection container
+    ├── auth.ts                    # Root-level Better Auth entry point
     ├── lib/
-    │   ├── auth.ts                # Better Auth configuration
+    │   ├── auth.ts                # Better Auth server configuration
     │   ├── prisma.ts              # Prisma singleton (app process)
     │   ├── redis.ts               # ioredis client (app process)
     │   ├── notification-emitter.ts  # Enqueues to BullMQ notification queue
@@ -547,22 +561,33 @@ every minute:
         UPDATE Order SET otp = otp WHERE id = order.id
     COMMIT
 
-    enqueue(NOTIFICATION_QUEUE, {
-      type: 'BATCH_LOCKED',
-      vendorId: batch.vendorId,
-      batchId: batch.id
-    })
+    # For each locked batch, notify the vendor via the notification service
+    # notificationService.publishNotification(batch.vendorId, {
+    #   title: 'Batch Locked',
+    #   message: '...',
+    #   type: 'SUCCESS',
+    #   category: 'ORDER',
+    #   action_url: '...'
+    # })
+    # Internally: enqueues a SEND_NOTIFICATION job to the BullMQ notification queue
 
   staleBatches = SELECT * FROM Batch
                  WHERE status = 'LOCKED'
-                   AND locked_at <= NOW() - 30 MINUTES
+                   AND cutoff_time <= NOW() - 30 MINUTES
+                   AND EXISTS (
+                     SELECT 1 FROM Order
+                     WHERE batch_id = batch.id AND order_status = 'BATCHED'
+                   )
 
   for each batch in staleBatches:
-    enqueue(NOTIFICATION_QUEUE, {
-      type: 'BATCH_STALE_WARNING',
-      adminId: SYSTEM,
-      vendorId: batch.vendorId
-    })
+    # Warn the vendor that orders are still waiting for pickup
+    # notificationService.publishNotification(batch.vendorId, {
+    #   title: '⚠️ Orders Waiting!',
+    #   message: '...',
+    #   type: 'WARNING',
+    #   category: 'ORDER'
+    # })
+    # Internally: enqueues a SEND_NOTIFICATION job to the BullMQ notification queue
 ```
 
 The atomic transaction ensures that a batch is never seen in a half-locked state — either all orders are `BATCHED` and all OTPs generated, or none are.
@@ -605,14 +630,23 @@ Receives `AuditJobData` payloads (actor, action, target entity, metadata) and wr
 `workers/index.ts` registers handlers for `SIGTERM` and `SIGINT`:
 
 ```typescript
-process.on("SIGTERM", async () => {
-  await batchCloserWorker.close();
-  await notificationWorker.close();
-  await auditWorker.close();
+const gracefulShutdown = async (signal: string) => {
+  logger.info({ signal }, "Received shutdown signal, closing workers...");
+  await Promise.all([
+    notificationWorker.close(),
+    auditWorker.close(),
+    batchCloserWorker.close(),
+    closeBatchCloserQueues(),
+    closeNotificationDlqQueue(),
+  ]);
+  await redisPublisher.quit();
   await prisma.$disconnect();
-  redis.disconnect();
+  logger.info("Workers closed. Exiting.");
   process.exit(0);
-});
+};
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 ```
 
 BullMQ's `worker.close()` waits for the currently-executing job to finish before closing the worker. This prevents orphaned jobs or corrupted state during rolling restarts.
