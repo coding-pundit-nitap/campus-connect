@@ -51,6 +51,7 @@ export const loggers = {
   search: createLogger({ component: "search" }),
   audit: createLogger({ component: "audit" }),
   db: createLogger({ component: "database" }),
+  batch: createLogger({ component: "batch-closer" }),
 };
 
 export default logger;
