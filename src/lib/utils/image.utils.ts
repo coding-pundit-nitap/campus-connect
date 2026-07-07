@@ -1,10 +1,8 @@
-import { environment } from "@/config/env.config";
-import { createLogger } from "@/lib/logger";
-const log = createLogger("image.utils");
+const minioBaseUrl = `/api/images/${process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect"}`;
 
 class ImageUtils {
   static extractImageKey(imageValue: string): string {
-    const urlPrefix = environment.minioBaseUrl + "/";
+    const urlPrefix = minioBaseUrl + "/";
     return imageValue.startsWith(urlPrefix)
       ? imageValue.replace(urlPrefix, "")
       : imageValue;
@@ -17,7 +15,7 @@ class ImageUtils {
       return objectKey;
     }
     return objectKey
-      ? `${environment.minioBaseUrl}/${objectKey}`
+      ? `${minioBaseUrl}/${objectKey}`
       : "/placeholders/placeholder.png";
   }
 
@@ -28,7 +26,7 @@ class ImageUtils {
     try {
       return this.extractImageKey(formImageKey);
     } catch (error) {
-      log.warn(`Failed to extract image key, using fallback: ${error}`);
+      console.warn(`Failed to extract image key, using fallback: ${error}`);
       return fallbackKey;
     }
   }

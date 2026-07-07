@@ -1,0 +1,48 @@
+# Dev overrides: expose backing services to host + nginx-dev reverse proxy.
+# Usage: docker compose -f compose.yml -f compose.dev.yml up -d
+#
+# The app and workers run OUTSIDE Docker on the host machine.
+# nginx-dev uses extra_hosts to reach them via host-gateway.
+#
+# Required host-side .env values should point to localhost instead of container names.
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  minio:
+    ports:
+      - "9000:9000"
+    # Note: 9001 (MinIO Console) is intentionally NOT exposed here.
+    # nginx-dev proxies it on port 9001 via host-gateway.
+
+  nginx-dev:
+    image: nginx:1.29-alpine
+    container_name: campus_connect_nginx_dev
+    restart: always
+    ports:
+      - "80:80"
+      - "5555:5555"
+      - "8080:8080"
+      - "9001:9001"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d/dev.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    extra_hosts:
+      - "app-dev:host-gateway"
+      - "prisma-studio:host-gateway"
+    networks:
+      - campus_connect_net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "--fail", "http://127.0.0.1:8080/nginx-health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

@@ -7,8 +7,6 @@ import {
 } from "@/types/response.types";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   try {
     const buildings = await prisma.building.findMany({

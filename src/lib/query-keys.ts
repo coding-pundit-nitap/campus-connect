@@ -132,10 +132,10 @@ export const queryKeys = {
      * Each unique combination of (query + shopType + veg + brand) is cached independently.
      */
     productSearch: (params: {
-      query: string;
-      shopType: string;
-      isVeg: boolean;
-      brand: string | null;
+      q: string;
+      type: string;
+      veg: boolean;
+      brand_id: string | null;
     }) => ["search", "productSearch", params] as const,
     /** Search query key factory for order search  */
     orders: (

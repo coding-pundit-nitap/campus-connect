@@ -255,8 +255,8 @@ REDIS_URL=redis://redis:6379
 
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
 ALERT_EMAIL_FROM=alerts@yourdomain.com
 ALERT_EMAIL_TO=admin@yourdomain.com
 NOTIFICATION_EMAIL_FROM=notifications@example.com

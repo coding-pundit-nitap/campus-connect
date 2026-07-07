@@ -68,13 +68,14 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
   });
 
   useEffect(() => {
-    setTimeout(() => {
+    const st = setTimeout(() => {
       form.reset({
         name: user.name ?? "",
         phone: user.phone ?? "",
       });
       setCurrentImage(user.image);
     }, 0);
+    return () => clearTimeout(st);
   }, [user, isEditing, form]);
 
   const { mutate: updateUserMutation, isPending } = useUpdateUser();

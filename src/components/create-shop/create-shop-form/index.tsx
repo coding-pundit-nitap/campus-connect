@@ -115,10 +115,11 @@ export function CreateShopForm() {
       if (raw) {
         const envelope = JSON.parse(raw);
         if (validateDraft(envelope)) {
-          setTimeout(() => {
+          const st = setTimeout(() => {
             setPendingDraft(envelope);
             setShowPrompt(true);
           }, 0);
+          return () => clearTimeout(st);
         } else {
           sessionStorage.removeItem("cc_create_shop_draft");
         }
@@ -173,8 +174,10 @@ export function CreateShopForm() {
   };
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     const subscription = form.watch((values) => {
-      const timer = setTimeout(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
         try {
           const serializableValues: SerializableDraft = {
             name: values.name || "",
@@ -212,10 +215,10 @@ export function CreateShopForm() {
           toast.error("Failed to save draft");
         }
       }, 500);
-      return () => clearTimeout(timer);
     });
 
     return () => {
+      clearTimeout(timer);
       subscription.unsubscribe();
     };
   }, [form, step]);

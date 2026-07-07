@@ -16,9 +16,10 @@ export function DateDisplay({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
+    const st = setTimeout(() => {
       setMounted(true);
     }, 0);
+    return () => clearTimeout(st);
   }, []);
 
   if (!date) return null;

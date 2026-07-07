@@ -5,6 +5,7 @@
 
 export const publicRoutes: string[] = [
   "/",
+  "/search",
   "/about",
   "/contact",
   "/faq",
@@ -36,6 +37,7 @@ export const publicApiRoutes: string[] = [
   "/api/products/:product_id",
   "/api/reviews/:product_id",
   "/api/search",
+  "/api/search/:path*",
 ];
 
 // Routes related to authentication (login, register, error pages).

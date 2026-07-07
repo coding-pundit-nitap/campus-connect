@@ -64,33 +64,33 @@ export function PaymentForm({
 
     const raw = sessionStorage.getItem("checkout_data");
     if (!raw) {
-      setTimeout(() => {
+      const st = setTimeout(() => {
         setCheckoutData(null);
         setIsCheckoutDataReady(true);
         redirectToCheckout("Checkout session expired. Please start over.");
       }, 100);
-      return;
+      return () => clearTimeout(st);
     }
 
     try {
       const parsed = JSON.parse(raw) as unknown;
       if (!parsed || typeof parsed !== "object") {
-        setTimeout(() => {
+        const st = setTimeout(() => {
           setCheckoutData(null);
           setIsCheckoutDataReady(true);
           redirectToCheckout("Invalid checkout data. Please start over.");
         }, 100);
-        return;
+        return () => clearTimeout(st);
       }
 
       const anyParsed = parsed as Record<string, unknown>;
       if (anyParsed.cart_id !== cart_id) {
-        setTimeout(() => {
+        const st = setTimeout(() => {
           setCheckoutData(null);
           setIsCheckoutDataReady(true);
           redirectToCheckout("Invalid checkout session. Please start over.");
         }, 100);
-        return;
+        return () => clearTimeout(st);
       }
 
       const delivery_address_id = anyParsed.delivery_address_id;
@@ -102,15 +102,15 @@ export function PaymentForm({
         (requested_delivery_time !== undefined &&
           typeof requested_delivery_time !== "string")
       ) {
-        setTimeout(() => {
+        const st = setTimeout(() => {
           setCheckoutData(null);
           setIsCheckoutDataReady(true);
           redirectToCheckout("Invalid checkout session. Please start over.");
         }, 100);
-        return;
+        return () => clearTimeout(st);
       }
 
-      setTimeout(() => {
+      const st = setTimeout(() => {
         setCheckoutData({
           delivery_address_id,
           is_direct_delivery,
@@ -120,12 +120,14 @@ export function PaymentForm({
         });
         setIsCheckoutDataReady(true);
       }, 100);
+      return () => clearTimeout(st);
     } catch {
-      setTimeout(() => {
+      const st = setTimeout(() => {
         setCheckoutData(null);
         setIsCheckoutDataReady(true);
         redirectToCheckout("Invalid checkout data. Please start over.");
       }, 100);
+      return () => clearTimeout(st);
     }
   }, [cart_id, router]);
 

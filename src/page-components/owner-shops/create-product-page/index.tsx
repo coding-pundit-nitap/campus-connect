@@ -59,17 +59,21 @@ export default function CreateProductPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    setTimeout(() => {
+    let url: string | null = null;
+    const st = setTimeout(() => {
       if (watchedImage && watchedImage instanceof File) {
-        const url = URL.createObjectURL(watchedImage);
+        url = URL.createObjectURL(watchedImage);
         setImagePreview(url);
-        return () => {
-          URL.revokeObjectURL(url);
-        };
       } else {
         setImagePreview(null);
       }
     }, 0);
+    return () => {
+      clearTimeout(st);
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
   }, [watchedImage]);
 
   const price = Number(watchedPrice) || 0;

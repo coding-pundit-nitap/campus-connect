@@ -9,8 +9,6 @@ import { serializeOrderWithDetails } from "@/lib/utils/order.utils";
 import { createErrorResponse, createSuccessResponse } from "@/types";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest) {
   try {
     const shop_id = await authUtils.getOwnedShopId();

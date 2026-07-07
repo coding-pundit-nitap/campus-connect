@@ -9,8 +9,6 @@ import { createErrorResponse, createSuccessResponse } from "@/types";
 import { paginatedSchema } from "@/validations/broadcast";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
-
 const productsQuerySchema = paginatedSchema.extend({
   categoryId: z.string().optional(),
   hasDiscount: z

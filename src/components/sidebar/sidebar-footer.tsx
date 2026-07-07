@@ -20,9 +20,10 @@ export function SidebarFooter() {
   const { data: session } = useSession();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setTimeout(() => {
+    const st = setTimeout(() => {
       setMounted(true);
     }, 0);
+    return () => clearTimeout(st);
   }, []);
 
   if (!mounted) {

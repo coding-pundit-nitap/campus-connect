@@ -14,8 +14,6 @@ import { RecentActivityFeed } from "@/components/admin/dashboard/recent-activity
 import { SharedCard } from "@/components/shared/shared-card";
 import { AdminAction } from "@/types/prisma.types";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Admin Dashboard | Campus Connect",
   description: "Administrative dashboard for managing Campus Connect",

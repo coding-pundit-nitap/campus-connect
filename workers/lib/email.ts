@@ -9,7 +9,7 @@ const smtpHost = env.SMTP_HOST;
 const smtpPort = Number(env.SMTP_PORT || "587");
 const smtpUsername = env.SMTP_USER;
 const smtpPassword = env.SMTP_PASS;
-const smtpFrom = env.SMTP_FROM || smtpUsername;
+const smtpFrom = env.ALERT_EMAIL_FROM || smtpUsername;
 
 const isEmailEnabled =
   !!smtpHost &&
@@ -32,7 +32,7 @@ if (isEmailEnabled) {
   });
 } else {
   logger.warn(
-    "Email notifications are disabled. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, and NOTIFICATION_EMAIL_FROM (or ALERT_EMAIL_FROM)."
+    "Email notifications are disabled. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and ALERT_EMAIL_FROM."
   );
 }
 
