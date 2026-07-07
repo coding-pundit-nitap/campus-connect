@@ -1,13 +1,12 @@
 import { Metadata } from "next";
 
+import { env } from "@/config/env.config";
+
 export const siteConfig = {
   name: "Campus Connect",
   description:
     "Hyper-local e-commerce platform connecting campus vendors with students. Order from your favorite campus shops and get batch delivery to your hostel.",
-  url:
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://connect.nitap.ac.in",
+  url: env.NEXT_PUBLIC_APP_URL || "https://connect.nitap.ac.in",
   ogImage: "/og-image.png",
   locale: "en_IN",
 };
@@ -101,7 +100,7 @@ export interface ShopMetadataProps {
 
 export function generateShopMetadata({ shop }: ShopMetadataProps): Metadata {
   const shopUrl = `${siteConfig.url}/shops/${shop.id}`;
-  const imageUrl = `${siteConfig.url}/api/images/${process.env.NEXT_PUBLIC_MINIO_BUCKET || "shops"}/${shop.image_key}`;
+  const imageUrl = `${siteConfig.url}/api/images/${env.NEXT_PUBLIC_MINIO_BUCKET || "shops"}/${shop.image_key}`;
 
   return {
     title: `${shop.name} - Campus Connect`,
@@ -141,7 +140,7 @@ export function generateShopJsonLd(shop: {
   location?: string;
 }) {
   const shopUrl = `${siteConfig.url}/shops/${shop.id}`;
-  const imageUrl = `${siteConfig.url}/api/images/${process.env.NEXT_PUBLIC_MINIO_BUCKET || "shops"}/${shop.image_key}`;
+  const imageUrl = `${siteConfig.url}/api/images/${env.NEXT_PUBLIC_MINIO_BUCKET || "shops"}/${shop.image_key}`;
 
   return {
     "@context": "https://schema.org",

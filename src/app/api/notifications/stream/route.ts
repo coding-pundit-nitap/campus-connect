@@ -1,12 +1,6 @@
 import { NextRequest } from "next/server";
 
-import {
-  MAX_SSE_CONNECTIONS_PER_USER,
-  SSE_CONNECTION_TTL,
-  SSE_HEARTBEAT_INTERVAL,
-  SSE_REPLAY_BROADCAST_LIMIT,
-  SSE_REPLAY_USER_LIMIT,
-} from "@/config/constants";
+import { env } from "@/config/env.config";
 import { BroadcastNotification, Notification } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import notificationEmitter from "@/lib/notification-emitter";
@@ -135,8 +129,8 @@ export async function GET(req: NextRequest) {
     allowed = await trackConnectionAtomic(
       user_id,
       connectionId,
-      MAX_SSE_CONNECTIONS_PER_USER,
-      SSE_CONNECTION_TTL
+      env.MAX_SSE_CONNECTIONS_PER_USER,
+      env.SSE_CONNECTION_TTL
     );
   } catch (error) {
     log.error({ err: error }, "Failed to track SSE connection:");
@@ -147,7 +141,7 @@ export async function GET(req: NextRequest) {
     return new Response(
       JSON.stringify({
         success: false,
-        error: `Too many active connections. Maximum ${MAX_SSE_CONNECTIONS_PER_USER} connections allowed per user.`,
+        error: `Too many active connections. Maximum ${env.MAX_SSE_CONNECTIONS_PER_USER} connections allowed per user.`,
       }),
       {
         status: 429,
@@ -210,7 +204,7 @@ export async function GET(req: NextRequest) {
           ],
         },
         orderBy: [{ created_at: "asc" }, { id: "asc" }],
-        take: SSE_REPLAY_USER_LIMIT + 1,
+        take: env.SSE_REPLAY_USER_LIMIT + 1,
       });
 
       const broadcastNotifications = await tx.broadcastNotification.findMany({
@@ -227,18 +221,18 @@ export async function GET(req: NextRequest) {
           ],
         },
         orderBy: [{ created_at: "asc" }, { id: "asc" }],
-        take: SSE_REPLAY_BROADCAST_LIMIT + 1,
+        take: env.SSE_REPLAY_BROADCAST_LIMIT + 1,
       });
 
       const userReplayTruncated =
-        userNotifications.length > SSE_REPLAY_USER_LIMIT;
+        userNotifications.length > env.SSE_REPLAY_USER_LIMIT;
       const broadcastReplayTruncated =
-        broadcastNotifications.length > SSE_REPLAY_BROADCAST_LIMIT;
+        broadcastNotifications.length > env.SSE_REPLAY_BROADCAST_LIMIT;
 
       return {
         notifications: [
-          ...userNotifications.slice(0, SSE_REPLAY_USER_LIMIT),
-          ...broadcastNotifications.slice(0, SSE_REPLAY_BROADCAST_LIMIT),
+          ...userNotifications.slice(0, env.SSE_REPLAY_USER_LIMIT),
+          ...broadcastNotifications.slice(0, env.SSE_REPLAY_BROADCAST_LIMIT),
         ].sort(compareNotificationsByCursor),
         replayTruncated: userReplayTruncated || broadcastReplayTruncated,
       };
@@ -266,7 +260,7 @@ export async function GET(req: NextRequest) {
         encoder.encode(
           `event: connected\ndata: ${JSON.stringify({
             message: "Connection established",
-            heartbeatIntervalMs: SSE_HEARTBEAT_INTERVAL,
+            heartbeatIntervalMs: env.SSE_HEARTBEAT_INTERVAL,
             replay: {
               truncated: replayTruncated,
               shouldRefetch: shouldRefetchOnConnect,
@@ -311,7 +305,7 @@ export async function GET(req: NextRequest) {
           await refreshConnectionHeartbeatAtomic(
             user_id,
             connectionId,
-            SSE_CONNECTION_TTL
+            env.SSE_CONNECTION_TTL
           );
         } catch (error) {
           log.error({ err: error }, "Failed to refresh SSE connection TTL");
@@ -322,7 +316,7 @@ export async function GET(req: NextRequest) {
             // Ignore if already closed/cancelled
           }
         }
-      }, SSE_HEARTBEAT_INTERVAL);
+      }, env.SSE_HEARTBEAT_INTERVAL);
     },
 
     async cancel() {

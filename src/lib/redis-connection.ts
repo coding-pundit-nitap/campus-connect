@@ -1,12 +1,13 @@
 import { ConnectionOptions } from "bullmq";
 
+import { env } from "@/config/env.config";
 import { createLogger } from "@/lib/logger";
 const log = createLogger("redis-connection");
 
 const getRedisConfig = (): ConnectionOptions => {
-  if (process.env.REDIS_URL) {
+  if (env.REDIS_URL) {
     try {
-      const connectionUrl = new URL(process.env.REDIS_URL);
+      const connectionUrl = new URL(env.REDIS_URL);
       return {
         host: connectionUrl.hostname,
         port: parseInt(connectionUrl.port || "6379"),

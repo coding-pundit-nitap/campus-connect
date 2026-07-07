@@ -12,10 +12,12 @@ import {
   publicRoutes,
 } from "@/rbac";
 
+import { env } from "./config/env.config";
+
 let httpRequestDuration: Histogram | null = null;
 let httpRequestTotal: Counter | null = null;
 
-if (process.env.NODE_ENV === "production") {
+if (env.NODE_ENV === "production") {
   try {
     const metricsModule = await import("./app/api/metrics/route");
     httpRequestDuration = metricsModule.httpRequestDuration;
@@ -132,7 +134,7 @@ export async function proxy(req: NextRequest) {
      * Metrics Tracking (Production Only)
      */
     if (
-      process.env.NODE_ENV === "production" &&
+      env.NODE_ENV === "production" &&
       httpRequestDuration &&
       httpRequestTotal
     ) {

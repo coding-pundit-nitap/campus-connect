@@ -1,20 +1,21 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 
+import { env } from "@/config/env.config";
 import { createLogger } from "@/lib/logger";
 const log = createLogger("route");
 
 const s3Client = new S3Client({
-  endpoint: process.env.MINIO_ENDPOINT!,
-  region: process.env.AWS_REGION!,
+  endpoint: env.MINIO_ENDPOINT!,
+  region: env.AWS_REGION!,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
   },
   forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
+const BUCKET_NAME = env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 
 export async function GET(
   _request: NextRequest,

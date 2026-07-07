@@ -1,17 +1,15 @@
 import nodemailer, { Transporter } from "nodemailer";
 
+import { env } from "../../src/config/env.config";
 import { loggers } from "./logger";
 
 const logger = loggers.notification;
 
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = Number(process.env.SMTP_PORT || "587");
-const smtpUsername = process.env.SMTP_USERNAME;
-const smtpPassword = process.env.SMTP_PASSWORD;
-const smtpFrom =
-  process.env.NOTIFICATION_EMAIL_FROM ||
-  process.env.ALERT_EMAIL_FROM ||
-  smtpUsername;
+const smtpHost = env.SMTP_HOST;
+const smtpPort = Number(env.SMTP_PORT || "587");
+const smtpUsername = env.SMTP_USER;
+const smtpPassword = env.SMTP_PASS;
+const smtpFrom = env.SMTP_FROM || smtpUsername;
 
 const isEmailEnabled =
   !!smtpHost &&
