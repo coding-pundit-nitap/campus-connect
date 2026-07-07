@@ -1,5 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
+import { env } from "../../src/config/env.config";
 import { PrismaClient } from "../generated/client";
 
 const globalForPrisma = global as unknown as {
@@ -9,7 +10,7 @@ const globalForPrisma = global as unknown as {
 
 const adapter =
   globalForPrisma.adapter ||
-  new PrismaPg({ connectionString: process.env.DATABASE_URL });
+  new PrismaPg({ connectionString: env.DATABASE_URL });
 
 export const prisma =
   globalForPrisma.prisma ||
@@ -18,7 +19,7 @@ export const prisma =
     adapter,
   });
 
-if (process.env.NODE_ENV !== "production") {
+if (env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
   globalForPrisma.adapter = adapter;
 }

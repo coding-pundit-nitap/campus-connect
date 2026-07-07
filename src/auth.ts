@@ -3,19 +3,18 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 
 import { Role, UserStatus } from "@/types/prisma.types";
 
+import { env } from "./config/env.config";
 import { prisma } from "./lib/prisma";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: env.BETTER_AUTH_URL,
   emailAndPassword: {
     enabled: false,
   },
-  trustedOrigins: process.env.NEXT_PUBLIC_APP_URL
-    ? [process.env.NEXT_PUBLIC_APP_URL]
-    : [],
+  trustedOrigins: env.NEXT_PUBLIC_APP_URL ? [env.NEXT_PUBLIC_APP_URL] : [],
   session: {
     cookieCache: {
       enabled: true,
@@ -24,8 +23,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: env.GOOGLE_CLIENT_ID as string,
+      clientSecret: env.GOOGLE_CLIENT_SECRET as string,
       prompt: "select_account",
     },
   },
@@ -79,13 +78,11 @@ export const auth = betterAuth({
   },
   defaultCookieAttributes: {
     sameSite:
-      process.env.NODE_ENV === "production" &&
-      process.env.BETTER_AUTH_URL?.startsWith("https")
+      env.NODE_ENV === "production" && env.BETTER_AUTH_URL?.startsWith("https")
         ? "none"
         : "lax",
     secure:
-      process.env.NODE_ENV === "production" &&
-      process.env.BETTER_AUTH_URL?.startsWith("https"),
+      env.NODE_ENV === "production" && env.BETTER_AUTH_URL?.startsWith("https"),
   },
 });
 export type Session = typeof auth.$Infer.Session;

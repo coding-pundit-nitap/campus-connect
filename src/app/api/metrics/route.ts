@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Counter, Histogram, Registry } from "prom-client";
 
+import { env } from "@/config/env.config";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 const log = createLogger("route");
@@ -15,7 +16,7 @@ export let databaseQueryDuration: Histogram | null = null;
 let initialized = false;
 
 async function initializeMetrics() {
-  if (initialized || process.env.NODE_ENV !== "production") return;
+  if (initialized || env.NODE_ENV !== "production") return;
   initialized = true;
 
   try {
@@ -67,7 +68,7 @@ async function initializeMetrics() {
 }
 
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV !== "production") {
+  if (env.NODE_ENV !== "production") {
     return jsonResponse(
       { error: "Metrics endpoint only available in production" },
       404
@@ -100,13 +101,13 @@ export async function GET(request: NextRequest) {
 }
 
 export function trackAuthAttempt(status: "success" | "failed", method: string) {
-  if (process.env.NODE_ENV === "production" && authenticationAttempts) {
+  if (env.NODE_ENV === "production" && authenticationAttempts) {
     authenticationAttempts.inc({ status, method });
   }
 }
 
 export function trackActiveUser(role: string) {
-  if (process.env.NODE_ENV === "production" && activeUsers) {
+  if (env.NODE_ENV === "production" && activeUsers) {
     activeUsers.inc({ role });
   }
 }
@@ -116,7 +117,7 @@ export function trackDatabaseQuery(
   model: string,
   duration: number
 ) {
-  if (process.env.NODE_ENV === "production" && databaseQueryDuration) {
+  if (env.NODE_ENV === "production" && databaseQueryDuration) {
     databaseQueryDuration.observe({ operation, model }, duration);
   }
 }

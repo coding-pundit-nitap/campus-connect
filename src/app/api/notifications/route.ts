@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { MAX_PAGE_SIZE } from "@/config/constants";
+import { env } from "@/config/env.config";
 import { notificationService } from "@/di/container";
 import { Notification } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const requestedLimit = searchParams.get("limit")
       ? parseInt(searchParams.get("limit")!, 10)
       : 20;
-    const limit = Math.min(Math.max(1, requestedLimit), MAX_PAGE_SIZE);
+    const limit = Math.min(Math.max(1, requestedLimit), env.MAX_PAGE_SIZE);
 
     const paginatedNotifications: CursorPaginatedResponse<Notification> =
       await notificationService.getUserNotifications(user_id, limit, cursor);

@@ -7,19 +7,20 @@ import { config } from "dotenv";
 
 config({ path: ".env" });
 
+import { env } from "../../src/config/env.config";
 import { prisma } from "../lib/prisma";
 
 const s3Client = new S3Client({
-  endpoint: process.env.MINIO_ENDPOINT!,
-  region: process.env.AWS_REGION || "us-east-1",
+  endpoint: env.MINIO_ENDPOINT!,
+  region: env.AWS_REGION || "us-east-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
   },
   forcePathStyle: true,
 });
 
-const BUCKET_NAME = process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
+const BUCKET_NAME = env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 const BATCH_SIZE = 100;
 
 interface CleanupResult {

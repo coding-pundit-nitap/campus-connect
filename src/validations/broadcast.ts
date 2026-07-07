@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "@/config/constants";
+import { env } from "@/config/env.config";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 
 export const paginatedSchema = z.object({
@@ -8,8 +8,8 @@ export const paginatedSchema = z.object({
     .number()
     .int()
     .positive()
-    .max(MAX_PAGE_SIZE, `Maximum ${MAX_PAGE_SIZE} items per page`)
-    .default(DEFAULT_PAGE_SIZE),
+    .max(env.MAX_PAGE_SIZE, `Maximum ${env.MAX_PAGE_SIZE} items per page`)
+    .default(env.DEFAULT_PAGE_SIZE),
   cursor: z.cuid().optional(),
 });
 export const searchSchema = paginatedSchema.extend({

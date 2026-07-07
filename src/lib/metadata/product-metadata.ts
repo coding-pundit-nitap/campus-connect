@@ -1,15 +1,16 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { env } from "@/config/env.config";
 import { productService } from "@/di/container";
 export function getProductImageUrl(imageKey: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const bucket = process.env.NEXT_PUBLIC_MINIO_BUCKET || "products";
+  const baseUrl = env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const bucket = env.NEXT_PUBLIC_MINIO_BUCKET || "products";
   return `${baseUrl}/api/images/${bucket}/${imageKey}`;
 }
 
 export function getSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  return env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
 export function formatPriceForMetadata(

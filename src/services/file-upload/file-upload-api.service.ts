@@ -1,11 +1,16 @@
-import { InternalServerError } from "@/lib/custom-error";
+import axios from "axios";
+
+import { env } from "@/config/env.config";
+import axiosInstance from "@/lib/axios";
 import { createLogger } from "@/lib/logger";
 import { ActionResponse } from "@/types";
 const log = createLogger("file-upload-api.service");
 
 interface PresignedUrlResponse {
-  uploadUrl: string;
+  presignedUrl: string;
   objectKey: string;
+  publicUrl: string;
+  expiresIn: number;
 }
 
 class FileUploadAPIService {
@@ -13,72 +18,63 @@ class FileUploadAPIService {
     file: File,
     prefix?: string
   ): Promise<PresignedUrlResponse> {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL || "/api"}/upload`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileType: file.type,
-          fileSize: file.size,
-          prefix,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new InternalServerError("Failed to contact the upload API.");
-    }
-
-    const result: ActionResponse<PresignedUrlResponse> = await response.json();
-
-    if (!result.success || !result.data) {
-      throw new InternalServerError(
-        result.details || "Failed to get a pre-signed URL from the API."
-      );
-    }
-
-    return result.data;
+    const response = await axiosInstance.post<
+      ActionResponse<PresignedUrlResponse>
+    >(`${env.NEXT_PUBLIC_API_URL}/upload`, {
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      prefix,
+    });
+    return response.data.data;
   }
 
-  async uploadImage(file: File, prefix?: string): Promise<string> {
-    try {
-      const { uploadUrl, objectKey } = await this.getPresignedUrl(file, prefix);
+  async putToPreSignedUrl(
+    file: File,
+    presignedUrl: string,
+    onProgress?: (percent: number) => void
+  ) {
+    await axios.put(presignedUrl, file, {
+      headers: {
+        "Content-Type": file.type,
+      },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          onProgress(percent);
+        }
+      },
+      timeout: 120_000, // 2 minutes
+    });
+  }
 
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
+  async uploadImage(
+    file: File,
+    prefix?: string,
+    onProgress?: (percent: number) => void
+  ): Promise<string> {
+    const presignResponse = await axiosInstance.post<
+      ActionResponse<PresignedUrlResponse>
+    >("/upload", {
+      fileName: file.name,
+      fileType: file.type,
+      fileSize: file.size,
+      prefix,
+    });
 
-      if (!uploadResponse.ok) {
-        throw new Error(
-          `Direct upload to storage failed with status: ${uploadResponse.status}`
-        );
-      }
+    const { presignedUrl, objectKey } = presignResponse.data.data;
 
-      return objectKey;
-    } catch (error) {
-      log.error({ err: error }, "Image upload failed:");
-      throw new InternalServerError(
-        "Could not upload the image. Please try again."
-      );
-    }
+    await this.putToPreSignedUrl(file, presignedUrl, onProgress);
+
+    return objectKey;
   }
 
   async deleteImage(objectKey: string): Promise<void> {
     try {
-      await fetch("/api/upload", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ objectKey }),
+      await axiosInstance.delete("/upload", {
+        data: { objectKey },
       });
     } catch (error) {
       log.error({ err: error }, "Image deletion failed:");

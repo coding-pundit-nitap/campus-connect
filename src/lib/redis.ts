@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 
+import { env } from "@/config/env.config";
 import { createLogger } from "@/lib/logger";
 const log = createLogger("redis");
 
@@ -8,7 +9,7 @@ declare global {
   var redisSubscriber: Redis | undefined;
 }
 
-const redisUrl = process.env.REDIS_URL || "redis://redis:6379";
+const redisUrl = env.REDIS_URL || "redis://redis:6379";
 
 const redis =
   global.redis || new Redis(redisUrl, { maxRetriesPerRequest: null });

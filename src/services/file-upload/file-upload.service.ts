@@ -5,6 +5,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
+import { env } from "@/config/env.config";
 import { BadRequestError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import {
@@ -60,32 +61,31 @@ const DANGEROUS_EXTENSIONS = [
   ".sh",
   ".ps1",
 ];
-
+const PRESIGN_EXPIRY_SECONDS = 300;
 export class FileUploadService {
   // Client for SERVER -> MINIO communication
   private internalS3Client = new S3Client({
-    endpoint: process.env.MINIO_ENDPOINT!,
-    region: process.env.AWS_REGION!,
+    endpoint: env.MINIO_ENDPOINT!,
+    region: env.AWS_REGION!,
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
     },
     forcePathStyle: true,
   });
 
   // Client specifically for generating presigned URLs for the BROWSER
   private publicS3Client = new S3Client({
-    endpoint: process.env.NEXT_PUBLIC_MINIO_ENDPOINT!,
-    region: process.env.AWS_REGION!,
+    endpoint: env.NEXT_PUBLIC_MINIO_ENDPOINT!,
+    region: env.AWS_REGION!,
     credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      accessKeyId: env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
     },
     forcePathStyle: true,
   });
 
-  private BUCKET_NAME =
-    process.env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
+  private BUCKET_NAME = env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 
   private validateFileSecurity(
     fileName: string,
@@ -292,6 +292,10 @@ export class FileUploadService {
     }
   }
 
+  private getPublicUrl(key: string) {
+    return `${env.MINIO_ENDPOINT}/${this.BUCKET_NAME}/${key}`;
+  }
+
   async createPresignedUploadUrl(
     fileName: string,
     fileType: string,
@@ -316,11 +320,16 @@ export class FileUploadService {
     });
 
     try {
-      const uploadUrl = await getSignedUrl(this.publicS3Client, command, {
-        expiresIn: 300, // 5 minutes
+      const presignedUrl = await getSignedUrl(this.publicS3Client, command, {
+        expiresIn: PRESIGN_EXPIRY_SECONDS,
       });
-
-      return { uploadUrl, objectKey };
+      const publicUrl = this.getPublicUrl(objectKey);
+      return {
+        presignedUrl,
+        objectKey,
+        publicUrl,
+        expiresIn: PRESIGN_EXPIRY_SECONDS,
+      };
     } catch (error) {
       log.error({ err: error }, "Error generating presigned URL:");
       throw new Error("Failed to generate upload URL");
