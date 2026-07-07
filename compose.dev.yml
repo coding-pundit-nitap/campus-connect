@@ -42,7 +42,15 @@ services:
     networks:
       - campus_connect_net
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--spider", "--fail", "http://127.0.0.1:8080/nginx-health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--spider",
+          "--fail",
+          "http://127.0.0.1:8080/nginx-health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3

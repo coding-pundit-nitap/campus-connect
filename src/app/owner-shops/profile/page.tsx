@@ -54,10 +54,6 @@ export default async function ShopProfilePage() {
   return (
     <div className="w-full max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       <div className="relative overflow-hidden rounded-3xl border-2 border-border/80 bg-card p-6 md:p-8 shadow-xl">
-        <div className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-violet-600 via-purple-500 to-indigo-500" />
-        <div className="absolute top-[-80px] right-[-80px] w-56 h-56 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-[-80px] left-[-80px] w-56 h-56 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-
         <div className="relative z-10 flex items-start gap-4">
           <div className="p-3 rounded-2xl bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 shrink-0">
             <Store className="h-6 w-6" />

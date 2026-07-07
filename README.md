@@ -271,23 +271,28 @@ GRAFANA_ADMIN_PASSWORD=changeme
 
 ### Development
 
-| Command                             | Description                                 |
-| ----------------------------------- | ------------------------------------------- |
-| `pnpm docker:dev:up`                | Start full dev stack                        |
-| `pnpm docker:dev:build`             | Rebuild images after `package.json` changes |
-| `pnpm docker:dev:logs`              | Stream all container logs                   |
-| `pnpm docker:dev:logs-app`          | Tail the app container only                 |
-| `docker compose logs -f worker-dev` | Tail the worker container only              |
-| `pnpm docker:dev:down`              | Stop and remove all containers              |
+| Command               | Description                        |
+| --------------------- | ---------------------------------- |
+| `pnpm infra:dev`      | Start full dev stack               |
+| `pnpm infra:dev:down` | Stop and remove all dev containers |
 
-### Production
+### Production (via Makefile)
 
-| Command                               | Description                |
-| ------------------------------------- | -------------------------- |
-| `pnpm docker:prod:build`              | Build production images    |
-| `docker compose --profile prod up -d` | Start the production stack |
-| `pnpm docker:prod:logs`               | Stream all production logs |
-| `pnpm docker:prod:logs-worker`        | Tail the production worker |
+For production, we use a comprehensive `Makefile` to simplify operations:
+
+| Command               | Description                                |
+| --------------------- | ------------------------------------------ |
+| `make up`             | Start all production services              |
+| `make down`           | Stop all production services               |
+| `make logs`           | Stream logs for all production services    |
+| `make update-app`     | Pull and update app without downtime       |
+| `make backup`         | Run a full local backup (DB, MinIO, Redis) |
+| `make backup-offsite` | Run a backup and sync it offsite           |
+| `make restore-list`   | List available backups                     |
+| `make restore-latest` | Restore from the most recent backup        |
+| `make help`           | View all available Make commands           |
+
+_(Alternatively, you can use `pnpm infra:prod` and `pnpm infra:prod:down` for basic compose commands)._
 
 ---
 
@@ -307,13 +312,14 @@ GRAFANA_ADMIN_PASSWORD=changeme
 
 ### Database
 
-| Script                   | Description                                |
-| ------------------------ | ------------------------------------------ |
-| `pnpm db:migrate`        | Create + apply migration (local dev)       |
-| `pnpm db:deploy`         | Apply existing migrations (CI/prod)        |
-| `pnpm db:studio`         | Open Prisma Studio locally                 |
-| `pnpm docker:db:migrate` | `migrate dev` inside running dev container |
-| `pnpm docker:db:psql`    | Interactive psql shell                     |
+| Script                | Description                               |
+| --------------------- | ----------------------------------------- |
+| `pnpm db:migrate`     | Create + apply migration (local dev)      |
+| `pnpm db:deploy`      | Apply existing migrations (CI/prod)       |
+| `pnpm db:studio`      | Open Prisma Studio locally                |
+| `pnpm migrator:run`   | Run migrator container in production      |
+| `pnpm docker:db:psql` | Interactive psql shell                    |
+| `make db-shell`       | Interactive psql shell in prod (Makefile) |
 
 ### Redis Diagnostics
 
@@ -332,6 +338,7 @@ GRAFANA_ADMIN_PASSWORD=changeme
 | --------------------------------- | ---------------------------------------- |
 | `pnpm cleanup:orphaned-files:dry` | Preview MinIO files with no DB reference |
 | `pnpm cleanup:orphaned-files`     | Delete orphaned MinIO files              |
+| `pnpm docker:prune`               | Clean up unused docker volumes/images    |
 
 ---
 
