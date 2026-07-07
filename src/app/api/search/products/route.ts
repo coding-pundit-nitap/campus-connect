@@ -11,8 +11,6 @@ import {
 
 const log = createLogger("route:search:products");
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

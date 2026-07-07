@@ -66,6 +66,15 @@ export default function ReviewForm({
   const isPending = isCreatePending || isUpdatePending;
   const isUpdate = !!review_id;
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(reviewFormSchema),
@@ -82,7 +91,7 @@ export default function ReviewForm({
         {
           onSuccess: () => {
             setIsSubmitted(true);
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
               onSuccess?.();
             }, 1500);
           },
@@ -98,7 +107,7 @@ export default function ReviewForm({
         {
           onSuccess: () => {
             setIsSubmitted(true);
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
               onSuccess?.();
             }, 1500);
           },
@@ -127,12 +136,13 @@ export default function ReviewForm({
     );
   }
 
+  const onFormSubmit = (e: React.SubmitEvent) => {
+    void form.handleSubmit(handleFormSubmit)(e);
+  };
+
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(handleFormSubmit)}
-        className="space-y-6"
-      >
+      <form onSubmit={onFormSubmit} className="space-y-6">
         <FormField
           name="rating"
           control={form.control}

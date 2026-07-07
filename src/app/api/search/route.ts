@@ -9,8 +9,6 @@ import {
 } from "@/types/response.types";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

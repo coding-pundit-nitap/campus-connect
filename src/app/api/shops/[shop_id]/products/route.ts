@@ -13,8 +13,6 @@ import {
 import { cursorPaginationSchema } from "@/validations/pagination.validation";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
-
 const shopProductsQuerySchema = cursorPaginationSchema.extend({
   sortBy: z.enum(["name", "price", "created_at", "stock_quantity"]).optional(),
   sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),

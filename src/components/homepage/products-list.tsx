@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
 import { useInfiniteProducts } from "@/hooks/queries/useInfiniteProducts";
-// import { useActiveCategories } from "@/hooks/queries/useProductCategoriesSearch";
 import { SerializedProduct } from "@/types/product.types";
 
 import { ShopProductList } from "../shops/shop-product-list";
@@ -12,9 +11,6 @@ import CategoryPills from "./category-pills";
 import FavoriteShopsStrip from "./favorite-shops-strip";
 import HotDeals from "./hot-deals";
 import OrderAgain from "./order-again";
-import AnnouncementCard from "./widgets/announcement-card";
-import CampusInfoWidget from "./widgets/campus-info-widget";
-import ImpactStatsWidget from "./widgets/impact-stats-widget";
 
 type Props = {
   initialProducts: SerializedProduct[];
@@ -57,7 +53,7 @@ export default function ProductsList({
 
   return (
     <div className="flex-1 hide-scrollbar overflow-y-auto w-full max-w-7xl mx-auto py-2 px-1 pb-12">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 gap-8 items-start">
         <div className="lg:col-span-8 space-y-6">
           <div
             id="category-pills-section"
@@ -111,12 +107,6 @@ export default function ProductsList({
               onViewDetails={onViewDetails}
             />
           </div>
-        </div>
-
-        <div className="lg:col-span-4 space-y-6 hidden lg:flex flex-col sticky top-4 animate-fade-in [animation-delay:200ms]">
-          <CampusInfoWidget />
-          <ImpactStatsWidget />
-          <AnnouncementCard />
         </div>
       </div>
     </div>

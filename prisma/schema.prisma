@@ -312,17 +312,17 @@ model Brand {
 }
 
 model ShopAnnouncement {
-  id          String    @id @default(cuid())
-  shop_id     String
-  shop        Shop      @relation(fields: [shop_id], references: [id], onDelete: Cascade)
-  title       String
-  message     String
-  image_key   String?
-  expires_at  DateTime
-  product_id  String?
-  product     Product?  @relation(fields: [product_id], references: [id], onDelete: SetNull)
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  shop_id    String
+  shop       Shop     @relation(fields: [shop_id], references: [id], onDelete: Cascade)
+  title      String
+  message    String
+  image_key  String?
+  expires_at DateTime
+  product_id String?
+  product    Product? @relation(fields: [product_id], references: [id], onDelete: SetNull)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
   @@index([shop_id])
   @@index([expires_at])
@@ -348,7 +348,7 @@ model UserAddress {
 
   // Relations
   user_id String
-  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([hostel_block])
@@ -466,13 +466,13 @@ model Order {
   is_direct_delivery Boolean @default(false)
 
   // Relations
-  user_id             String?
-  user                User?        @relation(fields: [user_id], references: [id], onDelete: SetNull)
-  shop_id             String?
-  shop                Shop?        @relation(fields: [shop_id], references: [id], onDelete: SetNull)
-  batch_id            String?
-  batch               Batch?       @relation(fields: [batch_id], references: [id])
-  items               OrderItem[]
+  user_id  String?
+  user     User?       @relation(fields: [user_id], references: [id], onDelete: SetNull)
+  shop_id  String?
+  shop     Shop?       @relation(fields: [shop_id], references: [id], onDelete: SetNull)
+  batch_id String?
+  batch    Batch?      @relation(fields: [batch_id], references: [id])
+  items    OrderItem[]
 
   @@index([user_id])
   @@index([shop_id])

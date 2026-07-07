@@ -13,7 +13,6 @@ import {
 import { authUtils } from "@/lib/utils/auth.utils.server";
 const log = createLogger("route");
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const REPLAY_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;

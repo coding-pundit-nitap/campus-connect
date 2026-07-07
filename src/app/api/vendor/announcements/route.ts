@@ -16,8 +16,6 @@ import {
 
 const log = createLogger("vendor-announcements-api");
 
-export const dynamic = "force-dynamic";
-
 export async function GET(_request: NextRequest) {
   try {
     const shopId = await authUtils.getOwnedShopId();
