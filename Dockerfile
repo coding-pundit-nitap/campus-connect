@@ -2,7 +2,7 @@ FROM node:24-alpine AS base
 WORKDIR /app
 
 # Add security updates and essential packages, then clean up.
-RUN apk add --no-cache libc6-compat openssl curl dumb-init
+RUN apk add --no-cache libc6-compat openssl curl dumb-init vips
 
 # Enable and activate pnpm.
 RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
