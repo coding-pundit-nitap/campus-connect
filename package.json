@@ -12,7 +12,6 @@
     "format": "prettier --write \"./\"",
     "format:check": "prettier --check \"./\"",
     "validate": "pnpm typecheck && pnpm lint:fix && pnpm format",
-    "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
