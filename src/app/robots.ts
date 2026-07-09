@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 import { env } from "@/config/env.config";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = env.NEXT_PUBLIC_APP_URL || "https://connect.nitap.ac.in";
+  const baseUrl = env.NEXT_PUBLIC_APP_URL ?? "https://connect.nitap.ac.in";
 
   return {
     rules: [
@@ -12,17 +12,16 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          "/_next/",
           "/admin/",
           "/owner-shops/",
-          "/profile/",
-          "/cart/",
+          "/profile",
+          "/orders/",
+          "/favorites",
+          "/notifications",
           "/checkout/",
+          "/create-shop",
+          "/search",
         ],
-      },
-      {
-        userAgent: "*",
-        allow: ["/product/", "/shops/", "/"],
       },
       {
         userAgent: [
@@ -36,5 +35,6 @@ export default function robots(): MetadataRoute.Robots {
       },
     ],
     sitemap: `${baseUrl}/sitemap.xml`,
+    host: baseUrl,
   };
 }
