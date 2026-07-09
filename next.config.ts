@@ -15,6 +15,9 @@ const nextConfig: NextConfig = {
   },
   typedRoutes: true,
   output: isProduction ? "standalone" : undefined,
+  outputFileTracingIncludes: {
+    "/*": ["./node_modules/@img/sharp-*/**/*"],
+  },
   images: {
     remotePatterns: [
       {
