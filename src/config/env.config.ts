@@ -2,7 +2,7 @@ import "dotenv/config";
 
 import { z } from "zod";
 
-import { createLogger } from "@/lib/logger";
+import { createLogger } from "../lib/logger";
 
 const log = createLogger("env-veriable");
 
