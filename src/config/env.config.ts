@@ -119,13 +119,22 @@ let _serverEnv: z.infer<typeof serverSchema> | undefined = undefined;
 if (typeof window === "undefined") {
   const parsedServerEnv = serverSchema.safeParse(process.env);
   if (!parsedServerEnv.success) {
-    log.error(
-      { err: z.treeifyError(parsedServerEnv.error) },
-      "❌ Invalid server environment variables:"
-    );
-    throw new Error("Invalid server environment variables");
+    if (
+      process.env.SKIP_ENV_VALIDATION === "1" ||
+      process.env.SKIP_ENV_VALIDATION === "true"
+    ) {
+      log.warn("Skipping server environment validation...");
+      _serverEnv = {} as z.infer<typeof serverSchema>;
+    } else {
+      log.error(
+        { err: z.treeifyError(parsedServerEnv.error) },
+        "❌ Invalid server environment variables:"
+      );
+      throw new Error("Invalid server environment variables");
+    }
+  } else {
+    _serverEnv = parsedServerEnv.data;
   }
-  _serverEnv = parsedServerEnv.data;
 }
 export const env = {
   ..._clientEnv.data,
