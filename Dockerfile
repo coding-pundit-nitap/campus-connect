@@ -38,6 +38,7 @@ ARG DATABASE_URL="postgresql://user:pass@db:5432/dbname?schema=public&connection
 ENV DATABASE_URL=$DATABASE_URL
 # Generate Prisma client and build the application.
 RUN pnpm exec prisma generate
+ENV SKIP_ENV_VALIDATION=1
 RUN pnpm build
 
 FROM base AS worker-builder
@@ -50,6 +51,7 @@ ARG DATABASE_URL="postgresql://user:pass@db:5432/dbname?schema=public&connection
 ENV DATABASE_URL=$DATABASE_URL
 # Generate Prisma client and build the application.
 RUN pnpm exec prisma generate
+ENV SKIP_ENV_VALIDATION=1
 RUN pnpm build:worker
 
 FROM base AS runner
