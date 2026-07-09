@@ -2,7 +2,7 @@ FROM node:24-alpine AS base
 WORKDIR /app
 
 # Add security updates and essential packages, then clean up.
-RUN apk add --no-cache libc6-compat openssl curl dumb-init vips
+RUN apk add --no-cache libc6-compat openssl curl dumb-init
 
 # Enable and activate pnpm.
 RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
@@ -13,12 +13,14 @@ RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
 # This stage installs all dependencies.
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts
+RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts \
+    && pnpm rebuild sharp
 
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Install ONLY production dependencies
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts \
+    && pnpm rebuild sharp
 
 # Development target
 FROM deps AS dev
