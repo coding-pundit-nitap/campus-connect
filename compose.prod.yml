@@ -72,7 +72,7 @@ services:
     container_name: campus_connect_migrator_prod
     restart: on-failure:5
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       - NODE_ENV=production
     networks:
       - campus_connect_net
@@ -106,6 +106,7 @@ services:
       - HOSTNAME=0.0.0.0
       - NODE_ENV=production
       - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
     networks:
       - campus_connect_net
     healthcheck:
@@ -134,7 +135,7 @@ services:
     restart: always
     environment:
       - REDIS_HOST=redis
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
       - NODE_ENV=production
     depends_on:
       redis:
