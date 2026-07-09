@@ -5,10 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "postinstall": "prisma generate",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"./\"",
     "format:check": "prettier --check \"./\"",
     "validate": "pnpm typecheck && pnpm lint:fix && pnpm format",
