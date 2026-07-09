@@ -13,14 +13,12 @@ RUN rm -f /usr/local/bin/yarn /usr/local/bin/yarnpkg \
 # This stage installs all dependencies.
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile --prod=false --ignore-scripts \
-    && pnpm rebuild sharp
+RUN pnpm install --frozen-lockfile --prod=false
 
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 # Install ONLY production dependencies
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts \
-    && pnpm rebuild sharp
+RUN pnpm install --prod --frozen-lockfile
 
 # Development target
 FROM deps AS dev
