@@ -7,7 +7,7 @@ import { ThemeProvider } from "next-themes";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { InstallPrompt,ServiceWorkerRegistrar } from "@/components/pwa";
+import { InstallPrompt, ServiceWorkerRegistrar } from "@/components/pwa";
 import ViewportVhSetter from "@/components/ui/viewport-vh";
 import { defaultMetadata } from "@/lib/metadata/site-metadata";
 

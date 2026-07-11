@@ -3,21 +3,55 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 
+import { logger } from "@/lib/logger";
+
+const TOAST_ID = "sw-update";
+let updateRequested = false;
+let refreshing = false;
+let controllerListenerRegistered = false;
+
+function bindControllerChange() {
+  if (controllerListenerRegistered) return;
+  controllerListenerRegistered = true;
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!updateRequested) return;
+
+    if (refreshing) return;
+    refreshing = true;
+
+    window.location.reload();
+  });
+}
+
+function promptUpdate(waitingWorker: ServiceWorker) {
+  toast("A new version of Campus Connect is available.", {
+    id: TOAST_ID,
+    duration: Infinity,
+    action: {
+      label: "Update",
+      onClick: () => {
+        updateRequested = true;
+        toast.dismiss(TOAST_ID);
+        waitingWorker.postMessage({ type: "SKIP_WAITING" });
+      },
+    },
+  });
+}
+
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
 
+    bindControllerChange();
+
     const registerSW = async () => {
       try {
-        const registration = await navigator.serviceWorker.register("/sw.js");
+        const registration = await navigator.serviceWorker.register("/sw.js", {
+          scope: "/",
+        });
 
-        // Check for waiting worker on initial load
-        if (registration.waiting) {
-          promptUpdate(registration.waiting);
-        }
-
-        // Listen for new service workers being installed
         registration.addEventListener("updatefound", () => {
           const newWorker = registration.installing;
           if (!newWorker) return;
@@ -31,41 +65,17 @@ export function ServiceWorkerRegistrar() {
             }
           });
         });
+
+        if (registration.waiting) {
+          promptUpdate(registration.waiting);
+        }
       } catch (error) {
-        console.warn("Service worker registration failed:", error);
+        logger.error({ err: error }, "Service worker registration failed:");
       }
     };
 
-    const handleControllerChange = () => {
-      window.location.reload();
-    };
-
-    navigator.serviceWorker.addEventListener(
-      "controllerchange",
-      handleControllerChange
-    );
-
     registerSW();
-
-    return () => {
-      navigator.serviceWorker.removeEventListener(
-        "controllerchange",
-        handleControllerChange
-      );
-    };
   }, []);
 
   return null;
-}
-
-function promptUpdate(waitingWorker: ServiceWorker) {
-  toast("A new version is available", {
-    duration: Infinity,
-    action: {
-      label: "Update",
-      onClick: () => {
-        waitingWorker.postMessage({ type: "SKIP_WAITING" });
-      },
-    },
-  });
 }
