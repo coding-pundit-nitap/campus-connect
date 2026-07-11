@@ -14,10 +14,22 @@ const DISMISS_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 function isDismissedRecently(): boolean {
   if (typeof window === "undefined") return true;
-  const dismissed = localStorage.getItem(DISMISS_KEY);
-  if (!dismissed) return false;
-  const dismissedAt = parseInt(dismissed, 10);
-  return Date.now() - dismissedAt < DISMISS_DURATION_MS;
+  try {
+    const dismissed = localStorage.getItem(DISMISS_KEY);
+    if (!dismissed) return false;
+    const dismissedAt = parseInt(dismissed, 10);
+    return Date.now() - dismissedAt < DISMISS_DURATION_MS;
+  } catch {
+    return false;
+  }
+}
+
+function setDismissed() {
+  try {
+    localStorage.setItem(DISMISS_KEY, Date.now().toString());
+  } catch {
+    // Ignore quota or security errors gracefully
+  }
 }
 
 export function InstallPrompt() {
@@ -29,13 +41,23 @@ export function InstallPrompt() {
     e.preventDefault();
     deferredPromptRef.current = e as BeforeInstallPromptEvent;
 
+    // Do not show if already running as an installed PWA (Standalone, Android TWA, iOS Web App)
+    if (
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone
+    ) {
+      return;
+    }
+
     // Only show on mobile
     if (window.innerWidth >= 768) return;
     if (isDismissedRecently()) return;
 
-    // Show after 30 seconds of engagement
+    // Show after 30 seconds of engagement, but only if the user is actually looking at the tab
     engagementTimerRef.current = setTimeout(() => {
-      setShowPrompt(true);
+      if (document.visibilityState === "visible") {
+        setShowPrompt(true);
+      }
     }, 30_000);
   }, []);
 
@@ -63,6 +85,14 @@ export function InstallPrompt() {
     };
   }, [handleBeforeInstallPrompt, handleAppInstalled]);
 
+  const handleDismiss = useCallback(() => {
+    setShowPrompt(false);
+    setDismissed();
+    if (engagementTimerRef.current) {
+      clearTimeout(engagementTimerRef.current);
+    }
+  }, []);
+
   const handleInstall = async () => {
     const prompt = deferredPromptRef.current;
     if (!prompt) return;
@@ -72,16 +102,12 @@ export function InstallPrompt() {
 
     if (outcome === "accepted") {
       setShowPrompt(false);
+    } else {
+      // Treat a native dismiss exactly like a custom dismiss
+      handleDismiss();
     }
-    deferredPromptRef.current = null;
-  };
 
-  const handleDismiss = () => {
-    setShowPrompt(false);
-    localStorage.setItem(DISMISS_KEY, Date.now().toString());
-    if (engagementTimerRef.current) {
-      clearTimeout(engagementTimerRef.current);
-    }
+    deferredPromptRef.current = null;
   };
 
   return (
@@ -115,6 +141,7 @@ export function InstallPrompt() {
             </div>
             <div className="flex items-center gap-2">
               <button
+                type="button"
                 onClick={handleInstall}
                 className="cursor-pointer rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95"
                 style={{
@@ -124,6 +151,7 @@ export function InstallPrompt() {
                 Install
               </button>
               <button
+                type="button"
                 onClick={handleDismiss}
                 className="cursor-pointer rounded-lg p-2 text-muted-foreground transition-colors hover:bg-black/10 hover:text-foreground dark:hover:bg-white/10"
                 aria-label="Dismiss install prompt"
