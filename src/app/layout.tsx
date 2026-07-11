@@ -7,6 +7,7 @@ import { ThemeProvider } from "next-themes";
 
 import { QueryErrorBoundary } from "@/components/providers/QueryErrorBoundary";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { InstallPrompt,ServiceWorkerRegistrar } from "@/components/pwa";
 import ViewportVhSetter from "@/components/ui/viewport-vh";
 import { defaultMetadata } from "@/lib/metadata/site-metadata";
 
@@ -62,8 +63,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Campus Connect" />
 
-        <link rel="manifest" href="/manifest.json" />
-
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link
@@ -83,7 +82,7 @@ export default function RootLayout({
           sizes="16x16"
           href="/favicon-16x16.png"
         />
-        <link rel="manifest" href="/site.webmanifest" />
+
         <link rel="dns-prefetch" href="//connect.nitap.ac.in" />
         <link rel="preconnect" href="//connect.nitap.ac.in" />
       </head>
@@ -133,6 +132,8 @@ export default function RootLayout({
           <QueryProvider>
             <QueryErrorBoundary>
               <ViewportVhSetter />
+              <ServiceWorkerRegistrar />
+              <InstallPrompt />
               {children}
             </QueryErrorBoundary>
           </QueryProvider>

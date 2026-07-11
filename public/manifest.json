@@ -1,11 +1,45 @@
 {
+  "id": "/",
   "name": "Campus Connect - Campus Shopping & Delivery",
   "short_name": "Campus Connect",
   "description": "Hyper-local e-commerce platform connecting campus vendors with students. Order from your favorite campus shops and get batch delivery to your hostel.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "orientation": "portrait-primary",
-  "categories": ["shopping", "food", "lifestyle"]
+  "categories": ["shopping", "food", "lifestyle"],
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Browse Shops",
+      "short_name": "Shops",
+      "url": "/shops",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Today's Deals",
+      "short_name": "Deals",
+      "url": "/deals",
+      "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
+    }
+  ]
 }
