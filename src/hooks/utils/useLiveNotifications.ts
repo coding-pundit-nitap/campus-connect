@@ -74,12 +74,22 @@ export function useLiveNotifications() {
 
             return {
               ...oldSummary,
-              unreadNotifications: isBroadcast
+              unreadNotifications: (isBroadcast
                 ? oldSummary.unreadNotifications
-                : [newNotification, ...oldSummary.unreadNotifications],
-              unreadBroadcasts: !isBroadcast
+                : [newNotification, ...oldSummary.unreadNotifications]
+              ).sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              ),
+              unreadBroadcasts: (!isBroadcast
                 ? oldSummary.unreadBroadcasts
-                : [newNotification, ...oldSummary.unreadBroadcasts],
+                : [newNotification, ...oldSummary.unreadBroadcasts]
+              ).sort(
+                (a, b) =>
+                  new Date(b.created_at).getTime() -
+                  new Date(a.created_at).getTime()
+              ),
               unreadCount: {
                 notifications:
                   oldSummary.unreadCount.notifications + (isBroadcast ? 0 : 1),
@@ -90,6 +100,11 @@ export function useLiveNotifications() {
             };
           }
         );
+
+        queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.batch.vendorDashboard(),
+        });
       } catch {}
     },
     [queryClient]
@@ -135,6 +150,10 @@ export function useLiveNotifications() {
           if (payload.replay?.shouldRefetch) {
             queryClient.invalidateQueries({
               queryKey: queryKeys.notifications.summary(),
+            });
+            queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.batch.vendorDashboard(),
             });
           }
 
@@ -186,7 +205,23 @@ export function useLiveNotifications() {
 
     connect();
 
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        if (Date.now() - lastPingAt > heartbeatIntervalMsRef.current) {
+          if (watchdogRef.current) {
+            clearInterval(watchdogRef.current);
+          }
+          if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+          }
+          connect();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (watchdogRef.current) {
         clearInterval(watchdogRef.current);
         watchdogRef.current = null;
