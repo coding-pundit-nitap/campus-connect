@@ -302,3 +302,22 @@ async function enforceCacheLimit(cacheName, maxItems) {
     await cache.delete(keys[0]);
   }
 }
+
+// Push notifications and background sync
+self.addEventListener("push", (event) => {
+  const data = event.data
+    ? event.data.json()
+    : { title: "Campus Connect", body: "You have a new notification." };
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/android-chrome-192x192.png",
+    })
+  );
+});
+
+self.addEventListener("sync", (event) => {
+  if (event.tag === "sync-messages") {
+    // Background sync logic here
+  }
+});
