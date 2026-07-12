@@ -41,5 +41,15 @@
       "url": "/deals",
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     }
+  ],
+  "prefer_related_applications": false,
+  "dir": "ltr",
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "image/*": [".jpg", ".jpeg", ".png", ".webp"]
+      }
+    }
   ]
 }
