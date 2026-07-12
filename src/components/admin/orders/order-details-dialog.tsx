@@ -42,6 +42,8 @@ export function OrderDetailsDialog({
       OUT_FOR_DELIVERY: "outline",
       COMPLETED: "default",
       CANCELLED: "destructive",
+      DELIVERY_FAILED: "destructive",
+      RESCHEDULED: "outline",
     };
     const colors: Record<OrderStatus, string> = {
       NEW: "bg-blue-500",
@@ -49,6 +51,8 @@ export function OrderDetailsDialog({
       OUT_FOR_DELIVERY: "bg-purple-500",
       COMPLETED: "bg-green-500",
       CANCELLED: "bg-red-500",
+      DELIVERY_FAILED: "bg-red-600",
+      RESCHEDULED: "bg-yellow-600",
     };
     return (
       <Badge variant={variants[status]} className={colors[status]}>

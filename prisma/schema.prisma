@@ -31,8 +31,10 @@ enum OrderStatus {
   NEW
   BATCHED
   OUT_FOR_DELIVERY
+  DELIVERY_FAILED
   COMPLETED
   CANCELLED
+  RESCHEDULED
 }
 
 enum SellerVerificationStatus {

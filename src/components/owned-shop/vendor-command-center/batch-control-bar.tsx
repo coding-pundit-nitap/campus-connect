@@ -1,5 +1,8 @@
+"use client";
+
 import { format } from "date-fns";
-import { TimerReset, Truck } from "lucide-react";
+import { TimerReset, Truck, XSquare } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { BatchMilestone } from "@/generated/client";
@@ -16,6 +19,7 @@ export function BatchControlBar({
   onCompleteRun,
   currentMilestone,
   onUpdateMilestone,
+  onCancelRun,
 }: {
   activeBatch: {
     id: string;
@@ -33,7 +37,10 @@ export function BatchControlBar({
   onCompleteRun: () => void;
   currentMilestone?: string | null;
   onUpdateMilestone?: (milestone: BatchMilestone) => void;
+  onCancelRun?: () => void;
 }) {
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
   if (!activeBatch) return null;
 
   return (
@@ -170,6 +177,36 @@ export function BatchControlBar({
           >
             Complete Run
           </Button>
+
+          {onCancelRun && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (showCancelConfirm) {
+                  onCancelRun();
+                  setShowCancelConfirm(false);
+                } else {
+                  setShowCancelConfirm(true);
+                  setTimeout(() => setShowCancelConfirm(false), 3000);
+                }
+              }}
+              disabled={
+                pending ||
+                (activeBatch.status !== "LOCKED" &&
+                  activeBatch.status !== "IN_TRANSIT")
+              }
+              className={`h-9 px-4 rounded-xl font-semibold text-xs cursor-pointer transition-all hover:scale-102 active:scale-98 disabled:opacity-50 ${
+                showCancelConfirm
+                  ? "bg-red-600 hover:bg-red-700 text-white border-none"
+                  : "border-red-500/50 text-red-500 hover:bg-red-500/10"
+              }`}
+            >
+              <XSquare className="mr-1 h-3.5 w-3.5" />
+              {showCancelConfirm ? "Confirm Cancel" : "Cancel Run"}
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -24,8 +24,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BatchMilestone } from "@/generated/client";
 import {
   useAcceptOrder,
+  useCancelBatch,
   useCloseBatch,
   useCompleteBatch,
+  useMarkDeliveryFailed,
   useOrderConsoleData,
   useRejectOrder,
   useStartDelivery,
@@ -119,6 +121,8 @@ export function VendorCommandCenter() {
   const completeBatchMutation = useCompleteBatch();
   const verifyOtpMutation = useVerifyDeliveryOtp();
   const updateMilestoneMutation = useUpdateBatchMilestone();
+  const cancelBatchMutation = useCancelBatch();
+  const markFailedMutation = useMarkDeliveryFailed();
 
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
@@ -181,7 +185,9 @@ export function VendorCommandCenter() {
     startDeliveryMutation.isPending ||
     completeBatchMutation.isPending ||
     verifyOtpMutation.isPending ||
-    updateMilestoneMutation.isPending;
+    updateMilestoneMutation.isPending ||
+    cancelBatchMutation.isPending ||
+    markFailedMutation.isPending;
 
   useNewOrderAlert(intakeOrders.length);
 
@@ -197,6 +203,10 @@ export function VendorCommandCenter() {
     },
     [rejectMutation]
   );
+
+  const handleOtpChange = useCallback((orderId: string, value: string) => {
+    setOtpInputs((prev) => ({ ...prev, [orderId]: value }));
+  }, []);
 
   const verifyOtp = useCallback(
     (orderId: string) => {
@@ -263,9 +273,21 @@ export function VendorCommandCenter() {
     [activeBatch, updateMilestoneMutation]
   );
 
-  const handleOtpChange = useCallback((id: string, val: string) => {
-    setOtpInputs((prev) => ({ ...prev, [id]: val.slice(0, 4) }));
-  }, []);
+  const handleCancelBatch = useCallback(() => {
+    if (activeBatch) {
+      cancelBatchMutation.mutate({
+        batchId: activeBatch.id,
+        reason: "Cancelled by vendor via UI",
+      });
+    }
+  }, [activeBatch, cancelBatchMutation]);
+
+  const handleMarkFailed = useCallback(
+    (orderId: string, reason: string) => {
+      markFailedMutation.mutate({ orderId, reason });
+    },
+    [markFailedMutation]
+  );
 
   if (isLoading) {
     return (
@@ -536,6 +558,8 @@ export function VendorCommandCenter() {
                         otp={otpInputs[order.id] || ""}
                         onOtpChange={handleOtpChange}
                         onVerify={verifyOtp}
+                        onMarkFailed={handleMarkFailed}
+                        onReject={rejectOrder}
                         disabled={pending}
                       />
                     ))}
@@ -575,6 +599,7 @@ export function VendorCommandCenter() {
         onCompleteRun={completeRun}
         currentMilestone={activeBatch?.delivery_status?.current_milestone}
         onUpdateMilestone={handleUpdateMilestone}
+        onCancelRun={handleCancelBatch}
       />
 
       <div id="kot-print-section" className="print-only hidden p-6 font-sans">

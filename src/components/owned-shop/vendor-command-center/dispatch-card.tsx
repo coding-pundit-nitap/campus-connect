@@ -1,4 +1,4 @@
-import { Phone } from "lucide-react";
+import { AlertTriangle, Phone } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,12 +14,16 @@ export function DispatchCard({
   otp,
   onOtpChange,
   onVerify,
+  onMarkFailed,
+  onReject,
   disabled,
 }: {
   order: SerializedOrderWithDetails;
   otp: string;
   onOtpChange: (id: string, val: string) => void;
   onVerify: (id: string) => void;
+  onMarkFailed?: (id: string, reason: string) => void;
+  onReject?: (id: string) => void;
   disabled: boolean;
 }) {
   const phone = order.user?.phone;
@@ -104,6 +108,49 @@ export function DispatchCard({
               >
                 Verify
               </Button>
+              {onMarkFailed && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  onClick={() => {
+                    const reason = window.prompt(
+                      "Reason for delivery failure?"
+                    );
+                    if (reason !== null) {
+                      onMarkFailed(
+                        order.id,
+                        reason || "Runner reported failure"
+                      );
+                    }
+                  }}
+                  disabled={disabled}
+                  className="h-10 w-10 shrink-0 border-red-500/50 text-red-500 hover:bg-red-500/10 rounded-xl"
+                  title="Mark Delivery Failed"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ) : order.order_status === "DELIVERY_FAILED" ? (
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="destructive"
+                className="text-[10px] rounded-md font-bold px-2 py-1"
+              >
+                Failed
+              </Badge>
+              {onReject && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => onReject(order.id)}
+                  disabled={disabled}
+                  className="flex-1 h-9 rounded-xl border-red-500/50 text-red-500 bg-red-500/10 hover:bg-red-500/20 font-bold text-xs cursor-pointer"
+                >
+                  Reject
+                </Button>
+              )}
             </div>
           ) : (
             <Badge

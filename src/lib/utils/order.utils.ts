@@ -213,6 +213,16 @@ export const getOrderStatusInfo = (status: OrderStatus): StatusInfo => {
       Icon: XCircle,
       colorClassName: "text-red-500",
     },
+    DELIVERY_FAILED: {
+      label: "Delivery Failed",
+      Icon: XCircle,
+      colorClassName: "text-red-600",
+    },
+    RESCHEDULED: {
+      label: "Rescheduled",
+      Icon: Clock,
+      colorClassName: "text-yellow-500",
+    },
   };
   return info[status];
 };

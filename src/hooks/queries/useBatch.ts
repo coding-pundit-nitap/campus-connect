@@ -18,6 +18,7 @@ import {
 } from "@/actions/shop/batch-actions";
 import {
   acceptOrderAction,
+  markDeliveryFailedAction,
   rejectOrderAction,
   startDirectDeliveryAction,
   verifyDeliveryOtpAction,
@@ -301,6 +302,23 @@ export function useUpdateBatchMilestone() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to update milestone");
+    },
+  });
+}
+
+export function useMarkDeliveryFailed() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
+      markDeliveryFailedAction(orderId, reason),
+    onSuccess: () => {
+      toast.success("Order marked as delivery failed.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to mark delivery as failed");
     },
   });
 }
