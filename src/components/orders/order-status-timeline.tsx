@@ -38,6 +38,9 @@ const statusSteps = [
 ];
 
 function getStatusIndex(status: OrderStatus): number {
+  if (status === OrderStatus.RESCHEDULED) {
+    return statusSteps.findIndex((step) => step.status === OrderStatus.BATCHED);
+  }
   return statusSteps.findIndex((step) => step.status === status);
 }
 
@@ -45,7 +48,10 @@ export function OrderStatusTimeline({
   currentStatus,
   className,
 }: OrderStatusTimelineProps) {
-  const isCancelled = currentStatus === OrderStatus.CANCELLED;
+  const isCancelled =
+    currentStatus === OrderStatus.CANCELLED ||
+    currentStatus === OrderStatus.DELIVERY_FAILED;
+  const isDeliveryFailed = currentStatus === OrderStatus.DELIVERY_FAILED;
   const currentIndex = isCancelled ? -1 : getStatusIndex(currentStatus);
 
   if (isCancelled) {
@@ -60,16 +66,32 @@ export function OrderStatusTimeline({
           <XCircle className="h-8 w-8 text-red-500 shrink-0 animate-pulse" />
           <div>
             <p className="font-heading font-black text-red-700 dark:text-red-400">
-              Order Cancelled
+              {isDeliveryFailed ? "Delivery Failed" : "Order Cancelled"}
             </p>
             <p className="text-sm text-red-600/80 dark:text-red-400/80">
-              This order has been cancelled and cannot be processed further.
+              {isDeliveryFailed
+                ? "The runner was unable to deliver this order. Please contact the shop."
+                : "This order has been cancelled and cannot be processed further."}
             </p>
           </div>
         </div>
       </div>
     );
   }
+
+  const activeStatusSteps = statusSteps.map((step) => {
+    if (
+      step.status === OrderStatus.BATCHED &&
+      currentStatus === OrderStatus.RESCHEDULED
+    ) {
+      return {
+        ...step,
+        label: "Rescheduled",
+        description: "Order moved to the next available batch",
+      };
+    }
+    return step;
+  });
 
   return (
     <div
@@ -91,7 +113,7 @@ export function OrderStatusTimeline({
             }}
           />
 
-          {statusSteps.map((step, index) => {
+          {activeStatusSteps.map((step, index) => {
             const StepIcon = step.icon;
             const isCompleted = index < currentIndex;
             const isCurrent = index === currentIndex;
@@ -143,12 +165,12 @@ export function OrderStatusTimeline({
       </div>
 
       <div className="md:hidden space-y-0">
-        {statusSteps.map((step, index) => {
+        {activeStatusSteps.map((step, index) => {
           const StepIcon = step.icon;
           const isCompleted = index < currentIndex;
           const isCurrent = index === currentIndex;
           const isPending = index > currentIndex;
-          const isLast = index === statusSteps.length - 1;
+          const isLast = index === activeStatusSteps.length - 1;
 
           return (
             <div key={step.status} className="relative flex gap-3">

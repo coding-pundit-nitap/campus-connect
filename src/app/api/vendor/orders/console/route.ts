@@ -65,11 +65,13 @@ export async function GET() {
               batch: {
                 status: { in: ["LOCKED", "IN_TRANSIT"] },
               },
-              order_status: { in: ["BATCHED", "OUT_FOR_DELIVERY"] },
+              order_status: {
+                in: ["BATCHED", "OUT_FOR_DELIVERY", "DELIVERY_FAILED"],
+              },
             },
             {
               is_direct_delivery: true,
-              order_status: "OUT_FOR_DELIVERY",
+              order_status: { in: ["OUT_FOR_DELIVERY", "DELIVERY_FAILED"] },
             },
           ],
         },

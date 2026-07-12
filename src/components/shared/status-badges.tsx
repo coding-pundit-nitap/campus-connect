@@ -15,6 +15,8 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     OUT_FOR_DELIVERY: "outline",
     COMPLETED: "default",
     CANCELLED: "destructive",
+    DELIVERY_FAILED: "destructive",
+    RESCHEDULED: "outline",
   };
 
   const colors: Record<OrderStatus, string> = {
@@ -23,6 +25,8 @@ export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
     OUT_FOR_DELIVERY: "bg-indigo-500",
     COMPLETED: "bg-green-500",
     CANCELLED: "bg-red-500",
+    DELIVERY_FAILED: "bg-red-600",
+    RESCHEDULED: "bg-yellow-600",
   };
 
   return (

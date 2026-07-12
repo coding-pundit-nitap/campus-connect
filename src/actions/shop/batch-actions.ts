@@ -114,3 +114,43 @@ export async function closeBatchAction(batchId: string) {
     throw new InternalServerError("Failed to close batch.");
   }
 }
+
+export async function cancelBatchAction(
+  batchId: string,
+  reason: string = "Cancelled by vendor"
+) {
+  try {
+    const user = await authUtils.getUserData();
+    if (!user.id) throw new UnauthorizedError("Not authorized");
+
+    const shop = await shopRepository.findByOwnerId(user.id, {
+      select: { id: true },
+    });
+    if (!shop) throw new BadRequestError("Shop not found");
+
+    const batch = await batchRepository.findById(batchId);
+    if (!batch || batch.shop_id !== shop.id) {
+      throw new BadRequestError("Batch not found or unauthorized");
+    }
+
+    if (batch.status !== "LOCKED" && batch.status !== "IN_TRANSIT") {
+      throw new BadRequestError("Can only cancel LOCKED or IN_TRANSIT batches");
+    }
+
+    const result = await batchService.cancelBatch(batchId, reason);
+
+    return createSuccessResponse(
+      null,
+      `Batch cancelled successfully. ${result.cancelled_orders} orders refunded.`
+    );
+  } catch (error) {
+    log.error({ err: error }, "CANCEL BATCH ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof BadRequestError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to cancel batch.");
+  }
+}

@@ -25,8 +25,10 @@ const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   NEW: "New",
   BATCHED: "Batched",
   OUT_FOR_DELIVERY: "Out for Delivery",
+  DELIVERY_FAILED: "Delivery Failed",
   COMPLETED: "Completed",
   CANCELLED: "Cancelled",
+  RESCHEDULED: "Rescheduled",
 };
 
 interface OrderFilterBarProps {

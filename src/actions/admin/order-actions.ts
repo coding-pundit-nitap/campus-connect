@@ -160,8 +160,10 @@ export async function updateOrderStatusAdminAction(
       NEW: "has been received",
       BATCHED: "is being prepared",
       OUT_FOR_DELIVERY: "is out for delivery",
+      DELIVERY_FAILED: "failed to be delivered",
       COMPLETED: "has been completed",
       CANCELLED: "has been cancelled",
+      RESCHEDULED: "has been rescheduled",
     };
 
     if (order.user_id) {

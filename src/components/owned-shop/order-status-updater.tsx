@@ -61,6 +61,18 @@ const STATUS_CONFIG: Record<
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-100 dark:bg-red-900/40",
   },
+  DELIVERY_FAILED: {
+    label: "Delivery Failed",
+    icon: XCircle,
+    color: "text-red-700 dark:text-red-300",
+    bg: "bg-red-100 dark:bg-red-900/40",
+  },
+  RESCHEDULED: {
+    label: "Rescheduled",
+    icon: CookingPot,
+    color: "text-yellow-600 dark:text-yellow-400",
+    bg: "bg-yellow-100 dark:bg-yellow-900/40",
+  },
 };
 
 export function OrderStatusUpdater({
