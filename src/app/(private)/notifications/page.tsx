@@ -110,7 +110,7 @@ export default function NotificationHistoryPage() {
 
   if (status === "pending") {
     return (
-      <div className="container mx-auto max-w-3xl p-4 md:p-6">
+      <div className="container p-4 md:p-6">
         <Skeleton className="mb-8 h-9 w-64" />
         <div className="relative space-y-8">
           <div className="absolute left-4 top-2 h-full w-0.5 bg-gray-200 dark:bg-gray-800" />
@@ -155,7 +155,7 @@ export default function NotificationHistoryPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 md:p-6">
+    <div className="container p-4 md:p-6">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">
           Notification History
