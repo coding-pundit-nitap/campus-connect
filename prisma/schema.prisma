@@ -167,6 +167,7 @@ model User {
   broadcast_read_statuses BroadcastReadStatus[]
   favorite_shops          FavoriteShop[]
   stock_watches           StockWatch[]
+  push_subscriptions      PushSubscription[]
 
   @@unique([email])
   @@index([role])
@@ -677,4 +678,23 @@ model PlatformSettings {
   updated_at   DateTime @updatedAt
 
   @@map("platform_settings")
+}
+
+// ----------------------------------------
+// Web Push Notifications
+// ----------------------------------------
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  user_id    String
+  endpoint   String
+  p256dh     String
+  auth       String
+  created_at DateTime @default(now())
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([endpoint])
+  @@index([user_id])
+  @@map("push_subscription")
 }
