@@ -8,6 +8,7 @@ export const publicRoutes: string[] = [
   "/search",
   "/about",
   "/contact",
+  "/feed",
   "/faq",
   "/privacy",
   "/terms",
