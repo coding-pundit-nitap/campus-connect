@@ -7,7 +7,7 @@ import AuthWrapper from "@/components/wrapper/auth-wrapper";
 export default function OrdersPage() {
   return (
     <AuthWrapper>
-      <div className="max-w-4xl mx-auto space-y-6">
+      <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/40 pb-5 mb-6">
           <div className="space-y-1">
             <h1 className="text-3xl font-heading font-black tracking-tight flex items-center gap-2.5 text-foreground">

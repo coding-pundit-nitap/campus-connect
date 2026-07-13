@@ -22,24 +22,39 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function usePushNotifications() {
-  const [isSupported] = useState(() => {
-    if (typeof window !== "undefined" && typeof navigator !== "undefined") {
-      return "serviceWorker" in navigator && "PushManager" in window;
-    }
-    return false;
-  });
+  const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isChecking, setIsChecking] = useState(isSupported);
+  const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    if (!isSupported) {
-      return;
-    }
-
     let isMounted = true;
-    const checkSubscription = async () => {
+
+    const init = async () => {
+      await Promise.resolve();
+
+      const supported =
+        "serviceWorker" in navigator &&
+        "PushManager" in window &&
+        "Notification" in window;
+
+      if (!isMounted) return;
+
+      setIsSupported(supported);
+
+      if (!supported) {
+        setIsChecking(false);
+        return;
+      }
+
       try {
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await navigator.serviceWorker.getRegistration();
+        if (!registration) {
+          if (isMounted) {
+            setIsSubscribed(false);
+          }
+          return;
+        }
+
         const subscription = await registration.pushManager.getSubscription();
         if (isMounted) {
           setIsSubscribed(!!subscription);
@@ -52,44 +67,71 @@ export function usePushNotifications() {
         }
       }
     };
-    (async () => {
-      await checkSubscription();
-    })();
+
+    init();
 
     return () => {
       isMounted = false;
     };
-  }, [isSupported]);
+  }, []);
 
   const subscribeMutation = useMutation({
     mutationFn: async () => {
-      const registration = await navigator.serviceWorker.ready;
+      let registration = await navigator.serviceWorker.getRegistration();
+
+      if (!registration) {
+        registration = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+      }
+
+      if (!registration) {
+        throw new Error("Service worker not registered");
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        throw new Error("Notification permission denied");
+      }
 
       const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!publicVapidKey) {
         throw new Error("Missing NEXT_PUBLIC_VAPID_PUBLIC_KEY");
       }
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-      });
+      try {
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+        });
 
-      await notificationAPIService.subscribePush(subscription);
-      return subscription;
+        await notificationAPIService.subscribePush(subscription);
+        return subscription;
+      } catch (err) {
+        if (
+          err instanceof Error &&
+          err.message?.includes("push service error")
+        ) {
+          throw new Error(
+            "Browser is blocking push services. (Brave: Enable 'Google Services for Push' in settings)"
+          );
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       setIsSubscribed(true);
       toast.success("Push notifications enabled");
     },
-    onError: () => {
-      toast.error("Failed to enable push notifications");
+    onError: (err) => {
+      toast.error(`Failed to enable push notifications: ${err.message}`);
     },
   });
 
   const unsubscribeMutation = useMutation({
     mutationFn: async () => {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) return;
+
       const subscription = await registration.pushManager.getSubscription();
 
       if (subscription) {
