@@ -1,6 +1,7 @@
 import { Job, Queue, Worker } from "bullmq";
 import webpush from "web-push";
 
+import { env } from "../../src/config/env.config";
 import { sendNotificationEmail } from "../lib/email";
 import { loggers } from "../lib/logger";
 import { prisma } from "../lib/prisma";
@@ -11,14 +12,14 @@ import { NOTIFICATION_QUEUE_NAME, NotificationJobData } from "./types";
 const logger = loggers.notification;
 
 if (
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
-  process.env.VAPID_PRIVATE_KEY &&
-  process.env.VAPID_SUBJECT
+  env.NEXT_PUBLIC_VAPID_PUBLIC_KEY &&
+  env.VAPID_PRIVATE_KEY &&
+  env.VAPID_SUBJECT
 ) {
   webpush.setVapidDetails(
-    process.env.VAPID_SUBJECT,
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-    process.env.VAPID_PRIVATE_KEY
+    env.VAPID_SUBJECT,
+    env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+    env.VAPID_PRIVATE_KEY
   );
 } else {
   logger.warn(

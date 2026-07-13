@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { env } from "@/config/env.config";
 import { notificationAPIService } from "@/services/notification/notification-api.service";
 
 function urlBase64ToUint8Array(base64String: string) {
@@ -93,7 +94,7 @@ export function usePushNotifications() {
         throw new Error("Notification permission denied");
       }
 
-      const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      const publicVapidKey = env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!publicVapidKey) {
         throw new Error("Missing NEXT_PUBLIC_VAPID_PUBLIC_KEY");
       }

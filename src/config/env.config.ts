@@ -94,6 +94,9 @@ const serverSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   REDIS_URL: z.string().default("redis://redis:6379"),
   REDIS_HOST: z.string().default("redis"),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
+  VAPID_PRIVATE_KEY: z.string().min(1),
+  VAPID_SUBJECT: z.string().min(1),
 });
 
 const clientProcessEnv = {
@@ -102,6 +105,7 @@ const clientProcessEnv = {
   NEXT_PUBLIC_MINIO_ENDPOINT: process.env.NEXT_PUBLIC_MINIO_ENDPOINT,
   NEXT_PUBLIC_MINIO_BUCKET: process.env.NEXT_PUBLIC_MINIO_BUCKET,
   NODE_ENV: process.env.NODE_ENV,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
 };
 
 const _clientEnv = clientSchema.safeParse(clientProcessEnv);
