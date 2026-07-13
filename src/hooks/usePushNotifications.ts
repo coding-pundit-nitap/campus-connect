@@ -49,7 +49,14 @@ export function usePushNotifications() {
 
       try {
         const registration = await navigator.serviceWorker.getRegistration();
-        if (!registration) {
+        if (!registration?.active) {
+          if (isMounted) {
+            setIsSubscribed(false);
+          }
+          return;
+        }
+
+        if (!registration.pushManager) {
           if (isMounted) {
             setIsSubscribed(false);
           }
@@ -61,7 +68,6 @@ export function usePushNotifications() {
           setIsSubscribed(!!subscription);
         }
       } catch {
-        toast.error("Failed to check push subscription");
       } finally {
         if (isMounted) {
           setIsChecking(false);
@@ -78,17 +84,6 @@ export function usePushNotifications() {
 
   const subscribeMutation = useMutation({
     mutationFn: async () => {
-      let registration = await navigator.serviceWorker.getRegistration();
-
-      if (!registration) {
-        registration = await navigator.serviceWorker.register("/sw.js");
-        await navigator.serviceWorker.ready;
-      }
-
-      if (!registration) {
-        throw new Error("Service worker not registered");
-      }
-
       const permission = await Notification.requestPermission();
       if (permission !== "granted") {
         throw new Error("Notification permission denied");
@@ -99,32 +94,65 @@ export function usePushNotifications() {
         throw new Error("Missing NEXT_PUBLIC_VAPID_PUBLIC_KEY");
       }
 
-      try {
-        const subscription = await registration.pushManager.subscribe({
+      await navigator.serviceWorker.register("/sw.js", { scope: "/" });
+      const registration = await navigator.serviceWorker.ready;
+
+      if (!registration.pushManager) {
+        throw new Error(
+          "Push notifications are not supported by this browser."
+        );
+      }
+
+      const applicationServerKey = urlBase64ToUint8Array(publicVapidKey);
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        await existing.unsubscribe().catch(() => {});
+      }
+
+      const doSubscribe = () =>
+        registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+          applicationServerKey,
         });
 
-        await notificationAPIService.subscribePush(subscription);
-        return subscription;
-      } catch (err) {
-        if (
-          err instanceof Error &&
-          err.message?.includes("push service error")
-        ) {
-          throw new Error(
-            "Browser is blocking push services. (Brave: Enable 'Google Services for Push' in settings)"
-          );
+      const RETRY_DELAYS = [1000, 3000, 5000];
+      let lastErr: unknown;
+
+      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+        try {
+          const subscription = await doSubscribe();
+
+          await notificationAPIService.subscribePush(subscription.toJSON());
+          return subscription;
+        } catch (err) {
+          lastErr = err;
+          if (attempt < RETRY_DELAYS.length) {
+            await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+          }
         }
-        throw err;
       }
+
+      const browserMsg =
+        lastErr instanceof Error ? lastErr.message : String(lastErr);
+
+      if (browserMsg.includes("push service error")) {
+        throw new Error(
+          "Could not connect to the push service. Please try:\n" +
+            "• Switch to mobile data (campus WiFi may block push services)\n" +
+            "• Update Google Play Services from the Play Store\n" +
+            "• Update Chrome to the latest version\n" +
+            "• Restart your phone and try again"
+        );
+      }
+
+      throw new Error(`Push subscription failed: ${browserMsg}`);
     },
     onSuccess: () => {
       setIsSubscribed(true);
       toast.success("Push notifications enabled");
     },
     onError: (err) => {
-      toast.error(`Failed to enable push notifications: ${err.message}`);
+      toast.error(err.message, { duration: 8000 });
     },
   });
 

@@ -14,6 +14,7 @@ const clientSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production", "staging"])
     .default("development"),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
 });
 
 const serverSchema = z.object({
@@ -23,7 +24,7 @@ const serverSchema = z.object({
     .default(3000),
   DATABASE_URL: z.string(),
   BETTER_AUTH_SECRET: z.string().min(32),
-  BETTER_AUTH_URL: z.string(),
+  BETTER_AUTH_URL: z.string().default("https://connect.nitap.ac.in"),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   MINIO_ROOT_USER: z.string().min(1),
@@ -50,7 +51,7 @@ const serverSchema = z.object({
   MAX_SSE_CONNECTIONS_PER_USER: z
     .string()
     .transform((val) => parseInt(val, 10))
-    .default(3),
+    .default(15),
   SSE_CONNECTION_TTL: z
     .string()
     .transform((val) => parseInt(val, 10))
@@ -94,7 +95,6 @@ const serverSchema = z.object({
   LOG_LEVEL: z.string().default("info"),
   REDIS_URL: z.string().default("redis://redis:6379"),
   REDIS_HOST: z.string().default("redis"),
-  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
   VAPID_PRIVATE_KEY: z.string().min(1),
   VAPID_SUBJECT: z.string().min(1),
 });
