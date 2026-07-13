@@ -1,4 +1,4 @@
-const CACHE_VERSION = "2026-07-12-v7";
+const CACHE_VERSION = "2026-07-13-v8";
 const PREFIX = `cc-v${CACHE_VERSION}-`;
 
 const PRECACHE = `${PREFIX}precache`;
