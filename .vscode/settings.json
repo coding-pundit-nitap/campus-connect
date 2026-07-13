@@ -9,5 +9,8 @@
   "postman.settings.dotenv-detection-notification-visibility": false,
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   }
 }

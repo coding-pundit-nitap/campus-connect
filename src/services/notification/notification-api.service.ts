@@ -69,6 +69,16 @@ class NotificationAPIService {
     >("notifications/summary");
     return data.data;
   }
+
+  async subscribePush(subscription: PushSubscriptionJSON | PushSubscription) {
+    await axiosInstance.post("notifications/push-subscribe", subscription);
+  }
+
+  async unsubscribePush(endpoint: string) {
+    await axiosInstance.delete("notifications/push-subscribe", {
+      params: { endpoint },
+    });
+  }
 }
 
 export const notificationAPIService = new NotificationAPIService();
