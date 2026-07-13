@@ -6,10 +6,16 @@
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
   "orientation": "portrait-primary",
   "categories": ["shopping", "food", "lifestyle"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
+  "related_applications": [],
   "icons": [
     {
       "src": "/android-chrome-192x192.png",
@@ -28,6 +34,22 @@
       "purpose": "maskable"
     }
   ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Campus Connect Desktop Interface"
+    },
+    {
+      "src": "/screenshot-narrow.png",
+      "sizes": "720x1280",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Campus Connect Mobile Interface"
+    }
+  ],
   "shortcuts": [
     {
       "name": "Browse Shops",
@@ -42,14 +64,43 @@
       "icons": [{ "src": "/android-chrome-192x192.png", "sizes": "192x192" }]
     }
   ],
-  "prefer_related_applications": false,
-  "dir": "ltr",
   "file_handlers": [
     {
       "action": "/",
       "accept": {
         "image/*": [".jpg", ".jpeg", ".png", ".webp"]
       }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+campusconnect",
+      "url": "/?url=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "note_taking": {
+    "new_note_url": "/"
+  },
+  "widgets": [],
+  "scope_extensions": [
+    {
+      "origin": "*.nitap.ac.in"
     }
   ]
 }
