@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { UnauthenticatedError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -16,12 +17,20 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const product_id = searchParams.get("product_id");
 
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      if (product_id) {
-        return jsonResponse(createSuccessResponse(false, "Not logged in"), 200);
+    let user_id: string;
+    try {
+      user_id = await authUtils.getUserId();
+    } catch (err) {
+      if (err instanceof UnauthenticatedError) {
+        if (product_id) {
+          return jsonResponse(
+            createSuccessResponse(false, "Not logged in"),
+            200
+          );
+        }
+        return jsonResponse(createErrorResponse("Unauthorized"), 401);
       }
-      return jsonResponse(createErrorResponse("Unauthorized"), 401);
+      throw err;
     }
 
     if (product_id) {

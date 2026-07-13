@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle, HardDrive, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { SharedCard } from "@/components/shared/shared-card";
@@ -9,64 +9,126 @@ import { Button } from "@/components/ui/button";
 
 export function PwaUpdater() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [registration, setRegistration] =
-    useState<ServiceWorkerRegistration | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
+
+  const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  // Store the waiting worker directly — registration.waiting can become
+  // null on mobile if the browser discards it between detection and click.
+  const waitingWorkerRef = useRef<ServiceWorker | null>(null);
+
+  const onWaitingWorkerFound = useCallback((worker: ServiceWorker) => {
+    waitingWorkerRef.current = worker;
+    setUpdateAvailable(true);
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistration().then((reg) => {
-        if (!reg) return;
-        setRegistration(reg);
+    if (typeof window === "undefined" || !("serviceWorker" in navigator))
+      return;
 
-        if (reg.waiting) {
-          setUpdateAvailable(true);
-        }
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (!reg) return;
+      registrationRef.current = reg;
 
-        reg.addEventListener("updatefound", () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener("statechange", () => {
-              if (
-                newWorker.state === "installed" &&
-                navigator.serviceWorker.controller
-              ) {
-                setUpdateAvailable(true);
-              }
-            });
+      if (reg.waiting) {
+        onWaitingWorkerFound(reg.waiting);
+      }
+
+      reg.addEventListener("updatefound", () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+
+        newWorker.addEventListener("statechange", () => {
+          if (
+            newWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            onWaitingWorkerFound(newWorker);
           }
         });
       });
+    });
 
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (refreshing) return;
-        refreshing = true;
-        window.location.reload();
-      });
-    }
-  }, []);
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  }, [onWaitingWorkerFound]);
 
   const handleUpdate = async () => {
-    if (!registration || !registration.waiting) return;
+    setIsUpdating(true);
 
+    // Clear all caches first.
     if ("caches" in window) {
       try {
         const cacheKeys = await caches.keys();
         await Promise.all(cacheKeys.map((key) => caches.delete(key)));
       } catch {
-        toast.error("Failed to clear caches");
+        // Non-fatal — continue with the update.
       }
     }
 
-    registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    // Try to activate the waiting worker.
+    let worker = waitingWorkerRef.current;
+
+    // Fallback: if the stored reference is gone, re-check registration.waiting.
+    if (!worker) {
+      worker = registrationRef.current?.waiting ?? null;
+    }
+
+    if (worker) {
+      worker.postMessage({ type: "SKIP_WAITING" });
+      // The controllerchange listener will reload the page.
+      // Set a timeout fallback in case the event doesn't fire (e.g., on some mobile browsers).
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+      return;
+    }
+
+    // Last resort: the waiting worker was lost entirely (common on mobile
+    // after the phone was locked or the app was backgrounded).
+    // Force a hard reload to pick up the new service worker.
+    try {
+      await registrationRef.current?.update();
+      const reg = registrationRef.current;
+      if (reg?.waiting) {
+        reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+        return;
+      }
+    } catch {
+      // update() can fail on some mobile browsers — fall through to reload.
+    }
+
+    // If nothing else worked, just reload — the browser will pick up the
+    // latest SW on next navigation anyway since caches are already cleared.
+    window.location.reload();
   };
 
-  const handleManualCheck = () => {
-    if (registration) {
-      registration.update().then(() => {
-        if (!registration.waiting && !updateAvailable) {
-        }
-      });
+  const handleManualCheck = async () => {
+    const reg = registrationRef.current;
+    if (!reg) {
+      toast.error("Update service not available");
+      return;
+    }
+
+    setIsChecking(true);
+    try {
+      await reg.update();
+      if (reg.waiting) {
+        onWaitingWorkerFound(reg.waiting);
+      } else if (!updateAvailable) {
+        toast.success("App is already up to date!");
+      }
+    } catch {
+      toast.error("Failed to check for updates");
+    } finally {
+      setIsChecking(false);
     }
   };
 
@@ -91,9 +153,15 @@ export function PwaUpdater() {
                 </p>
               </div>
             </div>
-            <Button onClick={handleUpdate} className="w-full sm:w-auto">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Update Now
+            <Button
+              onClick={handleUpdate}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${isUpdating ? "animate-spin" : ""}`}
+              />
+              {isUpdating ? "Updating..." : "Update Now"}
             </Button>
           </div>
         ) : (
@@ -110,9 +178,17 @@ export function PwaUpdater() {
             <Button
               variant="outline"
               onClick={handleManualCheck}
+              disabled={isChecking}
               className="w-full sm:w-auto"
             >
-              Check for Updates
+              {isChecking ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Checking...
+                </>
+              ) : (
+                "Check for Updates"
+              )}
             </Button>
           </div>
         )}

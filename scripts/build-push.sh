@@ -144,9 +144,10 @@ for service in "${SERVICES[@]}"; do
   BUILD_ARGS=()
   if [ "$TARGET" = "runner" ]; then
     BUILD_ARGS=(
-      "--build-arg" "NEXT_PUBLIC_MINIO_BUCKET=$MINIO_BUCKET"
-      "--build-arg" "NEXT_PUBLIC_MINIO_ENDPOINT=$MINIO_ENDPOINT"
-      "--build-arg" "NEXT_PUBLIC_APP_URL=$APP_URL"
+      "--build-arg" "NEXT_PUBLIC_MINIO_BUCKET=$NEXT_PUBLIC_MINIO_BUCKET"
+      "--build-arg" "NEXT_PUBLIC_MINIO_ENDPOINT=$NEXT_PUBLIC_MINIO_ENDPOINT"
+      "--build-arg" "NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL"
+      "--build-arg" "NEXT_PUBLIC_VAPID_PUBLIC_KEY=$NEXT_PUBLIC_VAPID_PUBLIC_KEY"
     )
   fi
 
