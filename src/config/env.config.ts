@@ -108,14 +108,31 @@ const clientProcessEnv = {
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
 };
 
+let _clientEnvData: z.infer<typeof clientSchema>;
 const _clientEnv = clientSchema.safeParse(clientProcessEnv);
 
 if (!_clientEnv.success) {
-  log.error(
-    { err: z.treeifyError(_clientEnv.error) },
-    "❌ Invalid client environment variables:"
-  );
-  throw new Error("Invalid client environment variables");
+  if (
+    process.env.SKIP_ENV_VALIDATION === "1" ||
+    process.env.SKIP_ENV_VALIDATION === "true"
+  ) {
+    log.warn("Skipping client environment validation...");
+    _clientEnvData = clientProcessEnv as unknown as z.infer<
+      typeof clientSchema
+    >;
+  } else {
+    log.error(
+      {
+        err: z.treeifyError
+          ? z.treeifyError(_clientEnv.error)
+          : _clientEnv.error,
+      },
+      "❌ Invalid client environment variables:"
+    );
+    throw new Error("Invalid client environment variables");
+  }
+} else {
+  _clientEnvData = _clientEnv.data;
 }
 
 let _serverEnv: z.infer<typeof serverSchema> | undefined = undefined;
@@ -131,7 +148,11 @@ if (typeof window === "undefined") {
       _serverEnv = {} as z.infer<typeof serverSchema>;
     } else {
       log.error(
-        { err: z.treeifyError(parsedServerEnv.error) },
+        {
+          err: z.treeifyError
+            ? z.treeifyError(parsedServerEnv.error)
+            : parsedServerEnv.error,
+        },
         "❌ Invalid server environment variables:"
       );
       throw new Error("Invalid server environment variables");
@@ -141,6 +162,6 @@ if (typeof window === "undefined") {
   }
 }
 export const env = {
-  ..._clientEnv.data,
+  ..._clientEnvData,
   ...(_serverEnv || {}),
 } as z.infer<typeof clientSchema> & z.infer<typeof serverSchema>;

@@ -103,8 +103,6 @@ services:
     command: >
       redis-server
       --appendonly yes
-      --maxmemory 400mb
-      --maxmemory-policy noeviction
       --save 900 1
       --save 300 10
     expose:
@@ -118,7 +116,6 @@ services:
       retries: 5
     networks:
       - campus_connect_net
-    mem_limit: 512m
     cpus: "0.5"
     security_opt:
       - no-new-privileges:true
