@@ -391,8 +391,8 @@ export function VendorCommandCenter() {
               Order Console
             </h1>
             <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed font-medium">
-              Intake incoming tickets, manage menu prep list, and dispatch
-              hostel delivery batches.
+              Review new orders, track what's in the kitchen, and dispatch
+              completed batches for delivery.
             </p>
           </div>
           <div className="flex items-center gap-2">
