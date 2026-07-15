@@ -465,6 +465,7 @@ model Order {
 
   assigned_to        String?
   customer_notes     String?
+  cancellation_reason String?
   delivery_otp       String?
   is_direct_delivery Boolean @default(false)
 

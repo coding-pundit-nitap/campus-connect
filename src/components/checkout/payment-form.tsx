@@ -1,4 +1,5 @@
 "use client";
+import { AlertCircle } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -335,6 +336,17 @@ export function PaymentForm({
                   <p className="text-[10px] text-muted-foreground/80 font-medium">
                     Enter the reference transaction ID from your payment app
                     (typically 12+ alphanumeric characters).
+                  </p>
+                </div>
+                <div className="flex items-start gap-2 p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl mt-3">
+                  <AlertCircle className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    <span className="font-bold text-foreground">
+                      How it works:
+                    </span>{" "}
+                    After you pay via your UPI app and enter the transaction ID,
+                    the vendor will manually verify your payment. This usually
+                    takes a few minutes. Your order will proceed once confirmed.
                   </p>
                 </div>
               </div>

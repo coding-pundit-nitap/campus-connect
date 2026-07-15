@@ -2,6 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { SheetClose } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { Button } from "../ui/button";
 
@@ -18,8 +19,21 @@ export function CartDrawerWrapper({
 export function CartLoadingState() {
   return (
     <CartDrawerWrapper>
-      <div className="flex items-center justify-center h-full">
-        <p className="text-muted-foreground">Loading cart...</p>
+      <div className="space-y-4 p-4 flex-1">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-start gap-4 py-3">
+            <Skeleton className="h-16 w-16 rounded-md" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="border-t p-4 space-y-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-10 w-full rounded-xl" />
       </div>
     </CartDrawerWrapper>
   );

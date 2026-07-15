@@ -243,6 +243,7 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
     await orderRepository.update(orderId, {
       order_status: "CANCELLED",
       payment_status: paymentStatus,
+      cancellation_reason: reason || null,
       customer_notes: order.customer_notes
         ? `${order.customer_notes}\n${rejectionNote}`
         : rejectionNote,

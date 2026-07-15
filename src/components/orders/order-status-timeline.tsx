@@ -7,6 +7,7 @@ import { OrderStatus } from "@/types/prisma.types";
 
 interface OrderStatusTimelineProps {
   currentStatus: OrderStatus;
+  cancellationReason?: string | null;
   className?: string;
 }
 
@@ -46,6 +47,7 @@ function getStatusIndex(status: OrderStatus): number {
 
 export function OrderStatusTimeline({
   currentStatus,
+  cancellationReason,
   className,
 }: OrderStatusTimelineProps) {
   const isCancelled =
@@ -73,6 +75,11 @@ export function OrderStatusTimeline({
                 ? "The runner was unable to deliver this order. Please contact the shop."
                 : "This order has been cancelled and cannot be processed further."}
             </p>
+            {cancellationReason && (
+              <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-1">
+                Reason: {cancellationReason}
+              </p>
+            )}
           </div>
         </div>
       </div>
