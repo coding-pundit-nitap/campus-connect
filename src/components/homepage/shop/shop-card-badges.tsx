@@ -25,6 +25,11 @@ export function ShopCardBadges() {
         {shop.is_active ? "Active" : "Inactive"}
       </Badge>
       {shop.is_active && <ShopStatusBadge shop={shop} />}
+      {!shop.accepting_orders && (
+        <Badge variant="destructive" className="text-[11px] font-bold">
+          Paused
+        </Badge>
+      )}
     </div>
   );
 }
