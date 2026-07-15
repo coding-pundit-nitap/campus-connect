@@ -134,6 +134,7 @@ jobs:
             NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
             NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -173,6 +174,7 @@ jobs:
             NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
             NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -212,6 +214,7 @@ jobs:
             NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
             NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -251,6 +254,7 @@ jobs:
             NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
             NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
             NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'http://localhost' }}
+            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
