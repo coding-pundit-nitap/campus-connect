@@ -156,8 +156,8 @@ export function BatchSlotSelector({
           Select Delivery Mode
         </CardTitle>
         <CardDescription className="text-xs font-medium text-muted-foreground">
-          Choose between dynamic batch delivery (free/discounted) or direct
-          shipping.
+          Pick how you want your order delivered. Batch delivery groups orders
+          heading to your hostel — it's free!
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 px-0 pb-0">
@@ -185,8 +185,8 @@ export function BatchSlotSelector({
               Direct Delivery
             </h4>
             <p className="text-[11px] text-muted-foreground font-medium mt-1 leading-relaxed">
-              Order ships immediately upon preparation. Perfect for fast craving
-              satisfaction.
+              Your order is prepared and delivered straight to you — fastest
+              option.
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
               <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/70">
@@ -228,8 +228,8 @@ export function BatchSlotSelector({
               Batch Delivery
             </h4>
             <p className="text-[11px] text-muted-foreground font-medium mt-1 leading-relaxed">
-              Consolidated courier batch cards. Environmentally friendly and
-              cost efficient.
+              Your order joins others heading to your hostel. The vendor makes
+              one trip — you save on delivery!
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
               <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/70">
@@ -329,7 +329,8 @@ export function BatchSlotSelector({
                 Direct Shipment Delivery
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">
-                Dispatched directly via active couriers immediately as prepared.
+                Your order will be delivered as soon as it's ready — no waiting
+                for a batch.
                 {directDeliveryFee > 0 &&
                   ` Extra direct surcharge of ₹${directDeliveryFee.toFixed(2)} applies.`}
               </p>

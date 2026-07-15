@@ -78,7 +78,15 @@ export default function OrderCard({ order }: Props) {
                     variant="secondary"
                     className="uppercase font-bold text-[9px] rounded px-1.5 py-0 h-4"
                   >
-                    {order.batch.status}
+                    {order.batch.status === "OPEN"
+                      ? "Collecting orders"
+                      : order.batch.status === "LOCKED"
+                        ? "Batch confirmed"
+                        : order.batch.status === "IN_TRANSIT"
+                          ? "On the way"
+                          : order.batch.status === "COMPLETED"
+                            ? "Delivered"
+                            : order.batch.status}
                   </Badge>
                 </>
               ) : (
