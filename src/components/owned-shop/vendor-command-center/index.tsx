@@ -17,6 +17,16 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -126,6 +136,8 @@ export function VendorCommandCenter() {
 
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [showCloseBatchDialog, setShowCloseBatchDialog] = useState(false);
 
   const batchOrders = data?.batchOrders ?? EMPTY_ORDERS;
   const directOrders = data?.directOrders ?? EMPTY_ORDERS;
@@ -196,13 +208,9 @@ export function VendorCommandCenter() {
     [acceptMutation]
   );
 
-  const rejectOrder = useCallback(
-    (id: string) => {
-      if (!window.confirm("Reject this order?")) return;
-      rejectMutation.mutate({ orderId: id });
-    },
-    [rejectMutation]
-  );
+  const rejectOrder = useCallback((id: string) => {
+    setRejectTarget(id);
+  }, []);
 
   const handleOtpChange = useCallback((orderId: string, value: string) => {
     setOtpInputs((prev) => ({ ...prev, [orderId]: value }));
@@ -248,9 +256,15 @@ export function VendorCommandCenter() {
       toast.error(`Accept or reject ${batchNewCount} new batch orders first.`);
       return;
     }
-    if (!window.confirm("Close this batch for delivery?")) return;
-    closeBatchMutation.mutate(activeBatch.id);
-  }, [activeBatch, batchNewCount, closeBatchMutation]);
+    setShowCloseBatchDialog(true);
+  }, [activeBatch, batchNewCount]);
+
+  const confirmCloseBatch = useCallback(() => {
+    if (!activeBatch) return;
+    closeBatchMutation.mutate(activeBatch.id, {
+      onSettled: () => setShowCloseBatchDialog(false),
+    });
+  }, [activeBatch, closeBatchMutation]);
 
   const startRun = useCallback(() => {
     if (!activeBatch) return;
@@ -688,6 +702,65 @@ export function VendorCommandCenter() {
           </div>
         )}
       </div>
+      <AlertDialog
+        open={!!rejectTarget}
+        onOpenChange={(open) => !open && setRejectTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reject this order?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The student will be notified that their order was rejected. This
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={rejectMutation.isPending}>
+              Keep Order
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (rejectTarget) {
+                  rejectMutation.mutate(
+                    { orderId: rejectTarget },
+                    { onSettled: () => setRejectTarget(null) }
+                  );
+                }
+              }}
+              disabled={rejectMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {rejectMutation.isPending ? "Rejecting..." : "Yes, Reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showCloseBatchDialog}
+        onOpenChange={setShowCloseBatchDialog}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Close this batch?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Once closed, no more orders can join this batch. Existing orders
+              will be locked for delivery and OTPs will be generated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={closeBatchMutation.isPending}>
+              Keep Collecting Orders
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmCloseBatch}
+              disabled={closeBatchMutation.isPending}
+            >
+              {closeBatchMutation.isPending ? "Closing..." : "Yes, Close Batch"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
