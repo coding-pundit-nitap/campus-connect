@@ -9,10 +9,12 @@ import { SecurityTab } from "@/components/profile/security-tab";
 import { StockWatchesTab } from "@/components/profile/stock-watches-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginIndicator from "@/components/wrapper/login-indicator";
+import { useUserAddresses } from "@/hooks/queries/useAddress";
 import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
   const session = useSession();
+  const { data: addresses } = useUserAddresses();
 
   if (!session.data?.user) {
     return <LoginIndicator />;
@@ -36,7 +38,10 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="profile" className="mt-6">
-          <ProfileCard user={session.data.user} />
+          <ProfileCard
+            user={session.data.user}
+            hasAddresses={!!addresses?.data?.length}
+          />
           <PwaUpdater />
         </TabsContent>
         <TabsContent value="addresses" className="mt-6">

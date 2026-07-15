@@ -37,6 +37,7 @@ import UserAvatar from "../sidebar/user-avatar";
 
 interface ProfileCardProps {
   user: User;
+  hasAddresses: boolean;
 }
 
 const isUploadedImage = (image: string | null | undefined): boolean => {
@@ -54,7 +55,7 @@ const getDisplayImageUrl = (
   return image;
 };
 
-const ProfileCard = ({ user }: ProfileCardProps) => {
+const ProfileCard = ({ user, hasAddresses }: ProfileCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [currentImage, setCurrentImage] = useState(user.image);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +128,14 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
 
   const displayImageUrl = getDisplayImageUrl(currentImage);
 
+  const completionItems = [
+    { label: "Profile photo", done: !!currentImage },
+    { label: "Phone number", done: !!user.phone },
+    { label: "Delivery address", done: hasAddresses },
+  ];
+  const completedCount = completionItems.filter((i) => i.done).length;
+  const isComplete = completedCount === completionItems.length;
+
   const headerContent = (
     <>
       <div className="flex flex-col items-center gap-6 py-6">
@@ -162,6 +171,22 @@ const ProfileCard = ({ user }: ProfileCardProps) => {
             <Mail className="h-4 w-4" />
             <p className="text-sm">{user.email}</p>
           </div>
+          {!isComplete && (
+            <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-left">
+              <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                Profile {completedCount}/{completionItems.length} complete
+              </p>
+              <ul className="mt-1 space-y-0.5">
+                {completionItems
+                  .filter((i) => !i.done)
+                  .map((i) => (
+                    <li key={i.label} className="text-xs text-muted-foreground">
+                      • Add {i.label.toLowerCase()}
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
