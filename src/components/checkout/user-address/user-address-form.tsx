@@ -179,7 +179,7 @@ export function UserAddressForm({
                 <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex justify-between">
                   <span>Building / Hostel Address</span>
                   {allowedBuildings.length > 0 && (
-                    <span className="text-[10px] text-blue-600 tracking-tight lowercase font-medium">
+                    <span className="text-[11px] text-blue-600 tracking-tight lowercase font-medium">
                       Shop delivery limits active
                     </span>
                   )}
@@ -201,7 +201,7 @@ export function UserAddressForm({
                     <div className="absolute z-50 w-full mt-1 bg-card border border-border/30 rounded-xl shadow-xl max-h-60 overflow-y-auto p-1.5 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                       {filteredBuildings.length > 0 ? (
                         <>
-                          <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase tracking-wider">
+                          <div className="px-2 py-1 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                             Suggested Buildings
                           </div>
                           {filteredBuildings.map((building) => (
@@ -323,7 +323,7 @@ export function UserAddressForm({
                   <FormLabel className="text-xs font-semibold text-foreground cursor-pointer">
                     Set as default address
                   </FormLabel>
-                  <p className="text-[10px] text-muted-foreground font-medium">
+                  <p className="text-[11px] text-muted-foreground font-medium">
                     This address will be pre-selected for future orders.
                   </p>
                 </div>

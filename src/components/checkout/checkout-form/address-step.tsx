@@ -34,7 +34,7 @@ export function AddressStep({
               <span className="text-sm">⚠️</span>
               <div>
                 This shop does not deliver to {selectedAddress.building}.
-                <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">
+                <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">
                   Please select or add a different address inside the shop's
                   delivery zone.
                 </p>

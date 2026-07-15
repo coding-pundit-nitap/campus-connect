@@ -129,7 +129,7 @@ export function DeliveryBuildingsManager() {
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
             Add Existing Campus Location
           </span>
           <div className="grid gap-2 md:grid-cols-[1fr_auto]">
@@ -167,7 +167,7 @@ export function DeliveryBuildingsManager() {
         </div>
 
         <div className="space-y-1.5 pt-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
             Create Custom Location
           </span>
           <div className="grid gap-2 md:grid-cols-[1fr_minmax(0,0.7fr)_auto]">

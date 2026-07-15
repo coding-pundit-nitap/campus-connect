@@ -67,12 +67,12 @@ function CanteenCircleCard({ shop }: CanteenCircleCardProps) {
         </span>
 
         {open ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-wider select-none">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-black uppercase tracking-wider select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             Open
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-[9px] font-black uppercase tracking-wider select-none">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 text-[11px] font-black uppercase tracking-wider select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
             Closed
           </span>
@@ -124,7 +124,7 @@ function FavoriteShopsFeed({ favorites }: FavoriteShopsFeedProps) {
           <div className="flex flex-col">
             <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Favorite Canteens
-              <span className="text-[10px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[11px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Saved
               </span>
             </h2>
@@ -173,7 +173,7 @@ function ExploreCanteensFeed({ shops }: ExploreCanteensFeedProps) {
           <div className="flex flex-col">
             <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Explore Canteens
-              <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[11px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Discover
               </span>
             </h2>

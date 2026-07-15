@@ -174,7 +174,7 @@ export default function SharedSidebar({
             {header.title}
           </span>
           {header.subtitle && (
-            <span className="truncate text-[9px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1 leading-none">
+            <span className="truncate text-[11px] font-bold text-muted-foreground/80 uppercase tracking-widest mt-1 leading-none">
               {header.subtitle}
             </span>
           )}
@@ -251,7 +251,7 @@ export default function SharedSidebar({
               <Badge
                 variant={item.badgeVariant || "destructive"}
                 className={cn(
-                  "ml-auto h-5 px-1.5 min-w-5 flex items-center justify-center text-[10px] font-bold rounded-md border-none",
+                  "ml-auto h-5 px-1.5 min-w-5 flex items-center justify-center text-[11px] font-bold rounded-md border-none",
                   isActive
                     ? "bg-orange-500 text-white dark:bg-orange-600"
                     : "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400"
@@ -312,7 +312,7 @@ export default function SharedSidebar({
         {displayGroups.map((group, index) => (
           <SidebarGroup key={group.label || index}>
             {group.label && (
-              <SidebarGroupLabel className="font-heading font-black uppercase tracking-wider text-[10px] text-muted-foreground/85 px-3 mb-2 mt-1">
+              <SidebarGroupLabel className="font-heading font-black uppercase tracking-wider text-[11px] text-muted-foreground/85 px-3 mb-2 mt-1">
                 {group.label}
               </SidebarGroupLabel>
             )}

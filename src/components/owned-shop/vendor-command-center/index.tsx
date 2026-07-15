@@ -495,7 +495,7 @@ export function VendorCommandCenter() {
                   key={item.name}
                   className="rounded-xl border border-border/20 bg-muted/15 p-3 text-xs flex items-center gap-2.5 shadow-xs transition-all hover:scale-102 hover:border-emerald-500/20 hover:bg-emerald-500/[0.01]"
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 text-[10px] font-extrabold tabular-nums ring-2 ring-emerald-500/5">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 text-[11px] font-extrabold tabular-nums ring-2 ring-emerald-500/5">
                     {item.quantity}x
                   </div>
                   <div className="min-w-0 truncate font-semibold text-muted-foreground">
@@ -560,7 +560,7 @@ export function VendorCommandCenter() {
                       </span>
                       <span
                         className={cn(
-                          "text-[10px] mt-0.5 font-bold",
+                          "text-[11px] mt-0.5 font-bold",
                           isSelected
                             ? "text-blue-200"
                             : "text-muted-foreground/85"

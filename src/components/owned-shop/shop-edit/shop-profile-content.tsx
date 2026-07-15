@@ -103,7 +103,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
               {shop.name}
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/40 px-2.5 py-0.5 rounded-full inline-block backdrop-blur-xs">
+              <span className="text-[11px] sm:text-[11px] font-bold uppercase tracking-wider text-orange-400 bg-orange-950/40 px-2.5 py-0.5 rounded-full inline-block backdrop-blur-xs">
                 {shop.opening} - {shop.closing}
               </span>
             </div>
@@ -145,7 +145,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     Pickup Location
                   </span>
                   <p className="text-xs font-semibold text-foreground truncate">
@@ -159,7 +159,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                   <ShoppingBag className="w-4 h-4" />
                 </div>
                 <div className="space-y-0.5 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     Minimum Basket Value
                   </span>
                   <p className="text-xs font-semibold text-foreground">
@@ -173,7 +173,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                   <Truck className="w-4 h-4" />
                 </div>
                 <div className="space-y-1 w-full">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     Delivery Rates
                   </span>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-semibold text-foreground">
@@ -206,7 +206,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
               </h3>
 
               <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   UPI ID Address
                 </span>
                 {shop.upi_id ? (
@@ -222,7 +222,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
             </div>
 
             <div className="space-y-1.5 pt-2">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block text-center">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block text-center">
                 UPI QR Code
               </span>
               {hasQr ? (
@@ -237,7 +237,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
               ) : (
                 <div className="border border-dashed border-border/40 bg-muted/15 p-4 rounded-xl text-center space-y-1 flex flex-col items-center justify-center min-h-[128px]">
                   <AlertCircle className="w-8 h-8 text-muted-foreground/40" />
-                  <span className="text-[10px] text-muted-foreground font-semibold leading-tight">
+                  <span className="text-[11px] text-muted-foreground font-semibold leading-tight">
                     No QR Code Uploaded
                   </span>
                 </div>
@@ -257,7 +257,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                     <User className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none">
                       Full Name
                     </p>
                     <p className="font-semibold text-foreground truncate mt-0.5">
@@ -271,7 +271,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                     <Mail className="w-3.5 h-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80 leading-none">
                       Email Address
                     </p>
                     <p className="font-semibold text-foreground truncate mt-0.5">

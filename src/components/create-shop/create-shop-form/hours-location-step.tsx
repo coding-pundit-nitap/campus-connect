@@ -69,7 +69,7 @@ export function HoursLocationStep({ form }: HoursLocationStepProps) {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription className="text-[10px] text-muted-foreground font-semibold">
+                <FormDescription className="text-[11px] text-muted-foreground font-semibold">
                   E.g., 07:00 AM
                 </FormDescription>
                 <FormMessage />
@@ -91,7 +91,7 @@ export function HoursLocationStep({ form }: HoursLocationStepProps) {
                     {...field}
                   />
                 </FormControl>
-                <FormDescription className="text-[10px] text-muted-foreground font-semibold">
+                <FormDescription className="text-[11px] text-muted-foreground font-semibold">
                   E.g., 08:00 PM
                 </FormDescription>
                 <FormMessage />

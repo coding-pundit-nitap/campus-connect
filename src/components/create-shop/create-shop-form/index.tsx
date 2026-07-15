@@ -265,10 +265,10 @@ export function CreateShopForm() {
 
       <div className="md:hidden col-span-12 space-y-3 mb-2">
         <div className="flex justify-between items-center text-xs">
-          <span className="font-bold text-foreground uppercase tracking-wider text-[10px]">
+          <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">
             {activeMeta.title}
           </span>
-          <span className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">
+          <span className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
             {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
           </span>
         </div>
@@ -342,7 +342,7 @@ export function CreateShopForm() {
                           ? "Launching portal..."
                           : "Create Shop & Launch Dashboard"}
                       </Button>
-                      <span className="text-[10px] text-muted-foreground mt-1.5 text-right font-medium">
+                      <span className="text-[11px] text-muted-foreground mt-1.5 text-right font-medium">
                         Your store goes live after setup.
                       </span>
                     </div>

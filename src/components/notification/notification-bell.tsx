@@ -96,7 +96,7 @@ export function OrderNotificationBell() {
           {displayCount > 0 && (
             <Badge
               variant="outline"
-              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[10px] font-black bg-orange-500 text-white border-2 border-background shadow-xs hover:bg-orange-600 transition-colors"
+              className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full p-0 text-[11px] font-black bg-orange-500 text-white border-2 border-background shadow-xs hover:bg-orange-600 transition-colors"
             >
               {displayCount > 9 ? "9+" : displayCount}
             </Badge>

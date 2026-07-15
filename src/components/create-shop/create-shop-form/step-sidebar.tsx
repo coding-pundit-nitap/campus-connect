@@ -34,7 +34,7 @@ export function StepSidebar({
       </div>
 
       <div className="space-y-2 mb-8">
-        <div className="flex justify-between text-[10px] font-bold tracking-wider text-muted-foreground/80 uppercase">
+        <div className="flex justify-between text-[11px] font-bold tracking-wider text-muted-foreground/80 uppercase">
           <span>Progress</span>
           <span>{Math.round((step / 5) * 100)}%</span>
         </div>
@@ -42,7 +42,7 @@ export function StepSidebar({
           value={(step / 5) * 100}
           className="h-1.5 bg-muted rounded-full [&_div]:bg-blue-600"
         />
-        <p className="text-[10px] text-muted-foreground/80 font-medium mt-1">
+        <p className="text-[11px] text-muted-foreground/80 font-medium mt-1">
           {stepEstimates[step]}
         </p>
       </div>
@@ -90,7 +90,7 @@ export function StepSidebar({
                 >
                   {s.title}
                 </span>
-                <span className="text-[10px] text-muted-foreground/80 mt-0.5">
+                <span className="text-[11px] text-muted-foreground/80 mt-0.5">
                   {s.desc}
                 </span>
               </div>

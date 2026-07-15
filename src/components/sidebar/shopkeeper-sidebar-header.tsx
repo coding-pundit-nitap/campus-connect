@@ -60,13 +60,13 @@ export function ShopkeeperSidebarHeader() {
             variant={isAcceptingOrders ? "default" : "secondary"}
             className={
               isAcceptingOrders
-                ? "bg-green-500 hover:bg-green-500 text-white font-medium text-[10px] py-0 px-1.5 h-4.5"
-                : "bg-amber-500 hover:bg-amber-500 text-white font-medium text-[10px] py-0 px-1.5 h-4.5"
+                ? "bg-green-500 hover:bg-green-500 text-white font-medium text-[11px] py-0 px-1.5 h-4.5"
+                : "bg-amber-500 hover:bg-amber-500 text-white font-medium text-[11px] py-0 px-1.5 h-4.5"
             }
           >
             {isAcceptingOrders ? "Open" : "Paused"}
           </Badge>
-          <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+          <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">
             Merchant
           </span>
         </div>

@@ -33,7 +33,7 @@ export function PrepCard({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[9px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold",
+                    "text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold",
                     order.is_direct_delivery
                       ? "border-red-500/20 bg-red-500/10 text-red-500"
                       : "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"

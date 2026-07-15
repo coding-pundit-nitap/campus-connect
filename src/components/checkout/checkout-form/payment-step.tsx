@@ -63,7 +63,7 @@ export function PaymentStep({
             <h4 className="font-bold text-sm tracking-tight text-foreground">
               Cash on Delivery
             </h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 leading-snug">
+            <p className="text-[11px] text-muted-foreground font-semibold mt-0.5 leading-snug">
               Pay with cash to courier once delivery reaches your block.
             </p>
           </div>
@@ -90,7 +90,7 @@ export function PaymentStep({
             <h4 className="font-bold text-sm tracking-tight text-foreground">
               UPI Payment
             </h4>
-            <p className="text-[10px] text-muted-foreground font-semibold mt-0.5 leading-snug">
+            <p className="text-[11px] text-muted-foreground font-semibold mt-0.5 leading-snug">
               Instant scan payment via Google Pay, PhonePe, Paytm.
             </p>
           </div>
@@ -133,7 +133,7 @@ export function PaymentStep({
             {upi_id && (
               <div className="bg-card/40 border border-border/30 rounded-xl p-3 flex items-center justify-between">
                 <div className="min-w-0">
-                  <p className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                  <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                     UPI Address ID
                   </p>
                   <p className="text-xs font-bold text-foreground mt-0.5 truncate">
@@ -152,7 +152,7 @@ export function PaymentStep({
               </div>
             )}
             <div className="bg-card/40 border border-border/30 rounded-xl p-3">
-              <p className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground/80">
+              <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                 Paying Amount
               </p>
               <p className="text-xs font-black text-blue-600 mt-0.5">
@@ -183,7 +183,7 @@ export function PaymentStep({
                 </div>
               )}
             </div>
-            <p className="text-[10px] text-muted-foreground/80 font-medium">
+            <p className="text-[11px] text-muted-foreground/80 font-medium">
               Transaction reference IDs are alphanumeric and typically 12+
               characters long.
             </p>

@@ -8,11 +8,11 @@ const variantStyles = {
   default: {
     container: "absolute top-3 left-3 flex flex-col items-start gap-1.5 z-10",
     badge:
-      "shadow-xs font-black rounded-md border border-border bg-card text-foreground text-[9px] tracking-wider uppercase px-2 py-0.5",
+      "shadow-xs font-black rounded-md border border-border bg-card text-foreground text-[11px] tracking-wider uppercase px-2 py-0.5",
     lowStock:
-      "border border-red-500/20 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-black rounded-md shadow-xs text-[9px] tracking-wider uppercase px-2 py-0.5 animate-pulse",
+      "border border-red-500/20 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-black rounded-md shadow-xs text-[11px] tracking-wider uppercase px-2 py-0.5 animate-pulse",
     discount:
-      "border border-orange-600/20 bg-orange-500 text-white font-black rounded-md shadow-xs uppercase tracking-wider text-[9px] px-2 py-0.5",
+      "border border-orange-600/20 bg-orange-500 text-white font-black rounded-md shadow-xs uppercase tracking-wider text-[11px] px-2 py-0.5",
   },
   compact: {
     container: "absolute top-1.5 left-1.5 flex flex-col gap-1 z-10",

@@ -61,7 +61,7 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                <FormDescription className="text-[11px] text-muted-foreground/80 leading-normal font-medium">
                   Minimum cart subtotal required for a customer to checkout.
                 </FormDescription>
                 <FormMessage />
@@ -91,7 +91,7 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                <FormDescription className="text-[11px] text-muted-foreground/80 leading-normal font-medium">
                   Standard delivery charge applied for scheduled batch slots.
                 </FormDescription>
                 <FormMessage />
@@ -121,7 +121,7 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
                     />
                   </div>
                 </FormControl>
-                <FormDescription className="text-[10px] text-muted-foreground/80 leading-normal font-medium">
+                <FormDescription className="text-[11px] text-muted-foreground/80 leading-normal font-medium">
                   Immediate, non-batched delivery surcharge.
                 </FormDescription>
                 <FormMessage />
