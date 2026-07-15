@@ -1,7 +1,9 @@
 import { ShoppingCart } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { EmptyState } from "../ui/empty-state";
@@ -58,8 +60,13 @@ export function OrderEmptyState() {
   return (
     <EmptyState
       icon={<ShoppingCart className="h-10 w-10 text-muted-foreground" />}
-      title="No orders found"
-      description="You have no orders"
+      title="No orders yet"
+      description="Browse campus shops and place your first order — delivery right to your hostel!"
+      action={
+        <Button asChild variant="default" className="mt-2">
+          <Link href="/feed">Browse Shops</Link>
+        </Button>
+      }
     />
   );
 }

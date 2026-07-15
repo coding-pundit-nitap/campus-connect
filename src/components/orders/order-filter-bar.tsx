@@ -77,13 +77,14 @@ export function OrderFilterBar({
       <Select
         value={filters.status || ""}
         onValueChange={(value) =>
-          onStatusChange(value ? (value as OrderStatus) : undefined)
+          onStatusChange(value === "ALL" ? undefined : (value as OrderStatus))
         }
       >
         <SelectTrigger className="w-[160px] rounded-xl border-2 bg-card hover:bg-muted transition-all duration-200 hover:scale-[1.02] shadow-xs hover:border-primary/50">
           <SelectValue placeholder="Order Status" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="ALL">All Statuses</SelectItem>
           {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
             <SelectItem key={value} value={value}>
               {label}
