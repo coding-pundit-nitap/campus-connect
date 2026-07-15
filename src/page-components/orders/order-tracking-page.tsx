@@ -352,8 +352,8 @@ export default function OrderTrackingPage({ orderId }: Props) {
                 ) : (
                   <div className="flex items-start gap-2 text-xs text-muted-foreground bg-muted/40 p-2.5 rounded-xl border border-border/10">
                     <ShieldAlert className="h-4 w-4 shrink-0 text-muted-foreground/70" />
-                    Verification OTP will display here once the batch is in
-                    transit.
+                    Your verification code will appear here once your order is
+                    batched and locked in for delivery.
                   </div>
                 )}
               </div>
