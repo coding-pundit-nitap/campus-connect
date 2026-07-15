@@ -4,6 +4,7 @@ import { Bike, Loader2, Phone, Store, XCircle } from "lucide-react";
 import { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -37,6 +38,7 @@ export default function OrderDetailsActions({ order }: Props) {
   const { mutate: cancelOrder, isPending } = useCancelOrder();
 
   const canCancel = order_status === "NEW" && payment_status !== "COMPLETED";
+  const canRequestCancel = order_status === "BATCHED";
   const isTerminalState =
     order_status === "COMPLETED" || order_status === "CANCELLED";
 
@@ -147,6 +149,22 @@ export default function OrderDetailsActions({ order }: Props) {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+        )}
+
+        {canRequestCancel && (
+          <Button
+            variant="outline"
+            className="flex-1 gap-2 rounded-xl border-2 border-amber-500/30 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
+            onClick={() => {
+              toast.info(
+                "Cancellation for batched orders is not yet available. Please contact the vendor directly.",
+                { duration: 5000 }
+              );
+            }}
+          >
+            <XCircle className="h-4 w-4" />
+            Request Cancellation
+          </Button>
         )}
       </CardContent>
     </Card>

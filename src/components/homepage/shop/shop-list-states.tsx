@@ -1,7 +1,7 @@
 import { Loader2, Package } from "lucide-react";
 import React from "react";
 
-import { StateDisplay } from "@/components/shared/shared-states";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export function ShopListEmpty() {
@@ -21,15 +21,15 @@ interface ShopListErrorProps {
 
 export function ShopListError({ error, onRetry }: ShopListErrorProps) {
   return (
-    <StateDisplay
-      icon="⚠️"
+    <EmptyState
+      icon={<div className="text-4xl">⚠️</div>}
       title="Failed to load shops"
       description={error.message}
-      action={{
-        label: "Try Again",
-        onClick: onRetry,
-        variant: "outline",
-      }}
+      action={
+        <Button onClick={onRetry} variant="outline">
+          Try Again
+        </Button>
+      }
     />
   );
 }

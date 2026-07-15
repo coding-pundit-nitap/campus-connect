@@ -20,7 +20,10 @@ export default function OrderDetailsCard({ order }: Props) {
       <OrderDetailsHeader order={order} />
       <Separator />
 
-      <OrderStatusTimeline currentStatus={order.order_status as OrderStatus} />
+      <OrderStatusTimeline
+        currentStatus={order.order_status as OrderStatus}
+        cancellationReason={order.cancellation_reason}
+      />
 
       <div className="grid gap-6 md:grid-cols-2">
         <OrderDetailsInfo order={order} />

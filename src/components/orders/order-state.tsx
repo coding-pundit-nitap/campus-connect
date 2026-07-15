@@ -2,6 +2,7 @@ import { ShoppingCart } from "lucide-react";
 import React from "react";
 
 import { SharedCard } from "@/components/shared/shared-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { EmptyState } from "../ui/empty-state";
 
@@ -25,8 +26,20 @@ export function OrderWrapper({ children }: OrderWrapperProps) {
 
 export function OrderLoadingState() {
   return (
-    <div className="flex items-center justify-center h-full min-h-48">
-      <p className="text-muted-foreground">Loading order...</p>
+    <div className="space-y-4 p-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="rounded-2xl border p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded-full" />
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+            <Skeleton className="h-6 w-20" />
+          </div>
+          <Skeleton className="h-3 w-full" />
+        </div>
+      ))}
     </div>
   );
 }

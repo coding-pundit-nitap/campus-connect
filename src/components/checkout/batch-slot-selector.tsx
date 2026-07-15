@@ -242,6 +242,13 @@ export function BatchSlotSelector({
           </div>
         </div>
 
+        {slots.length === 0 && (
+          <p className="text-xs text-muted-foreground font-medium mt-2 col-span-full px-1">
+            No batch delivery slots available right now. Try direct delivery, or
+            check back later for tomorrow's slots.
+          </p>
+        )}
+
         {!isDirectDelivery && slots.length > 0 && (
           <div className="space-y-4 pt-4 border-t border-border/20 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="flex items-center justify-between">

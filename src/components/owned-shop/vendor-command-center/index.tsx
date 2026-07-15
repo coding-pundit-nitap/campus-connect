@@ -30,6 +30,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BatchMilestone } from "@/generated/client";
 import {
@@ -46,6 +47,7 @@ import {
   useUpdateBatchMilestone,
   useVerifyDeliveryOtp,
 } from "@/hooks/queries/useBatch";
+import { useOnlineStatus } from "@/hooks/utils/useOnlineStatus";
 import { cn } from "@/lib/cn";
 import {
   buildPrepSummary,
@@ -120,6 +122,7 @@ function useNewOrderAlert(currentCount: number) {
 }
 
 export function VendorCommandCenter() {
+  const isOnline = useOnlineStatus();
   const { data, isLoading, isFetching, isError, error } = useOrderConsoleData();
 
   const acceptMutation = useAcceptOrder();
@@ -137,6 +140,7 @@ export function VendorCommandCenter() {
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
   const [rejectTarget, setRejectTarget] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
   const [showCloseBatchDialog, setShowCloseBatchDialog] = useState(false);
 
   const batchOrders = data?.batchOrders ?? EMPTY_ORDERS;
@@ -210,6 +214,7 @@ export function VendorCommandCenter() {
 
   const rejectOrder = useCallback((id: string) => {
     setRejectTarget(id);
+    setRejectReason("");
   }, []);
 
   const handleOtpChange = useCallback((orderId: string, value: string) => {
@@ -227,11 +232,19 @@ export function VendorCommandCenter() {
         { orderId, otp },
         {
           onSuccess: () => {
+            toast.success(`Order delivered ✓`, { duration: 3000 });
             setOtpInputs((prev) => {
               const next = { ...prev };
               delete next[orderId];
               return next;
             });
+          },
+          onError: (error) => {
+            toast.error(
+              error.message?.includes("OTP") || error.message?.includes("otp")
+                ? "Incorrect OTP — ask the student to double-check their code."
+                : error.message || "Verification failed. Please try again."
+            );
           },
         }
       );
@@ -406,6 +419,21 @@ export function VendorCommandCenter() {
             </div>
           </div>
         </div>
+
+        {!isOnline && (
+          <div className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+            <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 animate-pulse" />
+            <div>
+              <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
+                You're offline
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Actions like OTP verification will retry when you reconnect.
+                Data shown may be stale.
+              </p>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <KpiPill
@@ -713,6 +741,13 @@ export function VendorCommandCenter() {
               The student will be notified that their order was rejected. This
               cannot be undone.
             </AlertDialogDescription>
+            <div className="pt-4">
+              <Input
+                placeholder="Reason (e.g. Out of stock, Closing soon)"
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              />
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={rejectMutation.isPending}>
@@ -722,7 +757,7 @@ export function VendorCommandCenter() {
               onClick={() => {
                 if (rejectTarget) {
                   rejectMutation.mutate(
-                    { orderId: rejectTarget },
+                    { orderId: rejectTarget, reason: rejectReason },
                     { onSettled: () => setRejectTarget(null) }
                   );
                 }
