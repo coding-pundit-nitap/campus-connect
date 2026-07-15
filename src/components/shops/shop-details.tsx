@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   Calendar,
   Clock,
   MapPin,
@@ -99,6 +100,16 @@ export async function ShopDetails({ shop_id }: Props) {
                 </Badge>
                 <FavoriteShopButton shopId={shop.id} />
               </div>
+
+              {!shop.accepting_orders && (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                    This shop is currently not accepting orders. You can still
+                    browse the menu.
+                  </p>
+                </div>
+              )}
 
               <div
                 className="prose prose-sm max-w-none text-muted-foreground/90 leading-relaxed font-medium dark:prose-invert"
