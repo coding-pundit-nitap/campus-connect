@@ -55,7 +55,11 @@ export default function OrderDetailsInfo({ order }: Props) {
     delivery_otp,
   } = order;
 
-  const showOtp = order_status === "OUT_FOR_DELIVERY" && delivery_otp;
+  const showOtp =
+    (order_status === "BATCHED" ||
+      order_status === "OUT_FOR_DELIVERY" ||
+      order_status === "RESCHEDULED") &&
+    delivery_otp;
 
   return (
     <div className="space-y-4 col-span-1">
@@ -69,14 +73,16 @@ export default function OrderDetailsInfo({ order }: Props) {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              Show this code to the delivery person to confirm your order
+              {order_status === "OUT_FOR_DELIVERY"
+                ? "The delivery runner is on the way! Show this code when they arrive."
+                : "Your delivery code is ready. Share it with the runner when they arrive to confirm delivery."}
             </p>
             <div className="flex justify-center">
               <div className="flex gap-2">
                 {delivery_otp.split("").map((digit, i) => (
                   <div
                     key={i}
-                    className="w-12 h-14 flex items-center justify-center bg-card border-2 border-green-500 dark:border-green-600 rounded-xl text-2xl font-black text-green-700 dark:text-green-400 shadow-sm animate-pulse"
+                    className="w-12 h-14 flex items-center justify-center bg-card border-2 border-green-500 dark:border-green-600 rounded-xl text-2xl font-black text-green-700 dark:text-green-400 shadow-sm"
                   >
                     {digit}
                   </div>
