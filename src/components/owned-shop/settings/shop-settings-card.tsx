@@ -146,7 +146,7 @@ export function ShopSettingsCard() {
             >
               {shop.is_active ? "Active" : "Inactive"}
             </Badge>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/85">
+            <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/85">
               (Admin)
             </span>
           </div>

@@ -189,7 +189,7 @@ export function BatchSlotSelector({
               option.
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/70">
+              <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/70">
                 Fee
               </span>
               <span className="text-xs font-extrabold text-foreground bg-muted/30 px-2 py-0.5 rounded-md border border-border/30">
@@ -232,7 +232,7 @@ export function BatchSlotSelector({
               one trip — you save on delivery!
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/70">
+              <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/70">
                 Fee
               </span>
               <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
@@ -257,7 +257,7 @@ export function BatchSlotSelector({
               </span>
               <Badge
                 variant="outline"
-                className="text-[10px] font-bold bg-muted/20 border-border/40 text-muted-foreground"
+                className="text-[11px] font-bold bg-muted/20 border-border/40 text-muted-foreground"
               >
                 {slots.length} Slots Available
               </Badge>

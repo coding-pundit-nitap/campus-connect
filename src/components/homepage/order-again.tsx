@@ -94,7 +94,7 @@ function OrderAgainFeed({
           <div className="flex flex-col">
             <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Order Again
-              <span className="text-[10px] bg-indigo-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+              <span className="text-[11px] bg-indigo-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                 Recent
               </span>
             </h2>
@@ -154,7 +154,7 @@ function TrendingPicksFeed({
         <div className="flex flex-col">
           <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
             Trending Picks
-            <span className="text-[10px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="text-[11px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
               Popular
             </span>
           </h2>

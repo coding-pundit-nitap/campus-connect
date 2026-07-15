@@ -14,7 +14,7 @@ const variantStyles = {
     title: "text-lg",
     price: "text-2xl",
     strikethrough: "text-sm",
-    discountBadge: "text-[10px] px-2 py-0.5 font-bold rounded-full",
+    discountBadge: "text-[11px] px-2 py-0.5 font-bold rounded-full",
     rating: "px-2.5 py-0.5 text-xs font-semibold",
     ratingIcon: "h-3.5 w-3.5 fill-current",
     ratingText: "",
@@ -30,12 +30,12 @@ const variantStyles = {
     price: "text-lg",
     strikethrough: "text-xs",
     discountBadge: "text-[8px] px-1.5 py-0 font-bold rounded-full",
-    rating: "px-1.5 py-0 text-[10px] font-semibold",
+    rating: "px-1.5 py-0 text-[11px] font-semibold",
     ratingIcon: "h-2.5 w-2.5 fill-current",
-    ratingText: "text-[10px]",
-    stockRow: "text-[10px] font-medium",
+    ratingText: "text-[11px]",
+    stockRow: "text-[11px] font-medium",
     categoryBadge:
-      "bg-indigo-500/5 text-indigo-600 border border-indigo-500/15 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[9px] rounded-full px-1.5 py-0",
+      "bg-indigo-500/5 text-indigo-600 border border-indigo-500/15 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[11px] rounded-full px-1.5 py-0",
     showDescription: false,
   },
 } as const;
@@ -94,7 +94,7 @@ export function ProductCardDetails({
             </Badge>
           )}
           {product.shop && (
-            <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-muted/40 px-1.5 py-0.5 rounded-md">
+            <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 bg-muted/40 px-1.5 py-0.5 rounded-md">
               <Store className="w-3 h-3 text-orange-500" />
               <span className="truncate max-w-[80px]">{product.shop.name}</span>
             </span>
@@ -180,7 +180,7 @@ export function ProductCardDetails({
           )}
         />
         <span className={stockInfo.colorClass}>{stockInfo.text}</span>
-        <span className="text-[10px] opacity-75">
+        <span className="text-[11px] opacity-75">
           ({product.stock_quantity} left)
         </span>
       </div>

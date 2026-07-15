@@ -162,7 +162,7 @@ export async function ShopDetails({ shop_id }: Props) {
                   <Package className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                  <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                     Minimum Order
                   </p>
                   <p className="text-base font-extrabold text-foreground mt-0.5">
@@ -176,7 +176,7 @@ export async function ShopDetails({ shop_id }: Props) {
                   <Truck className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                  <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                     Batch Delivery Fee
                   </p>
                   <p className="text-base font-extrabold text-foreground mt-0.5">
@@ -190,7 +190,7 @@ export async function ShopDetails({ shop_id }: Props) {
                   <Truck className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                  <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                     Direct Delivery Fee
                   </p>
                   <p className="text-base font-extrabold text-foreground mt-0.5">

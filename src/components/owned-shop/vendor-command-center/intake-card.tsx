@@ -35,7 +35,7 @@ export function IntakeCard({
                 <Badge
                   variant="outline"
                   className={cn(
-                    "text-[9px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold",
+                    "text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold",
                     order.is_direct_delivery
                       ? "border-red-500/20 bg-red-500/10 text-red-500"
                       : "border-amber-500/20 bg-amber-500/10 text-amber-500"
@@ -50,7 +50,7 @@ export function IntakeCard({
               <div className="font-extrabold text-foreground text-sm">
                 {formatCurrency(order.total_price)}
               </div>
-              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
+              <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">
                 {order.payment_method}
               </div>
             </div>

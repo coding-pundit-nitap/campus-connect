@@ -42,7 +42,7 @@ export default function OrderCard({ order }: Props) {
           className="hidden h-auto flex-1 md:block"
         />
 
-        <span className="text-center text-[10px] font-black uppercase tracking-wider text-muted-foreground/80 leading-none">
+        <span className="text-center text-[11px] font-black uppercase tracking-wider text-muted-foreground/80 leading-none">
           {statusInfo.label}
         </span>
       </div>

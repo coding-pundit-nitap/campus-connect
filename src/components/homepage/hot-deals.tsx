@@ -51,7 +51,7 @@ function HotDealsFeed({
           <div className="flex flex-col">
             <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
               Hot Deals
-              <span className="text-[10px] bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider animate-bounce shadow-xs">
+              <span className="text-[11px] bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider animate-bounce shadow-xs">
                 Save Big
               </span>
             </h2>

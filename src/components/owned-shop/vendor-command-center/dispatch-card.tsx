@@ -54,7 +54,7 @@ export function DispatchCard({
                   {order.is_direct_delivery && (
                     <Badge
                       variant="outline"
-                      className="text-[9px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold border-red-500/20 bg-red-500/10 text-red-500"
+                      className="text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold border-red-500/20 bg-red-500/10 text-red-500"
                     >
                       Direct
                     </Badge>
@@ -63,7 +63,7 @@ export function DispatchCard({
                 <div className="mt-0.5 text-xs font-bold text-foreground">
                   Room {order.delivery_address_snapshot?.room_number}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground font-semibold mt-1">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground font-semibold mt-1">
                   <span className="truncate max-w-[100px]">
                     {order.user?.name || "Unknown"}
                   </span>
@@ -82,7 +82,7 @@ export function DispatchCard({
                 <div className="font-extrabold text-foreground">
                   {formatCurrency(order.total_price)}
                 </div>
-                <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
+                <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mt-0.5">
                   {order.payment_method}
                 </div>
               </div>
@@ -139,7 +139,7 @@ export function DispatchCard({
               <div className="flex items-center gap-2">
                 <Badge
                   variant="destructive"
-                  className="text-[10px] rounded-md font-bold px-2 py-1"
+                  className="text-[11px] rounded-md font-bold px-2 py-1"
                 >
                   Failed
                 </Badge>
@@ -158,7 +158,7 @@ export function DispatchCard({
             ) : (
               <Badge
                 variant="outline"
-                className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border-blue-500/20 bg-blue-500/10 text-blue-600"
+                className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border-blue-500/20 bg-blue-500/10 text-blue-600"
               >
                 Ready for dispatch
               </Badge>

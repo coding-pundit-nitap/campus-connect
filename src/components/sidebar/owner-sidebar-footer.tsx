@@ -72,7 +72,7 @@ export function OwnerSidebarFooter() {
     <div className="flex flex-col gap-4 p-4 border-t border-sidebar-border mt-auto bg-sidebar-accent/5">
       <div className="rounded-lg border border-sidebar-border bg-sidebar-background p-3 shadow-xs space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             Status
           </span>
           <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ export function OwnerSidebarFooter() {
               <div className="h-6 w-full bg-muted animate-pulse rounded" />
             ) : nextSlot.data?.enabled && nextSlot.data.cutoff_time ? (
               <div className="space-y-1.5">
-                <div className="text-[10px] text-muted-foreground">
+                <div className="text-[11px] text-muted-foreground">
                   Next Cutoff Timer:
                 </div>
                 <CutoffCountdown targetTime={nextSlot.data.cutoff_time} />
@@ -126,7 +126,7 @@ export function OwnerSidebarFooter() {
           <span className="truncate text-xs font-semibold text-sidebar-foreground">
             {userName}
           </span>
-          <span className="truncate text-[10px] text-muted-foreground">
+          <span className="truncate text-[11px] text-muted-foreground">
             {userEmail}
           </span>
         </div>

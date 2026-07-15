@@ -241,7 +241,7 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
             <div className="space-y-3">
               <div className="p-3 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.01] border border-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-xs rounded-xl font-semibold flex items-center justify-between">
                 <span>CSV verified successfully</span>
-                <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full text-[10px]">
+                <span className="bg-emerald-500/10 px-2 py-0.5 rounded-full text-[11px]">
                   {products.length} Products Found
                 </span>
               </div>
@@ -250,16 +250,16 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
                 <Table>
                   <TableHeader className="bg-muted/20">
                     <TableRow className="hover:bg-transparent border-b border-border/20">
-                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                      <TableHead className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground h-10">
                         Name
                       </TableHead>
-                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                      <TableHead className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground h-10">
                         Price
                       </TableHead>
-                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                      <TableHead className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground h-10">
                         Stock
                       </TableHead>
-                      <TableHead className="font-bold text-[10px] uppercase tracking-wider text-muted-foreground h-10">
+                      <TableHead className="font-bold text-[11px] uppercase tracking-wider text-muted-foreground h-10">
                         Category
                       </TableHead>
                     </TableRow>
@@ -283,12 +283,12 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
                           {product.category ? (
                             <Badge
                               variant="outline"
-                              className="bg-indigo-500/5 text-indigo-600 border border-indigo-500/10 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[10px] rounded-full px-2 py-0"
+                              className="bg-indigo-500/5 text-indigo-600 border border-indigo-500/10 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[11px] rounded-full px-2 py-0"
                             >
                               {product.category}
                             </Badge>
                           ) : (
-                            <span className="text-[10px] text-muted-foreground/60 italic">
+                            <span className="text-[11px] text-muted-foreground/60 italic">
                               -
                             </span>
                           )}
@@ -300,7 +300,7 @@ export function BulkProductDialog({ onSuccess }: BulkProductDialogProps) {
               </div>
 
               {products.length > 10 && (
-                <p className="text-[10px] text-muted-foreground text-center font-medium">
+                <p className="text-[11px] text-muted-foreground text-center font-medium">
                   Showing first 10 of {products.length} products to import.
                 </p>
               )}

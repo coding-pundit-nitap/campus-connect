@@ -132,7 +132,7 @@ export function BatchControlBar({
                       onUpdateMilestone("CLIMB_STARTED" as BatchMilestone)
                     }
                     disabled={pending}
-                    className={`h-9 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                    className={`h-9 px-2.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
                       currentMilestone === "CLIMB_STARTED"
                         ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
                         : "border-transparent hover:bg-muted/60 text-foreground"
@@ -152,7 +152,7 @@ export function BatchControlBar({
                       onUpdateMilestone("MIDWAY_100M_HILL" as BatchMilestone)
                     }
                     disabled={pending}
-                    className={`h-9 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                    className={`h-9 px-2.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
                       currentMilestone === "MIDWAY_100M_HILL"
                         ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
                         : "border-transparent hover:bg-muted/60 text-foreground"
@@ -170,7 +170,7 @@ export function BatchControlBar({
                       onUpdateMilestone("ARRIVED" as BatchMilestone)
                     }
                     disabled={pending}
-                    className={`h-9 px-2.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                    className={`h-9 px-2.5 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
                       currentMilestone === "ARRIVED"
                         ? "bg-blue-600 hover:bg-blue-700 text-white border-none"
                         : "border-transparent hover:bg-muted/60 text-foreground"

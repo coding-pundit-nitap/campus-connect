@@ -299,7 +299,7 @@ export function PaymentForm({
                   {upi_id && (
                     <div className="bg-card/40 border border-border/30 rounded-xl p-3 flex items-center justify-between">
                       <div>
-                        <p className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                        <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                           UPI Address ID
                         </p>
                         <p className="text-xs font-bold text-foreground mt-0.5 truncate max-w-[130px]">
@@ -309,7 +309,7 @@ export function PaymentForm({
                     </div>
                   )}
                   <div className="bg-card/40 border border-border/30 rounded-xl p-3">
-                    <p className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground/80">
+                    <p className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/80">
                       Paying Amount
                     </p>
                     <p className="text-xs font-black text-orange-500 mt-0.5">
@@ -333,7 +333,7 @@ export function PaymentForm({
                     disabled={isPending}
                     className="h-11 bg-card/40 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/40 font-semibold uppercase tracking-wider pr-10"
                   />
-                  <p className="text-[10px] text-muted-foreground/80 font-medium">
+                  <p className="text-[11px] text-muted-foreground/80 font-medium">
                     Enter the reference transaction ID from your payment app
                     (typically 12+ alphanumeric characters).
                   </p>

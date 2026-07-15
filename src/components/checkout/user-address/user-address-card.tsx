@@ -58,7 +58,7 @@ export function UserAddressCard({
               {address.is_default && (
                 <Badge
                   variant="secondary"
-                  className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
+                  className="text-[11px] uppercase font-bold tracking-wider px-1.5 py-0 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
                 >
                   Default
                 </Badge>
@@ -66,7 +66,7 @@ export function UserAddressCard({
               {address.hostel_block && (
                 <Badge
                   variant="outline"
-                  className="text-[10px] font-bold px-1.5 py-0 bg-blue-600/5 text-blue-600 border-blue-600/20"
+                  className="text-[11px] font-bold px-1.5 py-0 bg-blue-600/5 text-blue-600 border-blue-600/20"
                 >
                   {address.hostel_block}
                 </Badge>
