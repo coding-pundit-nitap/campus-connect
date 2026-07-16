@@ -45,17 +45,27 @@ export async function proxy(req: NextRequest) {
   const startTime = Date.now();
 
   try {
+    const { nextUrl } = req;
+    const path = nextUrl.pathname;
+
+    const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
+    const isMetricsRoute = path === "/api/metrics";
+
+    if (isApiAuthRoute || isMetricsRoute) {
+      const response = NextResponse.next();
+      response.headers.set(
+        "x-middleware-duration",
+        String(Date.now() - startTime)
+      );
+      return response;
+    }
+
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
-    const { nextUrl } = req;
-    const path = nextUrl.pathname;
-
     const isLoggedIn = !!session?.user;
     const userRole = session?.user?.role;
-
-    const isApiAuthRoute = apiAuthPrefix.some((p) => path.startsWith(p));
 
     const isPublicRoute = publicRoutes.some((route) => matchRoute(path, route));
 
@@ -67,21 +77,9 @@ export async function proxy(req: NextRequest) {
 
     const isAdminRoute = adminRoutes.some((route) => matchRoute(path, route));
 
-    const isMetricsRoute = path === "/api/metrics";
-
     let response: NextResponse;
 
-    /**
-     * Allow metrics (nginx should protect in prod)
-     */
-    if (isMetricsRoute) {
-      response = NextResponse.next();
-    } else if (isApiAuthRoute) {
-      /**
-       * Allow auth API routes
-       */
-      response = NextResponse.next();
-    } else if (isPublicRoute) {
+    if (isPublicRoute) {
       /**
        * Allow public pages
        */
