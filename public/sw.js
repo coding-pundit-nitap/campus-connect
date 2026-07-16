@@ -166,6 +166,9 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) return;
 
+  // Do not intercept authentication routes (OAuth callbacks, login, logout, etc.)
+  if (url.pathname.startsWith("/api/auth/")) return;
+
   for (const route of ROUTES) {
     if (route.match({ url, request })) {
       const responsePromise = route.strategy(request, event, { url });
