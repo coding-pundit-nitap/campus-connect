@@ -62,7 +62,7 @@ export function IntakeCard({
 
           <Separator className="bg-border/20" />
 
-          <p className="line-clamp-2 wrap-break-word text-xs text-muted-foreground font-semibold leading-relaxed bg-muted/20 p-2.5 rounded-xl border border-border/10">
+          <p className="max-h-32 overflow-y-auto wrap-break-word text-sm text-muted-foreground font-semibold leading-relaxed bg-muted/20 p-2.5 rounded-xl border border-border/10">
             {getItemsText(order)}
           </p>
         </div>
