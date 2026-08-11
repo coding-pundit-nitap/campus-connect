@@ -128,7 +128,14 @@ export function VendorCommandCenter() {
   const isOnline = useOnlineStatus();
   const { shop } = useOwnerContext();
   const vocabulary = getVendorVocabulary(shop?.shop_type);
+  const isFood = (shop?.shop_type ?? "CANTEEN") === "CANTEEN";
   const { data, isLoading, isFetching, isError, error } = useOrderConsoleData();
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   const acceptMutation = useAcceptOrder();
   const rejectMutation = useRejectOrder();
@@ -473,6 +480,8 @@ export function VendorCommandCenter() {
                 <IntakeCard
                   key={order.id}
                   order={order}
+                  isFood={isFood}
+                  now={now}
                   onAccept={acceptOrder}
                   onReject={rejectOrder}
                   disabled={pending}
@@ -519,6 +528,8 @@ export function VendorCommandCenter() {
                 <PrepCard
                   key={order.id}
                   order={order}
+                  isFood={isFood}
+                  now={now}
                   onStartDirect={(id) => startDirectMutation.mutate(id)}
                   disabled={pending}
                 />

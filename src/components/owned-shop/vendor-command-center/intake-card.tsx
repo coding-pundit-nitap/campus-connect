@@ -13,11 +13,15 @@ import { OrderMeta } from "./order-meta";
 
 export function IntakeCard({
   order,
+  isFood,
+  now,
   onAccept,
   onReject,
   disabled,
 }: {
   order: SerializedOrderWithDetails;
+  isFood: boolean;
+  now: Date;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   disabled: boolean;
@@ -44,7 +48,7 @@ export function IntakeCard({
                   {order.is_direct_delivery ? "Direct" : "Batch"}
                 </Badge>
               </div>
-              <OrderMeta order={order} />
+              <OrderMeta order={order} isFood={isFood} now={now} escalate />
             </div>
             <div className="text-right shrink-0 tabular-nums">
               <div className="font-extrabold text-foreground text-sm">

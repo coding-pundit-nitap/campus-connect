@@ -13,10 +13,14 @@ import { OrderMeta } from "./order-meta";
 
 export function PrepCard({
   order,
+  isFood,
+  now,
   onStartDirect,
   disabled,
 }: {
   order: SerializedOrderWithDetails;
+  isFood: boolean;
+  now: Date;
   onStartDirect: (id: string) => void;
   disabled: boolean;
 }) {
@@ -42,7 +46,7 @@ export function PrepCard({
                   {order.is_direct_delivery ? "Direct" : "Accepted"}
                 </Badge>
               </div>
-              <OrderMeta order={order} />
+              <OrderMeta order={order} isFood={isFood} now={now} />
             </div>
             <span className="text-sm font-extrabold text-foreground tabular-nums shrink-0">
               {formatCurrency(order.total_price)}
