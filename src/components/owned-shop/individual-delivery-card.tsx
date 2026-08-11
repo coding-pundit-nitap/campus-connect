@@ -37,7 +37,7 @@ export function IndividualDeliveryCard({
         iconBg:
           "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300",
         icon: Package,
-        title: "Ready for Delivery",
+        title: getOrderStatusLabel(status),
         desc: "Deliver this order without a batch.",
       };
     }
@@ -47,7 +47,7 @@ export function IndividualDeliveryCard({
         iconBg:
           "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
         icon: Truck,
-        title: "In Transit",
+        title: getOrderStatusLabel(status),
         desc: "Order is out. Verify customer OTP.",
       };
     }
@@ -84,8 +84,8 @@ export function IndividualDeliveryCard({
           <StatusIcon className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="font-bold text-base leading-tight capitalize">
-            {uiConfig.title.toLowerCase()}
+          <h3 className="font-bold text-base leading-tight">
+            {uiConfig.title}
           </h3>
           <p className="text-xs text-muted-foreground mt-1">{uiConfig.desc}</p>
         </div>
