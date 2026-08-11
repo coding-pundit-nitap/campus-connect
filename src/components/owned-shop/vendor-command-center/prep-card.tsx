@@ -66,7 +66,7 @@ export function PrepCard({
             size="sm"
             onClick={() => onStartDirect(order.id)}
             disabled={disabled}
-            className="w-full h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98 shadow shadow-emerald-500/10 border-none mt-3"
+            className="w-full h-11 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98 shadow shadow-emerald-500/10 border-none mt-3"
           >
             <Bike className="mr-1.5 h-3.5 w-3.5" />
             Start Direct Delivery

@@ -62,8 +62,10 @@ export function getVendorVocabulary(shopType?: ShopType): VendorVocabulary {
       return RETAIL_VOCABULARY;
     case "CANTEEN":
       return FOOD_VOCABULARY;
-    default:
+    default: {
       const _exhaustive: never = shopType;
-      return _exhaustive;
+      void _exhaustive;
+      return FOOD_VOCABULARY;
+    }
   }
 }

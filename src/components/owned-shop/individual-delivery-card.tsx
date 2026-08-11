@@ -1,5 +1,6 @@
 "use client";
 
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Check, Navigation, Package, Truck, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -109,13 +110,18 @@ export function IndividualDeliveryCard({
               Enter the 4-digit OTP from the customer
             </p>
             <div className="flex w-full gap-2 items-center">
-              <InputOTP maxLength={4} value={otp} onChange={setOtp}>
+              <InputOTP
+                maxLength={4}
+                value={otp}
+                onChange={setOtp}
+                pattern={REGEXP_ONLY_DIGITS}
+              >
                 <InputOTPGroup className="flex flex-1 gap-1">
                   {[0, 1, 2, 3].map((index) => (
                     <InputOTPSlot
                       key={index}
                       index={index}
-                      className="h-10 flex-1 min-w-0 border-muted-foreground/30 rounded-md bg-background"
+                      className="h-11 flex-1 min-w-0 border-muted-foreground/30 rounded-md bg-background"
                     />
                   ))}
                 </InputOTPGroup>

@@ -1,3 +1,4 @@
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { AlertTriangle, Phone } from "lucide-react";
 import { useState } from "react";
 
@@ -109,13 +110,14 @@ export function DispatchCard({
                   maxLength={4}
                   value={otp}
                   onChange={(value) => onOtpChange(order.id, value)}
+                  pattern={REGEXP_ONLY_DIGITS}
                   aria-label={`Delivery code for ${order.display_id}`}
                 >
                   <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={0} className="h-11 w-11" />
+                    <InputOTPSlot index={1} className="h-11 w-11" />
+                    <InputOTPSlot index={2} className="h-11 w-11" />
+                    <InputOTPSlot index={3} className="h-11 w-11" />
                   </InputOTPGroup>
                 </InputOTP>
                 <div className="flex gap-2">

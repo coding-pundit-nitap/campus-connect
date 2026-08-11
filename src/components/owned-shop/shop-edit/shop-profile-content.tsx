@@ -185,7 +185,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
                     </span>
                     <span className="text-muted-foreground/40">•</span>
                     <span className="flex items-center gap-1">
-                      Direct Immediate:{" "}
+                      Direct:{" "}
                       <strong className="text-emerald-600 font-extrabold">
                         ₹{shop.direct_delivery_fee}
                       </strong>

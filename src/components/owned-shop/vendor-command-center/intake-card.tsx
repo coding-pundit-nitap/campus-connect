@@ -74,7 +74,7 @@ export function IntakeCard({
             size="sm"
             onClick={() => onReject(order.id)}
             disabled={disabled}
-            className="h-10 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98"
+            className="h-11 rounded-xl border-destructive/20 text-destructive hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98"
           >
             <X className="mr-1 h-3.5 w-3.5" />
             Reject
@@ -84,7 +84,7 @@ export function IntakeCard({
             size="sm"
             onClick={() => onAccept(order.id)}
             disabled={disabled}
-            className="h-10 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98 shadow shadow-amber-500/10 border-none"
+            className="h-11 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs cursor-pointer transition-all duration-200 hover:scale-102 active:scale-98 shadow shadow-amber-500/10 border-none"
           >
             <Check className="mr-1 h-3.5 w-3.5" />
             Accept

@@ -20,6 +20,7 @@ import {
 import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
 import { useUpdateShopOrderStatus } from "@/hooks/queries/useOrders";
 import { cn } from "@/lib/cn";
+import { getOrderStatusLabel } from "@/lib/utils/order-display";
 import { OrderStatus } from "@/types/prisma.types";
 
 type OrderStatusUpdaterProps = {
@@ -29,46 +30,39 @@ type OrderStatusUpdaterProps = {
 
 const STATUS_CONFIG: Record<
   OrderStatus,
-  { label: string; icon: typeof CircleDot; color: string; bg: string }
+  { icon: typeof CircleDot; color: string; bg: string }
 > = {
   NEW: {
-    label: "New",
     icon: CircleDot,
     color: "text-blue-600 dark:text-blue-400",
     bg: "bg-blue-100 dark:bg-blue-900/40",
   },
   BATCHED: {
-    label: "Batched",
     icon: CookingPot,
     color: "text-orange-600 dark:text-orange-400",
     bg: "bg-orange-100 dark:bg-orange-900/40",
   },
   OUT_FOR_DELIVERY: {
-    label: "Out for Delivery",
     icon: Package,
     color: "text-purple-600 dark:text-purple-400",
     bg: "bg-purple-100 dark:bg-purple-900/40",
   },
   COMPLETED: {
-    label: "Completed",
     icon: CheckCircle2,
     color: "text-emerald-600 dark:text-emerald-400",
     bg: "bg-emerald-100 dark:bg-emerald-900/40",
   },
   CANCELLED: {
-    label: "Cancelled",
     icon: XCircle,
     color: "text-red-600 dark:text-red-400",
     bg: "bg-red-100 dark:bg-red-900/40",
   },
   DELIVERY_FAILED: {
-    label: "Delivery Failed",
     icon: XCircle,
     color: "text-red-700 dark:text-red-300",
     bg: "bg-red-100 dark:bg-red-900/40",
   },
   RESCHEDULED: {
-    label: "Rescheduled",
     icon: CookingPot,
     color: "text-yellow-600 dark:text-yellow-400",
     bg: "bg-yellow-100 dark:bg-yellow-900/40",
@@ -101,7 +95,9 @@ export function OrderStatusUpdater({
           )}
         >
           <CurrentIcon className="h-4 w-4" />
-          <span className="font-medium text-sm">{currentConfig.label}</span>
+          <span className="font-medium text-sm">
+            {getOrderStatusLabel(currentStatus)}
+          </span>
         </div>
         <div className="flex items-center text-xs text-muted-foreground gap-1.5">
           <Lock className="h-3 w-3" />
@@ -115,7 +111,7 @@ export function OrderStatusUpdater({
     <div className="flex items-center gap-3 w-full sm:w-auto">
       <Select
         defaultValue={currentStatus}
-        onValueChange={(value) => handleStatusChange(value as OrderStatus)}
+        onValueChange={(value: OrderStatus) => handleStatusChange(value)}
         disabled={isPending}
       >
         <SelectTrigger
@@ -131,12 +127,12 @@ export function OrderStatusUpdater({
             <div className="flex items-center gap-2 opacity-80">
               <CurrentIcon className={cn("h-4 w-4", currentConfig.color)} />
               <span className="font-medium">
-                {currentConfig.label} (Current)
+                {getOrderStatusLabel(currentStatus)} (Current)
               </span>
             </div>
           </SelectItem>
           {validNextStatuses.map((status) => {
-            const config = STATUS_CONFIG[status as OrderStatus];
+            const config = STATUS_CONFIG[status];
             const Icon = config.icon;
             return (
               <SelectItem
@@ -146,7 +142,9 @@ export function OrderStatusUpdater({
               >
                 <div className="flex items-center gap-2">
                   <Icon className={cn("h-4 w-4", config.color)} />
-                  <span className="font-medium">{config.label}</span>
+                  <span className="font-medium">
+                    {getOrderStatusLabel(status)}
+                  </span>
                 </div>
               </SelectItem>
             );
