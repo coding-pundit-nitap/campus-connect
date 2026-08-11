@@ -12,7 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -97,43 +101,47 @@ export function DispatchCard({
 
           <div className="mt-3.5 pt-1">
             {order.order_status === "OUT_FOR_DELIVERY" ? (
-              <div className="grid grid-cols-[1fr_auto] gap-2">
-                <Input
-                  aria-label={`OTP for ${order.display_id}`}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  spellCheck={false}
-                  pattern="[0-9]*"
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  Ask the student for their 4-digit code
+                </p>
+                <InputOTP
                   maxLength={4}
-                  placeholder="OTP…"
                   value={otp}
-                  onChange={(e) =>
-                    onOtpChange(order.id, e.target.value.replace(/\D/g, ""))
-                  }
-                  className="text-center font-mono tracking-widest tabular-nums h-10 rounded-xl bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 text-xs font-bold"
-                />
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => onVerify(order.id)}
-                  disabled={disabled || otp.length !== 4}
-                  className="h-10 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs cursor-pointer transition-all hover:scale-102 active:scale-98 shadow shadow-blue-500/10 border-none"
+                  onChange={(value) => onOtpChange(order.id, value)}
+                  aria-label={`Delivery code for ${order.display_id}`}
                 >
-                  Verify
-                </Button>
-                {onMarkFailed && (
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                  </InputOTPGroup>
+                </InputOTP>
+                <div className="flex gap-2">
                   <Button
                     type="button"
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setShowFailDialog(true)}
-                    disabled={disabled}
-                    className="h-10 w-10 shrink-0 border-red-500/50 text-red-500 hover:bg-red-500/10 rounded-xl"
-                    title="Mark Delivery Failed"
+                    size="sm"
+                    onClick={() => onVerify(order.id)}
+                    disabled={disabled || otp.length !== 4}
+                    className="h-11 flex-1 rounded-xl border-none bg-blue-600 text-xs font-bold text-white shadow shadow-blue-500/10 transition-all hover:bg-blue-700 active:scale-98 disabled:opacity-50"
                   >
-                    <AlertTriangle className="h-4 w-4" />
+                    Verify & Deliver
                   </Button>
-                )}
+                  {onMarkFailed && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setShowFailDialog(true)}
+                      disabled={disabled}
+                      className="h-11 shrink-0 rounded-xl border-red-500/50 px-3 text-xs font-bold text-red-500 hover:bg-red-500/10"
+                    >
+                      <AlertTriangle className="mr-1 h-3.5 w-3.5" />
+                      Mark Failed
+                    </Button>
+                  )}
+                </div>
               </div>
             ) : order.order_status === "DELIVERY_FAILED" ? (
               <div className="flex items-center gap-2">
