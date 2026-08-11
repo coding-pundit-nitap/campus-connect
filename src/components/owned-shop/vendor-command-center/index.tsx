@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useOwnerContext } from "@/components/owned-shop/owner-context";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +55,7 @@ import {
   getItemsText,
   groupByHostel,
 } from "@/lib/utils/order-utils";
+import { getVendorVocabulary } from "@/lib/utils/vendor-vocabulary";
 import { SerializedOrderWithDetails } from "@/types";
 
 import { BatchControlBar } from "./batch-control-bar";
@@ -124,6 +126,8 @@ function useNewOrderAlert(currentCount: number) {
 
 export function VendorCommandCenter() {
   const isOnline = useOnlineStatus();
+  const { shop } = useOwnerContext();
+  const vocabulary = getVendorVocabulary(shop?.shop_type);
   const { data, isLoading, isFetching, isError, error } = useOrderConsoleData();
 
   const acceptMutation = useAcceptOrder();
@@ -405,7 +409,7 @@ export function VendorCommandCenter() {
               className="h-9 px-3 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs flex items-center gap-1.5"
             >
               <Printer className="h-3.5 w-3.5" />
-              Print KOT
+              {vocabulary.printButtonLabel}
             </Button>
             <div
               aria-live="polite"
@@ -445,7 +449,7 @@ export function VendorCommandCenter() {
             theme="amber"
           />
           <KpiPill
-            label="Prepping Console"
+            label={vocabulary.prepKpiLabel}
             count={prepOrders.length}
             theme="emerald"
           />
@@ -486,7 +490,7 @@ export function VendorCommandCenter() {
         <section className="space-y-4">
           <SectionHeader
             icon={<PackageCheck className="h-5 w-5 text-emerald-600" />}
-            title="Prep & Kitchen Queue"
+            title={vocabulary.prepSectionTitle}
             count={prepOrders.length}
             themeColor="emerald"
           />
@@ -522,8 +526,8 @@ export function VendorCommandCenter() {
             </div>
           ) : (
             <EmptyState
-              title="Nothing in Prep"
-              description="Accepted orders appear here until they move to dispatch."
+              title={vocabulary.prepEmptyStateTitle}
+              description={vocabulary.prepEmptyStateDescription}
             />
           )}
         </section>
@@ -650,7 +654,7 @@ export function VendorCommandCenter() {
       <div id="kot-print-section" className="print-only hidden p-6 font-sans">
         <div className="border-b-2 border-black pb-4 mb-4">
           <h1 className="text-2xl font-bold uppercase">
-            Kitchen Order Ticket (KOT)
+            {vocabulary.printDocTitle}
           </h1>
           <p className="text-sm" suppressHydrationWarning>
             Generated: {new Date().toLocaleTimeString()} -{" "}
@@ -660,7 +664,7 @@ export function VendorCommandCenter() {
 
         <div className="mb-6">
           <h2 className="text-lg font-bold uppercase mb-2">
-            Prep List & Kitchen Queue
+            {vocabulary.prepSummaryHeading}
           </h2>
           <table className="w-full border-collapse border border-black text-sm">
             <thead>
