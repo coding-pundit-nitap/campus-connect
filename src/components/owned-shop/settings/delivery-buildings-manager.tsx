@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Plus, X } from "lucide-react";
+import { AlertCircle, MapPin, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -118,10 +118,14 @@ export function DeliveryBuildingsManager() {
             </Badge>
           ))
         ) : (
-          <p className="text-xs text-muted-foreground/80 italic font-medium leading-normal">
-            No delivery locations configured. Active delivery allows checkout to
-            any campus building.
-          </p>
+          <div className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+            <p className="text-xs font-semibold leading-relaxed text-amber-700 dark:text-amber-400">
+              You haven&apos;t chosen any delivery buildings, so customers in{" "}
+              <span className="font-bold">any</span> campus building can order
+              from you. Add buildings below to limit where you deliver.
+            </p>
+          </div>
         )}
       </div>
 

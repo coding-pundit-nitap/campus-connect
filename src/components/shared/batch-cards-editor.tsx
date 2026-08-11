@@ -102,6 +102,11 @@ export function BatchCardsEditor({
                   })
                 }
               />
+              <p className="mt-1 text-xs text-muted-foreground">
+                Orders placed after this time go into your next slot instead.
+                Once this time passes, pack everything in the batch and start
+                the delivery run.
+              </p>
             </div>
             <div className="sm:col-span-8">
               <Label className="text-xs">Label (optional)</Label>

@@ -67,7 +67,12 @@ const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductActionFormData>[] = [
     type: "number",
     required: true,
   },
-  { name: "discount", label: "Discount", type: "number", required: false },
+  {
+    name: "discount",
+    label: "Discount (%)",
+    type: "number",
+    required: false,
+  },
   {
     name: "category",
     label: "Category",

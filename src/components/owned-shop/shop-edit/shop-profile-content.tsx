@@ -116,7 +116,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
           <div className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl p-6 relative overflow-hidden space-y-3 shadow-sm">
             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Store className="w-3.5 h-3.5 text-blue-600" />
-              About Canteen
+              About Shop
             </h3>
             {shop.description ? (
               <div
@@ -128,7 +128,7 @@ export function ShopProfileContent({ shop }: ShopProfileContentProps) {
             ) : (
               <p className="text-sm italic text-muted-foreground/60 leading-relaxed font-medium">
                 No description provided. Click "Edit Shop" to describe your
-                canteen.
+                shop.
               </p>
             )}
           </div>

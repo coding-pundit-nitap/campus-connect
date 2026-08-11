@@ -73,6 +73,21 @@ export function FeesScheduleStep({
                 <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Batch Delivery Fee (₹)
                 </FormLabel>
+                <div className="rounded-xl border border-border/40 bg-muted/20 p-3 text-xs leading-relaxed text-muted-foreground">
+                  <p className="mb-1 font-bold text-foreground">
+                    Two ways customers get their order
+                  </p>
+                  <p>
+                    <span className="font-semibold">Batch</span> — orders are
+                    grouped and delivered together at a set time. Cheaper for
+                    the customer, one trip for you.
+                  </p>
+                  <p>
+                    <span className="font-semibold">Direct</span> — delivered
+                    on its own as soon as it&apos;s ready. Costs the customer
+                    more, and is a separate trip for you.
+                  </p>
+                </div>
                 <FormControl>
                   <Input
                     type="number"

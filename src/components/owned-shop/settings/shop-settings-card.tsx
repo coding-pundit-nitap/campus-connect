@@ -14,7 +14,18 @@ import {
   Truck,
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -72,13 +83,27 @@ export function ShopSettingsCard() {
     shop?.id || ""
   );
   const { mutate, isPending: isToggling } = useToggleAcceptingOrders();
+  const [showPauseDialog, setShowPauseDialog] = useState(false);
 
-  const handleToggleOrders = (checked: boolean) => {
+  const performToggle = (checked: boolean) => {
     mutate(checked, {
       onSuccess: () => {
         refetch();
       },
     });
+  };
+
+  const handleToggleOrders = (checked: boolean) => {
+    if (!checked) {
+      setShowPauseDialog(true);
+      return;
+    }
+    performToggle(checked);
+  };
+
+  const confirmPauseOrders = () => {
+    performToggle(false);
+    setShowPauseDialog(false);
   };
 
   if (isLoading) {
@@ -421,6 +446,28 @@ export function ShopSettingsCard() {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={showPauseDialog} onOpenChange={setShowPauseDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Pause new orders?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Customers won&apos;t be able to place new orders until you turn
+              this back on. Orders you&apos;ve already accepted are not
+              affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isToggling}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmPauseOrders}
+              disabled={isToggling}
+            >
+              {isToggling ? "Pausing..." : "Pause Orders"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
