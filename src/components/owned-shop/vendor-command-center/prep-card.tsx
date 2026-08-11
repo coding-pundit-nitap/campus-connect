@@ -40,10 +40,10 @@ export function PrepCard({
                     "text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold",
                     order.is_direct_delivery
                       ? "border-red-500/20 bg-red-500/10 text-red-500"
-                      : "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
+                      : "border-amber-500/20 bg-amber-500/10 text-amber-500"
                   )}
                 >
-                  {order.is_direct_delivery ? "Direct" : "Accepted"}
+                  {order.is_direct_delivery ? "Direct" : "Batch"}
                 </Badge>
               </div>
               <OrderMeta order={order} isFood={isFood} now={now} />

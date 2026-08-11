@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BatchMilestone } from "@/generated/client";
+import { VendorVocabulary } from "@/lib/utils/vendor-vocabulary";
 
 export function BatchControlBar({
   activeBatch,
@@ -27,6 +28,7 @@ export function BatchControlBar({
   currentMilestone,
   onUpdateMilestone,
   onCancelRun,
+  vocabulary,
 }: {
   activeBatch: {
     id: string;
@@ -45,6 +47,7 @@ export function BatchControlBar({
   currentMilestone?: string | null;
   onUpdateMilestone?: (milestone: BatchMilestone) => void;
   onCancelRun?: () => void;
+  vocabulary: VendorVocabulary;
 }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -138,7 +141,7 @@ export function BatchControlBar({
                         : "border-transparent hover:bg-muted/60 text-foreground"
                     }`}
                   >
-                    Climb Started
+                    {vocabulary.milestoneClimbStarted}
                   </Button>
                   <Button
                     type="button"
@@ -158,7 +161,7 @@ export function BatchControlBar({
                         : "border-transparent hover:bg-muted/60 text-foreground"
                     }`}
                   >
-                    Midway Hill
+                    {vocabulary.milestoneMidway}
                   </Button>
                   <Button
                     type="button"
@@ -176,7 +179,7 @@ export function BatchControlBar({
                         : "border-transparent hover:bg-muted/60 text-foreground"
                     }`}
                   >
-                    Arrived
+                    {vocabulary.milestoneArrived}
                   </Button>
                 </div>
                 <div className="sm:hidden">
@@ -192,12 +195,14 @@ export function BatchControlBar({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="CLIMB_STARTED">
-                        Climb Started
+                        {vocabulary.milestoneClimbStarted}
                       </SelectItem>
                       <SelectItem value="MIDWAY_100M_HILL">
-                        Midway Hill
+                        {vocabulary.milestoneMidway}
                       </SelectItem>
-                      <SelectItem value="ARRIVED">Arrived</SelectItem>
+                      <SelectItem value="ARRIVED">
+                        {vocabulary.milestoneArrived}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

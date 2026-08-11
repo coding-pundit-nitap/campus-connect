@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/input-otp";
 import { useStartIndividualDelivery, useVerifyIndividualOtp } from "@/hooks";
 import { cn } from "@/lib/cn";
+import { getOrderStatusLabel } from "@/lib/utils/order-display";
 import { OrderStatus } from "@/types/prisma.types";
 
 export function IndividualDeliveryCard({
@@ -64,7 +65,7 @@ export function IndividualDeliveryCard({
       border: "border-l-muted-foreground/30",
       iconBg: "bg-muted text-muted-foreground",
       icon: XCircle,
-      title: status.replaceAll("_", " "),
+      title: getOrderStatusLabel(status),
       desc: "No further actions available.",
     };
   }, [status, canStart, canVerify]);
@@ -139,7 +140,7 @@ export function IndividualDeliveryCard({
         {!canStart && !canVerify && (
           <div className="flex items-center text-sm font-medium text-muted-foreground gap-1.5">
             <StatusIcon className="h-4 w-4" />
-            Order is {status.replaceAll("_", " ").toLowerCase()}
+            Order is {getOrderStatusLabel(status).toLowerCase()}
           </div>
         )}
       </CardContent>

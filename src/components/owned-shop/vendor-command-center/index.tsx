@@ -660,6 +660,7 @@ export function VendorCommandCenter() {
         currentMilestone={activeBatch?.delivery_status?.current_milestone}
         onUpdateMilestone={handleUpdateMilestone}
         onCancelRun={handleCancelBatch}
+        vocabulary={vocabulary}
       />
 
       <div id="kot-print-section" className="print-only hidden p-6 font-sans">
