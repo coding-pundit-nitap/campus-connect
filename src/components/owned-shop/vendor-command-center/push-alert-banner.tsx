@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, X } from "lucide-react";
+import { BellRing, Loader2, X } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,8 +21,23 @@ export function PushAlertBanner() {
   const { isSupported, isSubscribed, isLoading, subscribe } =
     usePushNotifications();
   const [dismissed, setDismissed] = useState(false);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  if (!isLoading && !initialCheckDone) {
+    setInitialCheckDone(true);
+  }
 
-  if (!isSupported || isSubscribed || isLoading || dismissed) return null;
+  if (!isSupported || isSubscribed || dismissed || !initialCheckDone)
+    return null;
+
+  const handleSubscribe = async () => {
+    setIsSubscribing(true);
+    try {
+      await subscribe();
+    } finally {
+      setIsSubscribing(false);
+    }
+  };
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-blue-500/30 bg-blue-500/10 p-3">
@@ -39,9 +54,14 @@ export function PushAlertBanner() {
         <Button
           type="button"
           size="sm"
-          onClick={() => void subscribe()}
-          className="mt-2 h-11 rounded-xl border-none bg-blue-600 px-4 text-xs font-bold text-white hover:bg-blue-700"
+          onClick={() => void handleSubscribe()}
+          disabled={isSubscribing}
+          aria-busy={isSubscribing}
+          className="mt-2 h-11 rounded-xl border-none bg-blue-600 px-4 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-70"
         >
+          {isSubscribing && (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          )}
           Turn on alerts
         </Button>
       </div>
