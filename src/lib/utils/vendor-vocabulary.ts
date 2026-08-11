@@ -1,16 +1,16 @@
 import { ShopType } from "@/generated/client";
 
 export interface VendorVocabulary {
-  prepSectionTitle: string;
-  prepKpiLabel: string;
-  prepEmptyStateTitle: string;
-  prepEmptyStateDescription: string;
-  prepSummaryHeading: string;
-  printButtonLabel: string;
-  printDocTitle: string;
-  milestoneClimbStarted: string;
-  milestoneMidway: string;
-  milestoneArrived: string;
+  readonly prepSectionTitle: string;
+  readonly prepKpiLabel: string;
+  readonly prepEmptyStateTitle: string;
+  readonly prepEmptyStateDescription: string;
+  readonly prepSummaryHeading: string;
+  readonly printButtonLabel: string;
+  readonly printDocTitle: string;
+  readonly milestoneClimbStarted: string;
+  readonly milestoneMidway: string;
+  readonly milestoneArrived: string;
 }
 
 const FOOD_VOCABULARY: VendorVocabulary = {
@@ -52,12 +52,18 @@ const RETAIL_VOCABULARY: VendorVocabulary = {
  * CANTEEN, so existing shops see no change.
  */
 export function getVendorVocabulary(shopType?: ShopType): VendorVocabulary {
+  if (shopType === undefined) {
+    return FOOD_VOCABULARY;
+  }
+
   switch (shopType) {
     case "STATIONERY":
     case "GROCERY":
       return RETAIL_VOCABULARY;
     case "CANTEEN":
-    default:
       return FOOD_VOCABULARY;
+    default:
+      const _exhaustive: never = shopType;
+      return _exhaustive;
   }
 }
