@@ -204,20 +204,28 @@ export function BatchControlBar({
               </>
             )}
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={onCompleteRun}
-              disabled={
-                activeBatch.status !== "IN_TRANSIT" ||
-                remainingDispatch > 0 ||
-                pending
-              }
-              className="h-10 sm:h-9 px-4 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer transition-all hover:scale-102 active:scale-98 disabled:opacity-50"
-            >
-              Complete Run
-            </Button>
+            <div className="flex flex-col items-start gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onCompleteRun}
+                disabled={
+                  activeBatch.status !== "IN_TRANSIT" ||
+                  remainingDispatch > 0 ||
+                  pending
+                }
+                className="h-11 sm:h-10 px-4 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer transition-all active:scale-98 disabled:opacity-50"
+              >
+                Complete Run
+              </Button>
+              {activeBatch.status === "IN_TRANSIT" && remainingDispatch > 0 && (
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  Waiting on {remainingDispatch} more{" "}
+                  {remainingDispatch === 1 ? "delivery" : "deliveries"}
+                </span>
+              )}
+            </div>
 
             {onCancelRun && (
               <Button
