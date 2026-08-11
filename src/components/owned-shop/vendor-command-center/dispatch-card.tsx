@@ -58,7 +58,7 @@ export function DispatchCard({
                   {order.is_direct_delivery && (
                     <Badge
                       variant="outline"
-                      className="text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold border-red-500/20 bg-red-500/10 text-red-500"
+                      className="text-[11px] tracking-wider uppercase px-1.5 py-0 rounded-md font-bold border-violet-500/20 bg-violet-500/10 text-violet-600 dark:text-violet-400"
                     >
                       Direct
                     </Badge>
