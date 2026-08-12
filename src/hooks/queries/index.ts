@@ -29,4 +29,6 @@ export * from "./useShopLinks";
 export * from "./useShopProducts";
 export * from "./useUser";
 export * from "./useUserAdmin";
+export * from "./useVendorEarnings";
+export * from "./useVendorOrderHistory";
 export * from "./useVendorOverview";

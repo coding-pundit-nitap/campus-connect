@@ -1,6 +1,7 @@
 import { DateRange } from "react-day-picker";
 
 import { OrderStatus } from "@/types/prisma.types";
+import { OrderHistoryParams } from "@/services";
 
 /**
  * Centralized query key factory for React Query cache management in the campus connect application.
@@ -117,6 +118,11 @@ export const queryKeys = {
     dashboard: () => ["seller", "dashboard"] as const,
     /** Seller overview stats used on /owner-shops */
     overview: () => ["seller", "overview"] as const,
+    /** Vendor earnings for a period */
+    earnings: (period: string) => ["seller", "earnings", period] as const,
+    /** Vendor order history for a filter set */
+    orderHistory: (params: OrderHistoryParams) =>
+      ["seller", "order-history", params] as const,
   },
 
   search: {

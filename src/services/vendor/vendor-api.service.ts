@@ -61,6 +61,37 @@ export interface VendorOverviewResponse {
   pendingOrders: number;
   todayEarnings: number;
 }
+
+export interface VendorEarningsResponse {
+  period: string;
+  periodStart: string;
+  periodEnd: string;
+  customersPaid: number;
+  platformFee: number;
+  vendorEarnings: number;
+  orderCount: number;
+  cash: { earnings: number; platformFeeOwed: number; orderCount: number };
+  online: { earnings: number; orderCount: number };
+}
+
+export interface OrderHistoryParams {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  status?: string;
+  paymentStatus?: string;
+  from?: string;
+  to?: string;
+}
+
+export interface VendorOrderHistoryResponse {
+  orders: SerializedOrderWithDetails[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
+
 class VendorApiService {
   async getBatchSlots(shopId: string): Promise<BatchSlotWithAvailability[]> {
     const response = await axiosInstance.get<
@@ -109,6 +140,26 @@ class VendorApiService {
     const response = await axiosInstance.get<
       ActionResponse<VendorOrderConsoleResponse>
     >("/vendor/orders/console");
+    return response.data.data;
+  }
+
+  async getVendorEarnings(period: string): Promise<VendorEarningsResponse> {
+    const response = await axiosInstance.get<
+      ActionResponse<VendorEarningsResponse>
+    >(`/vendor/earnings?period=${encodeURIComponent(period)}`);
+    return response.data.data;
+  }
+
+  async getVendorOrderHistory(
+    params: OrderHistoryParams
+  ): Promise<VendorOrderHistoryResponse> {
+    const query = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (value !== undefined && value !== "") query.set(key, String(value));
+    }
+    const response = await axiosInstance.get<
+      ActionResponse<VendorOrderHistoryResponse>
+    >(`/vendor/orders/history?${query.toString()}`);
     return response.data.data;
   }
 }
