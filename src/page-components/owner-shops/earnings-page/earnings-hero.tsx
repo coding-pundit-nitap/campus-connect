@@ -17,26 +17,36 @@ export function EarningsHero({
   period,
   onPeriodChange,
   isLoading,
+  isError,
 }: {
   amount: number;
   orderCount: number;
   period: EarningsPeriod;
   onPeriodChange: (p: EarningsPeriod) => void;
   isLoading: boolean;
+  isError: boolean;
 }) {
   return (
     <section className="rounded-2xl border border-border/30 bg-card/45 p-6 shadow-md backdrop-blur-xl">
       <p className="text-sm font-semibold text-muted-foreground">You earned</p>
       {isLoading ? (
         <Skeleton className="mt-2 h-12 w-48" />
+      ) : isError ? (
+        <p className="mt-1 text-4xl font-black tabular-nums text-muted-foreground sm:text-5xl">
+          —
+        </p>
       ) : (
         <p className="mt-1 text-4xl font-black tabular-nums text-foreground sm:text-5xl">
           {formatCurrency(amount)}
         </p>
       )}
-      <p className="mt-1 text-sm font-medium text-muted-foreground">
-        {orderCount} {orderCount === 1 ? "completed order" : "completed orders"}
-      </p>
+      {isLoading || isError ? (
+        <p className="mt-1 text-sm font-medium text-muted-foreground">—</p>
+      ) : (
+        <p className="mt-1 text-sm font-medium text-muted-foreground">
+          {orderCount} {orderCount === 1 ? "completed order" : "completed orders"}
+        </p>
+      )}
 
       <div className="mt-4 flex gap-2 overflow-x-auto">
         {PERIODS.map((p) => (
@@ -44,6 +54,7 @@ export function EarningsHero({
             key={p.value}
             type="button"
             onClick={() => onPeriodChange(p.value)}
+            aria-pressed={p.value === period}
             className={cn(
               "h-11 shrink-0 rounded-xl border px-4 text-xs font-bold transition-all active:scale-98",
               p.value === period

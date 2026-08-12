@@ -44,6 +44,7 @@ export default function EarningsPage() {
         period={period}
         onPeriodChange={setPeriod}
         isLoading={isLoading}
+        isError={isError}
       />
     </main>
   );
