@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getOrderStatusLabel } from "@/lib/utils/order-display";
 import { OrderStatus, PaymentStatus } from "@/types/prisma.types";
 
 interface OrderFilterBarProps {
@@ -50,13 +51,27 @@ export function OrderFilterBar({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">All Orders</SelectItem>
-          <SelectItem value={OrderStatus.NEW}>New</SelectItem>
-          <SelectItem value={OrderStatus.BATCHED}>Batched</SelectItem>
-          <SelectItem value={OrderStatus.OUT_FOR_DELIVERY}>
-            Out for Delivery
+          <SelectItem value={OrderStatus.NEW}>
+            {getOrderStatusLabel(OrderStatus.NEW)}
           </SelectItem>
-          <SelectItem value={OrderStatus.COMPLETED}>Completed</SelectItem>
-          <SelectItem value={OrderStatus.CANCELLED}>Cancelled</SelectItem>
+          <SelectItem value={OrderStatus.BATCHED}>
+            {getOrderStatusLabel(OrderStatus.BATCHED)}
+          </SelectItem>
+          <SelectItem value={OrderStatus.OUT_FOR_DELIVERY}>
+            {getOrderStatusLabel(OrderStatus.OUT_FOR_DELIVERY)}
+          </SelectItem>
+          <SelectItem value={OrderStatus.RESCHEDULED}>
+            {getOrderStatusLabel(OrderStatus.RESCHEDULED)}
+          </SelectItem>
+          <SelectItem value={OrderStatus.DELIVERY_FAILED}>
+            {getOrderStatusLabel(OrderStatus.DELIVERY_FAILED)}
+          </SelectItem>
+          <SelectItem value={OrderStatus.COMPLETED}>
+            {getOrderStatusLabel(OrderStatus.COMPLETED)}
+          </SelectItem>
+          <SelectItem value={OrderStatus.CANCELLED}>
+            {getOrderStatusLabel(OrderStatus.CANCELLED)}
+          </SelectItem>
         </SelectContent>
       </Select>
       <Select value={paymentStatusFilter} onValueChange={onPaymentStatusChange}>
