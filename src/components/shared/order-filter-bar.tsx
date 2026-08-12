@@ -35,7 +35,7 @@ export function OrderFilterBar({
     <div className="flex flex-col md:flex-row gap-2">
       <div className="flex-1">
         <SharedSearchInput
-          placeholder="Search by order ID or customer phone..."
+          placeholder="Search by order ID or customer name..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && onSearch()}

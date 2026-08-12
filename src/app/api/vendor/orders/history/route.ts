@@ -1,6 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { OrderStatus, PaymentStatus, Prisma } from "@/generated/client";
+import {
+  ForbiddenError,
+  UnauthenticatedError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -96,6 +101,12 @@ export async function GET(request: NextRequest) {
       200
     );
   } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      return jsonResponse(createErrorResponse("Unauthorized"), 401);
+    }
+    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+      return jsonResponse(createErrorResponse("Forbidden"), 403);
+    }
     log.error({ err: error }, "GET vendor order history error:");
     return jsonResponse(
       createErrorResponse("Failed to load order history"),
