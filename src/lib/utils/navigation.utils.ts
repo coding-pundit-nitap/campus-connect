@@ -11,6 +11,7 @@ import {
   ShoppingBag,
   Store,
   Users,
+  Wallet,
 } from "lucide-react";
 import { Route } from "next";
 
@@ -194,6 +195,12 @@ class NavigationUIService {
       {
         label: "Business",
         items: [
+          {
+            id: "earnings",
+            title: "Earnings",
+            url: "/owner-shops/earnings" as Route,
+            icon: Wallet,
+          },
           {
             id: "profile",
             title: "Shop Profile",

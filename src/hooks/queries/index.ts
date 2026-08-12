@@ -31,4 +31,3 @@ export * from "./useUser";
 export * from "./useUserAdmin";
 export * from "./useVendorEarnings";
 export * from "./useVendorOrderHistory";
-export * from "./useVendorOverview";

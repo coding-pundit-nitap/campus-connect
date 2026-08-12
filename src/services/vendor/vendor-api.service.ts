@@ -54,14 +54,6 @@ interface NextSlotResponse {
   is_open: boolean;
 }
 
-export interface VendorOverviewResponse {
-  productCount: number;
-  categoryCount: number;
-  totalOrders: number;
-  pendingOrders: number;
-  todayEarnings: number;
-}
-
 export interface VendorEarningsResponse {
   period: string;
   periodStart: string;
@@ -104,14 +96,6 @@ class VendorApiService {
     const response = await axiosInstance.get<ActionResponse<NextSlotResponse>>(
       `/shops/${shopId}/next-slot`
     );
-    return response.data.data;
-  }
-
-  async getVendorOverview(): Promise<VendorOverviewResponse> {
-    const response =
-      await axiosInstance.get<ActionResponse<VendorOverviewResponse>>(
-        "/vendor/overview"
-      );
     return response.data.data;
   }
 

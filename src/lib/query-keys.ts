@@ -116,8 +116,6 @@ export const queryKeys = {
     orders: () => ["seller", "orders"] as const,
     /** Seller dashboard analytics query key factory */
     dashboard: () => ["seller", "dashboard"] as const,
-    /** Seller overview stats used on /owner-shops */
-    overview: () => ["seller", "overview"] as const,
     /** Vendor earnings for a period */
     earnings: (period: string) => ["seller", "earnings", period] as const,
     /** Vendor order history for a filter set */
