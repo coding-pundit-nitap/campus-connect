@@ -1,3 +1,4 @@
+import { toZonedTime } from "date-fns-tz";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -81,19 +82,32 @@ describe("getPeriodRange", () => {
 
   it("covers the whole of today", () => {
     const { start, end } = getPeriodRange("today", now);
-    expect(start.getDate()).toBe(end.getDate());
-    expect(start.getHours()).toBe(0);
+    // Verify start and end span exactly one IST day (86400 seconds = 86400000 ms).
+    // Start at 00:00 IST, end at 23:59:59.999 IST, so difference is ~86399999 ms.
+    const durationMs = end.getTime() - start.getTime();
+    expect(durationMs).toBeGreaterThanOrEqual(86399999);
+    expect(durationMs).toBeLessThanOrEqual(86400000);
+    // Verify now falls within the range.
     expect(start < now && now < end).toBe(true);
+    // Verify start is at IST midnight (ends with T18:30:00.000Z for IST 00:00).
+    const startIST = toZonedTime(start, "Asia/Kolkata");
+    expect(startIST.getHours()).toBe(0);
+    expect(startIST.getMinutes()).toBe(0);
+    expect(startIST.getSeconds()).toBe(0);
   });
 
   it("starts the week on Monday", () => {
     const { start } = getPeriodRange("week", now);
-    expect(start.getDay()).toBe(1);
+    // Check that start is Monday in IST (not in UTC, which could be Sunday).
+    const startIST = toZonedTime(start, "Asia/Kolkata");
+    expect(startIST.getDay()).toBe(1); // Monday
   });
 
   it("starts the month on the first", () => {
     const { start } = getPeriodRange("month", now);
-    expect(start.getDate()).toBe(1);
+    // Check that start is the 1st of the month in IST (not in UTC, which could be previous month).
+    const startIST = toZonedTime(start, "Asia/Kolkata");
+    expect(startIST.getDate()).toBe(1);
   });
 
   it("always returns start before end", () => {
@@ -122,11 +136,13 @@ describe("getPeriodRange", () => {
     const midWeek = new Date("2026-08-12T15:30:00.000Z");
     const { start, end } = getPeriodRange("week", midWeek);
 
-    // Monday Aug 10, 2026 00:00 IST = 2026-08-09T18:30:00Z
-    // Sunday Aug 16, 2026 23:59:59.999 IST = 2026-08-16T18:29:59.999Z
+    // Monday Aug 10, 2026 00:00 IST = 2026-08-09T18:30:00Z (Sunday 18:30 UTC)
+    // Sunday Aug 16, 2026 23:59:59.999 IST = 2026-08-16T18:29:59.999Z (Friday 18:29:59 UTC)
     expect(start.toISOString()).toBe("2026-08-09T18:30:00.000Z");
     expect(end.toISOString()).toBe("2026-08-16T18:29:59.999Z");
-    expect(start.getDay()).toBe(1); // Monday in UTC is also Monday
+    // Verify Monday in IST, not in UTC (which is Sunday).
+    const startIST = toZonedTime(start, "Asia/Kolkata");
+    expect(startIST.getDay()).toBe(1); // Monday in IST
   });
 
   it("computes month boundaries in IST", () => {
