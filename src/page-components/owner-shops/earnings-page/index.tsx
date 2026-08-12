@@ -6,6 +6,8 @@ import { useState } from "react";
 import { useVendorEarnings } from "@/hooks/queries/useVendorEarnings";
 import type { EarningsPeriod } from "@/lib/utils/earnings";
 
+import { CashOnlineSplit } from "./cash-online-split";
+import { EarningsBreakdown } from "./earnings-breakdown";
 import { EarningsHero } from "./earnings-hero";
 
 export default function EarningsPage() {
@@ -46,6 +48,13 @@ export default function EarningsPage() {
         isLoading={isLoading}
         isError={isError}
       />
+
+      {data && !isLoading && (
+        <>
+          <EarningsBreakdown data={data} />
+          <CashOnlineSplit data={data} />
+        </>
+      )}
     </main>
   );
 }
