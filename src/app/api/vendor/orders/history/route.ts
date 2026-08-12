@@ -37,18 +37,34 @@ export async function GET(request: NextRequest) {
     const where: Prisma.OrderWhereInput = { shop_id: shopId };
 
     if (status && status !== "ALL") {
-      where.order_status = status as OrderStatus;
+      const validStatuses = Object.values(OrderStatus);
+      if (validStatuses.includes(status as OrderStatus)) {
+        where.order_status = status as OrderStatus;
+      }
     }
 
     if (paymentStatus && paymentStatus !== "ALL") {
-      where.payment_status = paymentStatus as PaymentStatus;
+      const validPaymentStatuses = Object.values(PaymentStatus);
+      if (validPaymentStatuses.includes(paymentStatus as PaymentStatus)) {
+        where.payment_status = paymentStatus as PaymentStatus;
+      }
     }
 
-    if (from || to) {
-      where.created_at = {
-        ...(from ? { gte: new Date(from) } : {}),
-        ...(to ? { lte: new Date(to) } : {}),
-      };
+    const dateRange: Prisma.DateTimeFilter = {};
+    if (from) {
+      const fromDate = new Date(from);
+      if (!Number.isNaN(fromDate.getTime())) {
+        dateRange.gte = fromDate;
+      }
+    }
+    if (to) {
+      const toDate = new Date(to);
+      if (!Number.isNaN(toDate.getTime())) {
+        dateRange.lte = toDate;
+      }
+    }
+    if (Object.keys(dateRange).length > 0) {
+      where.created_at = dateRange;
     }
 
     if (search) {
@@ -82,9 +98,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     log.error({ err: error }, "GET vendor order history error:");
     return jsonResponse(
-      createErrorResponse(
-        error instanceof Error ? error.message : "Failed to load order history"
-      ),
+      createErrorResponse("Failed to load order history"),
       500
     );
   }
