@@ -9,6 +9,7 @@ import type { EarningsPeriod } from "@/lib/utils/earnings";
 import { CashOnlineSplit } from "./cash-online-split";
 import { EarningsBreakdown } from "./earnings-breakdown";
 import { EarningsHero } from "./earnings-hero";
+import { OrderHistoryList } from "./order-history-list";
 
 export default function EarningsPage() {
   const [period, setPeriod] = useState<EarningsPeriod>("today");
@@ -55,6 +56,8 @@ export default function EarningsPage() {
           <CashOnlineSplit data={data} />
         </>
       )}
+
+      <OrderHistoryList />
     </main>
   );
 }
