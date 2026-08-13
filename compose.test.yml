@@ -1,0 +1,29 @@
+services:
+  test-db:
+    image: postgres:18.2-alpine
+    container_name: campus_connect_test_db
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  test-redis:
+    image: redis:8.2.1-alpine
+    container_name: campus_connect_test_redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
