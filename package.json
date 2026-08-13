@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:unit": "vitest run --project=unit",
+    "pretest:integration": "node scripts/check-test-infra.mjs",
     "test:integration": "node scripts/check-test-infra.mjs && vitest run --project=integration",
     "test:coverage": "vitest run --coverage",
     "test:infra": "docker compose -f compose.test.yml up -d --wait",
