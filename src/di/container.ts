@@ -1,3 +1,4 @@
+import type { PrismaClient } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 import { AdminAuditRepository } from "@/repositories/admin-audit.repository";
 import { BatchRepository } from "@/repositories/batch.repository";
@@ -29,73 +30,116 @@ import { DBSearchService } from "@/services/search/db-search.service";
 // Services
 import { UserService } from "@/services/user/user.service";
 
-// Instantiate repositories
-export const userRepository = new UserRepository(prisma);
-export const productRepository = new ProductRepository(prisma);
-export const categoryRepository = new CategoryRepository(prisma);
-export const brandRepository = new BrandRepository(prisma);
-export const shopRepository = new ShopRepository(prisma);
-export const orderRepository = new OrderRepository(prisma);
-export const cartRepository = new CartRepository(prisma);
-export const batchRepository = new BatchRepository(prisma);
-export const notificationRepository = new NotificationRepository(prisma);
-export const broadcastRepository = new BroadcastNotificationRepository(prisma);
-export const reviewRepository = new ReviewRepository(prisma);
-export const platformSettingsRepository = new PlatformSettingsRepository(
-  prisma
-);
-export const userAddressRepository = new UserAddressRepository(prisma);
-export const payoutRepository = new PayoutRepository(prisma);
-export const adminAuditRepository = new AdminAuditRepository(prisma);
+export interface ContainerDeps {
+  prisma: PrismaClient;
+}
 
-// Instantiate services
-export const userService = new UserService(userRepository);
-export const productService = new ProductService(productRepository);
-export const categoryServices = new CategoryServices(categoryRepository);
-export const brandServices = new BrandServices(brandRepository);
-export const fileUploadService = new FileUploadService();
-export const notificationService = new NotificationService(
-  broadcastRepository,
-  notificationRepository
-);
-export const orderService = new OrderService(
-  orderRepository,
-  platformSettingsRepository,
-  notificationService
-);
-export const cartService = new CartService(
-  cartRepository,
-  platformSettingsRepository,
-  productRepository
-);
-export const batchService = new BatchService(
-  batchRepository,
-  orderRepository,
-  productRepository,
-  shopRepository,
-  notificationService
-);
-export const reviewService = new ReviewService(
-  productRepository,
-  reviewRepository,
-  notificationService
-);
-export const auditService = new AuditService();
-export const dbSearchService = new DBSearchService(
-  productRepository,
-  shopRepository,
-  categoryRepository,
-  brandRepository
-);
+export function createContainer(deps: ContainerDeps) {
+  const { prisma } = deps;
 
-export const container = {
-  db: prisma,
-  // Repositories
+  // Instantiate repositories
+  const userRepository = new UserRepository(prisma);
+  const productRepository = new ProductRepository(prisma);
+  const categoryRepository = new CategoryRepository(prisma);
+  const brandRepository = new BrandRepository(prisma);
+  const shopRepository = new ShopRepository(prisma);
+  const orderRepository = new OrderRepository(prisma);
+  const cartRepository = new CartRepository(prisma);
+  const batchRepository = new BatchRepository(prisma);
+  const notificationRepository = new NotificationRepository(prisma);
+  const broadcastRepository = new BroadcastNotificationRepository(prisma);
+  const reviewRepository = new ReviewRepository(prisma);
+  const platformSettingsRepository = new PlatformSettingsRepository(prisma);
+  const userAddressRepository = new UserAddressRepository(prisma);
+  const payoutRepository = new PayoutRepository(prisma);
+  const adminAuditRepository = new AdminAuditRepository(prisma);
+
+  // Instantiate services
+  const userService = new UserService(userRepository);
+  const productService = new ProductService(productRepository);
+  const categoryServices = new CategoryServices(categoryRepository);
+  const brandServices = new BrandServices(brandRepository);
+  const fileUploadService = new FileUploadService();
+  const notificationService = new NotificationService(
+    broadcastRepository,
+    notificationRepository
+  );
+  const orderService = new OrderService(
+    orderRepository,
+    platformSettingsRepository,
+    notificationService,
+    prisma
+  );
+  const cartService = new CartService(
+    cartRepository,
+    platformSettingsRepository,
+    productRepository
+  );
+  const batchService = new BatchService(
+    batchRepository,
+    orderRepository,
+    productRepository,
+    shopRepository,
+    notificationService
+  );
+  const reviewService = new ReviewService(
+    productRepository,
+    reviewRepository,
+    notificationService
+  );
+  const auditService = new AuditService();
+  const dbSearchService = new DBSearchService(
+    productRepository,
+    shopRepository,
+    categoryRepository,
+    brandRepository
+  );
+
+  return {
+    db: prisma,
+    // Repositories
+    userRepository,
+    productRepository,
+    categoryRepository,
+    brandRepository,
+    shopRepository,
+    orderRepository,
+    cartRepository,
+    batchRepository,
+    notificationRepository,
+    broadcastRepository,
+    reviewRepository,
+    platformSettingsRepository,
+    userAddressRepository,
+    payoutRepository,
+    adminAuditRepository,
+
+    // Services
+    userService,
+    productService,
+    categoryServices,
+    brandServices,
+    fileUploadService,
+    notificationService,
+    orderService,
+    cartService,
+    batchService,
+    reviewService,
+    auditService,
+    dbSearchService,
+  } as const;
+}
+
+export type Container = ReturnType<typeof createContainer>;
+
+// Production graph. Preserves every pre-existing named export.
+export const container = createContainer({ prisma });
+
+export const {
   userRepository,
   productRepository,
   categoryRepository,
   brandRepository,
-  fileUploadService,
   shopRepository,
   orderRepository,
   cartRepository,
@@ -107,12 +151,11 @@ export const container = {
   userAddressRepository,
   payoutRepository,
   adminAuditRepository,
-
-  // Services
   userService,
   productService,
   categoryServices,
   brandServices,
+  fileUploadService,
   notificationService,
   orderService,
   cartService,
@@ -120,6 +163,6 @@ export const container = {
   reviewService,
   auditService,
   dbSearchService,
-};
+} = container;
 
 export default container;
