@@ -57,3 +57,19 @@ export const adminRoutes: string[] = [
 
 // Default page to redirect to after successful login.
 export const DEFAULT_LOGIN_REDIRECT = "/";
+
+/**
+ * Matches a concrete request path against a route pattern.
+ * `:param` matches one segment; `:param*` matches one or more segments.
+ */
+export function matchRoute(path: string, route: string): boolean {
+  const regex = new RegExp(
+    "^" +
+      route
+        .replace(/:[^/]+\*/g, ".+")
+        .replace(/:[^/]+/g, "[^/]+")
+        .replace(/\//g, "\\/") +
+      "$"
+  );
+  return regex.test(path);
+}

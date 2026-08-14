@@ -8,6 +8,7 @@ import {
   apiAuthPrefix,
   authRoutes,
   DEFAULT_LOGIN_REDIRECT,
+  matchRoute,
   publicApiRoutes,
   publicRoutes,
 } from "@/rbac";
@@ -27,18 +28,6 @@ if (env.NODE_ENV === "production") {
       "[Proxy] Metrics module not available, skipping metrics tracking"
     );
   }
-}
-
-function matchRoute(path: string, route: string) {
-  const regex = new RegExp(
-    "^" +
-      route
-        .replace(/:[^/]+\*/g, ".+")
-        .replace(/:[^/]+/g, "[^/]+")
-        .replace(/\//g, "\\/") +
-      "$"
-  );
-  return regex.test(path);
 }
 
 export async function proxy(req: NextRequest) {
