@@ -3,6 +3,17 @@ import { describe, expect, it, vi } from "vitest";
 import { createContainer } from "@/di/container";
 import type { PrismaClient } from "@/generated/client";
 
+const { orderServiceConstructorSpy } = vi.hoisted(() => ({
+  orderServiceConstructorSpy: vi.fn(),
+}));
+
+vi.mock("@/services/order/order.service", () => ({
+  OrderService: vi.fn().mockImplementation((...args: unknown[]) => {
+    orderServiceConstructorSpy(...args);
+    return { __mockOrderService: true };
+  }),
+}));
+
 function fakePrisma() {
   return { $transaction: vi.fn() } as unknown as PrismaClient;
 }
@@ -23,11 +34,13 @@ describe("createContainer", () => {
     expect(a.userRepository).not.toBe(b.userRepository);
   });
 
-  it("wires OrderService with the injected prisma client as its fourth argument", () => {
+  it("constructs OrderService with the injected prisma client as its fourth argument", () => {
+    orderServiceConstructorSpy.mockClear();
     const fake = fakePrisma();
-    const container = createContainer({ prisma: fake });
-    // OrderService stores the injected prismaClient privately; verify indirectly
-    // by confirming the container's db (the same client) is the one supplied.
-    expect(container.db).toBe(fake);
+    createContainer({ prisma: fake });
+
+    expect(orderServiceConstructorSpy).toHaveBeenCalledTimes(1);
+    const [, , , prismaArg] = orderServiceConstructorSpy.mock.calls[0];
+    expect(prismaArg).toBe(fake);
   });
 });
