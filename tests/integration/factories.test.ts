@@ -69,4 +69,20 @@ describe("factories", () => {
     expect(slot).not.toBeNull();
     expect(slot?.is_active).toBe(true);
   });
+
+  it("normalizes a non-minute-aligned cutoff to zero seconds/ms, like order.service.ts's normalizeToMinute", async () => {
+    const raw = new Date(Date.now() + 120 * 60_000);
+    raw.setSeconds(37, 421);
+
+    const batch = await seedOpenBatch({ cutoffAt: raw });
+
+    expect(batch.cutoff_time.getSeconds()).toBe(0);
+    expect(batch.cutoff_time.getMilliseconds()).toBe(0);
+
+    const persisted = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
+    expect(persisted?.cutoff_time.getSeconds()).toBe(0);
+    expect(persisted?.cutoff_time.getMilliseconds()).toBe(0);
+  });
 });
