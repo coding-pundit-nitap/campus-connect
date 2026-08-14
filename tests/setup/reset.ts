@@ -20,8 +20,6 @@ export async function resetDatabase(prisma: PrismaClient): Promise<void> {
     `TRUNCATE TABLE ${tables.join(", ")} RESTART IDENTITY CASCADE`
   );
 
-  // order_display_id_seq is a standalone CREATE SEQUENCE (init migration:657),
-  // owned by no column, so RESTART IDENTITY above does NOT reset it.
   await prisma.$executeRawUnsafe(
     `ALTER SEQUENCE order_display_id_seq RESTART WITH 1000`
   );
