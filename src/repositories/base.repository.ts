@@ -13,13 +13,28 @@
  * every row in the table. This was live and exploitable on GET /api/orders.
  *
  * The declared option types (`Omit<XFindManyArgs, "where">`) did NOT stop it.
- * TypeScript skips excess-property checking when a fresh object literal is
- * inferred to a *naked generic type parameter* (`options: T` where
- * `T extends Omit<…, "where">`): the literal's own type becomes `T`, and the
- * subsequent constraint check is an ordinary structural assignability check,
- * which permits extra properties. Confirmed empirically — the identical call
- * against a non-generic `options: Omit<…, "where">` parameter errors with
- * TS2353, the generic one compiles clean.
+ * Two things have to line up, and in this codebase they both did:
+ *
+ *   1. The parameter is a *naked generic type parameter* (`options: T` where
+ *      `T extends Omit<…, "where">`). Against a non-generic
+ *      `options: Omit<…, "where">` parameter, full excess-property checking
+ *      fires and `where` is rejected with TS2353.
+ *   2. `Omit<XFindManyArgs, "where">` is a *weak type* — every property is
+ *      optional. For a fresh literal inferred to a naked `T`, TypeScript
+ *      applies only the weak-type common-property check, not a full
+ *      excess-property check.
+ *
+ * The consequence is easy to miss: `f(id, { where })` on its own DOES still
+ * error, because the literal shares no property with the constraint. Add any
+ * one legitimate sibling — `take`, `skip`, `orderBy`, `select`, `include`,
+ * `cursor` — and the whole literal, `where` included, sails through. The real
+ * call site passed five of them. Do not conclude from a single red squiggle in
+ * a scratch file that the type is enforcing anything.
+ *
+ * (Methods with no overload pair can and do close this properly, by declaring
+ * `Omit<…, "where"> & { where?: never }` — not a naked generic, so full EPC
+ * applies. See ProductRepository.hardDelete / getStockWatches /
+ * getStockWatchersByProductId and ShopRepository.getFavoriteShops.)
  *
  * So the invariant is enforced at RUNTIME, in every scoped method:
  *
@@ -30,8 +45,16 @@
  * scope key LAST inside `where` (so a caller filter is ANDed in but can never
  * widen, drop, or redirect the scope).
  *
+ * Note the ORDER inside `where` as well as outside it. Writing
+ * `where: { scope, ...where }` — scope first — looks like a merge and is not:
+ * a caller filter naming a scope key still overrides it. That variant was live
+ * in ProductRepository.findManyByShopId and survived the first audit pass
+ * precisely because the destructure above it looked correct.
+ *
  * When adding a new scoped method, follow that shape. Do not write
- * `{ where: { scope }, ...options }`.
+ * `{ where: { scope }, ...options }` or `where: { scope, ...where }`.
+ * Both shapes are enforced against by src/repositories/scope-hardening.test.ts,
+ * which scans these sources — it will fail the build, not just review.
  */
 export abstract class BaseRepository<
   TModel,

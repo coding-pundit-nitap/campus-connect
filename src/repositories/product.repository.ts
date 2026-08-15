@@ -162,11 +162,17 @@ export class ProductRepository extends BaseRepository<
 
   async hardDelete(
     product_id: string,
-    data?: Prisma.ProductDeleteArgs
+    // `where?: never` keeps the compile-time rejection this signature had
+    // before scope hardening. It has no overload pair, so this parameter type
+    // IS the public contract — and it is not a naked generic, so full
+    // excess-property checking applies (see base.repository.ts). The runtime
+    // strip below still stands for `where` values that arrive un-typechecked.
+    data?: Omit<Prisma.ProductDeleteArgs, "where"> & { where?: never }
   ): Promise<Product> {
-    // Scope hardening — see base.repository.ts. A caller `where` must never be
-    // able to redirect a hard delete at a different product.
-    const { where, ...rest } = data ?? {};
+    // Cast so the runtime strip still compiles: the declared type says
+    // `where` cannot be here, but the strip is what guarantees it.
+    const { where, ...rest } = (data ??
+      {}) as Partial<Prisma.ProductDeleteArgs>;
     return this.prismaClient.product.delete({
       ...rest,
       where: { ...where, id: product_id },
@@ -195,14 +201,18 @@ export class ProductRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts. This method already
+    // destructured `where`, but spread it *last* inside the `where` literal,
+    // so a caller filter naming `shop_id` or `deleted_at` still overrode the
+    // scope. Scope keys now come last, matching every other scoped method.
     const { where, ...rest } = options || {};
     return this.prismaClient.product.findMany({
+      ...rest,
       where: {
+        ...where,
         shop_id,
         deleted_at: null,
-        ...where,
       },
-      ...rest,
     });
   }
 
@@ -228,10 +238,11 @@ export class ProductRepository extends BaseRepository<
 
   async getStockWatches(
     user_id: string,
-    options?: Prisma.StockWatchFindManyArgs
+    // No overload pair — `where?: never` preserves compile-time rejection.
+    // See base.repository.ts.
+    options?: Omit<Prisma.StockWatchFindManyArgs, "where"> & { where?: never }
   ) {
-    // Scope hardening — see base.repository.ts.
-    const { where, ...rest } = options ?? {};
+    const { where, ...rest } = (options ?? {}) as Prisma.StockWatchFindManyArgs;
     return this.prismaClient.stockWatch.findMany({
       ...rest,
       where: { ...where, user_id },
@@ -240,10 +251,11 @@ export class ProductRepository extends BaseRepository<
 
   async getStockWatchersByProductId(
     product_id: string,
-    options?: Prisma.StockWatchFindManyArgs
+    // No overload pair — `where?: never` preserves compile-time rejection.
+    // See base.repository.ts.
+    options?: Omit<Prisma.StockWatchFindManyArgs, "where"> & { where?: never }
   ) {
-    // Scope hardening — see base.repository.ts.
-    const { where, ...rest } = options ?? {};
+    const { where, ...rest } = (options ?? {}) as Prisma.StockWatchFindManyArgs;
     return this.prismaClient.stockWatch.findMany({
       ...rest,
       where: { ...where, product_id },

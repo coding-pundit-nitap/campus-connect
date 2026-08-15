@@ -243,10 +243,12 @@ export class ShopRepository extends BaseRepository<
 
   async getFavoriteShops(
     user_id: string,
-    options?: Prisma.FavoriteShopFindManyArgs
+    // No overload pair — `where?: never` preserves compile-time rejection.
+    // See base.repository.ts.
+    options?: Omit<Prisma.FavoriteShopFindManyArgs, "where"> & { where?: never }
   ) {
-    // Scope hardening — see base.repository.ts.
-    const { where, ...rest } = options ?? {};
+    const { where, ...rest } = (options ??
+      {}) as Prisma.FavoriteShopFindManyArgs;
     return this.prismaClient.favoriteShop.findMany({
       ...rest,
       where: { ...where, user_id },
