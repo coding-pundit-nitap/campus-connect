@@ -1,4 +1,8 @@
-
+import type {
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+} from "../../src/generated/client";
 import { APP_TIME_ZONE, getZonedParts } from "../../src/lib/utils/timezone";
 import { testPrisma } from "../setup/integration-setup";
 
@@ -105,6 +109,32 @@ export function buildBatchSlot(o: BatchSlotOverrides) {
 export const createBatchSlot = (o: BatchSlotOverrides) =>
   testPrisma.batchSlot.create({ data: buildBatchSlot(o) });
 
+type OrderAtStatusOverrides = {
+  shop_id: string;
+  order_status: OrderStatus;
+  user_id?: string;
+  payment_method?: PaymentMethod;
+  payment_status?: PaymentStatus;
+};
+
+export function buildOrderAtStatus(o: OrderAtStatusOverrides) {
+  const n = nextSeq();
+  return {
+    id: `order-${n}`,
+    display_id: `TEST-ORDER-${n}`,
+    item_total: 100,
+    total_price: 100,
+    payment_method: o.payment_method ?? "CASH",
+    payment_status: o.payment_status,
+    delivery_address_snapshot: {},
+    shop_id: o.shop_id,
+    user_id: o.user_id,
+    order_status: o.order_status,
+  };
+}
+
+export const createOrderAtStatus = (o: OrderAtStatusOverrides) =>
+  testPrisma.order.create({ data: buildOrderAtStatus(o) });
 
 export async function seedShopWithProducts(opts?: {
   productCount?: number;
