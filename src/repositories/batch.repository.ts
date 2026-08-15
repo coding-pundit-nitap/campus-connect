@@ -42,7 +42,7 @@ export class BatchRepository extends BaseRepository<
   > | null>;
   async findById(
     batch_id: string,
-    options?: Omit<Prisma.BatchFindUniqueArgs, "where">
+    options?: Prisma.BatchFindUniqueArgs
   ): Promise<
     | Batch
     | null
@@ -52,7 +52,9 @@ export class BatchRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    const query = { where: { id: batch_id }, ...(options ?? {}) };
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
+    const query = { ...rest, where: { ...where, id: batch_id } };
     return this.prismaClient.batch.findUnique(query);
   }
 
@@ -67,7 +69,7 @@ export class BatchRepository extends BaseRepository<
   > | null>;
   async findFirstByShopId(
     shop_id: string,
-    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+    options?: Prisma.BatchFindFirstArgs
   ): Promise<
     | Batch
     | null
@@ -79,7 +81,9 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    const query = { where: { shop_id }, ...(options ?? {}) };
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
+    const query = { ...rest, where: { ...where, shop_id } };
     return this.prismaClient.batch.findFirst(query);
   }
 
@@ -96,7 +100,7 @@ export class BatchRepository extends BaseRepository<
   > | null>;
   async findOpenBatchByShopId(
     shop_id: string,
-    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+    options?: Prisma.BatchFindFirstArgs
   ): Promise<
     | Batch
     | null
@@ -108,10 +112,13 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
+    // Scope hardening — see base.repository.ts. `orderBy` stays before
+    // `...rest` so it remains an overridable default.
+    const { where, ...rest } = options ?? {};
     const query = {
-      where: { shop_id, status: "OPEN" as BatchStatus },
       orderBy: { cutoff_time: "asc" as const },
-      ...(options ?? {}),
+      ...rest,
+      where: { ...where, shop_id, status: "OPEN" as BatchStatus },
     };
     return this.prismaClient.batch.findFirst(query);
   }
@@ -129,7 +136,7 @@ export class BatchRepository extends BaseRepository<
   >;
   async findOpenBatches(
     shop_id: string,
-    options?: Omit<Prisma.BatchFindManyArgs, "where">
+    options?: Prisma.BatchFindManyArgs
   ): Promise<
     | Batch[]
     | Prisma.Result<
@@ -140,10 +147,13 @@ export class BatchRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts. `orderBy` stays before
+    // `...rest` so it remains an overridable default.
+    const { where, ...rest } = options ?? {};
     const query = {
-      where: { shop_id, status: "OPEN" as BatchStatus },
       orderBy: { cutoff_time: "asc" as const },
-      ...(options ?? {}),
+      ...rest,
+      where: { ...where, shop_id, status: "OPEN" as BatchStatus },
     };
     return this.prismaClient.batch.findMany(query);
   }
@@ -161,7 +171,7 @@ export class BatchRepository extends BaseRepository<
   >;
   async findActiveBatches(
     shop_id: string,
-    options?: Omit<Prisma.BatchFindManyArgs, "where">
+    options?: Prisma.BatchFindManyArgs
   ): Promise<
     | Batch[]
     | Prisma.Result<
@@ -172,13 +182,16 @@ export class BatchRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     const query = {
+      orderBy: { cutoff_time: "desc" as const },
+      ...rest,
       where: {
+        ...where,
         shop_id,
         status: { in: ["LOCKED", "IN_TRANSIT"] as BatchStatus[] },
       },
-      orderBy: { cutoff_time: "desc" as const },
-      ...(options ?? {}),
     };
     return this.prismaClient.batch.findMany(query);
   }
@@ -201,7 +214,7 @@ export class BatchRepository extends BaseRepository<
   async findOpenBatchByCutoff(
     shop_id: string,
     cutoff_time: Date,
-    options?: Omit<Prisma.BatchFindFirstArgs, "where">
+    options?: Prisma.BatchFindFirstArgs
   ): Promise<
     | Batch
     | null
@@ -213,13 +226,16 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     const query = {
+      ...rest,
       where: {
+        ...where,
         shop_id,
         status: "OPEN" as BatchStatus,
         cutoff_time,
       },
-      ...(options ?? {}),
     };
     return this.prismaClient.batch.findFirst(query);
   }
@@ -249,16 +265,18 @@ export class BatchRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.BatchUpdateArgs,
     data?: Prisma.BatchUpdateInput,
-    options?: Omit<Prisma.BatchUpdateArgs, "where" | "data">
+    options?: Prisma.BatchUpdateArgs
   ): Promise<
     | Batch
     | Prisma.Result<Prisma.BatchDelegate, Prisma.BatchUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.batch.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.batch.update(idOrArgs);
@@ -277,7 +295,7 @@ export class BatchRepository extends BaseRepository<
   >;
   async findActiveSlots(
     shop_id: string,
-    options?: Omit<Prisma.BatchSlotFindManyArgs, "where">
+    options?: Prisma.BatchSlotFindManyArgs
   ): Promise<
     | BatchSlot[]
     | Prisma.Result<
@@ -289,13 +307,15 @@ export class BatchRepository extends BaseRepository<
       >
   > {
     try {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       const query = {
-        where: { shop_id, is_active: true },
         orderBy: [
           { sort_order: "asc" as const },
           { cutoff_time_minutes: "asc" as const },
         ],
-        ...(options ?? {}),
+        ...rest,
+        where: { ...where, shop_id, is_active: true },
       };
       return this.prismaClient.batchSlot.findMany(query);
     } catch {

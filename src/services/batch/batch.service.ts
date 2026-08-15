@@ -229,7 +229,7 @@ export class BatchService {
       create: { batch_id: batchId, current_milestone: BatchMilestone.PACKING },
     });
 
-    const orders = await this.orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.findMany({
       where: { batch_id: batchId },
       select: { id: true },
     });
@@ -463,7 +463,7 @@ export class BatchService {
       }
     }
 
-    const directOrdersRaw = await this.orderRepository.getOrdersByIds([], {
+    const directOrdersRaw = await this.orderRepository.findMany({
       where: {
         shop_id: shopId,
         order_status: { notIn: ["COMPLETED", "CANCELLED"] },
@@ -529,7 +529,7 @@ export class BatchService {
 
     await this.batchRepository.updateStatus(batchId, "OPEN");
 
-    const orders = await this.orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.findMany({
       where: { batch_id: batchId },
       select: { id: true },
     });
@@ -633,7 +633,7 @@ export class BatchService {
   }
 
   async generateOtpForBatch(batchId: string): Promise<void> {
-    const orders = await this.orderRepository.getOrdersByIds([], {
+    const orders = await this.orderRepository.findMany({
       where: { batch_id: batchId },
       select: { id: true },
     });

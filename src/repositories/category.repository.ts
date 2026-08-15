@@ -29,7 +29,7 @@ export class CategoryRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.CategoryFindUniqueArgs, "where">
+    options?: Prisma.CategoryFindUniqueArgs
   ): Promise<
     | Category
     | null
@@ -41,9 +41,11 @@ export class CategoryRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.category.findUnique({
-      where: { id },
-      ...options,
+      ...rest,
+      where: { ...where, id },
     });
   }
 
@@ -58,7 +60,7 @@ export class CategoryRepository extends BaseRepository<
   > | null>;
   async findByName(
     name: string,
-    options?: Omit<Prisma.CategoryFindUniqueArgs, "where">
+    options?: Prisma.CategoryFindUniqueArgs
   ): Promise<
     | Category
     | null
@@ -70,9 +72,11 @@ export class CategoryRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.category.findUnique({
-      where: { name },
-      ...options,
+      ...rest,
+      where: { ...where, name },
     });
   }
 
@@ -235,7 +239,7 @@ export class CategoryRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.CategoryUpdateArgs,
     data?: Prisma.CategoryUpdateInput,
-    options?: Omit<Prisma.CategoryUpdateArgs, "where" | "data">
+    options?: Prisma.CategoryUpdateArgs
   ): Promise<
     | Category
     | Prisma.Result<
@@ -245,10 +249,12 @@ export class CategoryRepository extends BaseRepository<
       >
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.category.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.category.update(idOrArgs);

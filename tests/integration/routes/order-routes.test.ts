@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { GET as GET_ORDER } from "../../../src/app/api/orders/[order_id]/route";
 import { GET as GET_ORDERS } from "../../../src/app/api/orders/route";
 import { createContainer } from "../../../src/di/container";
-import type { PaymentMethod } from "../../../src/generated/client";
+import type { PaymentMethod, Prisma } from "../../../src/generated/client";
 import {
   createOrderAtStatus,
   createShop,
@@ -15,7 +15,9 @@ import {
 import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
-const { orderService } = createContainer({ prisma: testPrisma });
+const { orderRepository, orderService } = createContainer({
+  prisma: testPrisma,
+});
 
 type CreateOrderArgs = {
   user_id: string;
@@ -42,7 +44,9 @@ function createOrder(args: CreateOrderArgs) {
 describe("GET /api/orders", () => {
   it("returns 500 when signed out (UnauthenticatedError isn't a ZodError, so it falls to the generic 500 catch)", async () => {
     asAnonymous();
-    const res = await GET_ORDERS(new NextRequest("http://localhost/api/orders"));
+    const res = await GET_ORDERS(
+      new NextRequest("http://localhost/api/orders")
+    );
     expect(res.status).toBe(500);
     const body = await res.json();
     expect(body.success).toBe(false);
@@ -61,7 +65,9 @@ describe("GET /api/orders", () => {
   it("returns 200 with an empty page when the caller has no orders", async () => {
     const user = await createUser();
     asUser(user);
-    const res = await GET_ORDERS(new NextRequest("http://localhost/api/orders"));
+    const res = await GET_ORDERS(
+      new NextRequest("http://localhost/api/orders")
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
@@ -69,7 +75,7 @@ describe("GET /api/orders", () => {
     expect(body.data.hasMore).toBe(false);
   });
 
-  it("returns 200 but leaks other users' orders into the page — the user_id scope is dropped when getOrdersByUserId's caller-supplied `where` replaces `{ user_id }` via object spread (order.repository.ts)", async () => {
+  it("returns only the caller's own orders — a second buyer's order never appears in the page", async () => {
     const seeded = await seedCartReadyForCheckout();
     const address = await createUserAddress({
       user_id: seeded.user.id,
@@ -97,13 +103,189 @@ describe("GET /api/orders", () => {
     });
 
     asUser(seeded.user);
-    const res = await GET_ORDERS(new NextRequest("http://localhost/api/orders"));
+    const res = await GET_ORDERS(
+      new NextRequest("http://localhost/api/orders")
+    );
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.data.data).toHaveLength(2);
-    expect(body.data.data.map((o: { id: string }) => o.id).sort()).toEqual(
-      [order.id, otherOrder.id].sort()
+    const ids = body.data.data.map((o: { id: string }) => o.id);
+    expect(ids).toEqual([order.id]);
+    expect(ids).not.toContain(otherOrder.id);
+    expect(
+      body.data.data.every(
+        (o: { user_id: string }) => o.user_id === seeded.user.id
+      )
+    ).toBe(true);
+  });
+
+  it("filters by status within the caller's own orders only", async () => {
+    const owner = await createUser();
+    const intruderShop = await createShop();
+    const intruder = await createUser();
+
+    const ownShop = await createShop();
+    const ownNew = await createOrderAtStatus({
+      shop_id: ownShop.id,
+      order_status: "NEW",
+      user_id: owner.id,
+    });
+    const ownCompleted = await createOrderAtStatus({
+      shop_id: ownShop.id,
+      order_status: "COMPLETED",
+      user_id: owner.id,
+    });
+    // Another user's order at the SAME status the caller will filter on.
+    const foreignNew = await createOrderAtStatus({
+      shop_id: intruderShop.id,
+      order_status: "NEW",
+      user_id: intruder.id,
+    });
+
+    asUser(owner);
+    const res = await GET_ORDERS(
+      new NextRequest("http://localhost/api/orders?status=NEW")
     );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const ids = body.data.data.map((o: { id: string }) => o.id);
+
+    expect(ids).not.toContain(ownCompleted.id);
+    expect(ids).not.toContain(foreignNew.id);
+    expect(ids).toEqual([ownNew.id]);
+  });
+
+  it("a date filter narrows the caller's page without widening the scope", async () => {
+    const owner = await createUser();
+    const shop = await createShop();
+    await createOrderAtStatus({
+      shop_id: shop.id,
+      order_status: "NEW",
+      user_id: owner.id,
+    });
+
+    const stranger = await createUser();
+    const strangerShop = await createShop();
+    const strangerOrder = await createOrderAtStatus({
+      shop_id: strangerShop.id,
+      order_status: "NEW",
+      user_id: stranger.id,
+    });
+
+    asUser(owner);
+    const res = await GET_ORDERS(
+      new NextRequest(
+        "http://localhost/api/orders?date_from=1990-01-01&date_to=1990-12-31"
+      )
+    );
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data.data).toEqual([]);
+    expect(body.data.data.map((o: { id: string }) => o.id)).not.toContain(
+      strangerOrder.id
+    );
+  });
+});
+describe("OrderRepository scope hardening", () => {
+  it("getOrdersByUserId: a caller-supplied `where` cannot widen beyond the user scope", async () => {
+    const owner = await createUser();
+    const shop = await createShop();
+    const ownOrder = await createOrderAtStatus({
+      shop_id: shop.id,
+      order_status: "NEW",
+      user_id: owner.id,
+    });
+
+    const stranger = await createUser();
+    const strangerShop = await createShop();
+    const strangerOrder = await createOrderAtStatus({
+      shop_id: strangerShop.id,
+      order_status: "NEW",
+      user_id: stranger.id,
+    });
+
+    const wideOpen = await orderRepository.getOrdersByUserId(owner.id, {
+      where: { order_status: undefined, created_at: undefined },
+    });
+    expect(wideOpen.map((o) => o.id)).toEqual([ownOrder.id]);
+
+    const impersonation = await orderRepository.getOrdersByUserId(owner.id, {
+      where: { user_id: stranger.id },
+    });
+    expect(impersonation.map((o) => o.id)).toEqual([ownOrder.id]);
+    expect(impersonation.map((o) => o.id)).not.toContain(strangerOrder.id);
+
+    const filtered = await orderRepository.getOrdersByUserId(owner.id, {
+      where: { order_status: "COMPLETED" },
+    });
+    expect(filtered).toEqual([]);
+  });
+
+  it("getOrdersByShopId: a caller-supplied `where` cannot widen beyond the shop scope", async () => {
+    const buyer = await createUser();
+    const shopA = await createShop();
+    const shopB = await createShop();
+
+    const orderA = await createOrderAtStatus({
+      shop_id: shopA.id,
+      order_status: "NEW",
+      user_id: buyer.id,
+    });
+    const orderB = await createOrderAtStatus({
+      shop_id: shopB.id,
+      order_status: "NEW",
+      user_id: buyer.id,
+    });
+
+    const wideOpenArgs: Prisma.OrderFindManyArgs = {
+      where: { order_status: undefined },
+    };
+    const wideOpen = await orderRepository.getOrdersByShopId(
+      shopA.id,
+      wideOpenArgs
+    );
+    expect(wideOpen.map((o) => o.id)).toEqual([orderA.id]);
+    expect(wideOpen.map((o) => o.id)).not.toContain(orderB.id);
+
+    const impersonationArgs: Prisma.OrderFindManyArgs = {
+      where: { shop_id: shopB.id },
+    };
+    const impersonation = await orderRepository.getOrdersByShopId(
+      shopA.id,
+      impersonationArgs
+    );
+    expect(impersonation.map((o) => o.id)).toEqual([orderA.id]);
+    expect(impersonation.map((o) => o.id)).not.toContain(orderB.id);
+
+    const filterArgs: Prisma.OrderFindManyArgs = {
+      where: { order_status: "NEW" },
+    };
+    const filtered = await orderRepository.getOrdersByShopId(
+      shopA.id,
+      filterArgs
+    );
+    expect(filtered.map((o) => o.id)).toEqual([orderA.id]);
+  });
+
+  it("getOrdersByIds: a caller-supplied `where` cannot widen beyond the id list", async () => {
+    const buyer = await createUser();
+    const shop = await createShop();
+    const wanted = await createOrderAtStatus({
+      shop_id: shop.id,
+      order_status: "NEW",
+      user_id: buyer.id,
+    });
+    const unwanted = await createOrderAtStatus({
+      shop_id: shop.id,
+      order_status: "NEW",
+      user_id: buyer.id,
+    });
+
+    const args: Prisma.OrderFindManyArgs = {
+      where: { order_status: undefined },
+    };
+    const rows = await orderRepository.getOrdersByIds([wanted.id], args);
+    expect(rows.map((o) => o.id)).toEqual([wanted.id]);
+    expect(rows.map((o) => o.id)).not.toContain(unwanted.id);
   });
 });
 

@@ -29,7 +29,7 @@ export class ProductRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.ProductFindFirstArgs, "where">
+    options?: Prisma.ProductFindFirstArgs
   ): Promise<
     | Product
     | null
@@ -41,9 +41,12 @@ export class ProductRepository extends BaseRepository<
         "findFirst"
       >
   > {
+    // Scope hardening — see base.repository.ts. `deleted_at: null` is part of
+    // the scope and must survive any caller-supplied filter.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.product.findFirst({
-      where: { id, deleted_at: null },
-      ...options,
+      ...rest,
+      where: { ...where, id, deleted_at: null },
     });
   }
 
@@ -117,16 +120,18 @@ export class ProductRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.ProductUpdateArgs,
     data?: Prisma.ProductUpdateInput,
-    options?: Omit<Prisma.ProductUpdateArgs, "where" | "data">
+    options?: Prisma.ProductUpdateArgs
   ): Promise<
     | Product
     | Prisma.Result<Prisma.ProductDelegate, Prisma.ProductUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.product.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.product.update(idOrArgs);
@@ -157,11 +162,14 @@ export class ProductRepository extends BaseRepository<
 
   async hardDelete(
     product_id: string,
-    data?: Omit<Prisma.ProductDeleteArgs, "where">
+    data?: Prisma.ProductDeleteArgs
   ): Promise<Product> {
+    // Scope hardening — see base.repository.ts. A caller `where` must never be
+    // able to redirect a hard delete at a different product.
+    const { where, ...rest } = data ?? {};
     return this.prismaClient.product.delete({
-      where: { id: product_id },
-      ...data,
+      ...rest,
+      where: { ...where, id: product_id },
     });
   }
 
@@ -220,21 +228,25 @@ export class ProductRepository extends BaseRepository<
 
   async getStockWatches(
     user_id: string,
-    options?: Omit<Prisma.StockWatchFindManyArgs, "where">
+    options?: Prisma.StockWatchFindManyArgs
   ) {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.stockWatch.findMany({
-      where: { user_id },
-      ...options,
+      ...rest,
+      where: { ...where, user_id },
     });
   }
 
   async getStockWatchersByProductId(
     product_id: string,
-    options?: Omit<Prisma.StockWatchFindManyArgs, "where">
+    options?: Prisma.StockWatchFindManyArgs
   ) {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.stockWatch.findMany({
-      where: { product_id },
-      ...options,
+      ...rest,
+      where: { ...where, product_id },
     });
   }
 

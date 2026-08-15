@@ -29,7 +29,7 @@ export class UserAddressRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.UserAddressFindUniqueArgs, "where">
+    options?: Prisma.UserAddressFindUniqueArgs
   ): Promise<
     | UserAddress
     | null
@@ -41,9 +41,11 @@ export class UserAddressRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.userAddress.findUnique({
-      where: { id },
-      ...options,
+      ...rest,
+      where: { ...where, id },
     });
   }
 
@@ -60,7 +62,7 @@ export class UserAddressRepository extends BaseRepository<
   >;
   async findByUserId(
     id: string,
-    options?: Omit<Prisma.UserAddressFindManyArgs, "where">
+    options?: Prisma.UserAddressFindManyArgs
   ): Promise<
     | UserAddress[]
     | Prisma.Result<
@@ -71,10 +73,14 @@ export class UserAddressRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts. `orderBy` stays *before*
+    // `...rest` so it remains an overridable default; `where` goes after so
+    // the `user_id` scope cannot be overridden.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.userAddress.findMany({
-      where: { user_id: id },
       orderBy: { is_default: Prisma.SortOrder.desc },
-      ...options,
+      ...rest,
+      where: { ...where, user_id: id },
     });
   }
 
@@ -240,7 +246,7 @@ export class UserAddressRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.UserAddressUpdateArgs,
     data?: Prisma.UserAddressUpdateInput,
-    options?: Omit<Prisma.UserAddressUpdateArgs, "where" | "data">
+    options?: Prisma.UserAddressUpdateArgs
   ): Promise<
     | UserAddress
     | Prisma.Result<
@@ -250,10 +256,12 @@ export class UserAddressRepository extends BaseRepository<
       >
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.userAddress.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.userAddress.update(idOrArgs);

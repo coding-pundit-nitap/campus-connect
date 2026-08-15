@@ -26,7 +26,7 @@ export class ShopRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.ShopFindFirstArgs, "where">
+    options?: Prisma.ShopFindFirstArgs
   ): Promise<
     | Shop
     | null
@@ -38,9 +38,13 @@ export class ShopRepository extends BaseRepository<
         "findFirst"
       >
   > {
+    // Scope hardening — see base.repository.ts. `deleted_at: null` is part of
+    // the scope: a caller `where` must not be able to resurrect soft-deleted
+    // shops or point at a different id.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.shop.findFirst({
-      where: { id, deleted_at: null },
-      ...options,
+      ...rest,
+      where: { ...where, id, deleted_at: null },
     });
   }
 
@@ -107,15 +111,17 @@ export class ShopRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.ShopUpdateArgs,
     data?: Prisma.ShopUpdateInput,
-    options?: Omit<Prisma.ShopUpdateArgs, "where" | "data">
+    options?: Prisma.ShopUpdateArgs
   ): Promise<
     Shop | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.shop.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.shop.update(idOrArgs);
@@ -158,7 +164,7 @@ export class ShopRepository extends BaseRepository<
   > | null>;
   async findByOwnerId(
     owner_id: string,
-    options?: Omit<Prisma.ShopFindFirstArgs, "where">
+    options?: Prisma.ShopFindFirstArgs
   ): Promise<
     | Shop
     | null
@@ -170,14 +176,19 @@ export class ShopRepository extends BaseRepository<
         "findFirst"
       >
   > {
+    // Scope hardening — see base.repository.ts. This is the vendor
+    // authorization gate used across the owner-shop routes: `user.id` and
+    // `deleted_at: null` must always win.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.shop.findFirst({
+      ...rest,
       where: {
+        ...where,
         user: {
           id: owner_id,
         },
         deleted_at: null,
       },
-      ...options,
     });
   }
 
@@ -232,11 +243,13 @@ export class ShopRepository extends BaseRepository<
 
   async getFavoriteShops(
     user_id: string,
-    options?: Omit<Prisma.FavoriteShopFindManyArgs, "where">
+    options?: Prisma.FavoriteShopFindManyArgs
   ) {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.favoriteShop.findMany({
-      where: { user_id },
-      ...options,
+      ...rest,
+      where: { ...where, user_id },
     });
   }
 

@@ -38,7 +38,9 @@ export class OrderRepository extends BaseRepository<
   > | null>;
   async getOrderById(
     order_id: string,
-    options?: Omit<Prisma.OrderFindUniqueArgs, "where">
+    // Implementation signature accepts `where` so it can be stripped; the
+    // public overloads above keep declaring `Omit<…, "where">`.
+    options?: Prisma.OrderFindUniqueArgs
   ): Promise<
     | Order
     | null
@@ -48,14 +50,24 @@ export class OrderRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findUnique({
-      where: { id: order_id },
-      ...options,
+      ...rest,
+      where: { ...where, id: order_id },
     });
   }
 
+  /**
+   * Orders belonging to `user_id`.
+   *
+   * `options.where` IS accepted here (callers filter by status / date range —
+   * see GET /api/orders) but it is merged *under* `user_id`: the caller's
+   * filter is ANDed in and `user_id` always wins. It can never widen the
+   * result set beyond the caller's own orders. See base.repository.ts.
+   */
   async getOrdersByUserId(user_id: string): Promise<Order[]>;
-  async getOrdersByUserId<T extends Omit<Prisma.OrderFindManyArgs, "where">>(
+  async getOrdersByUserId<T extends Prisma.OrderFindManyArgs>(
     user_id: string,
     options: T
   ): Promise<
@@ -67,7 +79,7 @@ export class OrderRepository extends BaseRepository<
   >;
   async getOrdersByUserId(
     user_id: string,
-    options?: Omit<Prisma.OrderFindManyArgs, "where">
+    options?: Prisma.OrderFindManyArgs
   ): Promise<
     | Order[]
     | Prisma.Result<
@@ -78,9 +90,10 @@ export class OrderRepository extends BaseRepository<
         "findMany"
       >
   > {
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findMany({
-      where: { user_id },
-      ...options,
+      ...rest,
+      where: { ...where, user_id },
     });
   }
 
@@ -97,7 +110,7 @@ export class OrderRepository extends BaseRepository<
   >;
   async getOrdersByShopId(
     shop_id: string,
-    options?: Omit<Prisma.OrderFindManyArgs, "where">
+    options?: Prisma.OrderFindManyArgs
   ): Promise<
     | Order[]
     | Prisma.Result<
@@ -108,9 +121,12 @@ export class OrderRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts. `shop_id` always wins, so a
+    // vendor can never read another shop's orders.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findMany({
-      where: { shop_id },
-      ...options,
+      ...rest,
+      where: { ...where, shop_id },
     });
   }
 
@@ -127,7 +143,7 @@ export class OrderRepository extends BaseRepository<
   >;
   async getOrdersByIds(
     order_ids: string[],
-    options?: Omit<Prisma.OrderFindManyArgs, "where">
+    options?: Prisma.OrderFindManyArgs
   ): Promise<
     | Order[]
     | Prisma.Result<
@@ -138,9 +154,13 @@ export class OrderRepository extends BaseRepository<
         "findMany"
       >
   > {
+    // Scope hardening — see base.repository.ts. Callers that want an
+    // arbitrary `where` with no id list must use `findMany` directly rather
+    // than passing `[]` here and relying on the old spread-override.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findMany({
-      where: { id: { in: order_ids } },
-      ...options,
+      ...rest,
+      where: { ...where, id: { in: order_ids } },
     });
   }
 
@@ -192,16 +212,20 @@ export class OrderRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.OrderUpdateArgs,
     data?: Prisma.OrderUpdateInput,
-    options?: Omit<Prisma.OrderUpdateArgs, "where" | "data">
+    options?: Prisma.OrderUpdateArgs
   ): Promise<
     | Order
     | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts. `where` and `data` are
+      // re-applied after `...rest`, so `options` can neither redirect the
+      // update at a different row nor swap out `data`.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.order.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.order.update(idOrArgs);
@@ -349,7 +373,7 @@ export class OrderRepository extends BaseRepository<
   > | null>;
   async findById(
     orderId: string,
-    options?: Omit<Prisma.OrderFindUniqueArgs, "where">
+    options?: Prisma.OrderFindUniqueArgs
   ): Promise<
     | Order
     | null
@@ -359,7 +383,9 @@ export class OrderRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    const query = { where: { id: orderId }, ...(options ?? {}) };
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
+    const query = { ...rest, where: { ...where, id: orderId } };
     return this.prismaClient.order.findUnique(query);
   }
 

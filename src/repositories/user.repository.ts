@@ -32,7 +32,7 @@ export class UserRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, "where">
+    options?: Prisma.UserFindUniqueArgs
   ): Promise<
     | User
     | null
@@ -42,9 +42,11 @@ export class UserRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.user.findUnique({
-      where: { id },
-      ...options,
+      ...rest,
+      where: { ...where, id },
     });
   }
 
@@ -59,7 +61,7 @@ export class UserRepository extends BaseRepository<
   > | null>;
   async findByEmail(
     email: string,
-    options?: Omit<Prisma.UserFindUniqueArgs, "where">
+    options?: Prisma.UserFindUniqueArgs
   ): Promise<
     | User
     | null
@@ -69,9 +71,11 @@ export class UserRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.user.findUnique({
-      where: { email },
-      ...options,
+      ...rest,
+      where: { ...where, email },
     });
   }
 
@@ -138,15 +142,17 @@ export class UserRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.UserUpdateArgs,
     data?: Prisma.UserUpdateInput,
-    options?: Omit<Prisma.UserUpdateArgs, "where" | "data">
+    options?: Prisma.UserUpdateArgs
   ): Promise<
     User | Prisma.Result<Prisma.UserDelegate, Prisma.UserUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.user.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.user.update(idOrArgs);

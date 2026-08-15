@@ -29,7 +29,7 @@ export class BrandRepository extends BaseRepository<
   > | null>;
   async findById(
     id: string,
-    options?: Omit<Prisma.BrandFindUniqueArgs, "where">
+    options?: Prisma.BrandFindUniqueArgs
   ): Promise<
     | Brand
     | null
@@ -41,9 +41,11 @@ export class BrandRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.brand.findUnique({
-      where: { id },
-      ...options,
+      ...rest,
+      where: { ...where, id },
     });
   }
 
@@ -58,7 +60,7 @@ export class BrandRepository extends BaseRepository<
   > | null>;
   async findByName(
     name: string,
-    options?: Omit<Prisma.BrandFindUniqueArgs, "where">
+    options?: Prisma.BrandFindUniqueArgs
   ): Promise<
     | Brand
     | null
@@ -70,9 +72,11 @@ export class BrandRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.brand.findUnique({
-      where: { name },
-      ...options,
+      ...rest,
+      where: { ...where, name },
     });
   }
 
@@ -222,16 +226,18 @@ export class BrandRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.BrandUpdateArgs,
     data?: Prisma.BrandUpdateInput,
-    options?: Omit<Prisma.BrandUpdateArgs, "where" | "data">
+    options?: Prisma.BrandUpdateArgs
   ): Promise<
     | Brand
     | Prisma.Result<Prisma.BrandDelegate, Prisma.BrandUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
+      // Scope hardening — see base.repository.ts.
+      const { where, ...rest } = options ?? {};
       return this.prismaClient.brand.update({
-        where: { id: idOrArgs },
+        ...rest,
+        where: { ...where, id: idOrArgs },
         data: data || {},
-        ...options,
       });
     }
     return this.prismaClient.brand.update(idOrArgs);

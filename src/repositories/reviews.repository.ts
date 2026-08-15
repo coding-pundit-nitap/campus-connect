@@ -29,7 +29,9 @@ export class ReviewRepository extends BaseRepository<
       throw new BadRequestError("Product ID required for review");
     }
     return this.prismaClient.$transaction(async (tx) => {
-      const review = await tx.review.create({ data, ...options });
+      // `data` is re-applied after `...options` so it cannot be swapped out —
+      // see the scope-hardening note in base.repository.ts.
+      const review = await tx.review.create({ ...options, data });
       await tx.product.update({
         where: { id: product_id },
         data: {
@@ -42,9 +44,14 @@ export class ReviewRepository extends BaseRepository<
   }
 
   async updateReview(review_id: string, data: UpdateReviewDto) {
+    // Scope hardening — see base.repository.ts. `UpdateReviewDto` is
+    // `Omit<ReviewUpdateArgs, "where">`, but that type is not enforced when
+    // the caller's literal is inferred through a generic, so strip any
+    // `where` and re-apply the id.
+    const { where, ...rest } = data as Prisma.ReviewUpdateArgs;
     return this.prismaClient.review.update({
-      where: { id: review_id },
-      ...data,
+      ...rest,
+      where: { ...where, id: review_id },
     });
   }
 
@@ -63,7 +70,7 @@ export class ReviewRepository extends BaseRepository<
   > | null>;
   async findById(
     review_id: string,
-    options?: Omit<Prisma.ReviewFindUniqueArgs, "where">
+    options?: Prisma.ReviewFindUniqueArgs
   ): Promise<
     | Review
     | null
@@ -73,9 +80,11 @@ export class ReviewRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     const query = {
-      where: { id: review_id },
-      ...(options ?? {}),
+      ...rest,
+      where: { ...where, id: review_id },
     };
     return this.prismaClient.review.findUnique(query);
   }
@@ -91,7 +100,7 @@ export class ReviewRepository extends BaseRepository<
   > | null>;
   async findByOrderItemId(
     order_item_id: string,
-    options?: Omit<Prisma.ReviewFindUniqueArgs, "where">
+    options?: Prisma.ReviewFindUniqueArgs
   ): Promise<
     | Review
     | null
@@ -103,9 +112,11 @@ export class ReviewRepository extends BaseRepository<
         "findUnique"
       >
   > {
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     const query = {
-      where: { order_item_id },
-      ...(options ?? {}),
+      ...rest,
+      where: { ...where, order_item_id },
     };
     return this.prismaClient.review.findUnique(query);
   }
@@ -134,7 +145,7 @@ export class ReviewRepository extends BaseRepository<
   >;
   async findAllReviewsByProductId(
     product_id: string,
-    options?: Omit<Prisma.ReviewFindManyArgs, "where">
+    options?: Prisma.ReviewFindManyArgs
   ): Promise<
     | Review[]
     | Prisma.Result<
@@ -145,10 +156,11 @@ export class ReviewRepository extends BaseRepository<
         "findMany"
       >
   > {
-    const query = { ...(options ?? {}) };
+    // Scope hardening — see base.repository.ts.
+    const { where, ...rest } = options ?? {};
     return this.prismaClient.review.findMany({
-      where: { product_id },
-      ...query,
+      ...rest,
+      where: { ...where, product_id },
     });
   }
 
