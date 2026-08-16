@@ -29,7 +29,48 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec prisma generate
       - run: pnpm typecheck
+      - run: pnpm typecheck:tests
       - run: pnpm lint
+      - run: pnpm test:unit
+
+  test-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.2-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: postgres
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:8.2.1-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - uses: pnpm/action-setup@v6.0.9
+      - uses: actions/setup-node@v6.4.0
+        with:
+          node-version: 24
+          cache: "pnpm"
+      - run: pnpm install --frozen-lockfile
+      - run: cp .env.test.example .env.test
+      - run: pnpm exec prisma generate
+      - run: pnpm test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          if-no-files-found: ignore
 
   detect-changes:
     runs-on: ubuntu-latest
@@ -99,7 +140,7 @@ jobs:
               - 'monitoring/promtail/**'
 
   build-app:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.app == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -140,7 +181,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-worker:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.worker == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -181,7 +222,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-migrator:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.migrator == 'true' || needs.detect-changes.outputs.node-base == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -222,7 +263,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-nginx:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.nginx == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -262,7 +303,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-prometheus:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.prometheus == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -297,7 +338,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-alertmanager:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.alertmanager == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -332,7 +373,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-grafana:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.grafana == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -367,7 +408,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-loki:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.loki == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -402,7 +443,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-promtail:
-    needs: [validate, detect-changes]
+    needs: [validate, test-integration, detect-changes]
     if: needs.detect-changes.outputs.promtail == 'true' || needs.detect-changes.outputs.docker-base == 'true'
     runs-on: ubuntu-latest
     steps:
