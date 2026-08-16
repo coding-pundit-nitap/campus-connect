@@ -80,12 +80,14 @@ export function createContainer(deps: ContainerDeps) {
     orderRepository,
     productRepository,
     shopRepository,
-    notificationService
+    notificationService,
+    prisma
   );
   const reviewService = new ReviewService(
     productRepository,
     reviewRepository,
-    notificationService
+    notificationService,
+    prisma
   );
   const auditService = new AuditService();
   const dbSearchService = new DBSearchService(

@@ -20,17 +20,17 @@ const locationSchema = z
 
 const image_keySchema = z.string().min(1, "An image is required.");
 
+const timeOfDayRegex = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
+
 const openingSchema = z
   .string()
   .min(1, "Opening hours are required")
-  .min(5, "Opening hours format is invalid")
-  .max(5, "Opening hours format is invalid");
+  .regex(timeOfDayRegex, "Opening hours must be in HH:MM (24-hour) format");
 
 const closingSchema = z
   .string()
   .min(1, "Closing hours are required")
-  .min(5, "Closing hours format is invalid")
-  .max(5, "Closing hours format is invalid");
+  .regex(timeOfDayRegex, "Closing hours must be in HH:MM (24-hour) format");
 
 const qr_image_keySchema = z.string().min(1, "An QR code image is required.");
 

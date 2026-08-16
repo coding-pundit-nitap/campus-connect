@@ -123,7 +123,7 @@ export class UserAddressRepository extends BaseRepository<
       });
 
       return tx.userAddress.update({
-        where: { id: address_id },
+        where: { id: address_id, user_id },
         data: { is_default: true },
       });
     });

@@ -11,6 +11,10 @@ import {
   acceptOrderAction,
   rejectOrderAction,
 } from "../../../src/actions/shop/order-management-actions";
+import {
+  deleteUserAddress,
+  updateUserAddress,
+} from "../../../src/actions/user";
 import { setDefaultAddressAction } from "../../../src/actions/user-addresses/user-address-actions";
 import { GET as GET_CART } from "../../../src/app/api/cart/route";
 import { GET as GET_ORDER } from "../../../src/app/api/orders/[order_id]/route";
@@ -357,5 +361,112 @@ describe("IDOR (additional hole, found while auditing user-addresses/ for Fix D)
       where: { id: attackerAddress.id },
     });
     expect(attackerAfter.is_default).toBe(true);
+  });
+});
+
+describe("IDOR (C3, live authenticated IDOR): deleteUserAddress had no ownership check at all", () => {
+  // src/actions/user/index.ts:deleteUserAddress checked authentication, then
+  // called `userAddressRepository.delete(id)` with a caller-supplied id and
+  // NO ownership check — any authenticated user could delete any other
+  // user's address. It is reachable despite not being imported by any
+  // client component: the file has a top-level "use server" directive, so
+  // every exported async function is registered as a callable server
+  // action and appears in the build manifest regardless of whether
+  // anything in the app calls it. Fixed by routing through
+  // `deleteByIdAndUserId`, matching `deleteAddressAction`'s existing,
+  // correctly-scoped pattern.
+  it("rejects deleting another user's address, and the victim's address still exists afterward", async () => {
+    const victim = await createUser();
+    const victimAddress = await createUserAddress({ user_id: victim.id });
+
+    const attacker = await createUser();
+    asUser(attacker);
+
+    const rejection = deleteUserAddress(victimAddress.id);
+
+    await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
+    await rejection.catch((error: unknown) => {
+      expect(String((error as Error).message)).not.toContain(victim.id);
+      expect(String((error as Error).message)).not.toContain(
+        victimAddress.id
+      );
+    });
+
+    const after = await testPrisma.userAddress.findUnique({
+      where: { id: victimAddress.id },
+    });
+    expect(after).not.toBeNull();
+    expect(after?.user_id).toBe(victim.id);
+  });
+});
+
+describe("IDOR (I1, wrong id in the first repository parameter): updateUserAddress could not succeed for its owner and could not touch anyone else's row either", () => {
+  // src/actions/user/index.ts:updateUserAddress called
+  // `userAddressRepository.update(user_id, {...})` — the repository's
+  // first parameter is the ADDRESS id, not the user id, so this compiled
+  // to `where: { id: user_id }`, which always threw P2025 (a UserAddress
+  // row's id is never a user's id). Same shape as the
+  // CartService.upsertCartItem cart-id/user-id defect this branch already
+  // fixed elsewhere in a prior wave. Fixed by accepting the address id
+  // explicitly (via `updateUserAddressSchema`, which already existed but
+  // was unused here) and routing through `updateWithDefault(id, user_id,
+  // data)`, which both orders the ids correctly AND checks ownership.
+  it("rejects updating another user's address, and the victim's address is unchanged", async () => {
+    const victim = await createUser();
+    const victimAddress = await createUserAddress({
+      user_id: victim.id,
+      label: "Victim's Room",
+      room_number: "101",
+    });
+
+    const attacker = await createUser();
+    asUser(attacker);
+
+    const rejection = updateUserAddress({
+      id: victimAddress.id,
+      label: "Hijacked",
+      building: "Hijacked Hall",
+      room_number: "999",
+      is_default: false,
+    });
+
+    await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
+    await rejection.catch((error: unknown) => {
+      expect(String((error as Error).message)).not.toContain(victim.id);
+      expect(String((error as Error).message)).not.toContain(
+        victimAddress.id
+      );
+    });
+
+    const after = await testPrisma.userAddress.findUniqueOrThrow({
+      where: { id: victimAddress.id },
+    });
+    expect(after.label).toBe("Victim's Room");
+    expect(after.room_number).toBe("101");
+  });
+
+  it("succeeds for the address's actual owner, proving the id-order fix (not just the ownership guard) is correct", async () => {
+    const owner = await createUser();
+    const address = await createUserAddress({
+      user_id: owner.id,
+      label: "Old Label",
+      room_number: "101",
+    });
+
+    asUser(owner);
+
+    await updateUserAddress({
+      id: address.id,
+      label: "New Label",
+      building: "Test Hostel",
+      room_number: "202",
+      is_default: false,
+    });
+
+    const after = await testPrisma.userAddress.findUniqueOrThrow({
+      where: { id: address.id },
+    });
+    expect(after.label).toBe("New Label");
+    expect(after.room_number).toBe("202");
   });
 });

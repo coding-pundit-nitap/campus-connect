@@ -9,7 +9,8 @@ export class ReviewService {
   constructor(
     private readonly productRepository: ProductRepository,
     private readonly reviewRepository: ReviewRepository,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
+    private readonly prismaClient: typeof prisma = prisma
   ) {}
 
   async createReview(
@@ -24,7 +25,7 @@ export class ReviewService {
     // its unique review slot (order_item_id is @unique on Review) and
     // skewing the rating of whatever product they name, whether or not it
     // matches the order item's actual product.
-    const orderItem = await prisma.orderItem.findUnique({
+    const orderItem = await this.prismaClient.orderItem.findUnique({
       where: { id: order_item_id },
       select: { product_id: true, order: { select: { user_id: true } } },
     });
