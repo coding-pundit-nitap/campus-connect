@@ -67,7 +67,12 @@ export async function updateUserAddress(
 }
 
 export async function deleteUserAddress(id: string) {
-  await authUtils.isAuthenticated();
+  // isAuthenticated() now returns false instead of throwing when there is
+  // no session — check the result explicitly rather than relying on a
+  // throw for control flow (see auth.utils.server.ts).
+  if (!(await authUtils.isAuthenticated())) {
+    authUtils.unAuthenticated();
+  }
 
   await userAddressRepository.delete(id);
 }

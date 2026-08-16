@@ -20,8 +20,15 @@ class AuthUtils implements IAuthUtils {
     return session.user;
   }
   async isAuthenticated() {
-    const user = await this.getUserData();
-    return !!user;
+    try {
+      await this.getUserData();
+      return true;
+    } catch (error) {
+      if (error instanceof UnauthenticatedError) {
+        return false;
+      }
+      throw error;
+    }
   }
 
   async getUserId() {

@@ -19,7 +19,13 @@ describe("auth helpers", () => {
 
   it("is anonymous by default, without ever calling asUser", async () => {
     await expect(authUtils.getUserId()).rejects.toThrow();
-    await expect(authUtils.isAuthenticated()).rejects.toThrow();
+    await expect(authUtils.isAuthenticated()).resolves.toBe(false);
+  });
+
+  it("resolves true when signed in", async () => {
+    const user = await createUser();
+    asUser(user);
+    await expect(authUtils.isAuthenticated()).resolves.toBe(true);
   });
 
   it("reports a plain user as not a seller", async () => {
