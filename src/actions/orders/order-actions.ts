@@ -440,7 +440,7 @@ export async function batchUpdateOrderStatusAction({
     for (const order of orders) {
       if (order.shop_id !== shop_id) {
         throw new UnauthorizedError(
-          `Unauthorized: Order ${order.display_id} does not belong to your shop.`
+          "Unauthorized: One or more orders do not belong to your shop."
         );
       }
 
