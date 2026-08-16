@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
+
 export const deliveryTimeSchema = z
   .date()
   .optional()
@@ -36,16 +38,6 @@ export function parseTimeString(
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
   return { hours, minutes };
 }
-function getISTTimeComponents(date: Date): { hours: number; minutes: number } {
-  const IST_OFFSET_MS = 330 * 60 * 1000;
-  const istDate = new Date(date.getTime() + IST_OFFSET_MS);
-
-  return {
-    hours: istDate.getUTCHours(),
-    minutes: istDate.getUTCMinutes(),
-  };
-}
-
 export function isWithinShopHours(
   deliveryTime: Date,
   opening: string,
@@ -54,13 +46,18 @@ export function isWithinShopHours(
   const openingTime = parseTimeString(opening);
   const closingTime = parseTimeString(closing);
 
+  // Fail closed: a malformed (non-empty but unparsable) opening/closing
+  // string must not be read as "shop is open". Callers only reach this
+  // function when both strings are truthy (validateDeliveryTime below
+  // gates on `shopOpening && shopClosing`), so a parse failure here means
+  // malformed data, not merely unset hours — the unset case is already
+  // handled upstream by skipping this check entirely.
   if (!openingTime || !closingTime) {
-    return true;
+    return false;
   }
 
-  const { hours: deliveryHour, minutes: deliveryMinute } =
-    getISTTimeComponents(deliveryTime);
-  const deliveryMinutes = deliveryHour * 60 + deliveryMinute;
+  const zoned = getZonedParts(deliveryTime, APP_TIME_ZONE);
+  const deliveryMinutes = zoned.hour * 60 + zoned.minute;
 
   const openingMinutes = openingTime.hours * 60 + openingTime.minutes;
   const closingMinutes = closingTime.hours * 60 + closingTime.minutes;

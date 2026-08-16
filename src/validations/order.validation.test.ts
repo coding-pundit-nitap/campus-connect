@@ -104,13 +104,13 @@ describe("isWithinShopHours", () => {
     ).toBe(false);
   });
 
-  it("falls back to true when the opening or closing string is unparsable", () => {
+  it("fails closed (returns false) when the opening or closing string is unparsable", () => {
     expect(
       isWithinShopHours(new Date("2026-08-14T06:30:00Z"), "bad", "21:00")
-    ).toBe(true);
+    ).toBe(false);
     expect(
       isWithinShopHours(new Date("2026-08-14T06:30:00Z"), "09:00", "bad")
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 
