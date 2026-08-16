@@ -152,8 +152,15 @@ export async function updateProductAction(
         image_key: true,
         stock_quantity: true,
         brand_id: true,
+        shop_id: true,
       },
     });
+
+    if (!currentProduct || currentProduct.shop_id !== shop_id) {
+      throw new ForbiddenError(
+        "You do not have permission to modify this product"
+      );
+    }
 
     const parsedData = productUpdateActionSchema.parse(formData);
     let brand: Brand | null = null;
@@ -272,6 +279,14 @@ export async function updateProductAction(
     );
   } catch (error) {
     log.debug({ err: error }, "UPDATE PRODUCT ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof ValidationError ||
+      error instanceof BadRequestError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to update product");
   }
 }
