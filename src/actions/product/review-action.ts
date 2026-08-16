@@ -3,7 +3,7 @@
 import { unauthorized } from "next/navigation";
 
 import { reviewService } from "@/di/container";
-import { InternalServerError } from "@/lib/custom-error";
+import { ForbiddenError, InternalServerError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
@@ -67,6 +67,9 @@ export const createReviewAction = async ({
     return createSuccessResponse(review);
   } catch (error) {
     log.debug(`Error creating review: ${error}`);
+    if (error instanceof ForbiddenError) {
+      throw error;
+    }
     throw new InternalServerError("Failed to create review");
   }
 };

@@ -97,7 +97,22 @@ export class UserAddressRepository extends BaseRepository<
     return this.delete(id);
   }
 
-  async setDefault(user_id: string, address_id: string): Promise<UserAddress> {
+  async setDefault(
+    user_id: string,
+    address_id: string
+  ): Promise<UserAddress | null> {
+    // Ownership check: without this, `address_id` update below runs by
+    // `id` alone, so any caller could flip `is_default: true` on another
+    // user's address row while clearing their own default in the same
+    // transaction — matches the `updateWithDefault`/`deleteByIdAndUserId`
+    // pattern above.
+    const existingAddress = await this.delegate.findUnique({
+      where: { id: address_id },
+    });
+    if (!existingAddress || existingAddress.user_id !== user_id) {
+      return null;
+    }
+
     return this.prismaClient.$transaction(async (tx) => {
       await tx.userAddress.updateMany({
         where: {

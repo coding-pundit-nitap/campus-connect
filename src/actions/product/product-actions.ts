@@ -311,6 +311,12 @@ export async function deleteProductAction(
       throw new InternalServerError("Product not found");
     }
 
+    if (productToDelete.shop_id !== context.id) {
+      throw new ForbiddenError(
+        "You do not have permission to delete this product"
+      );
+    }
+
     const uniqueUserIds =
       await cartRepository.getUserIdsByProductInCart(product_id);
 
@@ -341,6 +347,14 @@ export async function deleteProductAction(
     return createSuccessResponse(null, "Product deleted successfully");
   } catch (error) {
     log.debug({ err: error }, "DELETE PRODUCT ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof ForbiddenError ||
+      error instanceof ValidationError ||
+      error instanceof BadRequestError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to delete product");
   }
 }

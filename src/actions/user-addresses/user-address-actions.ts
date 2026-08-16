@@ -161,11 +161,19 @@ export async function setDefaultAddressAction(id: string) {
     }
 
     const address = await userAddressRepository.setDefault(user_id, id);
+
+    if (!address) {
+      throw new ForbiddenError("Address not found or does not belong to you.");
+    }
+
     return createSuccessResponse(
       address,
       "Default address updated successfully!"
     );
   } catch (error) {
+    if (error instanceof ForbiddenError) {
+      throw error;
+    }
     log.error({ err: error }, "SET DEFAULT ADDRESS ERROR:");
     throw new InternalServerError("Failed to set default address.");
   }

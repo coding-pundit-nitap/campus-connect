@@ -2,11 +2,16 @@ import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
 import { cancelOrderAction } from "../../../src/actions/orders/order-actions";
-import { updateProductAction } from "../../../src/actions/product/product-actions";
+import {
+  deleteProductAction,
+  updateProductAction,
+} from "../../../src/actions/product/product-actions";
+import { createReviewAction } from "../../../src/actions/product/review-action";
 import {
   acceptOrderAction,
   rejectOrderAction,
 } from "../../../src/actions/shop/order-management-actions";
+import { setDefaultAddressAction } from "../../../src/actions/user-addresses/user-address-actions";
 import { GET as GET_CART } from "../../../src/app/api/cart/route";
 import { GET as GET_ORDER } from "../../../src/app/api/orders/[order_id]/route";
 import { GET as GET_SELLER_ORDERS } from "../../../src/app/api/seller/orders/route";
@@ -15,6 +20,7 @@ import {
   createProduct,
   createShop,
   createUser,
+  createUserAddress,
   seedShopWithProducts,
 } from "../../factories";
 import { asUser } from "../../setup/auth";
@@ -206,5 +212,150 @@ describe("IDOR (new hole, fixed as part of this task): updateProductAction had n
     expect(after.name).toBe(before.name);
     expect(after.price.toString()).toBe(before.price.toString());
     expect(after.stock_quantity).toBe(before.stock_quantity);
+  });
+});
+
+describe("IDOR (destructive hole, fixed as part of Fix D): deleteProductAction had no shop-ownership check", () => {
+  // deleteProductAction fetched the product with `shop_id` selected and
+  // never compared it to the caller's shop — the same missing check as
+  // updateProductAction above, except destructive and irreversible: any
+  // vendor could permanently delete any other shop's product, and the
+  // delete path also fired "removed from your cart" notifications to the
+  // victim shop's customers before the (missing) check would have
+  // rejected it. Fixed in
+  // src/actions/product/product-actions.ts:deleteProductAction by adding
+  // the ownership check immediately after the existence check and before
+  // any side effect (cart notifications, then the delete itself), plus
+  // the same selective rethrow updateProductAction's fix added.
+  it("a vendor cannot delete another shop's product, and the row still exists afterward", async () => {
+    const seededA = await seedShopWithProducts();
+    const seededB = await seedShopWithProducts({ productCount: 1 });
+    const foreignProduct = seededB.products[0];
+
+    const before = await testPrisma.product.findUniqueOrThrow({
+      where: { id: foreignProduct.id },
+    });
+
+    asUser(seededA.owner);
+
+    const rejection = deleteProductAction(foreignProduct.id);
+
+    await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
+    // Assertion standard (order-actions-error-types.test.ts,
+    // idor.test.ts's updateProductAction coverage above): a denial must
+    // also assert the rejection carries none of the victim's identifying
+    // data — here, the victim shop's id.
+    await rejection.catch((error: unknown) => {
+      expect(String((error as Error).message)).not.toContain(
+        seededB.shop.id
+      );
+    });
+
+    // The critical assertion: the product must still exist. A test that
+    // only asserts the throw would pass even if the delete happened
+    // before the (missing) check rejected the call.
+    const after = await testPrisma.product.findUnique({
+      where: { id: foreignProduct.id },
+    });
+    expect(after).not.toBeNull();
+    expect(after?.name).toBe(before.name);
+    expect(after?.shop_id).toBe(before.shop_id);
+  });
+});
+
+describe("IDOR (additional hole, found while auditing product/ for Fix D): createReviewAction had no order-item-ownership check", () => {
+  // ReviewService.createReview took `order_item_id` from the caller and
+  // connected a Review to it without ever checking that the order item
+  // belonged to the caller. Since `order_item_id` is @unique on Review
+  // (prisma/schema.prisma), any authenticated user who obtained another
+  // user's order_item_id could permanently consume that order item's one
+  // review slot with an arbitrary rating/comment — before the legitimate
+  // buyer ever got to review it themselves. Fixed in
+  // src/services/review/review.service.ts:createReview by checking the
+  // order item's `order.user_id` (and its actual `product_id`) against
+  // the caller before creating the review.
+  it("a user cannot attach a review to another user's order item, and no review is created", async () => {
+    const { shop, products } = await seedShopWithProducts({ productCount: 1 });
+    const product = products[0];
+
+    const victim = await createUser();
+    const victimOrder = await createOrderAtStatus({
+      shop_id: shop.id,
+      order_status: "COMPLETED",
+      user_id: victim.id,
+    });
+    const orderItem = await testPrisma.orderItem.create({
+      data: {
+        order_id: victimOrder.id,
+        product_id: product.id,
+        quantity: 1,
+        price: 100,
+      },
+    });
+
+    const attacker = await createUser();
+    asUser(attacker);
+
+    const rejection = createReviewAction({
+      product_id: product.id,
+      order_item_id: orderItem.id,
+      rating: 1,
+      comment: "hijacked review",
+    });
+
+    await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
+    await rejection.catch((error: unknown) => {
+      expect(String((error as Error).message)).not.toContain(victim.id);
+    });
+
+    const review = await testPrisma.review.findUnique({
+      where: { order_item_id: orderItem.id },
+    });
+    expect(review).toBeNull();
+  });
+});
+
+describe("IDOR (additional hole, found while auditing user-addresses/ for Fix D): setDefaultAddressAction had no address-ownership check", () => {
+  // UserAddressRepository.setDefault(user_id, address_id) cleared the
+  // caller's own `is_default` flags but then ran
+  // `userAddress.update({ where: { id: address_id }, ... })` with no
+  // check that `address_id` belonged to `user_id` — any authenticated
+  // user could flip `is_default: true` on another user's address row.
+  // Fixed in src/repositories/user-address.repository.ts:setDefault by
+  // checking ownership first (matching updateWithDefault /
+  // deleteByIdAndUserId's existing pattern) and returning null when the
+  // address isn't the caller's, which the action now turns into a
+  // ForbiddenError.
+  it("a user cannot set another user's address as their default, and neither row changes", async () => {
+    const victim = await createUser();
+    const victimAddress = await createUserAddress({
+      user_id: victim.id,
+      is_default: false,
+    });
+
+    const attacker = await createUser();
+    const attackerAddress = await createUserAddress({
+      user_id: attacker.id,
+      is_default: true,
+    });
+
+    asUser(attacker);
+
+    const rejection = setDefaultAddressAction(victimAddress.id);
+
+    await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
+    await rejection.catch((error: unknown) => {
+      expect(String((error as Error).message)).not.toContain(victim.id);
+    });
+
+    const victimAfter = await testPrisma.userAddress.findUniqueOrThrow({
+      where: { id: victimAddress.id },
+    });
+    expect(victimAfter.is_default).toBe(false);
+
+    const attackerAfter = await testPrisma.userAddress.findUniqueOrThrow({
+      where: { id: attackerAddress.id },
+    });
+    expect(attackerAfter.is_default).toBe(true);
   });
 });

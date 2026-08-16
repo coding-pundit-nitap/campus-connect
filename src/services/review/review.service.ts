@@ -1,4 +1,6 @@
 import { ReviewFormData } from "@/components/orders/review-form";
+import { ForbiddenError } from "@/lib/custom-error";
+import { prisma } from "@/lib/prisma";
 import { ProductRepository } from "@/repositories/product.repository";
 import { ReviewRepository } from "@/repositories/reviews.repository";
 import { NotificationService } from "@/services/notification/notification.service";
@@ -16,6 +18,26 @@ export class ReviewService {
     order_item_id: string,
     user_id: string
   ) {
+    // Ownership check: `order_item_id` is caller-supplied, and without this
+    // check any authenticated user could attach a review (with an arbitrary
+    // rating/comment) to another user's order item — permanently consuming
+    // its unique review slot (order_item_id is @unique on Review) and
+    // skewing the rating of whatever product they name, whether or not it
+    // matches the order item's actual product.
+    const orderItem = await prisma.orderItem.findUnique({
+      where: { id: order_item_id },
+      select: { product_id: true, order: { select: { user_id: true } } },
+    });
+    if (
+      !orderItem ||
+      orderItem.order.user_id !== user_id ||
+      orderItem.product_id !== product_id
+    ) {
+      throw new ForbiddenError(
+        "You do not have permission to review this order item"
+      );
+    }
+
     const review = await this.reviewRepository.createReview({
       comment: data.comment,
       rating: data.rating,
