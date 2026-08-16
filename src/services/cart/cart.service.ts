@@ -72,9 +72,13 @@ export class CartService {
     );
 
     if (quantity > 0) {
-      await this.cartRepository.upsertItem(cart.id, product_id, quantity);
+      await this.cartRepository.upsertItemForUser(
+        user_id,
+        product_id,
+        quantity
+      );
     } else {
-      await this.cartRepository.removeItem(cart.id, product_id);
+      await this.cartRepository.removeItemFromCart(cart.id, product_id);
     }
 
     return this.getCartForShop(user_id, product.shop_id);

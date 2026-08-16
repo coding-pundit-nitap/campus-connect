@@ -20,7 +20,7 @@ export const upsertCartItem = async (formData: UpsertItemData) => {
     const result = upsertItemSchema.parse(formData);
     const validData = result;
 
-    const updatedCart = await cartRepository.upsertItem(
+    const updatedCart = await cartRepository.upsertItemForUser(
       user_id,
       validData.product_id,
       validData.quantity

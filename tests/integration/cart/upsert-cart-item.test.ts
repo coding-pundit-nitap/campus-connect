@@ -14,22 +14,44 @@ describe("upsertCartItem", () => {
     user = await createUser();
   });
 
-  it("throws instead of adding the item when quantity is positive (production bug — cart.service.ts:75)", async () => {
+  it("adds the item when quantity is positive", async () => {
     const shop = await createShop();
     const owner = await createUser({ shop_id: shop.id });
     const product = await createProduct({ shop_id: shop.id });
     void owner;
 
-    await expect(
-      cartService.upsertCartItem(user.id, product.id, 2)
-    ).rejects.toThrow();
+    await cartService.upsertCartItem(user.id, product.id, 2);
 
     const cart = await testPrisma.cart.findUnique({
       where: { user_id_shop_id: { user_id: user.id, shop_id: shop.id } },
       include: { items: true },
     });
     expect(cart).not.toBeNull();
-    expect(cart?.items).toHaveLength(0);
+    expect(cart?.items).toHaveLength(1);
+    expect(cart?.items[0]).toMatchObject({
+      product_id: product.id,
+      quantity: 2,
+    });
+  });
+
+  it("updates the existing row's quantity instead of duplicating it on a repeat add (CartItem @@unique([cart_id, product_id]))", async () => {
+    const shop = await createShop();
+    const owner = await createUser({ shop_id: shop.id });
+    const product = await createProduct({ shop_id: shop.id });
+    void owner;
+
+    await cartService.upsertCartItem(user.id, product.id, 2);
+    await cartService.upsertCartItem(user.id, product.id, 5);
+
+    const cart = await testPrisma.cart.findUnique({
+      where: { user_id_shop_id: { user_id: user.id, shop_id: shop.id } },
+      include: { items: true },
+    });
+    expect(cart?.items).toHaveLength(1);
+    expect(cart?.items[0]).toMatchObject({
+      product_id: product.id,
+      quantity: 5,
+    });
   });
 
   it("removes the item when quantity is zero", async () => {
