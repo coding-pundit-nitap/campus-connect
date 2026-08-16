@@ -10,6 +10,7 @@ import { OrderStatus, PaymentMethod } from "@/generated/client";
 import {
   InternalServerError,
   NotFoundError,
+  UnauthenticatedError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
@@ -60,6 +61,12 @@ export async function getOrdersAction(options: {
     );
   } catch (error) {
     log.error({ err: error }, "GET ORDERS ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to retrieve orders.");
   }
 }
@@ -248,6 +255,13 @@ export async function updateOrderStatusAction({
     );
   } catch (error) {
     log.error({ err: error }, "UPDATE ORDER STATUS ERROR:");
+    if (
+      error instanceof ValidationError ||
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to update order status.");
   }
 }
@@ -281,6 +295,12 @@ export async function getOrderByIdAction(
     );
   } catch (error) {
     log.error({ err: error }, "GET ORDER BY ID ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to retrieve order details.");
   }
 }
@@ -343,7 +363,8 @@ export async function cancelOrderAction(
   } catch (error) {
     if (
       error instanceof ValidationError ||
-      error instanceof UnauthorizedError
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
     ) {
       throw error;
     }
@@ -381,6 +402,12 @@ export async function getShopOrderByIdAction(
     );
   } catch (error) {
     log.error({ err: error }, "GET SHOP ORDER BY ID ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to retrieve order details.");
   }
 }
@@ -505,6 +532,13 @@ export async function batchUpdateOrderStatusAction({
     );
   } catch (error) {
     log.error({ err: error }, "BATCH UPDATE ORDER STATUS ERROR:");
+    if (
+      error instanceof ValidationError ||
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to update order statuses.");
   }
 }

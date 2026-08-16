@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { updateOrderStatusAction } from "../../../src/actions/orders/order-actions";
 import { VALID_ORDER_TRANSITIONS } from "../../../src/config/constants";
 import type { OrderStatus } from "../../../src/generated/client";
-import { InternalServerError } from "../../../src/lib/custom-error";
+import {
+  UnauthenticatedError,
+  UnauthorizedError,
+  ValidationError,
+} from "../../../src/lib/custom-error";
 import {
   createOrderAtStatus,
   createUser,
@@ -67,11 +71,13 @@ describe("updateOrderStatusAction — VALID_ORDER_TRANSITIONS enforcement", () =
       });
       asUser(owner);
 
-      await expect(
-        updateOrderStatusAction({ order_id: order.id, status: to as OrderStatus })
-      ).rejects.toMatchObject({
-        name: "InternalServerError",
-        message: "Failed to update order status.",
+      const rejection = updateOrderStatusAction({
+        order_id: order.id,
+        status: to as OrderStatus,
+      });
+      await expect(rejection).rejects.toBeInstanceOf(ValidationError);
+      await expect(rejection).rejects.toMatchObject({
+        message: `Invalid status transition from ${from} to ${to}`,
       });
 
       const reloaded = await testPrisma.order.findUniqueOrThrow({
@@ -177,8 +183,8 @@ describe("updateOrderStatusAction — ownership and identity guards", () => {
     await expect(
       updateOrderStatusAction({ order_id: order.id, status: "BATCHED" })
     ).rejects.toMatchObject({
-      name: "InternalServerError",
-      message: "Failed to update order status.",
+      name: "UnauthorizedError",
+      message: "Unauthorized: Order does not belong to your shop.",
     });
 
     const reloaded = await testPrisma.order.findUniqueOrThrow({
@@ -196,9 +202,12 @@ describe("updateOrderStatusAction — ownership and identity guards", () => {
 
     asAnonymous();
 
+    // getOwnedShopId() -> getUserData() throws UnauthenticatedError when
+    // there is no session at all, distinct from UnauthorizedError below
+    // (a real session with no owned shop).
     await expect(
       updateOrderStatusAction({ order_id: order.id, status: "BATCHED" })
-    ).rejects.toBeInstanceOf(InternalServerError);
+    ).rejects.toBeInstanceOf(UnauthenticatedError);
 
     const reloaded = await testPrisma.order.findUniqueOrThrow({
       where: { id: order.id },
@@ -217,7 +226,7 @@ describe("updateOrderStatusAction — ownership and identity guards", () => {
 
     await expect(
       updateOrderStatusAction({ order_id: order.id, status: "BATCHED" })
-    ).rejects.toBeInstanceOf(InternalServerError);
+    ).rejects.toBeInstanceOf(UnauthorizedError);
 
     const reloaded = await testPrisma.order.findUniqueOrThrow({
       where: { id: order.id },
