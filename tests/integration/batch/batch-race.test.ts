@@ -160,8 +160,7 @@ describe("findOrCreateBatchForRequestedTime — concurrent checkouts", () => {
       expect(getP2002Hits()).toBeGreaterThanOrEqual(1);
     }
   });
-
-  it.skip("once order.service.ts:153-176 uses a SAVEPOINT around the insert, both racing checkouts succeed and attach to the single batch", async () => {
+  it("once order.service.ts uses a SAVEPOINT around the insert, both racing checkouts succeed and attach to the single batch", async () => {
     const { shop, a, b, results } = await raceTwoCheckoutsAtSameCutoff();
 
     expect(results.every((r) => r.status === "fulfilled")).toBe(true);

@@ -141,8 +141,17 @@ export class OrderService {
       };
     }
 
+    // A concurrent checkout can win the race to create this Batch row
+    // between our findFirst above and this insert, tripping the
+    // `@@unique([shop_id, cutoff_time])` constraint (P2002). Postgres
+    // aborts the ENTIRE transaction on any statement error, so without a
+    // savepoint the recovery re-read below would run on an already-aborted
+    // transaction and fail with 25P02. Wrapping the insert in its own
+    // savepoint lets us roll back just the failed insert and keep the
+    // outer transaction usable for the re-read.
+    await tx.$executeRawUnsafe(`SAVEPOINT batch_insert`);
     try {
-      return await tx.batch.create({
+      const created = await tx.batch.create({
         data: {
           shop_id,
           cutoff_time: cutoffTime,
@@ -150,14 +159,17 @@ export class OrderService {
           slot_id: matchingSlot.id,
         },
       });
+      await tx.$executeRawUnsafe(`RELEASE SAVEPOINT batch_insert`);
+      return created;
     } catch (err: unknown) {
       if (
         typeof err === "object" &&
         err !== null &&
         (err as { code?: string }).code === "P2002"
       ) {
+        await tx.$executeRawUnsafe(`ROLLBACK TO SAVEPOINT batch_insert`);
         const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
-          SELECT id, status, cutoff_time FROM "Batch" 
+          SELECT id, status, cutoff_time FROM "Batch"
           WHERE shop_id = ${shop_id} AND cutoff_time = ${cutoffTime} FOR UPDATE
         `;
         if (!lockedBatch || lockedBatch.length === 0) {
