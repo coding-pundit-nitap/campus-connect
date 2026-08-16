@@ -27,6 +27,7 @@ jobs:
           node-version: 24
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
+      - run: cp .env.test.example .env
       - run: pnpm exec prisma generate
       - run: pnpm typecheck
       - run: pnpm typecheck:tests
@@ -62,7 +63,7 @@ jobs:
           node-version: 24
           cache: "pnpm"
       - run: pnpm install --frozen-lockfile
-      - run: cp .env.test.example .env.test
+      - run: cp .env.test.example .env.test && cp .env.test.example .env
       - run: pnpm exec prisma generate
       - run: pnpm test:coverage
       - uses: actions/upload-artifact@v4
