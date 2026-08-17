@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { fileUploadService } from "@/di/container";
@@ -10,10 +9,6 @@ import {
   createSuccessResponse,
 } from "@/types/response.types";
 const log = createLogger("route");
-
-const deleteSchema = z.object({
-  objectKey: z.string().min(1, "Object key is required."),
-});
 
 const uploadSchema = z.object({
   fileName: z
@@ -27,37 +22,6 @@ const uploadSchema = z.object({
     .max(10 * 1024 * 1024, "File too large"),
   prefix: z.string().optional(),
 });
-
-export async function DELETE(request: NextRequest) {
-  try {
-    const isAuthenticated = await authUtils.isAuthenticated();
-    if (!isAuthenticated) {
-      return jsonResponse(createErrorResponse("Unauthorized"), 401);
-    }
-
-    const body = await request.json();
-    const validation = deleteSchema.safeParse(body);
-
-    if (!validation.success) {
-      return jsonResponse(
-        createErrorResponse(
-          "Invalid input: " + validation.error.issues[0].message
-        ),
-        400
-      );
-    }
-
-    await fileUploadService.deleteFile(validation.data.objectKey);
-
-    return jsonResponse(
-      createSuccessResponse(null, "File deleted successfully."),
-      200
-    );
-  } catch (error) {
-    log.error({ err: error }, "Delete File API Error:");
-    return jsonResponse(createErrorResponse("File deletion failed."), 500);
-  }
-}
 
 export async function POST(request: Request) {
   try {
