@@ -104,48 +104,51 @@ export function usePushNotifications() {
       }
 
       const applicationServerKey = urlBase64ToUint8Array(publicVapidKey);
-      const existing = await registration.pushManager.getSubscription();
-      if (existing) {
-        await existing.unsubscribe().catch(() => {});
-      }
+      let subscription = await registration.pushManager.getSubscription();
 
-      const doSubscribe = () =>
-        registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey,
-        });
+      if (!subscription) {
+        const doSubscribe = () =>
+          registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey,
+          });
 
-      const RETRY_DELAYS = [1000, 3000, 5000];
-      let lastErr: unknown;
+        const RETRY_DELAYS = [1000, 3000, 5000];
+        let lastErr: unknown;
 
-      for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
-        try {
-          const subscription = await doSubscribe();
-
-          await notificationAPIService.subscribePush(subscription.toJSON());
-          return subscription;
-        } catch (err) {
-          lastErr = err;
-          if (attempt < RETRY_DELAYS.length) {
-            await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+        for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+          try {
+            subscription = await doSubscribe();
+            break;
+          } catch (err) {
+            lastErr = err;
+            if (attempt < RETRY_DELAYS.length) {
+              await new Promise((r) => setTimeout(r, RETRY_DELAYS[attempt]));
+            }
           }
+        }
+
+        if (!subscription) {
+          const browserMsg =
+            lastErr instanceof Error ? lastErr.message : String(lastErr);
+
+          if (browserMsg.includes("push service error")) {
+            throw new Error(
+              "Could not connect to the push service. Please try:\n" +
+                "• Switch to mobile data (campus WiFi may block push services)\n" +
+                "• Update Google Play Services from the Play Store\n" +
+                "• Update Chrome to the latest version\n" +
+                "• Restart your phone and try again"
+            );
+          }
+          throw new Error(`Push subscription failed: ${browserMsg}`);
         }
       }
 
-      const browserMsg =
-        lastErr instanceof Error ? lastErr.message : String(lastErr);
-
-      if (browserMsg.includes("push service error")) {
-        throw new Error(
-          "Could not connect to the push service. Please try:\n" +
-            "• Switch to mobile data (campus WiFi may block push services)\n" +
-            "• Update Google Play Services from the Play Store\n" +
-            "• Update Chrome to the latest version\n" +
-            "• Restart your phone and try again"
-        );
-      }
-
-      throw new Error(`Push subscription failed: ${browserMsg}`);
+      // Always sync the subscription with the backend, even if it already existed,
+      // just to be safe in case the backend lost it.
+      await notificationAPIService.subscribePush(subscription.toJSON());
+      return subscription;
     },
     onSuccess: () => {
       setIsSubscribed(true);

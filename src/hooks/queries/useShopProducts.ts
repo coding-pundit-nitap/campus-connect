@@ -56,13 +56,18 @@ export const useShopProducts = (
 };
 
 export function useShopByUser() {
-  const { data: session } = useSession();
+  const { data: session, isPending: isSessionLoading } = useSession();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: queryKeys.shops.byUser(),
     queryFn: () => shopAPIService.fetchShopsByUser(),
     enabled: !!session?.user.id,
   });
+
+  return {
+    ...query,
+    isLoading: isSessionLoading || query.isPending,
+  };
 }
 
 export function useShopProductsUpdate(product_id: string) {

@@ -129,7 +129,7 @@ export function VendorCommandCenter() {
   const { shop } = useOwnerContext();
   const vocabulary = getVendorVocabulary(shop?.shop_type);
   const isFood = (shop?.shop_type ?? "CANTEEN") === "CANTEEN";
-  const { data, isLoading, isFetching, isError, error } = useOrderConsoleData();
+  const { data, isPending, isFetching, isError, error } = useOrderConsoleData();
 
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
@@ -328,7 +328,7 @@ export function VendorCommandCenter() {
     [markFailedMutation]
   );
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <main className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
         <Skeleton className="h-10 w-64" />
