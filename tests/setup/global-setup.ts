@@ -29,6 +29,19 @@ async function disconnectAll(c: Client, db: string) {
 }
 
 export async function setup() {
+  // Safety guard: abort if ADMIN_DATABASE_URL doesn't target the test
+  // Postgres port. A misconfigured TEST_ADMIN_DATABASE_URL could point
+  // at a production instance; the DROP DATABASE statements below would
+  // then destroy real data. The default (localhost:5433) is safe; this
+  // assertion catches only overrides that forgot to set the port.
+  if (!ADMIN_DATABASE_URL.includes(":5433")) {
+    throw new Error(
+      `ADMIN_DATABASE_URL does not contain ':5433' — refusing to run ` +
+        `test setup against a potentially non-test database. Got: ` +
+        `${ADMIN_DATABASE_URL.replace(/\/\/[^@]*@/, "//***@")}`
+    );
+  }
+
   await admin(async (c) => {
     // Drop worker DBs left behind by a SIGKILLed run
     const stale = await c.query<{ datname: string }>(

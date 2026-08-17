@@ -34,6 +34,21 @@ vi.mock("@/services/review/review.service", () => ({
   }),
 }));
 
+// Mock BullMQ producers to prevent module-level `new Queue(...)` from opening
+// a real Redis socket. NotificationService imports notificationQueue, and
+// AuditService imports auditQueue — both construct a BullMQ Queue with a
+// live Redis connection at import time. Without these mocks, every unit test
+// that transitively imports @/di/container triggers ECONNREFUSED noise on
+// stderr and retry latency when no Redis service is available.
+vi.mock("@/lib/notification/notification-producer", () => ({
+  NOTIFICATION_QUEUE_NAME: "notification-queue",
+  notificationQueue: { add: vi.fn().mockResolvedValue({}) },
+}));
+vi.mock("@/lib/audit/audit-producer", () => ({
+  AUDIT_QUEUE_NAME: "audit-log-queue",
+  auditQueue: { add: vi.fn().mockResolvedValue({}) },
+}));
+
 function fakePrisma() {
   return { $transaction: vi.fn() } as unknown as PrismaClient;
 }

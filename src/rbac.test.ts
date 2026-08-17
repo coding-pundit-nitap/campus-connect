@@ -50,8 +50,19 @@ describe("route tables", () => {
   });
 
   it("does not expose the orders API as public", () => {
-    expect(publicApiRoutes.some((r) => matchRoute("/api/orders", r))).toBe(
-      false
-    );
+    // /api/orders is trivially absent, but the real near-miss is a
+    // parameterized path like /api/orders/:order_id accidentally
+    // matching a wildcard or :param pattern in publicApiRoutes.
+    const orderPaths = [
+      "/api/orders",
+      "/api/orders/some-order-id",
+      "/api/orders/some-order-id/status",
+    ];
+    for (const path of orderPaths) {
+      expect(
+        publicApiRoutes.some((r) => matchRoute(path, r)),
+        `${path} should not be public`
+      ).toBe(false);
+    }
   });
 });

@@ -1,4 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/notification/notification-producer", () => ({
+  NOTIFICATION_QUEUE_NAME: "notification-queue",
+  notificationQueue: { add: vi.fn().mockResolvedValue({}) },
+}));
+vi.mock("@/lib/audit/audit-producer", () => ({
+  AUDIT_QUEUE_NAME: "audit-log-queue",
+  auditQueue: { add: vi.fn().mockResolvedValue({}) },
+}));
 
 import * as uploadRoute from "./route";
 

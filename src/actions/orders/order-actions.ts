@@ -279,14 +279,12 @@ export async function getOrderByIdAction(
       include: orderWithDetailsInclude,
     });
 
-    if (!order) {
-      throw new Error("Order not found");
-    }
-
-    if (order.user_id !== user_id) {
-      throw new UnauthorizedError(
-        "Unauthorized: This order doesn't belong to you."
-      );
+    // A missing order and an order that exists but belongs to someone
+    // else are deliberately indistinguishable here — a separate branch
+    // per case would let the response act as an existence oracle for
+    // orders the caller doesn't own.
+    if (!order || order.user_id !== user_id) {
+      throw new NotFoundError("Order not found.");
     }
 
     return createSuccessResponse(
@@ -296,6 +294,7 @@ export async function getOrderByIdAction(
   } catch (error) {
     log.error({ err: error }, "GET ORDER BY ID ERROR:");
     if (
+      error instanceof NotFoundError ||
       error instanceof UnauthorizedError ||
       error instanceof UnauthenticatedError
     ) {
@@ -324,11 +323,12 @@ export async function cancelOrderAction(
       },
     });
 
-    if (!order) {
-      throw new ValidationError("Order not found.");
-    }
-
-    if (order.user_id !== user_id) {
+    // A missing order and an order that exists but belongs to someone
+    // else are deliberately indistinguishable here — a separate branch
+    // per case would let the response act as an existence oracle for
+    // orders the caller doesn't own. Matches the single-branch pattern
+    // updateOrderStatusAction already uses.
+    if (!order || order.user_id !== user_id) {
       throw new UnauthorizedError(
         "Unauthorized: This order doesn't belong to you."
       );
@@ -386,14 +386,12 @@ export async function getShopOrderByIdAction(
       include: orderWithDetailsInclude,
     });
 
-    if (!order) {
-      throw new Error("Order not found");
-    }
-
-    if (order.shop_id !== shop_id) {
-      throw new UnauthorizedError(
-        "Unauthorized: This order does not belong to your shop."
-      );
+    // A missing order and an order that exists but belongs to a
+    // different shop are deliberately indistinguishable here — a
+    // separate branch per case would let the response act as an
+    // existence oracle for orders the caller's shop doesn't own.
+    if (!order || order.shop_id !== shop_id) {
+      throw new NotFoundError("Order not found.");
     }
 
     return createSuccessResponse(
@@ -403,6 +401,7 @@ export async function getShopOrderByIdAction(
   } catch (error) {
     log.error({ err: error }, "GET SHOP ORDER BY ID ERROR:");
     if (
+      error instanceof NotFoundError ||
       error instanceof UnauthorizedError ||
       error instanceof UnauthenticatedError
     ) {

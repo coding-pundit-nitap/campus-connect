@@ -8,6 +8,7 @@ import {
   getShopOrderByIdAction,
 } from "../../../src/actions/orders/order-actions";
 import {
+  NotFoundError,
   UnauthenticatedError,
   UnauthorizedError,
   ValidationError,
@@ -45,7 +46,14 @@ describe("getOrderByIdAction — error types", () => {
     );
   });
 
-  it("rejects a caller who doesn't own the order with UnauthorizedError", async () => {
+  // Fix F, items 5 & 6: a missing order and an order that exists but
+  // belongs to someone else are now indistinguishable (both NotFoundError,
+  // both a 404) — a caller cannot use the response to probe whether an
+  // order id exists at all. Previously the "doesn't belong to you" branch
+  // threw UnauthorizedError while a truly missing order threw a bare
+  // Error (flattened to a 500 by the catch) — two different outcomes an
+  // attacker could distinguish.
+  it("rejects a caller who doesn't own the order with NotFoundError, not UnauthorizedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
     const order = await createOrderAtStatus({
@@ -58,13 +66,30 @@ describe("getOrderByIdAction — error types", () => {
     asUser(stranger);
 
     await expect(getOrderByIdAction(order.id)).rejects.toMatchObject({
-      name: "UnauthorizedError",
-      message: "Unauthorized: This order doesn't belong to you.",
+      name: "NotFoundError",
+      message: "Order not found.",
+    });
+  });
+
+  it("rejects a nonexistent order id with the identical NotFoundError — no existence oracle", async () => {
+    const buyer = await createUser();
+    asUser(buyer);
+
+    await expect(
+      getOrderByIdAction("does-not-exist")
+    ).rejects.toMatchObject({
+      name: "NotFoundError",
+      message: "Order not found.",
     });
   });
 });
 
 describe("cancelOrderAction — error types", () => {
+  // Fix F, item 5: previously a missing order threw ValidationError("Order
+  // not found.") while another user's order threw UnauthorizedError — two
+  // distinguishable outcomes an attacker could use to probe whether an
+  // order id exists. Both branches now collapse into the single
+  // UnauthorizedError check updateOrderStatusAction already used.
   it("rejects a caller who doesn't own the order with UnauthorizedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
@@ -78,6 +103,16 @@ describe("cancelOrderAction — error types", () => {
     asUser(stranger);
 
     await expect(cancelOrderAction(order.id)).rejects.toMatchObject({
+      name: "UnauthorizedError",
+      message: "Unauthorized: This order doesn't belong to you.",
+    });
+  });
+
+  it("rejects a nonexistent order id with the identical UnauthorizedError — no existence oracle", async () => {
+    const buyer = await createUser();
+    asUser(buyer);
+
+    await expect(cancelOrderAction("does-not-exist")).rejects.toMatchObject({
       name: "UnauthorizedError",
       message: "Unauthorized: This order doesn't belong to you.",
     });
@@ -117,7 +152,9 @@ describe("getShopOrderByIdAction — error types", () => {
     );
   });
 
-  it("rejects a different shop's owner with UnauthorizedError", async () => {
+  // Fix F, items 5 & 6: same indistinguishable-response treatment as
+  // getOrderByIdAction above.
+  it("rejects a different shop's owner with NotFoundError, not UnauthorizedError", async () => {
     const seededA = await seedShopWithProducts();
     const seededB = await seedShopWithProducts();
     const order = await createOrderAtStatus({
@@ -128,8 +165,20 @@ describe("getShopOrderByIdAction — error types", () => {
     asUser(seededB.owner);
 
     await expect(getShopOrderByIdAction(order.id)).rejects.toMatchObject({
-      name: "UnauthorizedError",
-      message: "Unauthorized: This order does not belong to your shop.",
+      name: "NotFoundError",
+      message: "Order not found.",
+    });
+  });
+
+  it("rejects a nonexistent order id with the identical NotFoundError — no existence oracle", async () => {
+    const seeded = await seedShopWithProducts();
+    asUser(seeded.owner);
+
+    await expect(
+      getShopOrderByIdAction("does-not-exist")
+    ).rejects.toMatchObject({
+      name: "NotFoundError",
+      message: "Order not found.",
     });
   });
 });
