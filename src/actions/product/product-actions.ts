@@ -141,10 +141,14 @@ export async function updateProductAction(
   formData: ProductUpdateActionFormData
 ): Promise<ActionResponse<SerializedProduct>> {
   try {
-    const { shop_id } = await authUtils.getUserData();
-    if (!shop_id) {
+    const user_id = await authUtils.getUserId();
+    const context = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!context || !context.id) {
       throw new UnauthorizedError("User is not authorized to update a product");
     }
+    const shop_id = context.id;
 
     const currentProduct = await productRepository.findById(product_id, {
       select: {
