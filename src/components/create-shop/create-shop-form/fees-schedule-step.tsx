@@ -83,9 +83,9 @@ export function FeesScheduleStep({
                     the customer, one trip for you.
                   </p>
                   <p>
-                    <span className="font-semibold">Direct</span> — delivered
-                    on its own as soon as it&apos;s ready. Costs the customer
-                    more, and is a separate trip for you.
+                    <span className="font-semibold">Direct</span> — delivered on
+                    its own as soon as it&apos;s ready. Costs the customer more,
+                    and is a separate trip for you.
                   </p>
                 </div>
                 <FormControl>

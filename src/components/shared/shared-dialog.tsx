@@ -17,12 +17,7 @@ export interface DialogAction {
   label: string;
   onClick?: () => void;
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   className?: string;
   closeOnClick?: boolean;
 }

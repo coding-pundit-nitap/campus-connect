@@ -28,7 +28,8 @@ export function CashOnlineSplit({ data }: { data: VendorEarningsResponse }) {
           </p>
           {data.cash.platformFeeOwed > 0 && (
             <p className="rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-xs font-semibold leading-relaxed text-amber-700 dark:text-amber-400">
-              {formatCurrency(data.cash.platformFeeOwed)} is platform fee to remit
+              {formatCurrency(data.cash.platformFeeOwed)} is platform fee to
+              remit
             </p>
           )}
         </div>

@@ -65,7 +65,10 @@ describe("findOrCreateBatchForRequestedTime (via createOrderFromCart)", () => {
   it("creates an OPEN batch at the requested cutoff when an active slot matches", async () => {
     const { user, shop, address } = seeded;
     const { at, cutoffMinutes } = futureSlotTime();
-    await createBatchSlot({ shop_id: shop.id, cutoff_time_minutes: cutoffMinutes });
+    await createBatchSlot({
+      shop_id: shop.id,
+      cutoff_time_minutes: cutoffMinutes,
+    });
 
     const order = await createOrder({
       user_id: user.id,
@@ -92,7 +95,10 @@ describe("findOrCreateBatchForRequestedTime (via createOrderFromCart)", () => {
   it("reuses an existing OPEN batch for a second order at the same cutoff — one Batch row, both orders attached", async () => {
     const { user, shop, address } = seeded;
     const { at, cutoffMinutes } = futureSlotTime();
-    await createBatchSlot({ shop_id: shop.id, cutoff_time_minutes: cutoffMinutes });
+    await createBatchSlot({
+      shop_id: shop.id,
+      cutoff_time_minutes: cutoffMinutes,
+    });
 
     const firstOrder = await createOrder({
       user_id: user.id,

@@ -30,9 +30,7 @@ function withP2002Observer(
             ) => unknown;
             return original.call(target, arg, opts);
           }
-          const fn = arg as (
-            tx: Prisma.TransactionClient
-          ) => Promise<unknown>;
+          const fn = arg as (tx: Prisma.TransactionClient) => Promise<unknown>;
           return target.$transaction(async (tx) => {
             const wrappedTx = new Proxy(tx, {
               get(txTarget, txProp, txReceiver) {
@@ -125,7 +123,8 @@ async function raceTwoCheckoutsAtSameCutoff() {
 
 describe("findOrCreateBatchForRequestedTime — concurrent checkouts", () => {
   it("never creates more than one Batch row when two checkouts race on the same cutoff, and any rejection is the known transaction-abort failure", async () => {
-    const { shop, results, getP2002Hits } = await raceTwoCheckoutsAtSameCutoff();
+    const { shop, results, getP2002Hits } =
+      await raceTwoCheckoutsAtSameCutoff();
 
     let fulfilledCount = 0;
     let rejectedCount = 0;

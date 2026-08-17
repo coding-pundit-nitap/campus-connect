@@ -20,7 +20,9 @@ describe("matchRoute", () => {
   });
 
   it("matches a :path* wildcard across slashes", () => {
-    expect(matchRoute("/api/images/a/b/c.png", "/api/images/:path*")).toBe(true);
+    expect(matchRoute("/api/images/a/b/c.png", "/api/images/:path*")).toBe(
+      true
+    );
   });
 
   it("requires at least one segment for a wildcard", () => {
@@ -44,9 +46,9 @@ describe("route tables", () => {
   });
 
   it("keeps the product detail API public", () => {
-    expect(
-      publicApiRoutes.some((r) => matchRoute("/api/products/p1", r))
-    ).toBe(true);
+    expect(publicApiRoutes.some((r) => matchRoute("/api/products/p1", r))).toBe(
+      true
+    );
   });
 
   it("does not expose the orders API as public", () => {

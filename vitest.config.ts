@@ -7,7 +7,6 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     maxWorkers: TEST_WORKERS,
-    minWorkers: TEST_WORKERS,
     projects: [
       {
         plugins: [tsconfigPaths()],

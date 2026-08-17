@@ -46,12 +46,7 @@ export interface FormFieldConfig<T extends FieldValues> {
 export interface ButtonConfig {
   text: string;
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
   type?: "button" | "submit" | "reset";
   disabled?: boolean;

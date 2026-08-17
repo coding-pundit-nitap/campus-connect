@@ -1,4 +1,3 @@
-
 export interface StubSessionUser {
   id: string;
   [key: string]: unknown;

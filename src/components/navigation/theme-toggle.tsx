@@ -16,12 +16,7 @@ export interface ThemeToggleProps {
   size?: "default" | "sm" | "lg" | "icon";
   /** Button visual variant */
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   /** Whether to show text label alongside the icon */
   showLabel?: boolean;
   /** Custom icon component for light mode */

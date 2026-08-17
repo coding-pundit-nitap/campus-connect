@@ -9,7 +9,6 @@ import { testPrisma } from "../setup/integration-setup";
 let seq = 0;
 export const nextSeq = (): number => ++seq;
 
-
 export function buildUser(
   o: Partial<Parameters<typeof testPrisma.user.create>[0]["data"]> = {}
 ) {
@@ -26,7 +25,6 @@ export function buildUser(
 export const createUser = (
   o: Partial<Parameters<typeof testPrisma.user.create>[0]["data"]> = {}
 ) => testPrisma.user.create({ data: buildUser(o) });
-
 
 export function buildShop(
   o: Partial<Parameters<typeof testPrisma.shop.create>[0]["data"]> = {}
@@ -52,7 +50,6 @@ export const createShop = (
   o: Partial<Parameters<typeof testPrisma.shop.create>[0]["data"]> = {}
 ) => testPrisma.shop.create({ data: buildShop(o) });
 
-
 type ProductOverrides = Partial<
   Parameters<typeof testPrisma.product.create>[0]["data"]
 > & { shop_id: string };
@@ -72,7 +69,6 @@ export function buildProduct(o: ProductOverrides) {
 export const createProduct = (o: ProductOverrides) =>
   testPrisma.product.create({ data: buildProduct(o) });
 
-
 type UserAddressOverrides = Partial<
   Parameters<typeof testPrisma.userAddress.create>[0]["data"]
 > & { user_id: string };
@@ -91,7 +87,6 @@ export function buildUserAddress(o: UserAddressOverrides) {
 
 export const createUserAddress = (o: UserAddressOverrides) =>
   testPrisma.userAddress.create({ data: buildUserAddress(o) });
-
 
 type BatchSlotOverrides = Partial<
   Parameters<typeof testPrisma.batchSlot.create>[0]["data"]
@@ -156,7 +151,6 @@ export async function seedShopWithProducts(opts?: {
   return { shop, owner, products };
 }
 
-
 export async function seedCartReadyForCheckout(opts?: {
   itemCount?: number;
   quantity?: number;
@@ -206,7 +200,6 @@ export async function seedCartForShop(shop: { id: string }) {
   return { user, cart, address, product };
 }
 
-
 export async function seedOpenBatch(opts: {
   cutoffAt: Date;
   shop_id?: string;
@@ -230,7 +223,6 @@ export async function seedOpenBatch(opts: {
     },
   });
 }
-
 
 export function futureSlotTime(offsetMinutes = 120): {
   at: Date;

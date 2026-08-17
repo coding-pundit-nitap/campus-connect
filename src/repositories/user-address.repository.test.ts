@@ -24,14 +24,16 @@ function buildFakePrismaClient(
   const update = vi.fn().mockResolvedValue({ id: "addr-1", is_default: true });
   const findUnique = vi.fn().mockResolvedValue(existingAddress);
 
-  type FakeTx = { userAddress: { updateMany: typeof updateMany; update: typeof update } };
+  type FakeTx = {
+    userAddress: { updateMany: typeof updateMany; update: typeof update };
+  };
 
   const tx: FakeTx = {
     userAddress: { updateMany, update },
   };
 
-  const transaction = vi.fn(
-    async (callback: (tx: FakeTx) => unknown) => callback(tx)
+  const transaction = vi.fn(async (callback: (tx: FakeTx) => unknown) =>
+    callback(tx)
   );
 
   const fakeClient = {

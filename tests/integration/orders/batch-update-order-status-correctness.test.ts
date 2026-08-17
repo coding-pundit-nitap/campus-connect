@@ -2,7 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { batchUpdateOrderStatusAction } from "../../../src/actions/orders/order-actions";
 import { notificationService } from "../../../src/di/container";
-import { createOrderAtStatus, createUser, seedShopWithProducts } from "../../factories";
+import {
+  createOrderAtStatus,
+  createUser,
+  seedShopWithProducts,
+} from "../../factories";
 import { asUser } from "../../setup/auth";
 
 describe("batchUpdateOrderStatusAction correctness", () => {

@@ -47,8 +47,7 @@ export default async function AdminShopsPage({
               ? false
               : undefined,
         verification_status: verification_status as
-          | SellerVerificationStatus
-          | undefined,
+          SellerVerificationStatus | undefined,
         limit: 20,
       }).then((response) => {
         return {

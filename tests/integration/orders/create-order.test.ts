@@ -70,9 +70,7 @@ describe("createOrderFromCart", () => {
     });
     const cartProductIds = cart.items.map((i) => i.product_id).sort();
     expect(orderItems).toHaveLength(cart.items.length);
-    expect(orderItems.map((i) => i.product_id).sort()).toEqual(
-      cartProductIds
-    );
+    expect(orderItems.map((i) => i.product_id).sort()).toEqual(cartProductIds);
     for (const item of orderItems) {
       const cartItem = cart.items.find((i) => i.product_id === item.product_id);
       expect(item.quantity).toBe(cartItem?.quantity);
@@ -108,9 +106,7 @@ describe("createOrderFromCart", () => {
   it("empties the cart after creating the order", async () => {
     const { user, shop, cart, address } = seeded;
 
-    await expect(testPrisma.cartItem.count()).resolves.toBe(
-      cart.items.length
-    );
+    await expect(testPrisma.cartItem.count()).resolves.toBe(cart.items.length);
 
     await createOrder({
       user_id: user.id,

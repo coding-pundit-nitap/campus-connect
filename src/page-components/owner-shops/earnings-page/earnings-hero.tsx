@@ -44,7 +44,8 @@ export function EarningsHero({
         <p className="mt-1 text-sm font-medium text-muted-foreground">—</p>
       ) : (
         <p className="mt-1 text-sm font-medium text-muted-foreground">
-          {orderCount} {orderCount === 1 ? "completed order" : "completed orders"}
+          {orderCount}{" "}
+          {orderCount === 1 ? "completed order" : "completed orders"}
         </p>
       )}
 

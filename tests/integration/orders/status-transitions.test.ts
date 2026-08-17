@@ -237,8 +237,13 @@ describe("updateOrderStatusAction — ownership and identity guards", () => {
 
 describe("Order/OrderItem/Shop delete semantics (prisma/schema.prisma)", () => {
   it("keeps the order and nulls user_id when the user is deleted (Order.user: onDelete SetNull)", async () => {
-    const { user: buyer, shop, cart, address, products } =
-      await seedCartReadyForCheckout();
+    const {
+      user: buyer,
+      shop,
+      cart,
+      address,
+      products,
+    } = await seedCartReadyForCheckout();
     const order = await testPrisma.order.create({
       data: {
         display_id: "TEST-SETNULL-1",

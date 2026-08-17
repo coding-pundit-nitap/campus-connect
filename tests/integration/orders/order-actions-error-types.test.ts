@@ -67,9 +67,7 @@ describe("getOrderByIdAction — error types", () => {
     const buyer = await createUser();
     asUser(buyer);
 
-    await expect(
-      getOrderByIdAction("does-not-exist")
-    ).rejects.toMatchObject({
+    await expect(getOrderByIdAction("does-not-exist")).rejects.toMatchObject({
       name: "NotFoundError",
       message: "Order not found.",
     });

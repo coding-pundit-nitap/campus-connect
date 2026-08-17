@@ -1,4 +1,3 @@
-
 import fs from "node:fs";
 import path from "node:path";
 
@@ -8,11 +7,7 @@ import { toggleProductStockAction } from "../../../src/actions/product/product-a
 import * as stockWatchActions from "../../../src/actions/products/stock-watch-actions";
 import { Role } from "../../../src/generated/client";
 import { verifyAdmin } from "../../../src/lib/verify-admin";
-import {
-  createProduct,
-  createShop,
-  createUser,
-} from "../../factories";
+import { createProduct, createShop, createUser } from "../../factories";
 import { asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 

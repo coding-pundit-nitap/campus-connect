@@ -107,10 +107,7 @@ export async function deleteUserAddress(id: string) {
   // user could delete any other user's address. `deleteByIdAndUserId`
   // checks `address.user_id === user_id` before deleting and returns null
   // otherwise, matching `deleteAddressAction`'s existing pattern.
-  const deleted = await userAddressRepository.deleteByIdAndUserId(
-    id,
-    user_id
-  );
+  const deleted = await userAddressRepository.deleteByIdAndUserId(id, user_id);
 
   if (!deleted) {
     throw new ForbiddenError("Address not found or does not belong to you.");

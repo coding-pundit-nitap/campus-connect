@@ -75,9 +75,6 @@ export async function GET(request: NextRequest) {
       return jsonResponse(createErrorResponse("Forbidden"), 403);
     }
     log.error({ err: error }, "GET vendor earnings error:");
-    return jsonResponse(
-      createErrorResponse("Failed to load earnings"),
-      500
-    );
+    return jsonResponse(createErrorResponse("Failed to load earnings"), 500);
   }
 }

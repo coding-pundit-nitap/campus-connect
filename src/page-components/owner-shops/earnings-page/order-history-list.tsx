@@ -13,7 +13,6 @@ import { useVendorOrderHistory } from "@/hooks/queries/useVendorOrderHistory";
 import { formatCurrency } from "@/lib/utils/currency";
 import { getOrderStatusLabel } from "@/lib/utils/order-display";
 
-
 export function OrderHistoryList() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");

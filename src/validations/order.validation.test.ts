@@ -150,18 +150,16 @@ describe("validateDeliveryTime", () => {
   it("returns null when within both the time window and shop hours", () => {
     // NOW + 1 day = 2026-08-15T10:00:00Z = 15:30 IST, inside 09:00-21:00
     const withinShopHours = new Date(NOW.getTime() + DAY);
-    expect(
-      validateDeliveryTime(withinShopHours, "09:00", "21:00")
-    ).toBeNull();
+    expect(validateDeliveryTime(withinShopHours, "09:00", "21:00")).toBeNull();
   });
 
   it("returns a shop-hours error when outside shop hours but within the time window", () => {
     // 2026-08-14T17:30:00Z = 23:00 IST, outside 09:00-21:00, but still
     // within the 15-min/7-day window relative to NOW.
     const outsideShopHours = new Date("2026-08-14T17:30:00Z");
-    expect(
-      validateDeliveryTime(outsideShopHours, "09:00", "21:00")
-    ).toBe("Delivery time must be within shop hours (09:00 - 21:00)");
+    expect(validateDeliveryTime(outsideShopHours, "09:00", "21:00")).toBe(
+      "Delivery time must be within shop hours (09:00 - 21:00)"
+    );
   });
 });
 
@@ -171,9 +169,7 @@ describe("deliveryTimeSchema", () => {
   });
 
   it("accepts a date comfortably within bounds", () => {
-    const result = deliveryTimeSchema.safeParse(
-      new Date(NOW.getTime() + DAY)
-    );
+    const result = deliveryTimeSchema.safeParse(new Date(NOW.getTime() + DAY));
     expect(result.success).toBe(true);
   });
 
@@ -208,21 +204,15 @@ describe("upiTransactionIdSchema", () => {
   });
 
   it("accepts an alphanumeric id at the 10-character minimum", () => {
-    expect(upiTransactionIdSchema.safeParse("A".repeat(10)).success).toBe(
-      true
-    );
+    expect(upiTransactionIdSchema.safeParse("A".repeat(10)).success).toBe(true);
   });
 
   it("accepts an alphanumeric id at the 35-character maximum", () => {
-    expect(upiTransactionIdSchema.safeParse("A".repeat(35)).success).toBe(
-      true
-    );
+    expect(upiTransactionIdSchema.safeParse("A".repeat(35)).success).toBe(true);
   });
 
   it("rejects an id one character short of the minimum", () => {
-    expect(upiTransactionIdSchema.safeParse("A".repeat(9)).success).toBe(
-      false
-    );
+    expect(upiTransactionIdSchema.safeParse("A".repeat(9)).success).toBe(false);
   });
 
   it("rejects an id one character past the maximum", () => {
@@ -232,8 +222,6 @@ describe("upiTransactionIdSchema", () => {
   });
 
   it("rejects ids containing non-alphanumeric characters", () => {
-    expect(
-      upiTransactionIdSchema.safeParse("ABCDE-1234").success
-    ).toBe(false);
+    expect(upiTransactionIdSchema.safeParse("ABCDE-1234").success).toBe(false);
   });
 });

@@ -72,7 +72,9 @@ describe("IDOR: cancelling another user's order", () => {
     asUser(alice);
 
     const rejection = cancelOrderAction(bobsOrder.id);
-    await expect(rejection).rejects.toMatchObject({ name: "UnauthorizedError" });
+    await expect(rejection).rejects.toMatchObject({
+      name: "UnauthorizedError",
+    });
     await rejection.catch((error: unknown) => {
       expect(String((error as Error).message)).not.toContain(
         bobsOrder.display_id
@@ -205,9 +207,7 @@ describe("IDOR (new hole, fixed as part of this task): updateProductAction had n
 
     await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
     await rejection.catch((error: unknown) => {
-      expect(String((error as Error).message)).not.toContain(
-        seededB.shop.id
-      );
+      expect(String((error as Error).message)).not.toContain(seededB.shop.id);
     });
 
     const after = await testPrisma.product.findUniqueOrThrow({
@@ -250,9 +250,7 @@ describe("IDOR (destructive hole, fixed as part of Fix D): deleteProductAction h
     // also assert the rejection carries none of the victim's identifying
     // data — here, the victim shop's id.
     await rejection.catch((error: unknown) => {
-      expect(String((error as Error).message)).not.toContain(
-        seededB.shop.id
-      );
+      expect(String((error as Error).message)).not.toContain(seededB.shop.id);
     });
 
     // The critical assertion: the product must still exist. A test that
@@ -387,9 +385,7 @@ describe("IDOR (C3, live authenticated IDOR): deleteUserAddress had no ownership
     await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
     await rejection.catch((error: unknown) => {
       expect(String((error as Error).message)).not.toContain(victim.id);
-      expect(String((error as Error).message)).not.toContain(
-        victimAddress.id
-      );
+      expect(String((error as Error).message)).not.toContain(victimAddress.id);
     });
 
     const after = await testPrisma.userAddress.findUnique({
@@ -433,9 +429,7 @@ describe("IDOR (I1, wrong id in the first repository parameter): updateUserAddre
     await expect(rejection).rejects.toMatchObject({ name: "ForbiddenError" });
     await rejection.catch((error: unknown) => {
       expect(String((error as Error).message)).not.toContain(victim.id);
-      expect(String((error as Error).message)).not.toContain(
-        victimAddress.id
-      );
+      expect(String((error as Error).message)).not.toContain(victimAddress.id);
     });
 
     const after = await testPrisma.userAddress.findUniqueOrThrow({

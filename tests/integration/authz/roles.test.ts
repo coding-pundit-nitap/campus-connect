@@ -101,13 +101,19 @@ describe("roles: a signed-out caller is denied on every protected route in this 
     asAnonymous();
 
     const routeChecks: Array<[string, () => Promise<Response>]> = [
-      ["GET /api/orders", () => GET_ORDERS(new NextRequest("http://localhost/api/orders"))],
+      [
+        "GET /api/orders",
+        () => GET_ORDERS(new NextRequest("http://localhost/api/orders")),
+      ],
       [
         "GET /api/orders/[order_id]",
         () =>
-          GET_ORDER(new NextRequest(`http://localhost/api/orders/${order.id}`), {
-            params: Promise.resolve({ order_id: order.id }),
-          }),
+          GET_ORDER(
+            new NextRequest(`http://localhost/api/orders/${order.id}`),
+            {
+              params: Promise.resolve({ order_id: order.id }),
+            }
+          ),
       ],
       ["GET /api/seller/orders", () => GET_SELLER_ORDERS()],
       [
@@ -122,9 +128,10 @@ describe("roles: a signed-out caller is denied on every protected route in this 
 
     for (const [name, run] of routeChecks) {
       const res = await run();
-      expect(res.status, `${name} must not return 200 when signed out`).not.toBe(
-        200
-      );
+      expect(
+        res.status,
+        `${name} must not return 200 when signed out`
+      ).not.toBe(200);
       const body = await res.text();
       expect(
         body,
@@ -152,7 +159,10 @@ describe("roles: a signed-out caller is denied on every protected route in this 
     ];
 
     for (const [name, run] of actionChecks) {
-      await expect(run(), `${name} must reject when signed out`).rejects.toBeTruthy();
+      await expect(
+        run(),
+        `${name} must reject when signed out`
+      ).rejects.toBeTruthy();
     }
 
     void owner;
