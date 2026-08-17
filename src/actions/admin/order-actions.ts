@@ -16,6 +16,7 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
+import { verifyAdmin } from "@/lib/verify-admin";
 import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,
@@ -23,8 +24,6 @@ import {
   CursorPaginatedResponse,
 } from "@/types/response.types";
 import { searchSchema } from "@/validations";
-
-import { verifyAdmin } from "../authentication/admin";
 const log = createLogger("order-actions");
 
 const getAllOrderSchema = searchSchema.extend({

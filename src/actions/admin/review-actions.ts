@@ -12,14 +12,13 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
+import { verifyAdmin } from "@/lib/verify-admin";
 import {
   ActionResponse,
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
 import { searchSchema } from "@/validations";
-
-import { verifyAdmin } from "../authentication/admin";
 const log = createLogger("review-actions");
 
 const getReviewsSchema = searchSchema.extend({

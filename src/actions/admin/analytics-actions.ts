@@ -6,9 +6,9 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
+import { verifyAdmin } from "@/lib/verify-admin";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
-import { verifyAdmin } from "../authentication/admin";
 import { getOrderStatsAction } from "./order-actions";
 import { getShopStatsAction } from "./shop-actions";
 import { getUserStatsAction } from "./user-actions";

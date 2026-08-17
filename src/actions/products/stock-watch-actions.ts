@@ -1,6 +1,5 @@
 "use server";
 
-import { notificationService } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
@@ -68,41 +67,5 @@ export async function toggleStockWatchAction(
       throw error;
     }
     throw new InternalServerError("Failed to update stock watch.");
-  }
-}
-
-export async function notifyStockWatchers(
-  product_id: string,
-  product_name: string,
-  shop_name: string
-): Promise<number> {
-  try {
-    const watchers = await prisma.stockWatch.findMany({
-      where: { product_id: product_id },
-      select: { user_id: true, id: true },
-    });
-
-    if (watchers.length === 0) return 0;
-
-    await Promise.allSettled(
-      watchers.map((w) =>
-        notificationService.publishNotification(w.user_id, {
-          title: "Back in Stock!",
-          message: `"${product_name}" at ${shop_name} is now back in stock.`,
-          type: "SUCCESS",
-          category: "ORDER",
-          action_url: `/product/${product_id}`,
-        })
-      )
-    );
-
-    await prisma.stockWatch.deleteMany({
-      where: { product_id: product_id },
-    });
-
-    return watchers.length;
-  } catch (error) {
-    log.error({ err: error }, "NOTIFY STOCK WATCHERS ERROR:");
-    return 0;
   }
 }

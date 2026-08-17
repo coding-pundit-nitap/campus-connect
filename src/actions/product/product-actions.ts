@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { notifyStockWatchers } from "@/actions/products/stock-watch-actions";
 import {
   brandRepository,
   cartRepository,
@@ -24,6 +23,7 @@ import {
 import { createLogger } from "@/lib/logger";
 import { serializeProduct } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
+import { notifyStockWatchers } from "@/services/notification/stock-watch-notification.service";
 import { SerializedProduct } from "@/types/product.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 import {

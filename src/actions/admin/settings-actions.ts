@@ -8,9 +8,8 @@ import {
   ValidationError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
+import { verifyAdmin } from "@/lib/verify-admin";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
-
-import { verifyAdmin } from "../authentication/admin";
 const log = createLogger("settings-actions");
 
 export async function getSystemHealthAction(): Promise<

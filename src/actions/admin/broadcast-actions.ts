@@ -10,10 +10,9 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
+import { verifyAdmin } from "@/lib/verify-admin";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
-
-import { verifyAdmin } from "../authentication/admin";
 const log = createLogger("broadcast-actions");
 
 const sendBroadcastNotificationSchema = z.object({
