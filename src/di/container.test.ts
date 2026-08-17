@@ -14,21 +14,21 @@ const {
 }));
 
 vi.mock("@/services/order/order.service", () => ({
-  OrderService: vi.fn().mockImplementation((...args: unknown[]) => {
+  OrderService: vi.fn().mockImplementation(function (...args: unknown[]) {
     orderServiceConstructorSpy(...args);
     return { __mockOrderService: true };
   }),
 }));
 
 vi.mock("@/services/batch/batch.service", () => ({
-  BatchService: vi.fn().mockImplementation((...args: unknown[]) => {
+  BatchService: vi.fn().mockImplementation(function (...args: unknown[]) {
     batchServiceConstructorSpy(...args);
     return { __mockBatchService: true };
   }),
 }));
 
 vi.mock("@/services/review/review.service", () => ({
-  ReviewService: vi.fn().mockImplementation((...args: unknown[]) => {
+  ReviewService: vi.fn().mockImplementation(function (...args: unknown[]) {
     reviewServiceConstructorSpy(...args);
     return { __mockReviewService: true };
   }),

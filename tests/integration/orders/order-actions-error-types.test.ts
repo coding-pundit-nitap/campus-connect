@@ -8,7 +8,6 @@ import {
   getShopOrderByIdAction,
 } from "../../../src/actions/orders/order-actions";
 import {
-  NotFoundError,
   UnauthenticatedError,
   UnauthorizedError,
   ValidationError,
@@ -46,13 +45,6 @@ describe("getOrderByIdAction — error types", () => {
     );
   });
 
-  // Fix F, items 5 & 6: a missing order and an order that exists but
-  // belongs to someone else are now indistinguishable (both NotFoundError,
-  // both a 404) — a caller cannot use the response to probe whether an
-  // order id exists at all. Previously the "doesn't belong to you" branch
-  // threw UnauthorizedError while a truly missing order threw a bare
-  // Error (flattened to a 500 by the catch) — two different outcomes an
-  // attacker could distinguish.
   it("rejects a caller who doesn't own the order with NotFoundError, not UnauthorizedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
@@ -85,11 +77,6 @@ describe("getOrderByIdAction — error types", () => {
 });
 
 describe("cancelOrderAction — error types", () => {
-  // Fix F, item 5: previously a missing order threw ValidationError("Order
-  // not found.") while another user's order threw UnauthorizedError — two
-  // distinguishable outcomes an attacker could use to probe whether an
-  // order id exists. Both branches now collapse into the single
-  // UnauthorizedError check updateOrderStatusAction already used.
   it("rejects a caller who doesn't own the order with UnauthorizedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
@@ -152,8 +139,6 @@ describe("getShopOrderByIdAction — error types", () => {
     );
   });
 
-  // Fix F, items 5 & 6: same indistinguishable-response treatment as
-  // getOrderByIdAction above.
   it("rejects a different shop's owner with NotFoundError, not UnauthorizedError", async () => {
     const seededA = await seedShopWithProducts();
     const seededB = await seedShopWithProducts();
