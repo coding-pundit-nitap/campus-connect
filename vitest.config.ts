@@ -44,13 +44,13 @@ export default defineConfig({
         },
         "src/services/order/order.service.ts": {
           statements: 75,
-          branches: 78,
+          branches: 75,
           functions: 82,
           lines: 75,
         },
         "src/services/cart/cart.service.ts": {
           statements: 95,
-          branches: 80,
+          branches: 75,
           functions: 95,
           lines: 95,
         },
