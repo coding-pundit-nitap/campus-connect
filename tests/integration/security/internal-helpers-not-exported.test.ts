@@ -4,10 +4,6 @@ import path from "node:path";
 
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
-}));
-
 import { toggleProductStockAction } from "../../../src/actions/product/product-actions";
 import * as stockWatchActions from "../../../src/actions/products/stock-watch-actions";
 import { Role } from "../../../src/generated/client";

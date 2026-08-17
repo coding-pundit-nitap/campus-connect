@@ -27,6 +27,11 @@ vi.mock("next/navigation", () => ({
   },
 }));
 
+vi.mock("next/cache", () => ({
+  revalidatePath: vi.fn(),
+  revalidateTag: vi.fn(),
+}));
+
 vi.mock("../../src/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/auth")>();
   const { getSession } = await import("./session-state");
