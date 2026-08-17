@@ -21,7 +21,7 @@ export class ReviewService {
   ) {
     // Ownership check: `order_item_id` is caller-supplied, and without this
     // check any authenticated user could attach a review (with an arbitrary
-    // rating/comment) to another user's order item — permanently consuming
+    // rating/comment) to another user's order item - permanently consuming
     // its unique review slot (order_item_id is @unique on Review) and
     // skewing the rating of whatever product they name, whether or not it
     // matches the order item's actual product.

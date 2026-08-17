@@ -37,7 +37,7 @@ function getOrder(order_id: string) {
 }
 
 describe("IDOR: order detail by id (GET /api/orders/[order_id])", () => {
-  it("does not return another user's order — status is a denial AND the body carries none of the victim's data", async () => {
+  it("does not return another user's order - status is a denial AND the body carries none of the victim's data", async () => {
     const bob = await createUser();
     const shop = await createShop();
     const bobsOrder = await createOrderAtStatus({
@@ -88,7 +88,7 @@ describe("IDOR: cancelling another user's order", () => {
   });
 });
 
-describe("IDOR: vendor/shop boundaries — GET /api/seller/orders", () => {
+describe("IDOR: vendor/shop boundaries - GET /api/seller/orders", () => {
   it("a vendor never sees another shop's orders", async () => {
     const seededA = await seedShopWithProducts();
     const seededB = await seedShopWithProducts();
@@ -221,7 +221,7 @@ describe("IDOR (new hole, fixed as part of this task): updateProductAction had n
 
 describe("IDOR (destructive hole, fixed as part of Fix D): deleteProductAction had no shop-ownership check", () => {
   // deleteProductAction fetched the product with `shop_id` selected and
-  // never compared it to the caller's shop — the same missing check as
+  // never compared it to the caller's shop - the same missing check as
   // updateProductAction above, except destructive and irreversible: any
   // vendor could permanently delete any other shop's product, and the
   // delete path also fired "removed from your cart" notifications to the
@@ -248,7 +248,7 @@ describe("IDOR (destructive hole, fixed as part of Fix D): deleteProductAction h
     // Assertion standard (order-actions-error-types.test.ts,
     // idor.test.ts's updateProductAction coverage above): a denial must
     // also assert the rejection carries none of the victim's identifying
-    // data — here, the victim shop's id.
+    // data - here, the victim shop's id.
     await rejection.catch((error: unknown) => {
       expect(String((error as Error).message)).not.toContain(seededB.shop.id);
     });
@@ -271,7 +271,7 @@ describe("IDOR (additional hole, found while auditing product/ for Fix D): creat
   // belonged to the caller. Since `order_item_id` is @unique on Review
   // (prisma/schema.prisma), any authenticated user who obtained another
   // user's order_item_id could permanently consume that order item's one
-  // review slot with an arbitrary rating/comment — before the legitimate
+  // review slot with an arbitrary rating/comment - before the legitimate
   // buyer ever got to review it themselves. Fixed in
   // src/services/review/review.service.ts:createReview by checking the
   // order item's `order.user_id` (and its actual `product_id`) against
@@ -321,7 +321,7 @@ describe("IDOR (additional hole, found while auditing user-addresses/ for Fix D)
   // UserAddressRepository.setDefault(user_id, address_id) cleared the
   // caller's own `is_default` flags but then ran
   // `userAddress.update({ where: { id: address_id }, ... })` with no
-  // check that `address_id` belonged to `user_id` — any authenticated
+  // check that `address_id` belonged to `user_id` - any authenticated
   // user could flip `is_default: true` on another user's address row.
   // Fixed in src/repositories/user-address.repository.ts:setDefault by
   // checking ownership first (matching updateWithDefault /
@@ -365,7 +365,7 @@ describe("IDOR (additional hole, found while auditing user-addresses/ for Fix D)
 describe("IDOR (C3, live authenticated IDOR): deleteUserAddress had no ownership check at all", () => {
   // src/actions/user/index.ts:deleteUserAddress checked authentication, then
   // called `userAddressRepository.delete(id)` with a caller-supplied id and
-  // NO ownership check — any authenticated user could delete any other
+  // NO ownership check - any authenticated user could delete any other
   // user's address. It is reachable despite not being imported by any
   // client component: the file has a top-level "use server" directive, so
   // every exported async function is registered as a callable server
@@ -398,7 +398,7 @@ describe("IDOR (C3, live authenticated IDOR): deleteUserAddress had no ownership
 
 describe("IDOR (I1, wrong id in the first repository parameter): updateUserAddress could not succeed for its owner and could not touch anyone else's row either", () => {
   // src/actions/user/index.ts:updateUserAddress called
-  // `userAddressRepository.update(user_id, {...})` — the repository's
+  // `userAddressRepository.update(user_id, {...})` - the repository's
   // first parameter is the ADDRESS id, not the user id, so this compiled
   // to `where: { id: user_id }`, which always threw P2025 (a UserAddress
   // row's id is never a user's id). Same shape as the

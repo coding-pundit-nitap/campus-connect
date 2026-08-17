@@ -29,7 +29,7 @@ export class ReviewRepository extends BaseRepository<
       throw new BadRequestError("Product ID required for review");
     }
     return this.prismaClient.$transaction(async (tx) => {
-      // `data` is re-applied after `...options` so it cannot be swapped out —
+      // `data` is re-applied after `...options` so it cannot be swapped out -
       // see the scope-hardening note in base.repository.ts.
       const review = await tx.review.create({ ...options, data });
       await tx.product.update({
@@ -44,7 +44,7 @@ export class ReviewRepository extends BaseRepository<
   }
 
   async updateReview(review_id: string, data: UpdateReviewDto) {
-    // Scope hardening — see base.repository.ts. `UpdateReviewDto` is
+    // Scope hardening - see base.repository.ts. `UpdateReviewDto` is
     // `Omit<ReviewUpdateArgs, "where">`, but that type is not enforced when
     // the caller's literal is inferred through a generic, so strip any
     // `where` and re-apply the id.
@@ -80,7 +80,7 @@ export class ReviewRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = {
       ...rest,
@@ -112,7 +112,7 @@ export class ReviewRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = {
       ...rest,
@@ -156,7 +156,7 @@ export class ReviewRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.review.findMany({
       ...rest,

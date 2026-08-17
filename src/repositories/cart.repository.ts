@@ -77,7 +77,7 @@ export class CartRepository extends BaseRepository<
   }
 
   // Named "...ForUser" (not "upsertItem") because its first parameter is a
-  // user_id, not a cart_id — it does its own findOrCreate(user_id, shop_id)
+  // user_id, not a cart_id - it does its own findOrCreate(user_id, shop_id)
   // internally, unlike removeItemFromCart below which takes an existing
   // cart_id. The two used to share the name "upsertItem"/"removeItem" with
   // different first-parameter meanings, both typed `string`; that shape let
@@ -191,7 +191,7 @@ export class CartRepository extends BaseRepository<
   }
 
   // Named "...FromCart" (not "removeItem") because its first parameter is a
-  // cart_id — see the comment on upsertItemForUser above.
+  // cart_id - see the comment on upsertItemForUser above.
   async removeItemFromCart(cart_id: string, product_id: string) {
     return await this.prismaClient.cartItem.deleteMany({
       where: { cart_id, product_id },

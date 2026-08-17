@@ -38,7 +38,7 @@ export class ShopRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts. `deleted_at: null` is part of
+    // Scope hardening - see base.repository.ts. `deleted_at: null` is part of
     // the scope: a caller `where` must not be able to resurrect soft-deleted
     // shops or point at a different id.
     const { where, ...rest } = options ?? {};
@@ -116,7 +116,7 @@ export class ShopRepository extends BaseRepository<
     Shop | Prisma.Result<Prisma.ShopDelegate, Prisma.ShopUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.shop.update({
         ...rest,
@@ -176,7 +176,7 @@ export class ShopRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts. This is the vendor
+    // Scope hardening - see base.repository.ts. This is the vendor
     // authorization gate used across the owner-shop routes: `user.id` and
     // `deleted_at: null` must always win.
     const { where, ...rest } = options ?? {};
@@ -243,7 +243,7 @@ export class ShopRepository extends BaseRepository<
 
   async getFavoriteShops(
     user_id: string,
-    // No overload pair — `where?: never` preserves compile-time rejection.
+    // No overload pair - `where?: never` preserves compile-time rejection.
     // See base.repository.ts.
     options?: Omit<Prisma.FavoriteShopFindManyArgs, "where"> & { where?: never }
   ) {

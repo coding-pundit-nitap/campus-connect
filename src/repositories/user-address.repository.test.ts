@@ -1,6 +1,6 @@
 // M1: `UserAddressRepository.setDefault` checked ownership *before* opening
 // its `$transaction`, but the transaction's own `tx.userAddress.update`
-// still targeted `where: { id: address_id }` alone — the ownership
+// still targeted `where: { id: address_id }` alone - the ownership
 // guarantee lived only in that pre-check, making the write TOCTOU-adjacent
 // rather than atomic. Fixed by folding `user_id` into the final update's
 // `where` too, so the database itself enforces the boundary regardless of
@@ -9,7 +9,7 @@
 // This is a unit test (mocked prisma client), not an integration test:
 // with everything running single-threaded and awaited in sequence, there
 // is no way to force a real race between the pre-check and the transaction
-// through the public API — the only way to observe whether the guarantee
+// through the public API - the only way to observe whether the guarantee
 // is atomic (query-level) or advisory (app-level-only) is to assert on the
 // exact `where` argument the transactional update is called with.
 import { describe, expect, it, vi } from "vitest";
@@ -44,7 +44,7 @@ function buildFakePrismaClient(
   return { fakeClient, updateMany, update, findUnique, transaction };
 }
 
-describe("UserAddressRepository.setDefault — M1 (atomic ownership scoping)", () => {
+describe("UserAddressRepository.setDefault - M1 (atomic ownership scoping)", () => {
   it("scopes the transactional update by BOTH address id and user id, not id alone", async () => {
     const { fakeClient, update } = buildFakePrismaClient({
       id: "addr-1",
@@ -59,7 +59,7 @@ describe("UserAddressRepository.setDefault — M1 (atomic ownership scoping)", (
     expect(update).toHaveBeenCalledTimes(1);
     const [args] = update.mock.calls[0] as [{ where: Record<string, unknown> }];
     // The regression this guards: `where` used to be `{ id: "addr-1" }`
-    // alone. Assert user_id is present, not merely that id is — a where
+    // alone. Assert user_id is present, not merely that id is - a where
     // clause missing user_id would still satisfy a weaker `toMatchObject`
     // check against just `{ id: "addr-1" }`.
     expect(args.where).toEqual({ id: "addr-1", user_id: "user-1" });

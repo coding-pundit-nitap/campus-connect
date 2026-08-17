@@ -36,7 +36,7 @@ export async function setup() {
   // assertion catches only overrides that forgot to set the port.
   if (!ADMIN_DATABASE_URL.includes(":5433")) {
     throw new Error(
-      `ADMIN_DATABASE_URL does not contain ':5433' — refusing to run ` +
+      `ADMIN_DATABASE_URL does not contain ':5433' - refusing to run ` +
         `test setup against a potentially non-test database. Got: ` +
         `${ADMIN_DATABASE_URL.replace(/\/\/[^@]*@/, "//***@")}`
     );

@@ -33,7 +33,7 @@ const invalidPairs = allStatuses.flatMap((from) =>
     .map((to) => [from, to] as const)
 );
 
-describe("updateOrderStatusAction — VALID_ORDER_TRANSITIONS enforcement", () => {
+describe("updateOrderStatusAction - VALID_ORDER_TRANSITIONS enforcement", () => {
   let shop: Awaited<ReturnType<typeof seedShopWithProducts>>["shop"];
   let owner: Awaited<ReturnType<typeof seedShopWithProducts>>["owner"];
 
@@ -88,7 +88,7 @@ describe("updateOrderStatusAction — VALID_ORDER_TRANSITIONS enforcement", () =
   });
 });
 
-describe("updateOrderStatusAction — side effects of a valid transition", () => {
+describe("updateOrderStatusAction - side effects of a valid transition", () => {
   let shop: Awaited<ReturnType<typeof seedShopWithProducts>>["shop"];
   let owner: Awaited<ReturnType<typeof seedShopWithProducts>>["owner"];
 
@@ -168,7 +168,7 @@ describe("updateOrderStatusAction — side effects of a valid transition", () =>
   });
 });
 
-describe("updateOrderStatusAction — ownership and identity guards", () => {
+describe("updateOrderStatusAction - ownership and identity guards", () => {
   it("refuses to transition an order belonging to a different shop, leaving it unchanged", async () => {
     const seededA = await seedShopWithProducts();
     const seededB = await seedShopWithProducts();

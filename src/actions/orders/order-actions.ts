@@ -280,7 +280,7 @@ export async function getOrderByIdAction(
     });
 
     // A missing order and an order that exists but belongs to someone
-    // else are deliberately indistinguishable here — a separate branch
+    // else are deliberately indistinguishable here - a separate branch
     // per case would let the response act as an existence oracle for
     // orders the caller doesn't own.
     if (!order || order.user_id !== user_id) {
@@ -324,7 +324,7 @@ export async function cancelOrderAction(
     });
 
     // A missing order and an order that exists but belongs to someone
-    // else are deliberately indistinguishable here — a separate branch
+    // else are deliberately indistinguishable here - a separate branch
     // per case would let the response act as an existence oracle for
     // orders the caller doesn't own. Matches the single-branch pattern
     // updateOrderStatusAction already uses.
@@ -387,7 +387,7 @@ export async function getShopOrderByIdAction(
     });
 
     // A missing order and an order that exists but belongs to a
-    // different shop are deliberately indistinguishable here — a
+    // different shop are deliberately indistinguishable here - a
     // separate branch per case would let the response act as an
     // existence oracle for orders the caller's shop doesn't own.
     if (!order || order.shop_id !== shop_id) {

@@ -10,7 +10,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
  * Prompts the vendor to enable push notifications for new orders.
  *
  * The server already sends a push on every new order, but nothing in the
- * vendor UI ever asked them to subscribe — so most vendors only ever got the
+ * vendor UI ever asked them to subscribe - so most vendors only ever got the
  * in-tab sound, which requires the tab to stay open and focused.
  *
  * Visibility is derived from live subscription state rather than a persisted
@@ -47,7 +47,7 @@ export function PushAlertBanner() {
           Turn on order alerts
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Get alerted the moment an order arrives — even with this page closed
+          Get alerted the moment an order arrives - even with this page closed
           or your phone locked. Without this, you only hear a sound while this
           page is open.
         </p>

@@ -19,7 +19,7 @@ import {
 } from "../../factories";
 import { asAnonymous, asUser } from "../../setup/auth";
 
-describe("getOrdersAction — error types", () => {
+describe("getOrdersAction - error types", () => {
   it("rejects an anonymous caller with UnauthenticatedError, not a generic 500", async () => {
     asAnonymous();
     await expect(getOrdersAction({})).rejects.toBeInstanceOf(
@@ -28,7 +28,7 @@ describe("getOrdersAction — error types", () => {
   });
 });
 
-describe("getOrderByIdAction — error types", () => {
+describe("getOrderByIdAction - error types", () => {
   it("rejects an anonymous caller with UnauthenticatedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
@@ -63,7 +63,7 @@ describe("getOrderByIdAction — error types", () => {
     });
   });
 
-  it("rejects a nonexistent order id with the identical NotFoundError — no existence oracle", async () => {
+  it("rejects a nonexistent order id with the identical NotFoundError - no existence oracle", async () => {
     const buyer = await createUser();
     asUser(buyer);
 
@@ -74,7 +74,7 @@ describe("getOrderByIdAction — error types", () => {
   });
 });
 
-describe("cancelOrderAction — error types", () => {
+describe("cancelOrderAction - error types", () => {
   it("rejects a caller who doesn't own the order with UnauthorizedError", async () => {
     const { shop } = await seedShopWithProducts();
     const buyer = await createUser();
@@ -93,7 +93,7 @@ describe("cancelOrderAction — error types", () => {
     });
   });
 
-  it("rejects a nonexistent order id with the identical UnauthorizedError — no existence oracle", async () => {
+  it("rejects a nonexistent order id with the identical UnauthorizedError - no existence oracle", async () => {
     const buyer = await createUser();
     asUser(buyer);
 
@@ -122,7 +122,7 @@ describe("cancelOrderAction — error types", () => {
   });
 });
 
-describe("getShopOrderByIdAction — error types", () => {
+describe("getShopOrderByIdAction - error types", () => {
   it("rejects an anonymous caller with UnauthenticatedError", async () => {
     const { shop } = await seedShopWithProducts();
     const order = await createOrderAtStatus({
@@ -153,7 +153,7 @@ describe("getShopOrderByIdAction — error types", () => {
     });
   });
 
-  it("rejects a nonexistent order id with the identical NotFoundError — no existence oracle", async () => {
+  it("rejects a nonexistent order id with the identical NotFoundError - no existence oracle", async () => {
     const seeded = await seedShopWithProducts();
     asUser(seeded.owner);
 
@@ -166,7 +166,7 @@ describe("getShopOrderByIdAction — error types", () => {
   });
 });
 
-describe("batchUpdateOrderStatusAction — error types", () => {
+describe("batchUpdateOrderStatusAction - error types", () => {
   it("rejects a batch containing a foreign order with UnauthorizedError, and does not leak the foreign order's display_id", async () => {
     const seededA = await seedShopWithProducts();
     const seededB = await seedShopWithProducts();

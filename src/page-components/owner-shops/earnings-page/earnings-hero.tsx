@@ -33,7 +33,7 @@ export function EarningsHero({
         <Skeleton className="mt-2 h-12 w-48" />
       ) : isError ? (
         <p className="mt-1 text-4xl font-black tabular-nums text-muted-foreground sm:text-5xl">
-          —
+          -
         </p>
       ) : (
         <p className="mt-1 text-4xl font-black tabular-nums text-foreground sm:text-5xl">
@@ -41,7 +41,7 @@ export function EarningsHero({
         </p>
       )}
       {isLoading || isError ? (
-        <p className="mt-1 text-sm font-medium text-muted-foreground">—</p>
+        <p className="mt-1 text-sm font-medium text-muted-foreground">-</p>
       ) : (
         <p className="mt-1 text-sm font-medium text-muted-foreground">
           {orderCount}{" "}

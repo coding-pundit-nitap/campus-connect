@@ -6,8 +6,8 @@
 // base.repository.ts: `Omit<XArgs, "where">` is a weak type, and TypeScript
 // applies only the weak-type common-property check when a fresh object literal
 // is inferred to a naked generic type parameter). Per-site behavioural tests
-// would need one integration test per scoped method — 30+ of them, each
-// needing its own seed data — and would still only cover the methods someone
+// would need one integration test per scoped method - 30+ of them, each
+// needing its own seed data - and would still only cover the methods someone
 // remembered to write a test for. Reverting all ten repository files to the
 // vulnerable form failed only 5 tests; the other 27 sites could be re-broken
 // with a green suite.
@@ -18,7 +18,7 @@
 // Two failure modes, both observed in this codebase:
 //
 //   (i)  spread of the caller's options bag AFTER the `where` key, at the
-//        query-argument level — the original leak:
+//        query-argument level - the original leak:
 //            findMany({ where: { user_id }, ...options })
 //
 //   (ii) the caller's `where` spread LAST inside the `where` literal, so a
@@ -37,8 +37,8 @@ const REPOSITORY_DIR = join(process.cwd(), "src", "repositories");
 const BAG_SPREAD = /^\.\.\.\(?\s*(options|opts|args|data|rest)\b/;
 
 /**
- * Strips line and block comments so the prose in base.repository.ts — which
- * deliberately quotes the forbidden shape as an example — is not scanned as
+ * Strips line and block comments so the prose in base.repository.ts - which
+ * deliberately quotes the forbidden shape as an example - is not scanned as
  * code. Naive about comment markers inside string literals; the repository
  * sources contain none, and a false positive here would fail loudly rather
  * than silently pass.
@@ -143,7 +143,7 @@ function auditFile(file: string, raw: string): Violation[] {
         violations.push({
           file,
           line: lineOf(source, literal.index),
-          rule: "options-bag spread after `where` — the bag's `where` replaces the scope",
+          rule: "options-bag spread after `where` - the bag's `where` replaces the scope",
           snippet: entries[bagIdx],
         });
       }
@@ -162,7 +162,7 @@ function auditFile(file: string, raw: string): Violation[] {
         violations.push({
           file,
           line: lineOf(source, literal.index),
-          rule: "`...where` is not the first entry in the `where` literal — a caller filter overrides the scope keys before it",
+          rule: "`...where` is not the first entry in the `where` literal - a caller filter overrides the scope keys before it",
           snippet: entry.replace(/\s+/g, " ").slice(0, 120),
         });
       }
@@ -192,7 +192,7 @@ describe("repository scope hardening (source-level guard)", () => {
         `    const { where, ...rest } = options ?? {};\n` +
         `    prisma.x.findMany({ ...rest, where: { ...where, scope } });\n` +
         `See the block comment at the top of base.repository.ts.\n\n` +
-        violations.map((v) => `  ${v.file}:${v.line} — ${v.snippet}`).join("\n")
+        violations.map((v) => `  ${v.file}:${v.line} - ${v.snippet}`).join("\n")
     ).toEqual([]);
   });
 
@@ -207,12 +207,12 @@ describe("repository scope hardening (source-level guard)", () => {
       violations,
       `A caller-supplied \`where\` is spread after the scope keys, so it can ` +
         `override them. Put \`...where\` first.\n\n` +
-        violations.map((v) => `  ${v.file}:${v.line} — ${v.snippet}`).join("\n")
+        violations.map((v) => `  ${v.file}:${v.line} - ${v.snippet}`).join("\n")
     ).toEqual([]);
   });
 
   // Proves the guard is wired to real files rather than silently scanning an
-  // empty set — a green result above is only meaningful if this holds.
+  // empty set - a green result above is only meaningful if this holds.
   it("scans the whole repository layer", () => {
     const files = repositoryFiles();
     expect(files.length).toBeGreaterThanOrEqual(15);

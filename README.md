@@ -34,7 +34,7 @@
 
 ## 🏔️ The Problem Worth Solving
 
-**NIT Arunachal Pradesh sits on a hillside.** The student hostels are approximately **100 metres above** the street-level vendors. That's not a metaphor — it's a literal altitude gap that makes food and supply delivery painful for everyone involved.
+**NIT Arunachal Pradesh sits on a hillside.** The student hostels are approximately **100 metres above** the street-level vendors. That's not a metaphor - it's a literal altitude gap that makes food and supply delivery painful for everyone involved.
 
 Before Campus Connect, the workflow looked like this:
 
@@ -49,7 +49,7 @@ Every order was an uncoordinated, exhausting, inefficient climb.
 
 ## 🚀 The Solution: Batch & Climb
 
-Campus Connect's core innovation is the **Batch & Climb** model — a time-slot batching system that turns chaos into a single, coordinated trip.
+Campus Connect's core innovation is the **Batch & Climb** model - a time-slot batching system that turns chaos into a single, coordinated trip.
 
 ### How it works
 
@@ -170,7 +170,7 @@ cp .env.example .env
 pnpm docker:dev:up
 ```
 
-This single command orchestrates the **entire development environment** in the correct dependency order — no manual wiring required:
+This single command orchestrates the **entire development environment** in the correct dependency order - no manual wiring required:
 
 ```mermaid
 graph LR
@@ -217,7 +217,7 @@ graph LR
 docker compose exec app-dev pnpm exec tsx prisma/seed-test.ts
 ```
 
-This populates your local database with a complete development fixture set: a sample shop, vendor account, student account, product catalogue, time-slot batch configurations, and orders spanning all lifecycle states — giving you a fully functional environment without any manual data entry.
+This populates your local database with a complete development fixture set: a sample shop, vendor account, student account, product catalogue, time-slot batch configurations, and orders spanning all lifecycle states - giving you a fully functional environment without any manual data entry.
 
 ### 5. Access services
 
@@ -348,7 +348,7 @@ We'd love your help making Campus Connect better. Here's everything you need to 
 
 ### Pre-commit hooks
 
-**Husky + lint-staged** run automatically on every commit. Prettier and ESLint will auto-fix staged files before your commit lands — no manual formatting step needed.
+**Husky + lint-staged** run automatically on every commit. Prettier and ESLint will auto-fix staged files before your commit lands - no manual formatting step needed.
 
 ### Branching convention
 
@@ -367,10 +367,10 @@ yourname/short-description
 > API Routes / Server Actions  →  Services  →  Repositories  →  Prisma
 > ```
 >
-> - **API Routes / Server Actions** handle HTTP/RPC concerns only — no business logic
+> - **API Routes / Server Actions** handle HTTP/RPC concerns only - no business logic
 > - **Services** contain all business logic and orchestration
 > - **Repositories** are the only layer that touches Prisma directly
-> - **Prisma** is the ORM — never called from routes or services directly
+> - **Prisma** is the ORM - never called from routes or services directly
 
 Skipping layers (e.g., calling Prisma from a route) will be flagged in code review.
 
@@ -394,7 +394,7 @@ This runs `typecheck + lint:fix + format` in sequence. **PRs that fail validatio
 
 Keep PRs **under 300 lines changed**. Large PRs are hard to review and slow down the team. Break big features into logical, reviewable chunks.
 
-### Commit style — Conventional Commits
+### Commit style - Conventional Commits
 
 ```
 feat: add OTP resend endpoint for locked batches

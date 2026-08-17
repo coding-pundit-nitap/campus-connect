@@ -7,7 +7,7 @@ import { authUtils } from "@/lib/utils/auth.utils.server";
  *
  * This is an internal authorization helper, not a client-callable action.
  * It must only be imported into server-side code (e.g. "use server" action
- * files) and invoked there — it must never live in a "use server" module
+ * files) and invoked there - it must never live in a "use server" module
  * itself, since every export of such a module becomes a callable endpoint.
  *
  * @returns The admin user's id.

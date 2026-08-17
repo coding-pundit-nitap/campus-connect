@@ -50,7 +50,7 @@ export function isWithinShopHours(
   // string must not be read as "shop is open". Callers only reach this
   // function when both strings are truthy (validateDeliveryTime below
   // gates on `shopOpening && shopClosing`), so a parse failure here means
-  // malformed data, not merely unset hours — the unset case is already
+  // malformed data, not merely unset hours - the unset case is already
   // handled upstream by skipping this check entirely.
   if (!openingTime || !closingTime) {
     return false;

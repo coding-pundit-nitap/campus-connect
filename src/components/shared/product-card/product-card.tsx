@@ -25,8 +25,8 @@ import { ProductCardImage } from "./product-card-header";
  * ```
  *
  * For pre-built variants, use:
- * - `UserProductCard` — user-facing card with add-to-cart, watchlist
- * - `OwnerProductCard` — owner card with edit/delete actions
+ * - `UserProductCard` - user-facing card with add-to-cart, watchlist
+ * - `OwnerProductCard` - owner card with edit/delete actions
  */
 
 interface ProductCardFrameProps {

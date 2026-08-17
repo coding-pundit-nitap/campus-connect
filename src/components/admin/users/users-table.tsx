@@ -127,7 +127,7 @@ export function UsersTable({ initialData, searchParams }: UsersTableProps) {
                   <TableCell>
                     <UserRoleBadge role={user.role} />
                   </TableCell>
-                  <TableCell>{user.phone || "—"}</TableCell>
+                  <TableCell>{user.phone || "-"}</TableCell>
                   <TableCell>
                     <ClientDate date={user.createdAt} format="datetime" />
                   </TableCell>

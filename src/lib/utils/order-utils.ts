@@ -1,5 +1,5 @@
 /**
- * Shared order utilities — single source of truth for address parsing and
+ * Shared order utilities - single source of truth for address parsing and
  * order display helpers used across vendor dashboard, order console, and
  * order cards.
  */

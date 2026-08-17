@@ -12,7 +12,7 @@ export function CashOnlineSplit({ data }: { data: VendorEarningsResponse }) {
         <div className="flex items-center gap-2">
           <Banknote className="h-5 w-5 text-emerald-600" />
           <h3 className="font-heading text-sm font-black text-foreground">
-            Cash — in your drawer
+            Cash - in your drawer
           </h3>
         </div>
         <p className="mt-2 text-2xl font-black tabular-nums text-foreground">
@@ -39,7 +39,7 @@ export function CashOnlineSplit({ data }: { data: VendorEarningsResponse }) {
         <div className="flex items-center gap-2">
           <Smartphone className="h-5 w-5 text-blue-600" />
           <h3 className="font-heading text-sm font-black text-foreground">
-            Online — paid to the platform
+            Online - paid to the platform
           </h3>
         </div>
         <p className="mt-2 text-2xl font-black tabular-nums text-foreground">

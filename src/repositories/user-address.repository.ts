@@ -41,7 +41,7 @@ export class UserAddressRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.userAddress.findUnique({
       ...rest,
@@ -73,7 +73,7 @@ export class UserAddressRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts. `orderBy` stays *before*
+    // Scope hardening - see base.repository.ts. `orderBy` stays *before*
     // `...rest` so it remains an overridable default; `where` goes after so
     // the `user_id` scope cannot be overridden.
     const { where, ...rest } = options ?? {};
@@ -104,7 +104,7 @@ export class UserAddressRepository extends BaseRepository<
     // Ownership check: without this, `address_id` update below runs by
     // `id` alone, so any caller could flip `is_default: true` on another
     // user's address row while clearing their own default in the same
-    // transaction — matches the `updateWithDefault`/`deleteByIdAndUserId`
+    // transaction - matches the `updateWithDefault`/`deleteByIdAndUserId`
     // pattern above.
     const existingAddress = await this.delegate.findUnique({
       where: { id: address_id },
@@ -271,7 +271,7 @@ export class UserAddressRepository extends BaseRepository<
       >
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.userAddress.update({
         ...rest,

@@ -41,7 +41,7 @@ export class CategoryRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.category.findUnique({
       ...rest,
@@ -72,7 +72,7 @@ export class CategoryRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.category.findUnique({
       ...rest,
@@ -249,7 +249,7 @@ export class CategoryRepository extends BaseRepository<
       >
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.category.update({
         ...rest,

@@ -50,7 +50,7 @@ export class OrderRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findUnique({
       ...rest,
@@ -61,7 +61,7 @@ export class OrderRepository extends BaseRepository<
   /**
    * Orders belonging to `user_id`.
    *
-   * `options.where` IS accepted here (callers filter by status / date range —
+   * `options.where` IS accepted here (callers filter by status / date range -
    * see GET /api/orders) but it is merged *under* `user_id`: the caller's
    * filter is ANDed in and `user_id` always wins. It can never widen the
    * result set beyond the caller's own orders. See base.repository.ts.
@@ -121,7 +121,7 @@ export class OrderRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts. `shop_id` always wins, so a
+    // Scope hardening - see base.repository.ts. `shop_id` always wins, so a
     // vendor can never read another shop's orders.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.order.findMany({
@@ -154,7 +154,7 @@ export class OrderRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts. Callers that want an
+    // Scope hardening - see base.repository.ts. Callers that want an
     // arbitrary `where` with no id list must use `findMany` directly rather
     // than passing `[]` here and relying on the old spread-override.
     const { where, ...rest } = options ?? {};
@@ -218,7 +218,7 @@ export class OrderRepository extends BaseRepository<
     | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts. `where` and `data` are
+      // Scope hardening - see base.repository.ts. `where` and `data` are
       // re-applied after `...rest`, so `options` can neither redirect the
       // update at a different row nor swap out `data`.
       const { where, ...rest } = options ?? {};
@@ -383,7 +383,7 @@ export class OrderRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = { ...rest, where: { ...where, id: orderId } };
     return this.prismaClient.order.findUnique(query);

@@ -12,7 +12,7 @@ const log = createLogger("stock-watch-notification-service");
  * mutation flows once stock transitions from zero to positive. It accepts
  * fully-formed display text and touches every watcher's notifications plus
  * deletes stock-watch rows, so it must never be reachable directly by a
- * client — it must not live in a "use server" module, since every export
+ * client - it must not live in a "use server" module, since every export
  * of such a module becomes a callable endpoint.
  *
  * @param product_id - The product that came back into stock.

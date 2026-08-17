@@ -48,7 +48,7 @@ describe("verifyAdmin relocated to src/lib/verify-admin.ts still behaves correct
 });
 
 describe("notifyStockWatchers relocated to services/notification, invoked only via the legitimate restock path", () => {
-  it("notifies and clears watchers for the restocked product only — an unrelated watcher's row on a different product is untouched", async () => {
+  it("notifies and clears watchers for the restocked product only - an unrelated watcher's row on a different product is untouched", async () => {
     const shop = await createShop({ accepting_orders: true });
     const owner = await createUser({ shop_id: shop.id });
     const restockedProduct = await createProduct({

@@ -45,7 +45,7 @@ const RETAIL_VOCABULARY: VendorVocabulary = {
  * Vendor-facing labels that differ by shop type.
  *
  * Two variants: food (CANTEEN) and retail (STATIONERY, GROCERY). Retail types
- * share wording because both fulfil orders the same way — pick items off a
+ * share wording because both fulfil orders the same way - pick items off a
  * shelf and pack them.
  *
  * Defaults to the food vocabulary, matching the `shop_type` column default of

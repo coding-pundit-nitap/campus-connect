@@ -78,12 +78,12 @@ export function FeesScheduleStep({
                     Two ways customers get their order
                   </p>
                   <p>
-                    <span className="font-semibold">Batch</span> — orders are
+                    <span className="font-semibold">Batch</span> - orders are
                     grouped and delivered together at a set time. Cheaper for
                     the customer, one trip for you.
                   </p>
                   <p>
-                    <span className="font-semibold">Direct</span> — delivered on
+                    <span className="font-semibold">Direct</span> - delivered on
                     its own as soon as it&apos;s ready. Costs the customer more,
                     and is a separate trip for you.
                   </p>

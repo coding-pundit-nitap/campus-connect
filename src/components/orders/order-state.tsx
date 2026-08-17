@@ -61,7 +61,7 @@ export function OrderEmptyState() {
     <EmptyState
       icon={<ShoppingCart className="h-10 w-10 text-muted-foreground" />}
       title="No orders yet"
-      description="Browse campus shops and place your first order — delivery right to your hostel!"
+      description="Browse campus shops and place your first order - delivery right to your hostel!"
       action={
         <Button asChild variant="default" className="mt-2">
           <Link href="/feed">Browse Shops</Link>

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# campus_connect — Backup Verification Script
+# campus_connect - Backup Verification Script
 # Tests integrity of backups WITHOUT restoring to production
 # Usage: ./verify.sh [--latest | --backup TIMESTAMP]
 # =============================================================================
@@ -64,8 +64,8 @@ BACKUP_TS="${1:-latest}"
 PASS=0; FAIL=0
 
 log()  { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
-ok()   { log "✅ PASS — $*"; PASS=$(( PASS + 1 )); }
-fail() { log "❌ FAIL — $*"; FAIL=$(( FAIL + 1 )); }
+ok()   { log "✅ PASS - $*"; PASS=$(( PASS + 1 )); }
+fail() { log "❌ FAIL - $*"; FAIL=$(( FAIL + 1 )); }
 
 # ── Find backup ───────────────────────────────────────────────────────────────
 if [[ "$BACKUP_TS" == "latest" || "$BACKUP_TS" == "--latest" ]]; then
@@ -176,7 +176,7 @@ verify_redis() {
   magic=$(set +o pipefail; gunzip -c "$rdb_file" 2>/dev/null | head -c 5 || echo "")
   [[ "$magic" == "REDIS" ]] \
     && ok "Redis RDB magic bytes valid" \
-    || fail "Redis RDB magic bytes invalid — file may be corrupt"
+    || fail "Redis RDB magic bytes invalid - file may be corrupt"
 }
 
 # ── 5. Age check ──────────────────────────────────────────────────────────────
@@ -221,7 +221,7 @@ main() {
 
   echo "────────────────────────────────────────────────────────────"
   echo "Results: ${PASS} passed, ${FAIL} failed"
-  (( FAIL == 0 )) && echo "🟢 Backup is VALID" || echo "🔴 Backup has ISSUES — do not rely on it"
+  (( FAIL == 0 )) && echo "🟢 Backup is VALID" || echo "🔴 Backup has ISSUES - do not rely on it"
   (( FAIL == 0 ))
 }
 

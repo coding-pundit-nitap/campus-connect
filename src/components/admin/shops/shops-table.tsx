@@ -171,7 +171,7 @@ export function ShopsTable({ initialData, searchParams }: ShopsTableProps) {
                         {shop.user?.name ?? "Unassigned"}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {shop.user?.email ?? "—"}
+                        {shop.user?.email ?? "-"}
                       </span>
                     </div>
                   </TableCell>

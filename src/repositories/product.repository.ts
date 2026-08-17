@@ -41,7 +41,7 @@ export class ProductRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts. `deleted_at: null` is part of
+    // Scope hardening - see base.repository.ts. `deleted_at: null` is part of
     // the scope and must survive any caller-supplied filter.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.product.findFirst({
@@ -126,7 +126,7 @@ export class ProductRepository extends BaseRepository<
     | Prisma.Result<Prisma.ProductDelegate, Prisma.ProductUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.product.update({
         ...rest,
@@ -164,7 +164,7 @@ export class ProductRepository extends BaseRepository<
     product_id: string,
     // `where?: never` keeps the compile-time rejection this signature had
     // before scope hardening. It has no overload pair, so this parameter type
-    // IS the public contract — and it is not a naked generic, so full
+    // IS the public contract - and it is not a naked generic, so full
     // excess-property checking applies (see base.repository.ts). The runtime
     // strip below still stands for `where` values that arrive un-typechecked.
     data?: Omit<Prisma.ProductDeleteArgs, "where"> & { where?: never }
@@ -201,7 +201,7 @@ export class ProductRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts. This method already
+    // Scope hardening - see base.repository.ts. This method already
     // destructured `where`, but spread it *last* inside the `where` literal,
     // so a caller filter naming `shop_id` or `deleted_at` still overrode the
     // scope. Scope keys now come last, matching every other scoped method.
@@ -238,7 +238,7 @@ export class ProductRepository extends BaseRepository<
 
   async getStockWatches(
     user_id: string,
-    // No overload pair — `where?: never` preserves compile-time rejection.
+    // No overload pair - `where?: never` preserves compile-time rejection.
     // See base.repository.ts.
     options?: Omit<Prisma.StockWatchFindManyArgs, "where"> & { where?: never }
   ) {
@@ -251,7 +251,7 @@ export class ProductRepository extends BaseRepository<
 
   async getStockWatchersByProductId(
     product_id: string,
-    // No overload pair — `where?: never` preserves compile-time rejection.
+    // No overload pair - `where?: never` preserves compile-time rejection.
     // See base.repository.ts.
     options?: Omit<Prisma.StockWatchFindManyArgs, "where"> & { where?: never }
   ) {

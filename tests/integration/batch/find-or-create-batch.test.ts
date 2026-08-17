@@ -92,7 +92,7 @@ describe("findOrCreateBatchForRequestedTime (via createOrderFromCart)", () => {
     ).resolves.toBe(1);
   });
 
-  it("reuses an existing OPEN batch for a second order at the same cutoff — one Batch row, both orders attached", async () => {
+  it("reuses an existing OPEN batch for a second order at the same cutoff - one Batch row, both orders attached", async () => {
     const { user, shop, address } = seeded;
     const { at, cutoffMinutes } = futureSlotTime();
     await createBatchSlot({

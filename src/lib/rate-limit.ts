@@ -97,7 +97,7 @@ async function rateLimitRedis(
       resetAt,
     };
   } catch {
-    // Redis unavailable — signal caller to fall back to memory store.
+    // Redis unavailable - signal caller to fall back to memory store.
     return null;
   }
 }

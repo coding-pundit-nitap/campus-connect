@@ -56,7 +56,7 @@ describe("roles: admin-only routes denied to a non-admin", () => {
 });
 
 describe("roles: getOwnedShopId() rejects a seller with no shop_id", () => {
-  it("GET /api/seller/orders denies a plain user (no shop_id) — no order data in the response", async () => {
+  it("GET /api/seller/orders denies a plain user (no shop_id) - no order data in the response", async () => {
     const plainUser = await createUser();
     asUser(plainUser);
 

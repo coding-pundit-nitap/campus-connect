@@ -157,7 +157,7 @@ export function BatchSlotSelector({
         </CardTitle>
         <CardDescription className="text-xs font-medium text-muted-foreground">
           Pick how you want your order delivered. Batch delivery groups orders
-          heading to your hostel — it's free!
+          heading to your hostel - it's free!
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 px-0 pb-0">
@@ -185,7 +185,7 @@ export function BatchSlotSelector({
               Direct Delivery
             </h4>
             <p className="text-[11px] text-muted-foreground font-medium mt-1 leading-relaxed">
-              Your order is prepared and delivered straight to you — fastest
+              Your order is prepared and delivered straight to you - fastest
               option.
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
@@ -229,7 +229,7 @@ export function BatchSlotSelector({
             </h4>
             <p className="text-[11px] text-muted-foreground font-medium mt-1 leading-relaxed">
               Your order joins others heading to your hostel. The vendor makes
-              one trip — you save on delivery!
+              one trip - you save on delivery!
             </p>
             <div className="mt-4 pt-3 border-t border-border/20 flex items-center justify-between">
               <span className="text-[11px] uppercase font-bold tracking-wider text-muted-foreground/70">
@@ -280,7 +280,7 @@ export function BatchSlotSelector({
                         className={cn(
                           "h-11 relative rounded-xl border border-border/50 bg-card/20 backdrop-blur-sm transition-all duration-300 font-semibold hover:border-blue-600/40 hover:bg-muted/10 flex items-center justify-center gap-1.5 px-3 text-xs",
                           isSelected &&
-                            "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
+                          "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
                         )}
                         onClick={() => onSlotSelect(slot.time)}
                       >
@@ -336,7 +336,7 @@ export function BatchSlotSelector({
                 Direct Shipment Delivery
               </p>
               <p className="text-[11px] text-muted-foreground mt-0.5 font-medium">
-                Your order will be delivered as soon as it's ready — no waiting
+                Your order will be delivered as soon as it's ready - no waiting
                 for a batch.
                 {directDeliveryFee > 0 &&
                   ` Extra direct surcharge of ₹${directDeliveryFee.toFixed(2)} applies.`}

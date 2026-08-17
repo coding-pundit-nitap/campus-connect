@@ -103,7 +103,7 @@ export default async function AdminCategoriesPage({
             contentClassName=""
           >
             <div className="text-xl font-bold truncate">
-              {stats.topCategories[0]?.name ?? "—"}
+              {stats.topCategories[0]?.name ?? "-"}
             </div>
             <p className="text-xs text-muted-foreground">
               {stats.topCategories[0]?.count ?? 0} products

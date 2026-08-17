@@ -14,7 +14,7 @@ describe("batchUpdateOrderStatusAction correctness", () => {
     vi.restoreAllMocks();
   });
 
-  it("only notifies orders that actually changed status, and reports the number of rows actually updated — not orderIds.length", async () => {
+  it("only notifies orders that actually changed status, and reports the number of rows actually updated - not orderIds.length", async () => {
     const { shop, owner } = await seedShopWithProducts();
 
     const buyerToMove1 = await createUser();
@@ -59,7 +59,7 @@ describe("batchUpdateOrderStatusAction correctness", () => {
     expect(notifiedUserIds).not.toContain(buyerAlreadyThere.id);
   });
 
-  it("awaits notification delivery before returning — the response does not resolve until publishNotification has settled", async () => {
+  it("awaits notification delivery before returning - the response does not resolve until publishNotification has settled", async () => {
     const { shop, owner } = await seedShopWithProducts();
     const buyer = await createUser();
     const order = await createOrderAtStatus({

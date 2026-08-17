@@ -13,7 +13,7 @@ export function PwaUpdater() {
   const [isChecking, setIsChecking] = useState(false);
 
   const registrationRef = useRef<ServiceWorkerRegistration | null>(null);
-  // Store the waiting worker directly — registration.waiting can become
+  // Store the waiting worker directly - registration.waiting can become
   // null on mobile if the browser discards it between detection and click.
   const waitingWorkerRef = useRef<ServiceWorker | null>(null);
 
@@ -66,7 +66,7 @@ export function PwaUpdater() {
         const cacheKeys = await caches.keys();
         await Promise.all(cacheKeys.map((key) => caches.delete(key)));
       } catch {
-        // Non-fatal — continue with the update.
+        // Non-fatal - continue with the update.
       }
     }
 
@@ -102,10 +102,10 @@ export function PwaUpdater() {
         return;
       }
     } catch {
-      // update() can fail on some mobile browsers — fall through to reload.
+      // update() can fail on some mobile browsers - fall through to reload.
     }
 
-    // If nothing else worked, just reload — the browser will pick up the
+    // If nothing else worked, just reload - the browser will pick up the
     // latest SW on next navigation anyway since caches are already cleared.
     window.location.reload();
   };

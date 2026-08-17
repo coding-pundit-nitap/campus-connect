@@ -121,7 +121,7 @@ async function raceTwoCheckoutsAtSameCutoff() {
   return { shop, a, b, results, getP2002Hits: () => p2002Hits };
 }
 
-describe("findOrCreateBatchForRequestedTime — concurrent checkouts", () => {
+describe("findOrCreateBatchForRequestedTime - concurrent checkouts", () => {
   it("never creates more than one Batch row when two checkouts race on the same cutoff, and any rejection is the known transaction-abort failure", async () => {
     const { shop, results, getP2002Hits } =
       await raceTwoCheckoutsAtSameCutoff();

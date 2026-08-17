@@ -72,7 +72,7 @@ describe("GET /api/cart", () => {
 });
 
 describe("GET /api/cart/all", () => {
-  it("returns 500 when signed out (same generic catch as /api/cart — no UnauthenticatedError special case)", async () => {
+  it("returns 500 when signed out (same generic catch as /api/cart - no UnauthenticatedError special case)", async () => {
     asAnonymous();
     const res = await GET_ALL_CARTS();
     expect(res.status).toBe(500);

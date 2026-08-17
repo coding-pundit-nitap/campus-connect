@@ -1,4 +1,4 @@
-# 🏔️ Campus Connect — Architecture Deep-Dive
+# 🏔️ Campus Connect - Architecture Deep-Dive
 
 ![Next.js](https://img.shields.io/badge/Next.js-16.2.6-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript)
@@ -7,7 +7,7 @@
 ![Redis](https://img.shields.io/badge/Redis-8.2.1-DC382D?logo=redis)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.1-4169E1?logo=postgresql)
 
-> **Campus Connect** is a batch-delivery marketplace purpose-built for NIT Arunachal Pradesh, where student hostels sit 100 metres above street-level vendors. The core innovation — **Batch & Climb** — groups orders into time-slot batches so vendors make a single uphill trip, reducing vendor fatigue and delivery costs dramatically.
+> **Campus Connect** is a batch-delivery marketplace purpose-built for NIT Arunachal Pradesh, where student hostels sit 100 metres above street-level vendors. The core innovation - **Batch & Climb** - groups orders into time-slot batches so vendors make a single uphill trip, reducing vendor fatigue and delivery costs dramatically.
 
 This document is the authoritative technical reference for engineers joining the project. It covers the full system architecture, key design decisions, data models, background workers, and the observability stack.
 
@@ -29,7 +29,7 @@ This document is the authoritative technical reference for engineers joining the
 
 Campus Connect follows a **layered, containerized architecture** composed of four logical tiers: a client layer (Next.js SSR + React), an edge proxy (Nginx), an application layer (Next.js server + separate worker process), and a storage/messaging tier (PostgreSQL, Redis, MinIO). All services are orchestrated via Docker Compose with `dev` and `prod` profiles.
 
-The application process and the background worker process are **deliberately isolated** — each runs its own Prisma client, its own Redis connection, and its own Docker container. A crash in the worker never takes down the web server.
+The application process and the background worker process are **deliberately isolated** - each runs its own Prisma client, its own Redis connection, and its own Docker container. A crash in the worker never takes down the web server.
 
 ```mermaid
 graph TD
@@ -50,7 +50,7 @@ graph TD
     end
 
     subgraph WorkerLayer["Background Workers (Separate Process)"]
-        BC["Batch Closer Worker\n(BullMQ Repeatable — cron)"]
+        BC["Batch Closer Worker\n(BullMQ Repeatable - cron)"]
         NW["Notification Worker\n(concurrency: 5)"]
         AW["Audit Worker\n(concurrency: 5)"]
         WPR["Prisma ORM\n(workers/generated/client)"]
@@ -108,7 +108,7 @@ graph TD
 
 ### State Machines
 
-Every `Order` and every `Batch` moves through a defined set of states. The two state machines are coupled — an `Order` cannot reach `COMPLETED` without its parent `Batch` reaching `COMPLETED` first.
+Every `Order` and every `Batch` moves through a defined set of states. The two state machines are coupled - an `Order` cannot reach `COMPLETED` without its parent `Batch` reaching `COMPLETED` first.
 
 ```mermaid
 stateDiagram-v2
@@ -140,7 +140,7 @@ stateDiagram-v2
 
 ### Real-Time Notification Sequence
 
-The diagram below traces a single notification from order placement all the way to the browser — no WebSocket server required. Redis Pub/Sub bridges the stateless Next.js process and the persistent worker process.
+The diagram below traces a single notification from order placement all the way to the browser - no WebSocket server required. Redis Pub/Sub bridges the stateless Next.js process and the persistent worker process.
 
 ```mermaid
 sequenceDiagram
@@ -179,7 +179,7 @@ sequenceDiagram
     VB->>VB: EventSource onmessage new order alert
 ```
 
-### Batch Closer — Step-by-Step Flow
+### Batch Closer - Step-by-Step Flow
 
 Every minute, the **Batch Closer** BullMQ Repeatable Job wakes up and runs the following logic:
 
@@ -231,10 +231,10 @@ graph TD
 
 Two distinct models exist:
 
-- **`BatchSlot`** — a _template_ (e.g., `cutoff_time_minutes: 1020` = 5:00 PM daily)
-- **`Batch`** — a _concrete instance_ created each day, with an actual `cutoff_time` datetime and a `status`
+- **`BatchSlot`** - a _template_ (e.g., `cutoff_time_minutes: 1020` = 5:00 PM daily)
+- **`Batch`** - a _concrete instance_ created each day, with an actual `cutoff_time` datetime and a `status`
 
-**Why:** If an admin changes a slot's cutoff time mid-day, historical `Batch` records retain their original cutoff. This separation preserves auditability — you can always answer "what were the exact terms of this delivery?"
+**Why:** If an admin changes a slot's cutoff time mid-day, historical `Batch` records retain their original cutoff. This separation preserves auditability - you can always answer "what were the exact terms of this delivery?"
 
 ---
 
@@ -255,8 +255,8 @@ At the moment a `Batch` transitions to `LOCKED`:
 
 The `/api/notifications/stream` Route Handler opens a long-lived HTTP response (Server-Sent Events) and subscribes to two Redis channels via `ioredis`:
 
-- `user:{id}:notifications` — targeted notifications
-- `broadcast:notifications` — platform-wide announcements
+- `user:{id}:notifications` - targeted notifications
+- `broadcast:notifications` - platform-wide announcements
 
 When the Notification Worker PUBLISHes to a channel, every connected SSE handler subscribed to that channel forwards the event to its browser client.
 
@@ -282,7 +282,7 @@ average_rating = rating_sum / review_count
 
 Both columns are updated **transactionally** every time a review is written or deleted.
 
-**Why:** Avoids a full `AVG()` aggregate query over the reviews table on every product listing page load — critical for performance on popular products with thousands of reviews.
+**Why:** Avoids a full `AVG()` aggregate query over the reviews table on every product listing page load - critical for performance on popular products with thousands of reviews.
 
 ---
 
@@ -348,7 +348,7 @@ campus-connect/
 │   ├── loki/
 │   └── promtail/
 ├── workers/                       # Separate Node.js process
-│   ├── index.ts                   # Entrypoint — registers workers + SIGTERM handler
+│   ├── index.ts                   # Entrypoint - registers workers + SIGTERM handler
 │   ├── batch/
 │   │   └── batch-closer.ts        # BullMQ Worker + Queue (repeatable cron job)
 │   ├── notification/
@@ -402,8 +402,8 @@ campus-connect/
     │   ├── queries/               # TanStack Query v5 hooks
     │   ├── ui/                    # Form/filter/drawer state hooks
     │   └── utils/                 # useInfiniteScroll, useLiveNotifications, useOnlineStatus
-    ├── repositories/              # Data access layer — 17 repository files
-    ├── services/                  # Business logic — 19 service domains
+    ├── repositories/              # Data access layer - 17 repository files
+    ├── services/                  # Business logic - 19 service domains
     ├── di/
     │   └── container.ts           # Dependency injection container
     ├── auth.ts                    # Root-level Better Auth entry point
@@ -467,7 +467,7 @@ graph LR
 | Repository                    | Prisma queries, data access only, no business logic | `src/repositories/order.repository.ts`, `src/repositories/batch.repository.ts` |
 | Prisma Client (app)           | ORM, connection pool for web server                 | `src/generated/client`                                                         |
 | Prisma Client (worker)        | ORM, isolated connection pool for workers           | `workers/generated/client`                                                     |
-| PostgreSQL                    | Source of truth for all persistent data             | —                                                                              |
+| PostgreSQL                    | Source of truth for all persistent data             | -                                                                              |
 
 ---
 
@@ -522,7 +522,7 @@ A vendor submits documents (`PENDING`). An admin may request corrections (`REQUI
 | Delivery address            | `Order.delivery_address_snapshot`                   | JSON string snapshot taken at order creation; immutable thereafter                                          |
 | Platform fee                | `PlatformSettings` singleton + `Order.platform_fee` | Fee locked into each order at checkout; changing the global fee never retroactively affects existing orders |
 | Product soft delete         | `Product.deleted_at`                                | Products are never hard-deleted; historical orders retain full product references                           |
-| Shop soft delete            | `Shop.deleted_at`                                   | Same pattern — shop records survive even after de-listing                                                   |
+| Shop soft delete            | `Shop.deleted_at`                                   | Same pattern - shop records survive even after de-listing                                                   |
 | Review aggregates           | `Product.rating_sum`, `Product.review_count`        | Denormalized for O(1) average calculation; updated transactionally per review                               |
 | Stock watch                 | `StockWatch` join model                             | Users subscribe to out-of-stock products and receive a notification when stock is replenished               |
 | Batch template vs. instance | `BatchSlot` (config) + `Batch` (runtime)            | Slot config changes never rewrite historical batch records                                                  |
@@ -590,7 +590,7 @@ every minute:
     # Internally: enqueues a SEND_NOTIFICATION job to the BullMQ notification queue
 ```
 
-The atomic transaction ensures that a batch is never seen in a half-locked state — either all orders are `BATCHED` and all OTPs generated, or none are.
+The atomic transaction ensures that a batch is never seen in a half-locked state - either all orders are `BATCHED` and all OTPs generated, or none are.
 
 ---
 

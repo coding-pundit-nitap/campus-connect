@@ -75,7 +75,7 @@ describe("GET /api/orders", () => {
     expect(body.data.hasMore).toBe(false);
   });
 
-  it("returns only the caller's own orders — a second buyer's order never appears in the page", async () => {
+  it("returns only the caller's own orders - a second buyer's order never appears in the page", async () => {
     const seeded = await seedCartReadyForCheckout();
     const address = await createUserAddress({
       user_id: seeded.user.id,

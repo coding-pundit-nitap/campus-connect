@@ -49,7 +49,7 @@ export async function addUserAddress(
 // Both functions below are duplicates of `updateAddressAction` /
 // `deleteAddressAction` in
 // `@/actions/user-addresses/user-address-actions.ts` (the ones actually
-// wired to the UI, via `useAddress.ts`) — nothing in the app imports these.
+// wired to the UI, via `useAddress.ts`) - nothing in the app imports these.
 // They are still registered as callable server actions purely because this
 // file has a top-level "use server" directive (confirmed in the build
 // manifest), so they are fixed here rather than left as an exploitable
@@ -73,14 +73,14 @@ export async function updateUserAddress(
   const { id, ...rest } = validatedFields.data;
 
   // I1: `userAddressRepository.update`'s first parameter is the ADDRESS id,
-  // not the user id — passing `user_id` there (the previous bug) resolves
+  // not the user id - passing `user_id` there (the previous bug) resolves
   // to `where: { id: user_id }`, which always throws P2025 since a
   // UserAddress row's id is never equal to a user's id. Same shape as the
   // CartService.upsertCartItem cart-id/user-id defect this branch already
   // fixed elsewhere. `updateWithDefault` takes the address id and user id
   // as separate, correctly-ordered parameters and checks ownership before
   // writing, so this is both the id-order fix and the ownership fix in one
-  // call — matching updateAddressAction's use of the same repository
+  // call - matching updateAddressAction's use of the same repository
   // method.
   const address = await userAddressRepository.updateWithDefault(id, user_id, {
     ...rest,
@@ -94,7 +94,7 @@ export async function updateUserAddress(
 
 export async function deleteUserAddress(id: string) {
   // isAuthenticated() now returns false instead of throwing when there is
-  // no session — check the result explicitly rather than relying on a
+  // no session - check the result explicitly rather than relying on a
   // throw for control flow (see auth.utils.server.ts).
   if (!(await authUtils.isAuthenticated())) {
     authUtils.unAuthenticated();
@@ -103,7 +103,7 @@ export async function deleteUserAddress(id: string) {
   const user_id = await authUtils.getUserId();
 
   // C3: this used to call `userAddressRepository.delete(id)` directly with
-  // a caller-supplied id and no ownership check at all — any authenticated
+  // a caller-supplied id and no ownership check at all - any authenticated
   // user could delete any other user's address. `deleteByIdAndUserId`
   // checks `address.user_id === user_id` before deleting and returns null
   // otherwise, matching `deleteAddressAction`'s existing pattern.

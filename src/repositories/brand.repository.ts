@@ -41,7 +41,7 @@ export class BrandRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.brand.findUnique({
       ...rest,
@@ -72,7 +72,7 @@ export class BrandRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.brand.findUnique({
       ...rest,
@@ -232,7 +232,7 @@ export class BrandRepository extends BaseRepository<
     | Prisma.Result<Prisma.BrandDelegate, Prisma.BrandUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.brand.update({
         ...rest,

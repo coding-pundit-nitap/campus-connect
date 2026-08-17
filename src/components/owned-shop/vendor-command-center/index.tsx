@@ -254,7 +254,7 @@ export function VendorCommandCenter() {
           onError: (error) => {
             toast.error(
               error.message?.includes("OTP") || error.message?.includes("otp")
-                ? "Incorrect OTP — ask the student to double-check their code."
+                ? "Incorrect OTP - ask the student to double-check their code."
                 : error.message || "Verification failed. Please try again."
             );
           },

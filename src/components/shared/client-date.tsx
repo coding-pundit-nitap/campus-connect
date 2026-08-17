@@ -23,7 +23,7 @@ export function ClientDate({
   }, []);
 
   if (!mounted) {
-    return <span>—</span>;
+    return <span>-</span>;
   }
 
   const dateObj = new Date(date);

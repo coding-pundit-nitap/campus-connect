@@ -231,7 +231,7 @@ export function AuditLogsTable({
                           : String(log.details)}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
                 </TableRow>

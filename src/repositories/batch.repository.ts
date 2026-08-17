@@ -52,7 +52,7 @@ export class BatchRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = { ...rest, where: { ...where, id: batch_id } };
     return this.prismaClient.batch.findUnique(query);
@@ -81,7 +81,7 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = { ...rest, where: { ...where, shop_id } };
     return this.prismaClient.batch.findFirst(query);
@@ -112,7 +112,7 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts. `orderBy` stays before
+    // Scope hardening - see base.repository.ts. `orderBy` stays before
     // `...rest` so it remains an overridable default.
     const { where, ...rest } = options ?? {};
     const query = {
@@ -147,7 +147,7 @@ export class BatchRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts. `orderBy` stays before
+    // Scope hardening - see base.repository.ts. `orderBy` stays before
     // `...rest` so it remains an overridable default.
     const { where, ...rest } = options ?? {};
     const query = {
@@ -182,7 +182,7 @@ export class BatchRepository extends BaseRepository<
         "findMany"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = {
       orderBy: { cutoff_time: "desc" as const },
@@ -226,7 +226,7 @@ export class BatchRepository extends BaseRepository<
         "findFirst"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     const query = {
       ...rest,
@@ -271,7 +271,7 @@ export class BatchRepository extends BaseRepository<
     | Prisma.Result<Prisma.BatchDelegate, Prisma.BatchUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.batch.update({
         ...rest,
@@ -307,7 +307,7 @@ export class BatchRepository extends BaseRepository<
       >
   > {
     try {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       const query = {
         orderBy: [

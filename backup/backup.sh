@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# campus_connect — Critical Backup Script
+# campus_connect - Critical Backup Script
 # Backs up: PostgreSQL → MinIO → Redis
 # Usage: ./backup.sh [--offsite]
 # =============================================================================
@@ -132,7 +132,7 @@ OFFSITE=false
 # ── Pre-flight ────────────────────────────────────────────────────────────────
 preflight() {
   log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  log "Campus Connect Backup — ${TIER^^} — ${TIMESTAMP}"
+  log "Campus Connect Backup - ${TIER^^} - ${TIMESTAMP}"
   log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
   require_cmd docker
@@ -157,7 +157,7 @@ preflight() {
 
   BACKUP_DIR="${BACKUP_ROOT}/${TIER}/${TIMESTAMP}"
 
-  # Disk space check — need at least 2 GB free
+  # Disk space check - need at least 2 GB free
   AVAIL=$(df -k "$BACKUP_ROOT" 2>/dev/null | awk 'NR==2{print $4}' || df -k "$HOME" | awk 'NR==2{print $4}')
   (( AVAIL > 2097152 )) || fail "Low disk space: $(bytes_human $((AVAIL*1024))) free"
 
@@ -322,7 +322,7 @@ main() {
   TOTAL_SIZE=$(du -sh "$BACKUP_DIR" | cut -f1)
 
   log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  ok "Backup complete in ${ELAPSED}s — ${TOTAL_SIZE} — ${BACKUP_DIR}"
+  ok "Backup complete in ${ELAPSED}s - ${TOTAL_SIZE} - ${BACKUP_DIR}"
   log "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 

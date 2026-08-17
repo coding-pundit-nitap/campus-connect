@@ -42,7 +42,7 @@ export class UserRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.user.findUnique({
       ...rest,
@@ -71,7 +71,7 @@ export class UserRepository extends BaseRepository<
         "findUnique"
       >
   > {
-    // Scope hardening — see base.repository.ts.
+    // Scope hardening - see base.repository.ts.
     const { where, ...rest } = options ?? {};
     return this.prismaClient.user.findUnique({
       ...rest,
@@ -147,7 +147,7 @@ export class UserRepository extends BaseRepository<
     User | Prisma.Result<Prisma.UserDelegate, Prisma.UserUpdateArgs, "update">
   > {
     if (typeof idOrArgs === "string") {
-      // Scope hardening — see base.repository.ts.
+      // Scope hardening - see base.repository.ts.
       const { where, ...rest } = options ?? {};
       return this.prismaClient.user.update({
         ...rest,

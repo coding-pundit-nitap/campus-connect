@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# campus_connect — Restore Script
+# campus_connect - Restore Script
 # Usage:
 #   ./restore.sh --list                          # list available backups
 #   ./restore.sh --backup 20240115_020000        # restore specific timestamp
@@ -140,7 +140,7 @@ find_backup_dir() {
 # ── Safety confirmation ───────────────────────────────────────────────────────
 confirm() {
   if [[ "$DRY_RUN" == "true" ]]; then
-    warn "DRY RUN — no changes will be made"
+    warn "DRY RUN - no changes will be made"
     return
   fi
   echo ""
@@ -192,7 +192,7 @@ restore_postgres() {
     "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${PG_DB}' AND pid <> pg_backend_pid();" \
   || fail "Failed to terminate connections"
 
-  # Drop database (must be separate — cannot run inside a transaction block)
+  # Drop database (must be separate - cannot run inside a transaction block)
   docker exec -e PGPASSWORD="$PG_PASSWORD" "$DB_CONTAINER" \
     psql -U "$PG_USER" -d postgres -c "DROP DATABASE IF EXISTS ${PG_DB};" \
   || fail "Failed to drop database"
@@ -282,7 +282,7 @@ main() {
   confirm
 
   log "════════════════════════════════════════════════════"
-  log "Campus Connect Restore — $(date)"
+  log "Campus Connect Restore - $(date)"
   log "════════════════════════════════════════════════════"
 
   if [[ -z "$ONLY" || "$ONLY" == "postgres" ]]; then restore_postgres; fi
@@ -290,7 +290,7 @@ main() {
   if [[ -z "$ONLY" || "$ONLY" == "redis"    ]]; then restore_redis;    fi
 
   if [[ "$DRY_RUN" == "true" ]]; then
-    ok "DRY RUN complete — no data was modified"
+    ok "DRY RUN complete - no data was modified"
   else
     ok "Restore complete ✓"
   fi

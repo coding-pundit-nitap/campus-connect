@@ -253,7 +253,7 @@ export class BatchService {
 
     const productIds = items.map((i) => i.product_id);
     // Scope with the batch's own shop. This previously passed `""` and relied
-    // on the caller `where` overriding the scope — but nothing in the caller
+    // on the caller `where` overriding the scope - but nothing in the caller
     // `where` names `shop_id`, so `shop_id: ""` survived the merge, matched no
     // rows, and every line item rendered as "Unknown Item".
     const products = await this.productRepository.findManyByShopId(

@@ -11,7 +11,7 @@
 // deliberately passing an empty shop id and relying on the caller `where`
 // overriding the scope. But `findManyByShopId` merged the scope FIRST
 // (`where: { shop_id, deleted_at: null, ...where }`), and the caller `where`
-// names only `id` — so nothing overwrote `shop_id: ""`. The query matched no
+// names only `id` - so nothing overwrote `shop_id: ""`. The query matched no
 // rows, `products` came back empty, and every line item fell through to
 // `product?.name || "Unknown Item"`.
 //
@@ -19,7 +19,7 @@
 // IN_TRANSIT batch, so the vendor console's packing list was blank-labelled
 // in production. Fixed by scoping the lookup to the batch's own shop.
 //
-// Relative imports, not the "@/" alias — vite-tsconfig-paths does not cover
+// Relative imports, not the "@/" alias - vite-tsconfig-paths does not cover
 // tests/**/*.ts (see tests/factories/index.ts for the full rationale).
 import { describe, expect, it } from "vitest";
 
