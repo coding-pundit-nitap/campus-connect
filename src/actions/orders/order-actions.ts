@@ -494,8 +494,8 @@ export async function batchUpdateOrderStatusAction({
       );
     }
 
-    Promise.allSettled(
-      orders.map((order) => {
+    await Promise.allSettled(
+      ordersToUpdate.map((order) => {
         if (!order.user_id) return Promise.resolve();
 
         let title = "Order Status Updated";
@@ -528,7 +528,7 @@ export async function batchUpdateOrderStatusAction({
 
     return createSuccessResponse(
       null,
-      `Successfully updated ${orderIds.length} orders to ${status}`
+      `Successfully updated ${ordersToUpdate.length} orders to ${status}`
     );
   } catch (error) {
     log.error({ err: error }, "BATCH UPDATE ORDER STATUS ERROR:");
