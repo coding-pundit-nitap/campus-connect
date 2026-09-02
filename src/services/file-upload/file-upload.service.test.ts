@@ -98,7 +98,7 @@ describe("FileUploadService", () => {
       await expect(
         fileUploadService.upload("test.exe", "application/x-msdownload", 1024, fileBuffer, {
           ...defaultOptions,
-          allowedMimeTypes: ["application/x-msdownload"],
+          allowedTypes: ["application/x-msdownload"],
         })
       ).rejects.toThrow(BadRequestError);
     });
