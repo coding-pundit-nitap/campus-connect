@@ -35,7 +35,23 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       reportsDirectory: "./coverage",
+      exclude: [
+        "**/generated/**",
+        "**/*.d.ts",
+
+        // Type-only / barrel files
+        "src/types/**",
+        "src/**/index.ts",
+
+        // Tests and test infrastructure
+        "tests/**",
+      ],
+
       thresholds: {
+        statements: 45,
+        branches: 35,
+        functions: 40,
+        lines: 60,
         "src/rbac.ts": {
           statements: 95,
           branches: 90,
@@ -53,6 +69,36 @@ export default defineConfig({
           branches: 75,
           functions: 95,
           lines: 95,
+        },
+        "src/services/product/product.service.ts": {
+          statements: 95,
+          branches: 95,
+          functions: 95,
+          lines: 95,
+        },
+        "src/repositories/order.repository.ts": {
+          statements: 90,
+          branches: 65,
+          functions: 90,
+          lines: 90,
+        },
+        "src/repositories/product.repository.ts": {
+          statements: 95,
+          branches: 80,
+          functions: 95,
+          lines: 95,
+        },
+        "src/repositories/user.repository.ts": {
+          statements: 95,
+          branches: 80,
+          functions: 95,
+          lines: 95,
+        },
+        "src/services/file-upload/file-upload.service.ts": {
+          statements: 90,
+          branches: 90,
+          functions: 95,
+          lines: 90,
         },
       },
     },

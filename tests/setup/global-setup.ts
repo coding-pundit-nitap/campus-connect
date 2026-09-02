@@ -11,7 +11,21 @@ import {
 
 async function admin<T>(fn: (c: Client) => Promise<T>): Promise<T> {
   const client = new Client({ connectionString: ADMIN_DATABASE_URL });
-  await client.connect();
+  try {
+    await client.connect();
+  } catch (err: unknown) {
+    const error = err as { code?: string; errors?: Array<{ code?: string }> };
+    if (
+      error?.code === "ECONNREFUSED" ||
+      error?.errors?.some?.((e) => e?.code === "ECONNREFUSED")
+    ) {
+      throw new Error(
+        `Could not connect to test PostgreSQL on port 5433 (${ADMIN_DATABASE_URL}).\n` +
+          `Make sure test infrastructure is running: 'pnpm test:infra'`
+      );
+    }
+    throw err;
+  }
   try {
     return await fn(client);
   } finally {
@@ -80,11 +94,15 @@ export async function setup() {
 }
 
 export async function teardown() {
-  await admin(async (c) => {
-    for (let i = 1; i <= TEST_WORKERS; i++) {
-      const db = workerDbName(i);
-      await disconnectAll(c, db);
-      await c.query(`DROP DATABASE IF EXISTS "${db}"`);
-    }
-  });
+  try {
+    await admin(async (c) => {
+      for (let i = 1; i <= TEST_WORKERS; i++) {
+        const db = workerDbName(i);
+        await disconnectAll(c, db);
+        await c.query(`DROP DATABASE IF EXISTS "${db}"`);
+      }
+    });
+  } catch {
+    // Suppress teardown errors if setup could not connect to Postgres
+  }
 }
