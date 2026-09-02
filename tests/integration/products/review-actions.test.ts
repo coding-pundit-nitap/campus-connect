@@ -44,9 +44,9 @@ describe("Review Actions", () => {
         data: {
           order_id: order.id,
           product_id: product.id,
-          
+
           quantity: 1,
-          
+
           price: 100,
         },
       });
@@ -87,9 +87,9 @@ describe("Review Actions", () => {
         data: {
           order_id: order.id,
           product_id: product.id,
-          
+
           quantity: 1,
-          
+
           price: 100,
         },
       });
@@ -123,9 +123,9 @@ describe("Review Actions", () => {
         data: {
           order_id: order.id,
           product_id: product.id,
-          
+
           quantity: 1,
-          
+
           price: 100,
         },
       });

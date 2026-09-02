@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError } from "@/lib/custom-error";
+import type { prisma } from "@/lib/prisma";
+import type { ProductRepository } from "@/repositories/product.repository";
+import type { ReviewRepository } from "@/repositories/reviews.repository";
+import type { NotificationService } from "@/services/notification/notification.service";
 
 import { ReviewService } from "./review.service";
 
@@ -15,10 +19,23 @@ vi.mock("@/lib/logger", () => ({
 
 describe("ReviewService", () => {
   let service: ReviewService;
-  let productRepo: any;
-  let reviewRepo: any;
-  let notificationService: any;
-  let prismaClient: any;
+  let productRepo: {
+    findById: ReturnType<typeof vi.fn>;
+  };
+  let reviewRepo: {
+    createReview: ReturnType<typeof vi.fn>;
+    findById: ReturnType<typeof vi.fn>;
+    updateReview: ReturnType<typeof vi.fn>;
+    updateProductRatings: ReturnType<typeof vi.fn>;
+  };
+  let notificationService: {
+    publishNotification: ReturnType<typeof vi.fn>;
+  };
+  let prismaClient: {
+    orderItem: {
+      findUnique: ReturnType<typeof vi.fn>;
+    };
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +58,12 @@ describe("ReviewService", () => {
       },
     };
 
-    service = new ReviewService(productRepo, reviewRepo, notificationService, prismaClient);
+    service = new ReviewService(
+      productRepo as unknown as ProductRepository,
+      reviewRepo as unknown as ReviewRepository,
+      notificationService as unknown as NotificationService,
+      prismaClient as unknown as typeof prisma
+    );
   });
 
   describe("createReview", () => {
@@ -69,7 +91,10 @@ describe("ReviewService", () => {
         select: expect.any(Object),
       });
       expect(reviewRepo.createReview).toHaveBeenCalled();
-      expect(notificationService.publishNotification).toHaveBeenCalledWith("shop-owner-1", expect.any(Object));
+      expect(notificationService.publishNotification).toHaveBeenCalledWith(
+        "shop-owner-1",
+        expect.any(Object)
+      );
       expect(result).toEqual({ id: "rev-1" });
     });
 
@@ -79,12 +104,14 @@ describe("ReviewService", () => {
         order: { user_id: "other-user" },
       });
 
-      await expect(service.createReview(
-        { rating: 5, comment: "Great!" },
-        "prod-1",
-        "order-item-1",
-        "user-1"
-      )).rejects.toThrow(ForbiddenError);
+      await expect(
+        service.createReview(
+          { rating: 5, comment: "Great!" },
+          "prod-1",
+          "order-item-1",
+          "user-1"
+        )
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 
@@ -100,19 +127,26 @@ describe("ReviewService", () => {
         "rev-1"
       );
 
-      expect(reviewRepo.updateReview).toHaveBeenCalledWith("rev-1", { data: { comment: "Updated", rating: 5 } });
+      expect(reviewRepo.updateReview).toHaveBeenCalledWith("rev-1", {
+        data: { comment: "Updated", rating: 5 },
+      });
       expect(reviewRepo.updateProductRatings).toHaveBeenCalledWith("prod-1", 2); // 5 - 3 = 2
     });
 
     it("should throw Error if review not found or user mismatch", async () => {
-      reviewRepo.findById.mockResolvedValue({ user_id: "other-user", rating: 3 });
+      reviewRepo.findById.mockResolvedValue({
+        user_id: "other-user",
+        rating: 3,
+      });
 
-      await expect(service.updateReview(
-        "user-1",
-        { rating: 5, comment: "Updated" },
-        "prod-1",
-        "rev-1"
-      )).rejects.toThrow("Review not found");
+      await expect(
+        service.updateReview(
+          "user-1",
+          { rating: 5, comment: "Updated" },
+          "prod-1",
+          "rev-1"
+        )
+      ).rejects.toThrow("Review not found");
     });
   });
 });

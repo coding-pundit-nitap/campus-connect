@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Prisma } from "@/generated/client";
 import type { prisma } from "@/lib/prisma";
 import { ShopRepository } from "@/repositories/shop.repository";
 
@@ -117,7 +118,9 @@ describe("ShopRepository", () => {
 
   describe("create", () => {
     it("calls create directly", async () => {
-      await repo.create({ data: { name: "Test Shop" } as any });
+      await repo.create({
+        data: { name: "Test Shop" },
+      } as Prisma.ShopCreateArgs);
       expect(fakes.shopCreate).toHaveBeenCalledWith({
         data: { name: "Test Shop" },
       });
@@ -126,7 +129,11 @@ describe("ShopRepository", () => {
 
   describe("update", () => {
     it("scopes by id when using id-based overload", async () => {
-      await repo.update("shop-1", { name: "New Name" }, { include: { products: true } });
+      await repo.update(
+        "shop-1",
+        { name: "New Name" },
+        { include: { products: true } }
+      );
       expect(fakes.shopUpdate).toHaveBeenCalledWith({
         include: { products: true },
         where: { id: "shop-1" },
@@ -135,7 +142,10 @@ describe("ShopRepository", () => {
     });
 
     it("calls update directly when using args-based overload", async () => {
-      await repo.update({ where: { id: "shop-1" }, data: { name: "New Name" } });
+      await repo.update({
+        where: { id: "shop-1" },
+        data: { name: "New Name" },
+      });
       expect(fakes.shopUpdate).toHaveBeenCalledWith({
         where: { id: "shop-1" },
         data: { name: "New Name" },
@@ -192,7 +202,9 @@ describe("ShopRepository", () => {
   describe("count", () => {
     it("calls count", async () => {
       await repo.count({ where: { is_active: true } });
-      expect(fakes.shopCount).toHaveBeenCalledWith({ where: { is_active: true } });
+      expect(fakes.shopCount).toHaveBeenCalledWith({
+        where: { is_active: true },
+      });
     });
   });
 
@@ -249,7 +261,9 @@ describe("ShopRepository", () => {
     });
 
     it("getFavoriteShops scopes by user_id", async () => {
-      await repo.getFavoriteShops("user-1", { include: { shop: true } } as any);
+      await repo.getFavoriteShops("user-1", {
+        include: { shop: true },
+      } as unknown as Parameters<typeof repo.getFavoriteShops>[1]);
       expect(fakes.favFindMany).toHaveBeenCalledWith({
         include: { shop: true },
         where: { user_id: "user-1" },

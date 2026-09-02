@@ -1,12 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { CartItemData, SerializedCartItem, SerializedFullCart, ShopCart } from "@/types";
+import {
+  CartItemData,
+  SerializedCartItem,
+  SerializedFullCart,
+  ShopCart,
+} from "@/types";
 
 import cartUIService from "./cart.utils";
 
 vi.mock("./image.utils", () => ({
   ImageUtils: {
-    getImageUrl: (key: string | null) => (key ? `https://images.example.com/${key}` : null),
+    getImageUrl: (key: string | null) =>
+      key ? `https://images.example.com/${key}` : null,
   },
 }));
 
@@ -23,7 +29,7 @@ describe("CartDrawerServices", () => {
     it("calculates price correctly with discounts", () => {
       const items: CartItemData[] = [
         { id: "1", price: 100, quantity: 2, discount: 10 } as CartItemData, // 90 * 2 = 180
-        { id: "2", price: 50, quantity: 1, discount: 20 } as CartItemData,  // 40 * 1 = 40
+        { id: "2", price: 50, quantity: 1, discount: 20 } as CartItemData, // 40 * 1 = 40
       ];
       expect(cartUIService.calculateCartItemsPrice(items)).toBe(220);
     });
@@ -38,10 +44,15 @@ describe("CartDrawerServices", () => {
     it("handles empty cart", () => {
       expect(cartUIService.calculateCartItemsPrice([])).toBe(0);
     });
-    
+
     it("handles null/undefined discount (treats as 0 logically though the type says number)", () => {
       const items = [
-        { id: "1", price: 100, quantity: 2, discount: null as unknown as number } as CartItemData,
+        {
+          id: "1",
+          price: 100,
+          quantity: 2,
+          discount: null as unknown as number,
+        } as CartItemData,
       ];
       // (100 * (100 - 0)) / 100 * 2 = 200
       expect(cartUIService.calculateCartItemsPrice(items)).toBe(200);
@@ -180,7 +191,7 @@ describe("CartDrawerServices", () => {
         id: "cart1",
         items: [],
       } as unknown as SerializedFullCart;
-      
+
       expect(() => cartUIService.transformToShopCart(cart)).toThrow();
     });
   });
@@ -229,7 +240,12 @@ describe("CartDrawerServices", () => {
                 price: "100",
                 discount: "0",
                 shop: {
-                  id: "shop1", name: "Shop 1", qr_image_key: "qr1", upi_id: "upi@1", min_order_value: 10, accepting_orders: true,
+                  id: "shop1",
+                  name: "Shop 1",
+                  qr_image_key: "qr1",
+                  upi_id: "upi@1",
+                  min_order_value: 10,
+                  accepting_orders: true,
                 },
               },
             },
@@ -252,19 +268,28 @@ describe("CartDrawerServices", () => {
     it("updateItemQuantity calls mutationFn with new quantity", () => {
       const mutationFn = vi.fn();
       cartUIService.updateItemQuantity("prod1", 5, mutationFn);
-      expect(mutationFn).toHaveBeenCalledWith({ product_id: "prod1", quantity: 5 });
+      expect(mutationFn).toHaveBeenCalledWith({
+        product_id: "prod1",
+        quantity: 5,
+      });
     });
 
     it("increaseItemQuantity increments quantity", () => {
       const mutationFn = vi.fn();
       cartUIService.increaseItemQuantity("prod1", 5, mutationFn);
-      expect(mutationFn).toHaveBeenCalledWith({ product_id: "prod1", quantity: 6 });
+      expect(mutationFn).toHaveBeenCalledWith({
+        product_id: "prod1",
+        quantity: 6,
+      });
     });
 
     it("decreaseItemQuantity decrements quantity", () => {
       const mutationFn = vi.fn();
       cartUIService.decreaseItemQuantity("prod1", 5, mutationFn);
-      expect(mutationFn).toHaveBeenCalledWith({ product_id: "prod1", quantity: 4 });
+      expect(mutationFn).toHaveBeenCalledWith({
+        product_id: "prod1",
+        quantity: 4,
+      });
     });
   });
 });

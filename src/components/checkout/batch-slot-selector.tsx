@@ -280,7 +280,7 @@ export function BatchSlotSelector({
                         className={cn(
                           "h-11 relative rounded-xl border border-border/50 bg-card/20 backdrop-blur-sm transition-all duration-300 font-semibold hover:border-blue-600/40 hover:bg-muted/10 flex items-center justify-center gap-1.5 px-3 text-xs",
                           isSelected &&
-                          "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
+                            "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
                         )}
                         onClick={() => onSlotSelect(slot.time)}
                       >

@@ -41,7 +41,7 @@ describe("User Actions", () => {
       await asUser(user);
 
       // Need a valid building id from reference data, standard setup usually has some or we can create it
-      const building = await testPrisma.building.create({
+      await testPrisma.building.create({
         data: { id: "test-building", name: "Test Building" },
       });
 
@@ -140,7 +140,7 @@ describe("User Actions", () => {
 
     it("throws Forbidden if not owner", async () => {
       const otherUser = await createUser();
-      
+
       await testPrisma.building.create({
         data: { id: "test-bld", name: "Test Building" },
       });
@@ -152,7 +152,9 @@ describe("User Actions", () => {
       const me = await createUser();
       await asUser(me);
 
-      await expect(deleteUserAddress(address.id)).rejects.toThrow(ForbiddenError);
+      await expect(deleteUserAddress(address.id)).rejects.toThrow(
+        ForbiddenError
+      );
     });
   });
 });

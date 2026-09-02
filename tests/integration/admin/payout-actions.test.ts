@@ -1,27 +1,24 @@
-import { beforeEach,describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   getAllPayoutsAction,
   getPayoutStatsAction,
   updatePayoutStatusAction,
 } from "@/actions/admin/payout-actions";
-import { PayoutStatus } from "@/generated/client";
 import {
-  BadRequestError,
   ForbiddenError,
   InternalServerError,
   NotFoundError,
-  UnauthorizedError,
 } from "@/lib/custom-error";
 
-import { createShop,createUser } from "../../factories";
-import { asAnonymous,asUser } from "../../setup/auth";
+import { createShop, createUser } from "../../factories";
+import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
 describe("Admin Payout Actions Integration", () => {
-  let admin: any;
-  let user: any;
-  let shop: any;
+  let admin: Awaited<ReturnType<typeof createUser>>;
+  let user: Awaited<ReturnType<typeof createUser>>;
+  let shop: Awaited<ReturnType<typeof createShop>>;
 
   beforeEach(async () => {
     admin = await createUser({ role: "ADMIN" });
@@ -99,7 +96,6 @@ describe("Admin Payout Actions Integration", () => {
     it("should filter by status and shop_id", async () => {
       asUser({ id: admin.id, role: "ADMIN" });
 
-      const otherUser = await createUser({ role: "USER" });
       const otherShop = await createShop();
 
       await testPrisma.payout.create({

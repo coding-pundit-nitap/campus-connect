@@ -1,8 +1,6 @@
-import { beforeEach,describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Prisma, Product } from "@/generated/client";
-import { createLogger } from "@/lib/logger";
-import { serializeProducts } from "@/lib/utils";
 import { ProductRepository } from "@/repositories/product.repository";
 
 import { ProductService } from "./product.service";
@@ -40,7 +38,7 @@ describe("ProductService", () => {
 
   describe("createProduct", () => {
     it("delegates to repository", async () => {
-      const data = { name: "Test" } as any;
+      const data = { name: "Test" } as Prisma.ProductCreateInput;
       const expected = { id: "prod-1" } as Product;
       vi.mocked(productRepository.create).mockResolvedValue(expected);
 
@@ -52,7 +50,7 @@ describe("ProductService", () => {
 
   describe("updateProduct", () => {
     it("delegates to repository", async () => {
-      const data = { name: "Test2" } as any;
+      const data = { name: "Test2" } as Prisma.ProductUpdateInput;
       const expected = { id: "prod-1" } as Product;
       vi.mocked(productRepository.update).mockResolvedValue(expected);
 
@@ -82,7 +80,9 @@ describe("ProductService", () => {
 
   describe("getProductById", () => {
     it("includes shop and category", async () => {
-      const expected = { id: "prod-1" } as any;
+      const expected = { id: "prod-1" } as unknown as Awaited<
+        ReturnType<ProductRepository["findById"]>
+      >;
       vi.mocked(productRepository.findById).mockResolvedValue(expected);
 
       const result = await productService.getProductById("prod-1");
@@ -126,7 +126,10 @@ describe("ProductService", () => {
     it("adds cursor and skip when cursor is provided", async () => {
       vi.mocked(productRepository.findMany).mockResolvedValue([]);
 
-      await productService.getPaginatedProducts({ limit: 10, cursor: "prod-1" });
+      await productService.getPaginatedProducts({
+        limit: 10,
+        cursor: "prod-1",
+      });
       expect(productRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           cursor: { id: "prod-1" },
@@ -138,7 +141,10 @@ describe("ProductService", () => {
     it("adds category_id to where when categoryId is provided", async () => {
       vi.mocked(productRepository.findMany).mockResolvedValue([]);
 
-      await productService.getPaginatedProducts({ limit: 10, categoryId: "cat-1" });
+      await productService.getPaginatedProducts({
+        limit: 10,
+        categoryId: "cat-1",
+      });
       expect(productRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
@@ -151,7 +157,10 @@ describe("ProductService", () => {
     it("adds discount filter when hasDiscount is provided", async () => {
       vi.mocked(productRepository.findMany).mockResolvedValue([]);
 
-      await productService.getPaginatedProducts({ limit: 10, hasDiscount: true });
+      await productService.getPaginatedProducts({
+        limit: 10,
+        hasDiscount: true,
+      });
       expect(productRepository.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
@@ -176,7 +185,7 @@ describe("ProductService", () => {
 
   describe("searchProducts", () => {
     it("verifies OR clause and default limit", async () => {
-      const expected = [{ id: "prod-1" }] as any[];
+      const expected = [{ id: "prod-1" }] as unknown as Product[];
       vi.mocked(productRepository.findMany).mockResolvedValue(expected);
 
       const result = await productService.searchProducts("test");
@@ -207,7 +216,9 @@ describe("ProductService", () => {
   describe("fetchShopProducts", () => {
     it("returns hasNextPage false for <= 10 products", async () => {
       const products = [{ id: "prod-1" }] as Product[];
-      vi.mocked(productRepository.findManyByShopId).mockResolvedValue([...products]);
+      vi.mocked(productRepository.findManyByShopId).mockResolvedValue([
+        ...products,
+      ]);
 
       const result = await productService.fetchShopProducts("shop-1");
       expect(result).toEqual({
@@ -215,20 +226,27 @@ describe("ProductService", () => {
         hasNextPage: false,
         nextCursor: null,
       });
-      expect(productRepository.findManyByShopId).toHaveBeenCalledWith("shop-1", {
-        take: 11,
-        orderBy: { created_at: Prisma.SortOrder.desc },
-        include: {
-          shop: { select: { id: true, name: true } },
-          category: true,
-          brand: true,
-        },
-      });
+      expect(productRepository.findManyByShopId).toHaveBeenCalledWith(
+        "shop-1",
+        {
+          take: 11,
+          orderBy: { created_at: Prisma.SortOrder.desc },
+          include: {
+            shop: { select: { id: true, name: true } },
+            category: true,
+            brand: true,
+          },
+        }
+      );
     });
 
     it("returns hasNextPage true and nextCursor for > 10 products", async () => {
-      const products = Array.from({ length: 11 }, (_, i) => ({ id: `prod-${i + 1}` })) as Product[];
-      vi.mocked(productRepository.findManyByShopId).mockResolvedValue([...products]);
+      const products = Array.from({ length: 11 }, (_, i) => ({
+        id: `prod-${i + 1}`,
+      })) as Product[];
+      vi.mocked(productRepository.findManyByShopId).mockResolvedValue([
+        ...products,
+      ]);
 
       const result = await productService.fetchShopProducts("shop-1");
       expect(result.hasNextPage).toBe(true);
@@ -237,7 +255,9 @@ describe("ProductService", () => {
     });
 
     it("returns error path on exception", async () => {
-      vi.mocked(productRepository.findManyByShopId).mockRejectedValue(new Error("DB Error"));
+      vi.mocked(productRepository.findManyByShopId).mockRejectedValue(
+        new Error("DB Error")
+      );
 
       const result = await productService.fetchShopProducts("shop-1");
       expect(result).toEqual({

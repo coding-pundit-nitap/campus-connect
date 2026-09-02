@@ -1,4 +1,6 @@
-import { beforeEach,describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { prisma as prismaType } from "@/lib/prisma";
 
 import { CartRepository } from "./cart.repository";
 
@@ -19,7 +21,7 @@ const buildFakePrismaClient = () => {
     product: {
       findUnique: vi.fn(),
     },
-  } as any;
+  };
 };
 
 describe("CartRepository", () => {
@@ -29,7 +31,7 @@ describe("CartRepository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     prisma = buildFakePrismaClient();
-    repository = new CartRepository(prisma);
+    repository = new CartRepository(prisma as unknown as typeof prismaType);
   });
 
   describe("findOrCreate", () => {
@@ -80,9 +82,9 @@ describe("CartRepository", () => {
 
     it("upserts item if quantity > 0", async () => {
       prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
-      
+
       prisma.cart.findUnique.mockResolvedValue({ id: "cart-1" });
-      
+
       prisma.cartItem.upsert.mockResolvedValueOnce({});
 
       await repository.upsertItemForUser("user-1", "prod-1", 2);
@@ -97,7 +99,11 @@ describe("CartRepository", () => {
         update: { quantity: 2 },
         create: {
           quantity: 2,
-          cart: { connect: { user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" } } },
+          cart: {
+            connect: {
+              user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" },
+            },
+          },
           product: { connect: { id: "prod-1" } },
         },
       });
@@ -106,7 +112,7 @@ describe("CartRepository", () => {
     it("deletes item if quantity is 0", async () => {
       prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
       prisma.cart.findUnique.mockResolvedValue({ id: "cart-1" });
-      
+
       await repository.upsertItemForUser("user-1", "prod-1", 0);
 
       expect(prisma.cartItem.deleteMany).toHaveBeenCalledWith({
@@ -138,7 +144,11 @@ describe("CartRepository", () => {
 
   describe("upsertCartItem", () => {
     it("upserts with incrementing quantity", async () => {
-      await repository.upsertCartItem({ cart_id: "cart-1", product_id: "prod-1", quantity: 3 });
+      await repository.upsertCartItem({
+        cart_id: "cart-1",
+        product_id: "prod-1",
+        quantity: 3,
+      });
 
       expect(prisma.cartItem.upsert).toHaveBeenCalledWith({
         where: {

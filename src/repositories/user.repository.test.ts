@@ -1,6 +1,6 @@
-import { beforeEach,describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Role } from "@/generated/client";
+import { Prisma, Role } from "@/generated/client";
 import type { prisma } from "@/lib/prisma";
 import { UserRepository } from "@/repositories/user.repository";
 
@@ -27,11 +27,20 @@ function buildFakePrismaClient() {
     },
   };
 
-  return { fakeClient, findUnique, findMany, create, update, deleteMock, count, deleteManySessions };
+  return {
+    fakeClient,
+    findUnique,
+    findMany,
+    create,
+    update,
+    deleteMock,
+    count,
+    deleteManySessions,
+  };
 }
 
 describe("UserRepository (Unit)", () => {
-  let fakeClient: any;
+  let fakeClient: ReturnType<typeof buildFakePrismaClient>["fakeClient"];
   let repo: UserRepository;
   let spies: ReturnType<typeof buildFakePrismaClient>;
 
@@ -46,13 +55,18 @@ describe("UserRepository (Unit)", () => {
     it("finds users with ADMIN role", async () => {
       await repo.findAdmins();
       expect(spies.findMany).toHaveBeenCalledTimes(1);
-      expect(spies.findMany.mock.calls[0][0]).toEqual({ where: { role: Role.ADMIN } });
+      expect(spies.findMany.mock.calls[0][0]).toEqual({
+        where: { role: Role.ADMIN },
+      });
     });
   });
 
   describe("findById", () => {
     it("scopes by id", async () => {
-      await repo.findById("user-1", { include: { profile: true }, where: { is_active: true } as any } as any);
+      await repo.findById("user-1", {
+        include: { profile: true },
+        where: { is_active: true } as Prisma.UserWhereInput,
+      } as unknown as Omit<Prisma.UserFindUniqueArgs, "where">);
       expect(spies.findUnique).toHaveBeenCalledTimes(1);
       expect(spies.findUnique.mock.calls[0][0]).toEqual({
         include: { profile: true },
@@ -63,7 +77,10 @@ describe("UserRepository (Unit)", () => {
 
   describe("findByEmail", () => {
     it("scopes by email", async () => {
-      await repo.findByEmail("test@example.com", { select: { id: true }, where: { is_active: true } as any } as any);
+      await repo.findByEmail("test@example.com", {
+        select: { id: true },
+        where: { is_active: true } as Prisma.UserWhereInput,
+      } as unknown as Omit<Prisma.UserFindUniqueArgs, "where">);
       expect(spies.findUnique).toHaveBeenCalledTimes(1);
       expect(spies.findUnique.mock.calls[0][0]).toEqual({
         select: { id: true },
@@ -76,7 +93,9 @@ describe("UserRepository (Unit)", () => {
     it("delegates", async () => {
       await repo.findUnique({ where: { id: "user-1" } });
       expect(spies.findUnique).toHaveBeenCalledTimes(1);
-      expect(spies.findUnique.mock.calls[0][0]).toEqual({ where: { id: "user-1" } });
+      expect(spies.findUnique.mock.calls[0][0]).toEqual({
+        where: { id: "user-1" },
+      });
     });
   });
 
@@ -90,15 +109,22 @@ describe("UserRepository (Unit)", () => {
 
   describe("create", () => {
     it("delegates", async () => {
-      await repo.create({ data: { email: "test@example.com" } } as any);
+      await repo.create({
+        data: { email: "test@example.com" },
+      } as Prisma.UserCreateArgs);
       expect(spies.create).toHaveBeenCalledTimes(1);
-      expect(spies.create.mock.calls[0][0]).toEqual({ data: { email: "test@example.com" } });
+      expect(spies.create.mock.calls[0][0]).toEqual({
+        data: { email: "test@example.com" },
+      });
     });
   });
 
   describe("update", () => {
     it("scopes by id when id is string", async () => {
-      await repo.update("user-1", { name: "Test" }, { where: { is_active: true } as any, include: { profile: true } } as any);
+      await repo.update("user-1", { name: "Test" }, {
+        where: { is_active: true } as Prisma.UserWhereInput,
+        include: { profile: true },
+      } as unknown as Omit<Prisma.UserUpdateArgs, "where" | "data">);
       expect(spies.update).toHaveBeenCalledTimes(1);
       expect(spies.update.mock.calls[0][0]).toEqual({
         include: { profile: true },
@@ -110,7 +136,10 @@ describe("UserRepository (Unit)", () => {
     it("delegates when args object passed", async () => {
       await repo.update({ where: { id: "user-1" }, data: { name: "Test" } });
       expect(spies.update).toHaveBeenCalledTimes(1);
-      expect(spies.update.mock.calls[0][0]).toEqual({ where: { id: "user-1" }, data: { name: "Test" } });
+      expect(spies.update.mock.calls[0][0]).toEqual({
+        where: { id: "user-1" },
+        data: { name: "Test" },
+      });
     });
   });
 
@@ -118,21 +147,27 @@ describe("UserRepository (Unit)", () => {
     it("scopes by id when id is string", async () => {
       await repo.delete("user-1");
       expect(spies.deleteMock).toHaveBeenCalledTimes(1);
-      expect(spies.deleteMock.mock.calls[0][0]).toEqual({ where: { id: "user-1" } });
+      expect(spies.deleteMock.mock.calls[0][0]).toEqual({
+        where: { id: "user-1" },
+      });
     });
 
     it("delegates when args object passed", async () => {
       await repo.delete({ where: { id: "user-1" } });
       expect(spies.deleteMock).toHaveBeenCalledTimes(1);
-      expect(spies.deleteMock.mock.calls[0][0]).toEqual({ where: { id: "user-1" } });
+      expect(spies.deleteMock.mock.calls[0][0]).toEqual({
+        where: { id: "user-1" },
+      });
     });
   });
 
   describe("count", () => {
     it("delegates", async () => {
-      await repo.count({ where: { is_active: true } as any });
+      await repo.count({ where: { emailVerified: true } });
       expect(spies.count).toHaveBeenCalledTimes(1);
-      expect(spies.count.mock.calls[0][0]).toEqual({ where: { is_active: true } });
+      expect(spies.count.mock.calls[0][0]).toEqual({
+        where: { emailVerified: true },
+      });
     });
   });
 
@@ -140,7 +175,9 @@ describe("UserRepository (Unit)", () => {
     it("deletes sessions for user", async () => {
       await repo.deleteAllSessions("user-1");
       expect(spies.deleteManySessions).toHaveBeenCalledTimes(1);
-      expect(spies.deleteManySessions.mock.calls[0][0]).toEqual({ where: { userId: "user-1" } });
+      expect(spies.deleteManySessions.mock.calls[0][0]).toEqual({
+        where: { userId: "user-1" },
+      });
     });
   });
 });

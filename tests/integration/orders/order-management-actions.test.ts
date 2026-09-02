@@ -1,4 +1,4 @@
-import { beforeEach,describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   acceptOrderAction,
@@ -15,28 +15,30 @@ import {
   seedOpenBatch,
   seedShopWithProducts,
 } from "../../factories";
-import { asAnonymous,asUser } from "../../setup/auth";
+import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
 describe("Order Management Actions Integration", () => {
-  let shop: any;
-  let owner: any;
-  let buyer: any;
-  let address: any;
+  let shop: Awaited<ReturnType<typeof seedShopWithProducts>>["shop"];
+  let owner: Awaited<ReturnType<typeof seedShopWithProducts>>["owner"];
+  let buyer: Awaited<ReturnType<typeof createUser>>;
 
   beforeEach(async () => {
     const seed = await seedShopWithProducts({ productCount: 1 });
     shop = seed.shop;
     owner = seed.owner;
-    
+
     buyer = await createUser();
-    address = await createUserAddress({ user_id: buyer.id });
+    await createUserAddress({ user_id: buyer.id });
   });
 
   describe("acceptOrderAction", () => {
     it("should accept order and transition to BATCHED when batch exists", async () => {
       await asUser(owner);
-      const batch = await seedOpenBatch({ shop_id: shop.id, cutoffAt: new Date(Date.now() + 30 * 60000) });
+      await seedOpenBatch({
+        shop_id: shop.id,
+        cutoffAt: new Date(Date.now() + 30 * 60000),
+      });
       const order = await createOrderAtStatus({
         order_status: "NEW",
         shop_id: shop.id,
@@ -44,8 +46,10 @@ describe("Order Management Actions Integration", () => {
       });
 
       await acceptOrderAction(order.id);
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("BATCHED");
     });
 
@@ -91,11 +95,16 @@ describe("Order Management Actions Integration", () => {
         shop_id: shop.id,
         user_id: buyer.id,
       });
-      await testPrisma.order.update({ where: { id: order.id }, data: { is_direct_delivery: true } });
+      await testPrisma.order.update({
+        where: { id: order.id },
+        data: { is_direct_delivery: true },
+      });
 
       await startDirectDeliveryAction(order.id);
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("OUT_FOR_DELIVERY");
       expect(updated?.delivery_otp).toBeDefined();
       expect(updated?.delivery_otp?.length).toBe(4);
@@ -124,8 +133,10 @@ describe("Order Management Actions Integration", () => {
       });
 
       await rejectOrderAction(order.id, "Out of stock");
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("CANCELLED");
       expect(updated?.payment_status).toBe("CANCELLED");
       expect(updated?.cancellation_reason).toBe("Out of stock");
@@ -142,8 +153,10 @@ describe("Order Management Actions Integration", () => {
       });
 
       await rejectOrderAction(order.id);
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("CANCELLED");
       expect(updated?.payment_status).toBe("REFUNDED");
     });
@@ -179,16 +192,18 @@ describe("Order Management Actions Integration", () => {
         shop_id: shop.id,
         user_id: buyer.id,
       });
-      
+
       // Manually set OTP for test
       await testPrisma.order.update({
         where: { id: order.id },
-        data: { delivery_otp: "1234" }
+        data: { delivery_otp: "1234" },
       });
 
       await verifyDeliveryOtpAction(order.id, "1234");
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("COMPLETED");
       expect(updated?.delivery_otp).toBeNull();
       expect(updated?.actual_delivery_time).toBeDefined();
@@ -201,10 +216,10 @@ describe("Order Management Actions Integration", () => {
         shop_id: shop.id,
         user_id: buyer.id,
       });
-      
+
       await testPrisma.order.update({
         where: { id: order.id },
-        data: { delivery_otp: "1234" }
+        data: { delivery_otp: "1234" },
       });
 
       await expect(verifyDeliveryOtpAction(order.id, "9999")).rejects.toThrow();
@@ -232,10 +247,14 @@ describe("Order Management Actions Integration", () => {
       });
 
       await markDeliveryFailedAction(order.id, "Customer not available");
-      
-      const updated = await testPrisma.order.findUnique({ where: { id: order.id } });
+
+      const updated = await testPrisma.order.findUnique({
+        where: { id: order.id },
+      });
       expect(updated?.order_status).toBe("DELIVERY_FAILED");
-      expect(updated?.customer_notes).toBe("[Delivery Failed: Customer not available]");
+      expect(updated?.customer_notes).toBe(
+        "[Delivery Failed: Customer not available]"
+      );
     });
 
     it("should throw if order not OUT_FOR_DELIVERY", async () => {
@@ -246,7 +265,9 @@ describe("Order Management Actions Integration", () => {
         user_id: buyer.id,
       });
 
-      await expect(markDeliveryFailedAction(order.id, "No Answer")).rejects.toThrow();
+      await expect(
+        markDeliveryFailedAction(order.id, "No Answer")
+      ).rejects.toThrow();
     });
   });
 });

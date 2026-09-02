@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Prisma } from "@/generated/client";
 import { BadRequestError } from "@/lib/custom-error";
 import type { prisma } from "@/lib/prisma";
 import { ReviewRepository } from "@/repositories/reviews.repository";
@@ -81,13 +82,19 @@ describe("ReviewRepository", () => {
 
   describe("createReview", () => {
     it("throws BadRequestError if product_id is missing in data", async () => {
-      const data = { rating: 5, product: { connect: {} } } as any;
+      const data = {
+        rating: 5,
+        product: { connect: {} },
+      } as unknown as Prisma.ReviewCreateInput;
       await expect(repo.createReview(data)).rejects.toThrow(BadRequestError);
       expect(fakes.transaction).not.toHaveBeenCalled();
     });
 
     it("creates review and increments product rating/count in transaction", async () => {
-      const data = { rating: 4, product: { connect: { id: "prod-1" } } } as any;
+      const data = {
+        rating: 4,
+        product: { connect: { id: "prod-1" } },
+      } as unknown as Prisma.ReviewCreateInput;
       await repo.createReview(data, { include: { user: true } });
 
       expect(fakes.transaction).toHaveBeenCalledTimes(1);

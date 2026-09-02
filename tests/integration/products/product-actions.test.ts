@@ -1,5 +1,4 @@
-import { beforeEach,describe, expect, it } from "vitest";
-import { vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   bulkCreateProductsAction,
@@ -11,11 +10,7 @@ import {
 import { fileUploadService } from "@/di/container";
 import { ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
 
-import {
-  createShop,
-  createUser,
-  seedShopWithProducts,
-} from "../../factories";
+import { createShop, createUser, seedShopWithProducts } from "../../factories";
 import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
@@ -23,9 +18,10 @@ describe("Product Actions", () => {
   beforeEach(() => {
     vi.spyOn(fileUploadService, "uploadOptimizedImage").mockResolvedValue({
       key: "test-key",
-      url: "test-url",
-      compressionRatio: 10
-    } as any);
+      originalSize: 1000,
+      optimizedSize: 900,
+      compressionRatio: 10,
+    });
   });
   describe("createProductAction", () => {
     it("throws if anonymous", async () => {
@@ -102,7 +98,7 @@ describe("Product Actions", () => {
 
     it("throws ForbiddenError if user is owner of a different shop", async () => {
       const { products } = await seedShopWithProducts({ productCount: 1 });
-      
+
       const otherShop = await createShop();
       const otherOwner = await createUser({ shop_id: otherShop.id });
       await asUser(otherOwner);
@@ -117,7 +113,9 @@ describe("Product Actions", () => {
     });
 
     it("updates product successfully as owner", async () => {
-      const { owner, products } = await seedShopWithProducts({ productCount: 1 });
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
       await asUser(owner);
 
       const res = await updateProductAction(products[0].id, {
@@ -127,7 +125,7 @@ describe("Product Actions", () => {
       });
 
       expect(res.data?.name).toBe("Updated Name");
-      
+
       const dbProduct = await testPrisma.product.findUnique({
         where: { id: products[0].id },
       });
@@ -138,7 +136,9 @@ describe("Product Actions", () => {
 
   describe("deleteProductAction", () => {
     it("soft deletes product as owner", async () => {
-      const { owner, products } = await seedShopWithProducts({ productCount: 1 });
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
       await asUser(owner);
 
       await deleteProductAction(products[0].id);
@@ -151,18 +151,22 @@ describe("Product Actions", () => {
 
     it("throws Forbidden if wrong shop owner", async () => {
       const { products } = await seedShopWithProducts({ productCount: 1 });
-      
+
       const otherShop = await createShop();
       const otherOwner = await createUser({ shop_id: otherShop.id });
       await asUser(otherOwner);
 
-      await expect(deleteProductAction(products[0].id)).rejects.toThrow(ForbiddenError);
+      await expect(deleteProductAction(products[0].id)).rejects.toThrow(
+        ForbiddenError
+      );
     });
   });
 
   describe("toggleProductStockAction", () => {
     it("toggles stock to default amount when set to in stock", async () => {
-      const { owner, products } = await seedShopWithProducts({ productCount: 1 });
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
       // manually set to out of stock first
       await testPrisma.product.update({
         where: { id: products[0].id },
@@ -173,7 +177,7 @@ describe("Product Actions", () => {
 
       const res = await toggleProductStockAction(products[0].id, true);
       expect(res.data?.stock_quantity).toBe(99); // DEFAULT_IN_STOCK_QUANTITY
-      
+
       const dbProduct = await testPrisma.product.findUnique({
         where: { id: products[0].id },
       });
@@ -181,7 +185,9 @@ describe("Product Actions", () => {
     });
 
     it("toggles stock to 0 when set to out of stock", async () => {
-      const { owner, products } = await seedShopWithProducts({ productCount: 1 });
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
       await asUser(owner);
 
       const res = await toggleProductStockAction(products[0].id, false);

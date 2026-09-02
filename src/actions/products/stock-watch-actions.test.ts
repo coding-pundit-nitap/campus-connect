@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BadRequestError, NotFoundError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 
@@ -42,7 +46,11 @@ describe("stock-watch-actions", () => {
   describe("toggleStockWatchAction", () => {
     it("should toggle on when not watching", async () => {
       vi.mocked(authUtils.getUserId).mockResolvedValue("user-1");
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: "prod-1", name: "Product 1", stock_quantity: 0 } as any);
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({
+        id: "prod-1",
+        name: "Product 1",
+        stock_quantity: 0,
+      } as unknown as Awaited<ReturnType<typeof prisma.product.findUnique>>);
       vi.mocked(prisma.stockWatch.findUnique).mockResolvedValue(null);
 
       const response = await toggleStockWatchAction("prod-1");
@@ -56,8 +64,16 @@ describe("stock-watch-actions", () => {
 
     it("should toggle off when already watching", async () => {
       vi.mocked(authUtils.getUserId).mockResolvedValue("user-1");
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: "prod-1", name: "Product 1", stock_quantity: 0 } as any);
-      vi.mocked(prisma.stockWatch.findUnique).mockResolvedValue({ id: "watch-1", user_id: "user-1", product_id: "prod-1" } as any);
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({
+        id: "prod-1",
+        name: "Product 1",
+        stock_quantity: 0,
+      } as unknown as Awaited<ReturnType<typeof prisma.product.findUnique>>);
+      vi.mocked(prisma.stockWatch.findUnique).mockResolvedValue({
+        id: "watch-1",
+        user_id: "user-1",
+        product_id: "prod-1",
+      } as unknown as Awaited<ReturnType<typeof prisma.stockWatch.findUnique>>);
 
       const response = await toggleStockWatchAction("prod-1");
 
@@ -72,21 +88,27 @@ describe("stock-watch-actions", () => {
       // @ts-expect-error Mocking unauthenticated state
       vi.mocked(authUtils.getUserId).mockResolvedValue(null);
 
-      await expect(toggleStockWatchAction("prod-1")).rejects.toThrow(UnauthorizedError);
+      await expect(toggleStockWatchAction("prod-1")).rejects.toThrow(
+        UnauthorizedError
+      );
     });
 
     it("should throw BadRequestError if product_id is invalid", async () => {
       vi.mocked(authUtils.getUserId).mockResolvedValue("user-1");
 
       // @ts-expect-error Intentionally invalid input
-      await expect(toggleStockWatchAction(undefined)).rejects.toThrow(BadRequestError);
+      await expect(toggleStockWatchAction(undefined)).rejects.toThrow(
+        BadRequestError
+      );
     });
 
     it("should throw NotFoundError if product not found", async () => {
       vi.mocked(authUtils.getUserId).mockResolvedValue("user-1");
       vi.mocked(prisma.product.findUnique).mockResolvedValue(null);
 
-      await expect(toggleStockWatchAction("prod-1")).rejects.toThrow(NotFoundError);
+      await expect(toggleStockWatchAction("prod-1")).rejects.toThrow(
+        NotFoundError
+      );
     });
   });
 });

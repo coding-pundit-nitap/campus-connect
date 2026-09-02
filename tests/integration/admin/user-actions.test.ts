@@ -1,4 +1,4 @@
-import { beforeEach,describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   deleteUserAction,
@@ -11,13 +11,13 @@ import {
   unsuspendUserAction,
 } from "@/actions/admin/user-actions";
 
-import { createShop,createUser } from "../../factories";
-import { asAnonymous,asUser } from "../../setup/auth";
+import { createShop, createUser } from "../../factories";
+import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
 describe("Admin User Actions Integration", () => {
   let admin: { id: string; role: string; name: string };
-  
+
   beforeEach(async () => {
     admin = await createUser({ role: "ADMIN", name: "Super Admin" });
   });
@@ -27,7 +27,7 @@ describe("Admin User Actions Integration", () => {
       await asUser(admin);
       await createUser({ name: "Alice" });
       await createUser({ name: "Bob" });
-      
+
       const response = await getAllUsersAction({ limit: 10 });
       expect(response.data.data.length).toBeGreaterThanOrEqual(3); // admin + Alice + Bob
       expect(response.data.hasMore).toBeDefined();
@@ -38,7 +38,10 @@ describe("Admin User Actions Integration", () => {
       await createUser({ name: "Charlie", email: "charlie@test.com" });
       await createUser({ name: "Delta" });
 
-      const response = await getAllUsersAction({ search: "charlie", limit: 10 });
+      const response = await getAllUsersAction({
+        search: "charlie",
+        limit: 10,
+      });
       expect(response.data.data.length).toBe(1);
       expect(response.data.data[0].name).toBe("Charlie");
     });
@@ -48,7 +51,7 @@ describe("Admin User Actions Integration", () => {
       await createUser({ role: "USER", name: "User 1" });
 
       const response = await getAllUsersAction({ role: "ADMIN", limit: 10 });
-      expect(response.data.data.every(u => u.role === "ADMIN")).toBe(true);
+      expect(response.data.data.every((u) => u.role === "ADMIN")).toBe(true);
       expect(response.data.data.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -63,7 +66,10 @@ describe("Admin User Actions Integration", () => {
       expect(firstPage.data.hasMore).toBe(true);
       expect(firstPage.data.nextCursor).toBeDefined();
 
-      const secondPage = await getAllUsersAction({ limit: 2, cursor: firstPage.data.nextCursor! });
+      const secondPage = await getAllUsersAction({
+        limit: 2,
+        cursor: firstPage.data.nextCursor!,
+      });
       expect(secondPage.data.data.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -77,18 +83,22 @@ describe("Admin User Actions Integration", () => {
     it("should promote regular user to admin", async () => {
       await asUser(admin);
       const user = await createUser({ role: "USER" });
-      
+
       await makeUserAdminAction(user.id);
-      
-      const updated = await testPrisma.user.findUnique({ where: { id: user.id } });
+
+      const updated = await testPrisma.user.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.role).toBe("ADMIN");
     });
 
     it("should throw ForbiddenError if already admin", async () => {
       await asUser(admin);
       const user = await createUser({ role: "ADMIN" });
-      
-      await expect(makeUserAdminAction(user.id)).rejects.toThrowError("User is already an admin"); // Assuming this is the message, or just testing the throw type if possible
+
+      await expect(makeUserAdminAction(user.id)).rejects.toThrowError(
+        "User is already an admin"
+      ); // Assuming this is the message, or just testing the throw type if possible
     });
 
     it("should throw NotFoundError if user doesn't exist", async () => {
@@ -112,10 +122,12 @@ describe("Admin User Actions Integration", () => {
     it("should demote admin to user", async () => {
       await asUser(admin);
       const user = await createUser({ role: "ADMIN" });
-      
+
       await removeUserAdminAction(user.id);
-      
-      const updated = await testPrisma.user.findUnique({ where: { id: user.id } });
+
+      const updated = await testPrisma.user.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.role).toBe("USER");
     });
 
@@ -127,7 +139,7 @@ describe("Admin User Actions Integration", () => {
     it("should throw ForbiddenError if target not admin", async () => {
       await asUser(admin);
       const user = await createUser({ role: "USER" });
-      
+
       await expect(removeUserAdminAction(user.id)).rejects.toThrow();
     });
 
@@ -143,7 +155,7 @@ describe("Admin User Actions Integration", () => {
       await createUser({ role: "USER", status: "ACTIVE" });
       await createUser({ role: "ADMIN", status: "ACTIVE" });
       await createUser({ role: "USER", status: "SUSPENDED" });
-      
+
       const statsResponse = await getUserStatsAction();
       const stats = statsResponse.data;
       expect(stats.totalUsers).toBeGreaterThanOrEqual(4);
@@ -156,12 +168,19 @@ describe("Admin User Actions Integration", () => {
       await asUser(admin);
       const user = await createUser();
       await testPrisma.session.create({
-        data: { id: "sess-1", userId: user.id, token: "tok-1", expiresAt: new Date(Date.now() + 86400000) }
+        data: {
+          id: "sess-1",
+          userId: user.id,
+          token: "tok-1",
+          expiresAt: new Date(Date.now() + 86400000),
+        },
       });
-      
+
       await forceSignOutUserAction(user.id);
-      
-      const sessions = await testPrisma.session.findMany({ where: { userId: user.id } });
+
+      const sessions = await testPrisma.session.findMany({
+        where: { userId: user.id },
+      });
       expect(sessions.length).toBe(0);
     });
 
@@ -175,10 +194,12 @@ describe("Admin User Actions Integration", () => {
     it("should delete regular user", async () => {
       await asUser(admin);
       const user = await createUser();
-      
+
       await deleteUserAction(user.id);
-      
-      const found = await testPrisma.user.findUnique({ where: { id: user.id } });
+
+      const found = await testPrisma.user.findUnique({
+        where: { id: user.id },
+      });
       expect(found).toBeNull();
     });
 
@@ -191,8 +212,11 @@ describe("Admin User Actions Integration", () => {
       await asUser(admin);
       const user = await createUser();
       const shop = await createShop();
-      await testPrisma.user.update({ where: { id: user.id }, data: { shop_id: shop.id } });
-      
+      await testPrisma.user.update({
+        where: { id: user.id },
+        data: { shop_id: shop.id },
+      });
+
       await expect(deleteUserAction(user.id)).rejects.toThrow();
     });
 
@@ -207,23 +231,32 @@ describe("Admin User Actions Integration", () => {
       await asUser(admin);
       const user = await createUser({ status: "ACTIVE" });
       await testPrisma.session.create({
-        data: { id: "sess-2", userId: user.id, token: "tok-2", expiresAt: new Date(Date.now() + 86400000) }
+        data: {
+          id: "sess-2",
+          userId: user.id,
+          token: "tok-2",
+          expiresAt: new Date(Date.now() + 86400000),
+        },
       });
-      
+
       await suspendUserAction(user.id, "Violation");
-      
-      const updated = await testPrisma.user.findUnique({ where: { id: user.id } });
+
+      const updated = await testPrisma.user.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.status).toBe("SUSPENDED");
       expect(updated?.suspended_at).toBeDefined();
-      
-      const sessions = await testPrisma.session.findMany({ where: { userId: user.id } });
+
+      const sessions = await testPrisma.session.findMany({
+        where: { userId: user.id },
+      });
       expect(sessions.length).toBe(0);
     });
 
     it("should throw ForbiddenError if already suspended", async () => {
       await asUser(admin);
       const user = await createUser({ status: "SUSPENDED" });
-      
+
       await expect(suspendUserAction(user.id, "Violation")).rejects.toThrow();
     });
 
@@ -236,11 +269,16 @@ describe("Admin User Actions Integration", () => {
   describe("unsuspendUserAction", () => {
     it("should unsuspend user and clear suspended fields", async () => {
       await asUser(admin);
-      const user = await createUser({ status: "SUSPENDED", suspended_at: new Date() });
-      
+      const user = await createUser({
+        status: "SUSPENDED",
+        suspended_at: new Date(),
+      });
+
       await unsuspendUserAction(user.id);
-      
-      const updated = await testPrisma.user.findUnique({ where: { id: user.id } });
+
+      const updated = await testPrisma.user.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.status).toBe("ACTIVE");
       expect(updated?.suspended_at).toBeNull();
     });
