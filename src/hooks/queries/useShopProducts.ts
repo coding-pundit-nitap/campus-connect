@@ -14,6 +14,7 @@ import {
   deleteProductAction,
   toggleProductStockAction,
   updateProductAction,
+  updateProductPriceAction,
 } from "@/actions";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
@@ -208,6 +209,31 @@ export function useToggleProductStock() {
     },
     onError: () => {
       toast.error("Failed to update availability. Please try again.");
+    },
+  });
+}
+
+export function useUpdateProductPrice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      productId,
+      price,
+    }: {
+      productId: string;
+      price: number;
+    }) => updateProductPriceAction(productId, price),
+    onSuccess: (data) => {
+      toast.success("Price updated!");
+      queryClient.invalidateQueries({ queryKey: queryKeys.products.all });
+      if (data.data?.shop_id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.products.byShop(data.data.shop_id),
+        });
+      }
+    },
+    onError: () => {
+      toast.error("Failed to update price. Please try again.");
     },
   });
 }
