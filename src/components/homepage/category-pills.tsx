@@ -2,6 +2,7 @@
 
 import React from "react";
 
+import { useIsMounted } from "@/hooks/common/useIsMounted";
 import { useActiveCategories } from "@/hooks/queries/useProductCategorySearch";
 import { cn } from "@/lib/cn";
 
@@ -11,12 +12,17 @@ type Props = {
 };
 
 export default function CategoryPills({ selectedId, onChange }: Props) {
-  const { data: categories = [], isLoading, isError } = useActiveCategories();
+  const isMounted = useIsMounted();
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+  } = useActiveCategories();
 
   return (
     <div className="relative w-full h-16 min-h-[64px] flex items-center mb-6">
       <div className="w-full flex items-center overflow-x-auto scrollbar-none snap-x snap-mandatory gap-3 py-2 px-4 md:px-1">
-        {isLoading ? (
+        {!isMounted || isLoading ? (
           Array.from({ length: 6 }).map((_, index) => (
             <div
               key={index}

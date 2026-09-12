@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  CalendarClock,
+  CheckCircle2,
   Clock,
   Coins,
   CreditCard,
@@ -26,42 +28,56 @@ import { Form, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import { useLinkShop } from "@/hooks";
 
+import { BatchScheduleStep } from "./batch-schedule-step";
 import { DetailsStep } from "./details-step";
-import { FeesScheduleStep } from "./fees-schedule-step";
 import { HoursLocationStep } from "./hours-location-step";
 import { ImageStep } from "./image-step";
 import { PaymentsStep } from "./payments-step";
+import { PricingStep } from "./pricing-step";
+import { ReviewStep } from "./review-step";
+import { ShopPreviewCard } from "./shop-preview-card";
 import { StepSidebar } from "./step-sidebar";
 
+const TOTAL_STEPS = 7;
+
 const STEPS_META = [
-  { num: 1, title: "Shop Details", desc: "Name and description", icon: Store },
+  { num: 1, title: "Shop details", desc: "Name and description", icon: Store },
   {
     num: 2,
-    title: "Hours & Location",
+    title: "Hours & location",
     desc: "Where and when you operate",
     icon: Clock,
   },
+  { num: 3, title: "Pricing", desc: "Minimum order and fees", icon: Coins },
   {
-    num: 3,
-    title: "Fees & Batches",
-    desc: "Pricing and delivery schedule",
-    icon: Coins,
+    num: 4,
+    title: "Delivery batches",
+    desc: "Cutoff times for grouped orders",
+    icon: CalendarClock,
   },
-  { num: 4, title: "Shop Image", desc: "Visual branding", icon: ImageIcon },
+  { num: 5, title: "Shop image", desc: "Visual branding", icon: ImageIcon },
   {
-    num: 5,
+    num: 6,
     title: "Payments",
     desc: "UPI and QR code setup",
     icon: CreditCard,
   },
+  {
+    num: 7,
+    title: "Review",
+    desc: "Confirm and launch",
+    icon: CheckCircle2,
+  },
 ];
 
-const STEP_ESTIMATES = {
-  1: "Step 1 of 5 • About 3 minutes left",
-  2: "Step 2 of 5 • About 2 minutes left",
-  3: "Step 3 of 5 • About 1 minute left",
-  4: "Step 4 of 5 • Almost finished!",
-  5: "Step 5 of 5 • Ready to launch!",
+const STEP_ESTIMATES: Record<number, string> = {
+  1: `Step 1 of ${TOTAL_STEPS} · About 3 minutes left`,
+  2: `Step 2 of ${TOTAL_STEPS} · About 2 minutes left`,
+  3: `Step 3 of ${TOTAL_STEPS} · About 2 minutes left`,
+  4: `Step 4 of ${TOTAL_STEPS} · About 1 minute left`,
+  5: `Step 5 of ${TOTAL_STEPS} · Almost there`,
+  6: `Step 6 of ${TOTAL_STEPS} · Almost there`,
+  7: `Step ${TOTAL_STEPS} of ${TOTAL_STEPS} · Ready to launch`,
 };
 
 const SCHEMA_VERSION = 1;
@@ -90,7 +106,7 @@ const draftEnvelopeSchema = z.object({
   savedAt: z
     .number()
     .refine((ts) => Date.now() - ts <= DRAFT_TTL, "Draft expired"),
-  step: z.number().int().min(1).max(5),
+  step: z.number().int().min(1).max(TOTAL_STEPS),
   data: serializableDraftSchema,
 });
 
@@ -101,6 +117,15 @@ function validateDraft(envelope: unknown): envelope is DraftEnvelope {
   return draftEnvelopeSchema.safeParse(envelope).success;
 }
 
+const stepFieldNames = {
+  1: ["name", "description"] as const,
+  2: ["location", "opening", "closing"] as const,
+  3: ["min_order_value", "default_delivery_fee", "direct_delivery_fee"] as const,
+  4: ["batch_slots"] as const,
+  5: ["image"] as const,
+  6: ["qr_image", "upi_id"] as const,
+};
+
 export function CreateShopForm() {
   const [step, setStep] = useState(1);
   const { form, handlers, state } = useLinkShop();
@@ -108,6 +133,7 @@ export function CreateShopForm() {
 
   const [pendingDraft, setPendingDraft] = useState<DraftEnvelope | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [mobilePreviewOpen, setMobilePreviewOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -154,18 +180,7 @@ export function CreateShopForm() {
     setShowPrompt(false);
   };
 
-  const stepFieldNames = {
-    1: ["name", "description"] as const,
-    2: ["location", "opening", "closing"] as const,
-    3: [
-      "min_order_value",
-      "default_delivery_fee",
-      "direct_delivery_fee",
-      "batch_slots",
-    ] as const,
-    4: ["image"] as const,
-    5: ["qr_image", "upi_id"] as const,
-  };
+  const goToStep = (target: number) => setStep(target);
 
   const nextStep = async () => {
     const fieldNames = stepFieldNames[step as keyof typeof stepFieldNames];
@@ -224,94 +239,126 @@ export function CreateShopForm() {
   }, [form, step]);
 
   const activeMeta = STEPS_META[step - 1];
+  const watched = form.watch();
+  const previewValues = {
+    name: watched.name || "",
+    description: watched.description || "",
+    location: watched.location || "",
+    opening: watched.opening || "",
+    closing: watched.closing || "",
+    minOrderValue: Number(watched.min_order_value) || 0,
+    image: watched.image,
+  };
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-12 py-8 px-4 sm:px-6">
+    <div className="mx-auto grid max-w-6xl gap-8 px-4 py-8 sm:px-6 md:grid-cols-12">
       <AlertDialog open={showPrompt} onOpenChange={setShowPrompt}>
-        <AlertDialogContent className="max-w-md bg-card border border-border/30 rounded-2xl overflow-hidden shadow-2xl">
+        <AlertDialogContent className="max-w-md overflow-hidden rounded-2xl border border-border/30 bg-card shadow-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-lg font-bold tracking-tight text-foreground">
               Resume previous setup?
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed font-medium">
-              We found an unfinished draft for your shop setup. Would you like
-              to resume where you left off or start fresh?
+            <AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground">
+              We found an unfinished draft for your shop setup. Would you
+              like to resume where you left off or start fresh?
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:gap-0 mt-4 border-t border-border/10 pt-3">
+          <AlertDialogFooter className="mt-4 gap-2 border-t border-border/10 pt-3 sm:gap-0">
             <AlertDialogCancel
               onClick={handleDiscard}
-              className="h-10 px-5 rounded-xl border-border/60 font-semibold cursor-pointer"
+              className="h-10 cursor-pointer rounded-xl border-border/60 px-5 font-semibold"
             >
-              Start Fresh
+              Start fresh
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRestore}
-              className="h-10 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer border-none shadow shadow-blue-500/10"
+              className="h-10 cursor-pointer rounded-xl border-none bg-blue-600 px-6 font-semibold text-white shadow shadow-blue-500/10 hover:bg-blue-700"
             >
-              Resume Setup
+              Resume setup
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="hidden md:block md:col-span-4 lg:col-span-3 space-y-8">
+      <div className="hidden md:col-span-4 md:block lg:col-span-3">
         <StepSidebar
           step={step}
+          totalSteps={TOTAL_STEPS}
           stepsMeta={STEPS_META}
           stepEstimates={STEP_ESTIMATES}
         />
       </div>
 
-      <div className="md:hidden col-span-12 space-y-3 mb-2">
-        <div className="flex justify-between items-center text-xs">
-          <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">
+      <div className="col-span-12 mb-2 space-y-3 md:hidden">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold text-foreground">
             {activeMeta.title}
           </span>
-          <span className="text-muted-foreground text-[11px] font-bold uppercase tracking-wider">
-            {STEP_ESTIMATES[step as keyof typeof STEP_ESTIMATES]}
+          <span className="font-medium text-muted-foreground">
+            {STEP_ESTIMATES[step]}
           </span>
         </div>
         <Progress
-          value={(step / 5) * 100}
-          className="h-1.5 bg-muted rounded-full [&_div]:bg-blue-600"
+          value={(step / TOTAL_STEPS) * 100}
+          className="h-1.5 rounded-full bg-muted [&_div]:bg-blue-600"
         />
+
+        <button
+          type="button"
+          onClick={() => setMobilePreviewOpen((v) => !v)}
+          className="flex w-full items-center gap-3 rounded-xl border border-border/50 bg-card px-3 py-2.5 text-left"
+        >
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500/60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+          </span>
+          <span className="flex-1 truncate text-xs font-semibold text-foreground">
+            {previewValues.name || "Your shop"} · live preview
+          </span>
+          <span className="text-xs font-medium text-blue-600">
+            {mobilePreviewOpen ? "Hide" : "View"}
+          </span>
+        </button>
+
+        {mobilePreviewOpen && (
+          <ShopPreviewCard values={previewValues} className="mt-1" />
+        )}
       </div>
 
-      <div className="md:col-span-8 lg:col-span-9 col-span-12">
-        <div className="bg-card/45 backdrop-blur-xl rounded-2xl border border-border/30 shadow-xl shadow-blue-500/[0.01] overflow-hidden relative flex flex-col h-full min-h-[500px]">
+      <div className="col-span-12 md:col-span-8 lg:col-span-9 xl:col-span-6">
+        <div className="flex h-full min-h-[500px] flex-col overflow-hidden rounded-xl border border-border/50 bg-card">
           <Form {...form}>
             <form
               onSubmit={handlers.onSubmit}
-              className="flex flex-col h-full min-h-[500px] justify-between"
+              className="flex h-full min-h-[500px] flex-col justify-between"
             >
-              <div className="p-6 sm:p-8 flex-1 space-y-6">
+              <div className="flex-1 space-y-6 p-6 sm:p-8">
                 {step === 1 && (
                   <DetailsStep form={form} isSubmitting={isSubmitting} />
                 )}
-
                 {step === 2 && <HoursLocationStep form={form} />}
-
-                {step === 3 && (
-                  <FeesScheduleStep
+                {step === 3 && <PricingStep form={form} />}
+                {step === 4 && (
+                  <BatchScheduleStep
                     form={form}
                     isSubmitting={isSubmitting}
                     isLoading={isLoading}
                   />
                 )}
-
-                {step === 4 && <ImageStep form={form} />}
-
-                {step === 5 && <PaymentsStep form={form} />}
+                {step === 5 && <ImageStep form={form} />}
+                {step === 6 && <PaymentsStep form={form} />}
+                {step === 7 && (
+                  <ReviewStep form={form} goToStep={goToStep} />
+                )}
               </div>
 
-              <div className="p-6 sm:p-8 bg-muted/10 border-t border-border/20 flex items-center justify-between mt-auto">
+              <div className="mt-auto flex items-center justify-between border-t border-border/20 p-6 sm:p-8">
                 {step > 1 ? (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setStep(step - 1)}
-                    className="h-11 px-6 rounded-xl border-border/60 hover:bg-muted/30 font-semibold text-xs cursor-pointer"
+                    className="h-11 cursor-pointer rounded-xl border-border/60 px-6 text-sm font-semibold hover:bg-muted/30"
                   >
                     Back
                   </Button>
@@ -322,28 +369,28 @@ export function CreateShopForm() {
                 <div className="flex items-center gap-4">
                   <FormMessage className="text-xs" />
 
-                  {step < 5 && (
+                  {step < TOTAL_STEPS && (
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="h-11 px-6 rounded-xl font-semibold bg-blue-600 hover:bg-blue-700 text-white text-xs shadow shadow-blue-500/10 cursor-pointer border-none"
+                      className="h-11 cursor-pointer rounded-xl border-none bg-blue-600 px-6 text-sm font-semibold text-white shadow shadow-blue-500/10 hover:bg-blue-700"
                     >
                       Continue
                     </Button>
                   )}
-                  {step === 5 && (
+                  {step === TOTAL_STEPS && (
                     <div className="flex flex-col items-end">
                       <Button
                         type="submit"
                         disabled={isSubmitting || isLoading}
-                        className="h-11 px-6 rounded-xl font-bold bg-blue-600 hover:bg-blue-700 hover:scale-[1.01] active:scale-[0.98] text-white shadow-md shadow-blue-500/10 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none border-none cursor-pointer text-xs"
+                        className="h-11 cursor-pointer rounded-xl border-none bg-blue-600 px-6 text-sm font-bold text-white shadow-md shadow-blue-500/10 transition-transform hover:scale-[1.01] hover:bg-blue-700 active:scale-[0.98] disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                       >
                         {isSubmitting || isLoading
-                          ? "Launching portal..."
-                          : "Create Shop & Launch Dashboard"}
+                          ? "Launching your shop..."
+                          : "Create shop & launch dashboard"}
                       </Button>
-                      <span className="text-[11px] text-muted-foreground mt-1.5 text-right font-medium">
-                        Your store goes live after setup.
+                      <span className="mt-1.5 text-right text-xs text-muted-foreground">
+                        Your store goes live right after setup.
                       </span>
                     </div>
                   )}
@@ -351,6 +398,25 @@ export function CreateShopForm() {
               </div>
             </form>
           </Form>
+        </div>
+      </div>
+
+      <div className="hidden xl:col-span-3 xl:block">
+        <div className="sticky top-8 space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500/60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-500" />
+            </span>
+            <span className="text-xs font-semibold text-foreground">
+              Live preview
+            </span>
+          </div>
+          <ShopPreviewCard values={previewValues} />
+          <p className="px-1 text-xs leading-relaxed text-muted-foreground">
+            This is exactly how your shop will look to students browsing
+            campus listings.
+          </p>
         </div>
       </div>
     </div>

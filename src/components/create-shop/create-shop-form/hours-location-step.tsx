@@ -10,8 +10,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import { ShopActionFormData } from "@/validations/shop";
+
+import {
+  fieldHintClass,
+  fieldInputClass,
+  fieldLabelClass,
+  stepHeadingClass,
+  stepSubheadingClass,
+} from "./styles";
 
 interface HoursLocationStepProps {
   form: UseFormReturn<ShopActionFormData>;
@@ -19,59 +26,49 @@ interface HoursLocationStepProps {
 
 export function HoursLocationStep({ form }: HoursLocationStepProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div>
-        <h2 className="text-lg font-bold tracking-tight text-foreground">
-          Hours & Location
-        </h2>
-        <p className="text-xs text-muted-foreground mt-1 font-medium">
-          Help campus students know when you are open and where to pick up
+        <h2 className={stepHeadingClass}>Where and when you're open</h2>
+        <p className={stepSubheadingClass}>
+          Help campus students know when you're open and where to pick up
           orders.
         </p>
       </div>
-      <Separator className="bg-border/40" />
-      <div className="space-y-5">
+      <div className="space-y-6">
         <FormField
           control={form.control}
           name="location"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Location / Pickup Point
+              <FormLabel className={fieldLabelClass}>
+                Location / pickup point
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder="E.g., Block A ground floor common room, Main Street"
-                  className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 placeholder:text-muted-foreground/40 font-semibold text-sm"
+                  placeholder="Block A ground floor common room, Main Street..."
+                  className={fieldInputClass}
                   {...field}
                 />
               </FormControl>
-              <FormDescription className="text-[11px] text-muted-foreground/80">
+              <FormDescription className={fieldHintClass}>
                 Specific description of your physical location on campus.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <FormField
             control={form.control}
             name="opening"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Opening Time
+                <FormLabel className={fieldLabelClass}>
+                  Opening time
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="time"
-                    className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
-                    {...field}
-                  />
+                  <Input type="time" className={fieldInputClass} {...field} />
                 </FormControl>
-                <FormDescription className="text-[11px] text-muted-foreground font-semibold">
-                  E.g., 07:00 AM
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -81,19 +78,12 @@ export function HoursLocationStep({ form }: HoursLocationStepProps) {
             name="closing"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  Closing Time
+                <FormLabel className={fieldLabelClass}>
+                  Closing time
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    type="time"
-                    className="h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
-                    {...field}
-                  />
+                  <Input type="time" className={fieldInputClass} {...field} />
                 </FormControl>
-                <FormDescription className="text-[11px] text-muted-foreground font-semibold">
-                  E.g., 08:00 PM
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

@@ -46,6 +46,7 @@ export function useLinkShop() {
         const result = await linkShop(data);
         if (result.success) {
           await authClient.updateUser({ shop_id: result.data.id });
+          await authClient.getSession({ query: { disableCookieCache: true } });
           if (typeof window !== "undefined") {
             window.sessionStorage?.removeItem("cc_create_shop_draft");
           }

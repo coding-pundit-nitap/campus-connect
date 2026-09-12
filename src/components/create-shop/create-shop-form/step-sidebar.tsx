@@ -13,42 +13,44 @@ interface StepMeta {
 
 interface StepSidebarProps {
   step: number;
+  totalSteps: number;
   stepsMeta: StepMeta[];
   stepEstimates: Record<number, string>;
 }
 
 export function StepSidebar({
   step,
+  totalSteps,
   stepsMeta,
   stepEstimates,
 }: StepSidebarProps) {
   return (
     <div className="sticky top-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black font-heading tracking-tight text-foreground">
-          Create Shop
+      <div className="mb-7">
+        <h1 className="font-heading text-2xl font-extrabold tracking-tight text-foreground">
+          Create your shop
         </h1>
-        <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed font-medium">
-          Set up your store and delivery details in 5 simple steps.
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          Set up your storefront in {totalSteps} short steps.
         </p>
       </div>
 
-      <div className="space-y-2 mb-8">
-        <div className="flex justify-between text-[11px] font-bold tracking-wider text-muted-foreground/80 uppercase">
+      <div className="mb-8 space-y-2">
+        <div className="flex justify-between text-xs font-medium text-muted-foreground">
           <span>Progress</span>
-          <span>{Math.round((step / 5) * 100)}%</span>
+          <span>{Math.round((step / totalSteps) * 100)}%</span>
         </div>
         <Progress
-          value={(step / 5) * 100}
-          className="h-1.5 bg-muted rounded-full [&_div]:bg-blue-600"
+          value={(step / totalSteps) * 100}
+          className="h-1.5 rounded-full bg-muted [&_div]:bg-blue-600"
         />
-        <p className="text-[11px] text-muted-foreground/80 font-medium mt-1">
+        <p className="text-xs text-muted-foreground">
           {stepEstimates[step]}
         </p>
       </div>
 
       <nav className="relative flex flex-col gap-6 pl-2">
-        <div className="absolute left-4.5 top-2 bottom-2 w-[1.5px] bg-border/40 pointer-events-none" />
+        <div className="pointer-events-none absolute top-2 bottom-2 left-4.5 w-px bg-border/50" />
 
         {stepsMeta.map((s) => {
           const isActive = step === s.num;
@@ -59,17 +61,17 @@ export function StepSidebar({
             <div
               key={s.num}
               className={cn(
-                "relative flex items-start gap-4 transition-all duration-200",
-                isActive ? "opacity-100" : "opacity-60 hover:opacity-80"
+                "relative flex items-start gap-4 transition-opacity duration-200",
+                isActive ? "opacity-100" : "opacity-55 hover:opacity-80"
               )}
             >
               <div
                 className={cn(
-                  "z-10 flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold transition-all duration-300",
+                  "z-10 flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-all duration-300",
                   isCompleted
                     ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
                     : isActive
-                      ? "border-blue-600 bg-blue-600/10 text-blue-600 scale-110 shadow-lg shadow-blue-600/[0.08]"
+                      ? "scale-110 border-blue-600 bg-blue-600/10 text-blue-600 shadow-lg shadow-blue-600/[0.08]"
                       : "border-border/60 bg-muted/20 text-muted-foreground/60"
                 )}
               >
@@ -82,15 +84,13 @@ export function StepSidebar({
               <div className="flex flex-col">
                 <span
                   className={cn(
-                    "text-xs font-semibold leading-tight transition-colors duration-200",
-                    isActive
-                      ? "text-foreground font-bold"
-                      : "text-muted-foreground"
+                    "text-sm font-semibold leading-tight transition-colors duration-200",
+                    isActive ? "text-foreground" : "text-muted-foreground"
                   )}
                 >
                   {s.title}
                 </span>
-                <span className="text-[11px] text-muted-foreground/80 mt-0.5">
+                <span className="mt-0.5 text-xs text-muted-foreground/80">
                   {s.desc}
                 </span>
               </div>

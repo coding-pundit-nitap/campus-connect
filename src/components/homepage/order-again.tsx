@@ -7,6 +7,7 @@ import Link from "next/link";
 import React, { useMemo } from "react";
 
 import { UserProductCard } from "@/components/shared/product-card";
+import { useIsMounted } from "@/hooks/common/useIsMounted";
 import { useProductActions } from "@/hooks/common/useProductActions";
 import { useSession } from "@/lib/auth-client";
 import { orderAPIService } from "@/services/order/order-api.service";
@@ -185,6 +186,7 @@ function TrendingPicksFeed({
 }
 
 export default function OrderAgain({ displayProducts }: Props) {
+  const isMounted = useIsMounted();
   const { data: session } = useSession();
   const { onAddToCart, onViewDetails, isAddingToCart } = useProductActions({
     mode: "user",
@@ -193,7 +195,7 @@ export default function OrderAgain({ displayProducts }: Props) {
   const { data: ordersData, isLoading } = useQuery({
     queryKey: ["orders", "recent", { limit: 5 }],
     queryFn: () => orderAPIService.fetchUserOrders({ limit: 5 }),
-    enabled: !!session?.user,
+    enabled: isMounted && !!session?.user,
   });
 
   const recentOrderedProducts = useMemo(() => {
@@ -202,6 +204,21 @@ export default function OrderAgain({ displayProducts }: Props) {
       session?.user
     );
   }, [ordersData?.data, session?.user]);
+
+  if (!isMounted) {
+    const fallbackProducts = displayProducts.slice(0, 8);
+    if (fallbackProducts.length > 0) {
+      return (
+        <TrendingPicksFeed
+          products={fallbackProducts}
+          onAddToCart={() => {}}
+          onViewDetails={() => {}}
+          isAddingToCart={false}
+        />
+      );
+    }
+    return null;
+  }
 
   if (isLoading && session?.user) {
     return <OrderAgainSkeleton />;

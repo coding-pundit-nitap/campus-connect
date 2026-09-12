@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
+import { useIsMounted } from "@/hooks/common/useIsMounted";
 import { useFavoriteShops } from "@/hooks/queries/useProfileData";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
@@ -201,11 +202,12 @@ function ExploreCanteensFeed({ shops }: ExploreCanteensFeedProps) {
 }
 
 export default function FavoriteShopsStrip() {
+  const isMounted = useIsMounted();
   const { data: session } = useSession();
   const isGuest = !session?.user;
 
   const { data: favorites = [], isLoading: isLoadingFavorites } =
-    useFavoriteShops(!!session?.user);
+    useFavoriteShops(isMounted && !!session?.user);
 
   const { data: fallbackShopsData, isLoading: isLoadingFallback } = useQuery({
     queryKey: ["shops", "recent-active"],
@@ -213,7 +215,8 @@ export default function FavoriteShopsStrip() {
       const res = await shopAPIService.fetchShops({ cursor: null });
       return res.data;
     },
-    enabled: isGuest || (favorites.length === 0 && !isLoadingFavorites),
+    enabled:
+      isMounted && (isGuest || (favorites.length === 0 && !isLoadingFavorites)),
   });
 
   const fallbackShops = fallbackShopsData || [];
@@ -221,7 +224,7 @@ export default function FavoriteShopsStrip() {
 
   const isLoading = session?.user ? isLoadingFavorites : isLoadingFallback;
 
-  if (isLoading) {
+  if (!isMounted || isLoading) {
     return <FavoriteShopsSkeleton />;
   }
 

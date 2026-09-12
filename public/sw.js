@@ -1,4 +1,4 @@
-const CACHE_VERSION = "2026-07-13-v8";
+const CACHE_VERSION = "2026-09-12-v9";
 const PREFIX = `cc-v${CACHE_VERSION}-`;
 
 const PRECACHE = `${PREFIX}precache`;
@@ -132,7 +132,7 @@ const ROUTES = [
   {
     match: ({ url }) =>
       url.pathname.startsWith("/api/") && isPublicReadApi(url.pathname),
-    strategy: (req, evt) => staleWhileRevalidate(req, evt, API, 200),
+    strategy: (req, evt) => networkFirstApi(req, evt, API, 200),
   },
   {
     match: ({ url }) => url.pathname.startsWith("/api/"),
@@ -246,6 +246,22 @@ async function staleWhileRevalidate(request, event, cacheName, maxItems) {
     .catch(() => cached);
 
   return cached || networkFetch;
+}
+
+async function networkFirstApi(request, event, cacheName, maxItems) {
+  const cache = await caches.open(cacheName);
+
+  try {
+    const response = await fetch(request);
+    if (isCacheable(response)) {
+      safePutAndTrim(event, cacheName, request, response, maxItems);
+    }
+    return response;
+  } catch {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw new Error("Network request failed and no cache entry was found.");
+  }
 }
 
 async function networkFirstNavigation(
