@@ -2,10 +2,9 @@
 
 import { Package } from "lucide-react";
 import Image from "next/image";
-import React from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { cardSurfaceClass } from "@/components/shared/form-styles";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/cn";
 import { sanitizeHTML } from "@/lib/sanitize";
 

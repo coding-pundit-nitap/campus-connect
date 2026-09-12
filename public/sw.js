@@ -232,21 +232,6 @@ async function cacheFirstWithLimit(request, event, cacheName, maxItems) {
   return response;
 }
 
-async function staleWhileRevalidate(request, event, cacheName, maxItems) {
-  const cache = await caches.open(cacheName);
-  const cached = await cache.match(request);
-
-  const networkFetch = fetch(request)
-    .then((response) => {
-      if (isCacheable(response)) {
-        safePutAndTrim(event, cacheName, request, response, maxItems);
-      }
-      return response;
-    })
-    .catch(() => cached);
-
-  return cached || networkFetch;
-}
 
 async function networkFirstApi(request, event, cacheName, maxItems) {
   const cache = await caches.open(cacheName);

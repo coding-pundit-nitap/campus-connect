@@ -1,15 +1,15 @@
 "use client";
 
 import { Save } from "lucide-react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 
+import { SharedCategoryInput } from "@/components/shared/category-input/shared-category-input";
 import {
   fieldInputClass,
   primaryButtonClass,
   sectionLabelClass,
 } from "@/components/shared/form-styles";
-import { SharedCategoryInput } from "@/components/shared/category-input/shared-category-input";
 import { SharedFileInput } from "@/components/shared/shared-file-input";
 import {
   Accordion,
@@ -86,9 +86,6 @@ export function ProductDrawerForm({
   onSubmit,
   onSaveAndAddAnother,
 }: ProductDrawerFormProps) {
-  const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const objectUrlRef = useRef<string | null>(null);
-
   const [watchedImage, watchedPrice, watchedDiscount, watchedStock, watchedName, watchedCategory, watchedBrand, watchedDescription] =
     useWatch({
       control: form.control,
@@ -104,20 +101,20 @@ export function ProductDrawerForm({
       ],
     });
 
-  // Sync a blob URL with the external browser API whenever a new File is
-  // selected; this effect exists purely to create/revoke that URL (a real
-  // external-system side effect), not to mirror `image` into local state.
-  useEffect(() => {
+  const objectUrl = useMemo(() => {
     if (watchedImage instanceof File) {
-      const url = URL.createObjectURL(watchedImage);
-      objectUrlRef.current = url;
-      setObjectUrl(url);
-      return () => {
-        URL.revokeObjectURL(url);
-        objectUrlRef.current = null;
-      };
+      return URL.createObjectURL(watchedImage);
     }
+    return null;
   }, [watchedImage]);
+
+  useEffect(() => {
+    return () => {
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [objectUrl]);
 
   const imagePreview =
     watchedImage instanceof File
