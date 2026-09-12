@@ -23,9 +23,10 @@ import {
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
 import { getOrderUrl } from "@/lib/utils/url.utils";
-import { SerializedOrderWithDetails } from "@/types";
+import { SerializedOrder, SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,
+  createErrorResponse,
   createSuccessResponse,
   PaginatedResponse,
 } from "@/types/response.types";
@@ -93,28 +94,28 @@ export async function createOrderAction({
   try {
     const user_id = await authUtils.getUserId();
     if (!user_id) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
+      return createErrorResponse("Unauthorized: Please log in.");
     }
 
     const shop = await shopRepository.findById(shop_id);
     if (!shop) {
-      throw new ValidationError("Shop not found or no longer available.");
+      return createErrorResponse("Shop not found or no longer available.");
     }
     if (!shop.is_active) {
-      throw new ValidationError("Shop is currently not accepting orders.");
+      return createErrorResponse("Shop is currently not accepting orders.");
     }
     if (!shop.accepting_orders) {
-      throw new ValidationError(
+      return createErrorResponse(
         "Shop is not accepting orders at the moment. Please try again later."
       );
     }
 
     let deliveryTime: Date | undefined = undefined;
 
-    if (requested_delivery_time) {
+    if (!is_direct_delivery && requested_delivery_time) {
       deliveryTime = new Date(requested_delivery_time);
       if (isNaN(deliveryTime.getTime())) {
-        throw new ValidationError("Invalid delivery time.");
+        return createErrorResponse("Invalid delivery time.");
       }
 
       const validationError = validateDeliveryTime(
@@ -123,7 +124,7 @@ export async function createOrderAction({
         shop.closing
       );
       if (validationError) {
-        throw new ValidationError(validationError);
+        return createErrorResponse(validationError);
       }
     }
 
@@ -138,7 +139,7 @@ export async function createOrderAction({
       payment_method,
       delivery_address_id,
       pg_payment_id,
-      deliveryTime,
+      is_direct_delivery ? undefined : deliveryTime,
       upi_transaction_id,
       customer_notes,
       is_direct_delivery,
@@ -154,11 +155,14 @@ export async function createOrderAction({
     if (
       error instanceof ValidationError ||
       error instanceof NotFoundError ||
-      error instanceof UnauthorizedError
+      error instanceof UnauthorizedError ||
+      error instanceof UnauthenticatedError
     ) {
-      throw error;
+      return createErrorResponse(error.message);
     }
-    throw new InternalServerError("Failed to create order.");
+    return createErrorResponse(
+      error instanceof Error ? error.message : "Failed to create order."
+    );
   }
 }
 

@@ -38,11 +38,30 @@ export class OrderService {
   private async generateDisplayId(
     tx: Prisma.TransactionClient
   ): Promise<string> {
-    const result = await tx.$queryRaw<{ next_id: bigint }[]>`
-      SELECT nextval('order_display_id_seq') as next_id
-    `;
-    const nextId = result[0].next_id.toString();
-    return `NITAP-${nextId.padStart(6, "0")}`;
+    await tx.$executeRawUnsafe(`SAVEPOINT get_display_id`);
+    try {
+      const result = await tx.$queryRaw<{ next_id: bigint }[]>`
+        SELECT nextval('order_display_id_seq') as next_id
+      `;
+      await tx.$executeRawUnsafe(`RELEASE SAVEPOINT get_display_id`);
+      const nextId = result[0].next_id.toString();
+      return `NITAP-${nextId.padStart(6, "0")}`;
+    } catch {
+      await tx.$executeRawUnsafe(`ROLLBACK TO SAVEPOINT get_display_id`);
+      try {
+        await tx.$executeRawUnsafe(
+          `CREATE SEQUENCE IF NOT EXISTS order_display_id_seq START WITH 1000 INCREMENT BY 1 NO MINVALUE NO MAXVALUE CACHE 1;`
+        );
+        const result = await tx.$queryRaw<{ next_id: bigint }[]>`
+          SELECT nextval('order_display_id_seq') as next_id
+        `;
+        const nextId = result[0].next_id.toString();
+        return `NITAP-${nextId.padStart(6, "0")}`;
+      } catch {
+        const randomNum = Math.floor(100000 + Math.random() * 900000);
+        return `NITAP-${randomNum}`;
+      }
+    }
   }
 
   private normalizeToMinute(date: Date): Date {

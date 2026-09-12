@@ -165,12 +165,13 @@ export function PaymentForm({
         payment_method: paymentMethod,
         delivery_address_id: checkoutData.delivery_address_id,
         is_direct_delivery: checkoutData.is_direct_delivery,
-        ...(checkoutData.requested_delivery_time
+        ...(!checkoutData.is_direct_delivery &&
+          checkoutData.requested_delivery_time
           ? {
-              requested_delivery_time: new Date(
-                checkoutData.requested_delivery_time
-              ),
-            }
+            requested_delivery_time: new Date(
+              checkoutData.requested_delivery_time
+            ),
+          }
           : {}),
         upi_transaction_id:
           paymentMethod === PaymentMethod.ONLINE
@@ -363,8 +364,8 @@ export function PaymentForm({
                     {checkoutData.is_direct_delivery
                       ? "Direct Delivery (ASAP)"
                       : new Date(
-                          checkoutData.requested_delivery_time || ""
-                        ).toLocaleString()}
+                        checkoutData.requested_delivery_time || ""
+                      ).toLocaleString()}
                   </span>
                 </p>
                 {paymentMethod === PaymentMethod.CASH && (

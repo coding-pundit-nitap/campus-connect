@@ -22,7 +22,9 @@ import {
 import { OrderStatus } from "@/generated/client";
 import { queryKeys } from "@/lib/query-keys";
 import { orderAPIService, OrderFilters } from "@/services";
-import { SerializedOrderWithDetails } from "@/types";
+import {
+  SerializedOrderWithDetails,
+} from "@/types";
 
 export type UseOrdersProps = {
   initialData: SerializedOrderWithDetails[];
@@ -122,7 +124,13 @@ function useCreateOrder() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createOrderAction,
+    mutationFn: async (input: Parameters<typeof createOrderAction>[0]) => {
+      const response = await createOrderAction(input);
+      if (!response.success || !response.data) {
+        throw new Error(response.details || "Failed to place order");
+      }
+      return response;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.cart.all });

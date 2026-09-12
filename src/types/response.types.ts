@@ -49,13 +49,13 @@ export const createSuccessResponse = <T>(
   details,
 });
 
-export const createErrorResponse = (
+export const createErrorResponse = <T = null>(
   details: string = "An error occurred"
-): ActionResponse => ({
+): ActionResponse<T> => ({
   success: false,
   error: true,
   details,
-  data: null,
+  data: null as unknown as T,
 });
 
 export const createAuthResponse = (

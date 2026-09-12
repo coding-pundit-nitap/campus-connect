@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Package, Timer } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -78,7 +78,7 @@ function buildUpcomingSlots(
         5.5 * 60 * 60 * 1000;
       const time = new Date(timeMs);
 
-      if (time.getTime() <= now.getTime()) continue;
+      if (time.getTime() < now.getTime() + 15 * 60 * 1000) continue;
 
       const isToday = d === 0;
       if (isToday && slot.is_today_available === false) {
@@ -116,6 +116,12 @@ export function BatchSlotSelector({
   onSlotSelect,
 }: BatchSlotSelectorProps) {
   const slots = useMemo(() => buildUpcomingSlots(batchSlots), [batchSlots]);
+
+  useEffect(() => {
+    if (slots.length === 0 && !isDirectDelivery) {
+      onSlotSelect(null);
+    }
+  }, [slots.length, isDirectDelivery, onSlotSelect]);
 
   const formatSlotDate = (date: Date) => {
     const today = new Date();
@@ -280,7 +286,7 @@ export function BatchSlotSelector({
                         className={cn(
                           "h-11 relative rounded-xl border border-border/50 bg-card/20 backdrop-blur-sm transition-all duration-300 font-semibold hover:border-blue-600/40 hover:bg-muted/10 flex items-center justify-center gap-1.5 px-3 text-xs",
                           isSelected &&
-                            "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
+                          "ring-2 ring-blue-600/50 bg-blue-600/[0.04] border-blue-600 text-blue-600 shadow-md shadow-blue-500/[0.05]"
                         )}
                         onClick={() => onSlotSelect(slot.time)}
                       >
