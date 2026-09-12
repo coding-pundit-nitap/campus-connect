@@ -38,6 +38,7 @@ export function useUpdateProductForm({ product }: Props) {
       image_key: product.image_key,
       discount: product.discount || 0,
       category: product.category?.name || "",
+      brand: product.brand?.name || "",
       image: undefined,
     },
   });

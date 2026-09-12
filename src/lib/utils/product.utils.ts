@@ -1,7 +1,6 @@
 import { Brand, Category, Product, ShopType } from "@/generated/client";
-import { FormFieldConfig, FullCart, SerializedFullCart } from "@/types";
+import { FullCart, SerializedFullCart } from "@/types";
 import { ProductDataDetails, SerializedProduct } from "@/types/product.types";
-import { ProductActionFormData } from "@/validations";
 
 export function getProductCountMessage(
   displayCount: number,
@@ -49,45 +48,6 @@ const SORT_OPTIONS = [
   { value: "price-desc", label: "Price High-Low" },
   { value: "rating-desc", label: "Highest Rated" },
   { value: "rating-asc", label: "Lowest Rated" },
-];
-
-const PRODUCT_FORM_FIELDS: FormFieldConfig<ProductActionFormData>[] = [
-  { name: "name", label: "Product Name", type: "text", required: true },
-  {
-    name: "description",
-    label: "Description",
-    type: "richtext",
-    placeholder: "Describe your product...",
-    required: true,
-  },
-  { name: "price", label: "Price", type: "number", required: true },
-  {
-    name: "stock_quantity",
-    label: "Stock Quantity",
-    type: "number",
-    required: true,
-  },
-  {
-    name: "discount",
-    label: "Discount (%)",
-    type: "number",
-    required: false,
-  },
-  {
-    name: "category",
-    label: "Category",
-    type: "category",
-    required: true,
-    placeholder: "Select or create category...",
-  },
-  {
-    name: "image",
-    label: "Product Image",
-    type: "file",
-    accept: "image/*",
-    maxSize: 5,
-    required: false,
-  },
 ];
 
 export type SortBy = "name" | "price" | "created_at" | "rating";
@@ -171,10 +131,6 @@ export class ProductUIServices {
 
   getProductCountMessage(displayCount: number, totalCount: number): string {
     return `Showing ${displayCount} of ${totalCount} products`;
-  }
-
-  createProductFormFields(): FormFieldConfig<ProductActionFormData>[] {
-    return PRODUCT_FORM_FIELDS;
   }
 
   getSortOptions() {
