@@ -62,3 +62,4 @@ graphify-out/
 *.info
 *.log
 backup/backup.log
+.superpowers/
