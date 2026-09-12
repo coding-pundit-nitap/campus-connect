@@ -1,6 +1,6 @@
 import pino, { Logger } from "pino";
 
-import { env } from "../../src/config/env.config";
+import { env } from "./env.js";
 
 const isProduction = env.NODE_ENV === "production";
 

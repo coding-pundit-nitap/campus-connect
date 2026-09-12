@@ -1,8 +1,8 @@
 import { Queue, Worker } from "bullmq";
 
-import { batchService } from "../di/container";
-import { loggers } from "../lib/logger";
-import { redisConnection } from "../lib/redis-connection";
+import { batchService } from "../di/container.js";
+import { loggers } from "../lib/logger.js";
+import { redisConnection } from "../lib/redis-connection.js";
 
 const logger = loggers.worker.child({ module: "batch-closer" });
 export const BATCH_CLOSER_QUEUE_NAME = "batch-closer-queue";

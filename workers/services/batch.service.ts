@@ -1,7 +1,7 @@
-import { BatchSlot, BatchStatus, Prisma } from "../generated/client";
-import { loggers } from "../lib/logger";
-import { prisma } from "../lib/prisma";
-import { NotificationService } from "./notification.service";
+import { BatchSlot, BatchStatus, Prisma } from "../generated/client/index.js";
+import { loggers } from "../lib/logger.js";
+import { prisma } from "../lib/prisma.js";
+import { NotificationService } from "./notification.service.js";
 const log = loggers.batch;
 
 export interface BatchSummaryItem {
@@ -85,10 +85,10 @@ export class BatchService {
     if (expiredBatches.length > 0) {
       log.info(`🔒 Found ${expiredBatches.length} expired batches. Locking...`);
 
-      const batchIds = expiredBatches.map((b) => b.id).sort();
+      const batchIds = expiredBatches.map((b: { id: string }) => b.id).sort();
 
       const { openBatchIds, countMap } = await this.prismaClient.$transaction(
-        async (tx) => {
+        async (tx: Omit<typeof prisma, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
           const locked: { id: string; status: string }[] = await tx.$queryRaw`
             SELECT id, status FROM "Batch"
             WHERE id IN (${Prisma.join(batchIds)}) AND status = 'OPEN'
@@ -122,7 +122,7 @@ export class BatchService {
             _count: { id: true },
           });
           const countMap = new Map(
-            orderCounts.map((c) => [c.batch_id ?? "", c._count.id])
+            orderCounts.map((c: { batch_id: string | null; _count: { id: number } }) => [c.batch_id ?? "", c._count.id])
           );
 
           return { openBatchIds, countMap };
@@ -132,7 +132,7 @@ export class BatchService {
       if (openBatchIds.length > 0) {
         log.info(`✅ Successfully LOCKED ${openBatchIds.length} batches.`);
 
-        const processedBatches = expiredBatches.filter((b) =>
+        const processedBatches = expiredBatches.filter((b: { id: string }) =>
           openBatchIds.includes(b.id)
         );
 

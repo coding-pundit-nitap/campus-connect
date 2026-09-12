@@ -1,6 +1,6 @@
-import Redis from "ioredis";
+import { Redis } from "ioredis";
 
-import { env } from "../../src/config/env.config";
+import { env } from "./env.js";
 
 const redisUrl = env.REDIS_URL || `redis://${env.REDIS_HOST || "redis"}:6379`;
 
@@ -17,7 +17,7 @@ if (env.NODE_ENV !== "production") {
 
 redisPublisher.setMaxListeners(0);
 redisPublisher.removeAllListeners("error");
-redisPublisher.on("error", (error) => console.error("Redis Error:", error));
+redisPublisher.on("error", (error: Error) => console.error("Redis Error:", error));
 redisPublisher.on("connect", () =>
   console.log("✅ Worker Redis client connected.")
 );

@@ -1,5 +1,5 @@
-import { Prisma } from "../generated/client";
-import { notificationQueue } from "../lib/notification/notification-producer";
+import { Prisma } from "../generated/client/index.js";
+import { notificationQueue } from "../lib/notification/notification-producer.js";
 
 export class NotificationService {
   async publishNotification(

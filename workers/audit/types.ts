@@ -1,4 +1,4 @@
-import { AdminAction, Prisma } from "../generated/client";
+import { AdminAction, Prisma } from "../generated/client/index.js";
 
 export const AUDIT_QUEUE_NAME = "audit-log-queue";
 

@@ -7,8 +7,8 @@ import { config } from "dotenv";
 
 config({ path: ".env" });
 
-import { env } from "../../src/config/env.config";
-import { prisma } from "../lib/prisma";
+import { env } from "../lib/env.js";
+import { prisma } from "../lib/prisma.js";
 
 const s3Client = new S3Client({
   endpoint: env.MINIO_ENDPOINT!,

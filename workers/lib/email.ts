@@ -1,7 +1,7 @@
 import nodemailer, { Transporter } from "nodemailer";
 
-import { env } from "../../src/config/env.config";
-import { loggers } from "./logger";
+import { env } from "./env.js";
+import { loggers } from "./logger.js";
 
 const logger = loggers.notification;
 

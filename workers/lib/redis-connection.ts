@@ -1,6 +1,6 @@
 import { ConnectionOptions } from "bullmq";
 
-import { env } from "../../src/config/env.config";
+import { env } from "./env.js";
 
 const getRedisConfig = (): ConnectionOptions => {
   if (env.REDIS_URL) {

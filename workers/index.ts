@@ -1,16 +1,16 @@
-import { auditWorker } from "./audit/consumer";
+import { auditWorker } from "./audit/consumer.js";
 import {
   batchCloserQueue,
   batchCloserWorker,
   closeBatchCloserQueues,
-} from "./batch/batch-closer";
-import { loggers } from "./lib/logger";
-import { prisma } from "./lib/prisma";
-import { redisPublisher } from "./lib/redis";
+} from "./batch/batch-closer.js";
+import { loggers } from "./lib/logger.js";
+import { prisma } from "./lib/prisma.js";
+import { redisPublisher } from "./lib/redis.js";
 import {
   closeNotificationDlqQueue,
   notificationWorker,
-} from "./notification/consumer";
+} from "./notification/consumer.js";
 
 export const logger = loggers.worker;
 
@@ -34,18 +34,21 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 async function main() {
   try {
-    const repeatableJobs = await batchCloserQueue.getRepeatableJobs();
-    for (const job of repeatableJobs) {
-      await batchCloserQueue.removeRepeatableByKey(job.key);
+    const schedulers = await batchCloserQueue.getJobSchedulers();
+    for (const scheduler of schedulers) {
+      if (scheduler.id) {
+        await batchCloserQueue.removeJobScheduler(scheduler.id);
+      }
     }
 
-    await batchCloserQueue.add(
+    await batchCloserQueue.upsertJobScheduler(
       "batch-closer-job",
-      {},
+      { pattern: "* * * * *" },
       {
-        repeat: { pattern: "* * * * *" },
-        removeOnComplete: true,
-        removeOnFail: 100,
+        opts: {
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
       }
     );
 

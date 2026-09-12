@@ -1,10 +1,10 @@
 import { Job, Worker } from "bullmq";
 
-import { Prisma } from "../generated/client";
-import { loggers } from "../lib/logger";
-import { prisma } from "../lib/prisma";
-import { redisConnection } from "../lib/redis-connection";
-import { AUDIT_QUEUE_NAME, AuditJobData } from "./types";
+import { Prisma } from "../generated/client/index.js";
+import { loggers } from "../lib/logger.js";
+import { prisma } from "../lib/prisma.js";
+import { redisConnection } from "../lib/redis-connection.js";
+import { AUDIT_QUEUE_NAME, AuditJobData } from "./types.js";
 
 const logger = loggers.audit;
 

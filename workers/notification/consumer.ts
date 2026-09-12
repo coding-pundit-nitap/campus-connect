@@ -1,13 +1,13 @@
 import { Job, Queue, Worker } from "bullmq";
 import webpush from "web-push";
 
-import { env } from "../../src/config/env.config";
-import { sendNotificationEmail } from "../lib/email";
-import { loggers } from "../lib/logger";
-import { prisma } from "../lib/prisma";
-import { redisPublisher } from "../lib/redis";
-import { redisConnection } from "../lib/redis-connection";
-import { NOTIFICATION_QUEUE_NAME, NotificationJobData } from "./types";
+import { env } from "../lib/env.js";
+import { sendNotificationEmail } from "../lib/email.js";
+import { loggers } from "../lib/logger.js";
+import { prisma } from "../lib/prisma.js";
+import { redisPublisher } from "../lib/redis.js";
+import { redisConnection } from "../lib/redis-connection.js";
+import { NOTIFICATION_QUEUE_NAME, NotificationJobData } from "./types.js";
 
 const logger = loggers.notification;
 
@@ -104,7 +104,7 @@ const workHandler = async (job: Job<NotificationJobData>) => {
           });
 
           const results = await Promise.allSettled(
-            subscriptions.map(async (sub) => {
+            subscriptions.map(async (sub: { endpoint: string; p256dh: string; auth: string }) => {
               try {
                 await webpush.sendNotification(
                   {
@@ -131,7 +131,7 @@ const workHandler = async (job: Job<NotificationJobData>) => {
             })
           );
 
-          const failedPushes = results.filter((r) => r.status === "rejected");
+          const failedPushes = results.filter((r: PromiseSettledResult<void>) => r.status === "rejected");
           if (failedPushes.length > 0) {
             logger.warn(
               { failedCount: failedPushes.length, userId: user_id },
@@ -203,7 +203,7 @@ const workHandler = async (job: Job<NotificationJobData>) => {
           for (let i = 0; i < subscriptions.length; i += CHUNK_SIZE) {
             const chunk = subscriptions.slice(i, i + CHUNK_SIZE);
             const results = await Promise.allSettled(
-              chunk.map(async (sub) => {
+              chunk.map(async (sub: { endpoint: string; p256dh: string; auth: string }) => {
                 try {
                   await webpush.sendNotification(
                     {
@@ -231,9 +231,9 @@ const workHandler = async (job: Job<NotificationJobData>) => {
             );
 
             successCount += results.filter(
-              (r) => r.status === "fulfilled"
+              (r: PromiseSettledResult<void>) => r.status === "fulfilled"
             ).length;
-            failCount += results.filter((r) => r.status === "rejected").length;
+            failCount += results.filter((r: PromiseSettledResult<void>) => r.status === "rejected").length;
           }
 
           if (failCount > 0) {

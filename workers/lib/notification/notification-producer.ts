@@ -1,7 +1,7 @@
 import { Queue } from "bullmq";
 
-import { Prisma } from "../../generated/client";
-import { redisConnection } from "../redis-connection";
+import { Prisma } from "../../generated/client/index.js";
+import { redisConnection } from "../redis-connection.js";
 
 export const NOTIFICATION_QUEUE_NAME = "notification-queue";
 
