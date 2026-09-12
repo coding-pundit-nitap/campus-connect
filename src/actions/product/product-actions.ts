@@ -560,3 +560,63 @@ export async function toggleProductStockAction(
     throw new InternalServerError("Failed to toggle stock.");
   }
 }
+
+export async function updateProductPriceAction(
+  productId: string,
+  price: number
+): Promise<ActionResponse<SerializedProduct>> {
+  try {
+    if (!productId || typeof productId !== "string") {
+      throw new BadRequestError("Invalid product ID");
+    }
+    if (typeof price !== "number" || Number.isNaN(price) || price < 0) {
+      throw new BadRequestError("Price must be a non-negative number");
+    }
+
+    const user_id = await authUtils.getUserId();
+    const shop = await shopRepository.findByOwnerId(user_id, {
+      select: { id: true },
+    });
+    if (!shop || !shop.id) throw new UnauthorizedError("Unauthorized");
+
+    const product = await productRepository.findById(productId);
+    if (!product || product.shop_id !== shop.id) {
+      throw new ForbiddenError(
+        "You do not have permission to modify this product"
+      );
+    }
+
+    const updated = await productRepository.update(
+      productId,
+      { price },
+      {
+        include: {
+          category: true,
+          brand: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      }
+    );
+
+    const serialized = serializeProduct(updated);
+    revalidatePath(`/shops/${updated.shop_id}`);
+
+    return createSuccessResponse(serialized, "Price updated successfully.");
+  } catch (error) {
+    log.error({ err: error }, "UPDATE PRODUCT PRICE ERROR:");
+    if (
+      error instanceof BadRequestError ||
+      error instanceof ForbiddenError ||
+      error instanceof UnauthorizedError ||
+      error instanceof InternalServerError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to update price.");
+  }
+}

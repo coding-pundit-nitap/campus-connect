@@ -6,9 +6,10 @@ import {
   deleteProductAction,
   toggleProductStockAction,
   updateProductAction,
+  updateProductPriceAction,
 } from "@/actions/product/product-actions";
 import { fileUploadService } from "@/di/container";
-import { ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
+import { BadRequestError, ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
 
 import { createShop, createUser, seedShopWithProducts } from "../../factories";
 import { asAnonymous, asUser } from "../../setup/auth";
@@ -192,6 +193,46 @@ describe("Product Actions", () => {
 
       const res = await toggleProductStockAction(products[0].id, false);
       expect(res.data?.stock_quantity).toBe(0);
+    });
+  });
+
+  describe("updateProductPriceAction", () => {
+    it("updates the price for the owner's product", async () => {
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
+      await asUser(owner);
+
+      const res = await updateProductPriceAction(products[0].id, 249);
+      expect(res.data?.price).toBe(249);
+
+      const dbProduct = await testPrisma.product.findUnique({
+        where: { id: products[0].id },
+      });
+      expect(Number(dbProduct?.price)).toBe(249);
+    });
+
+    it("throws BadRequestError for a negative price", async () => {
+      const { owner, products } = await seedShopWithProducts({
+        productCount: 1,
+      });
+      await asUser(owner);
+
+      await expect(
+        updateProductPriceAction(products[0].id, -10)
+      ).rejects.toThrow(BadRequestError);
+    });
+
+    it("throws Forbidden if not the product's shop owner", async () => {
+      const { products } = await seedShopWithProducts({ productCount: 1 });
+
+      const otherShop = await createShop();
+      const otherOwner = await createUser({ shop_id: otherShop.id });
+      await asUser(otherOwner);
+
+      await expect(
+        updateProductPriceAction(products[0].id, 100)
+      ).rejects.toThrow(ForbiddenError);
     });
   });
 
