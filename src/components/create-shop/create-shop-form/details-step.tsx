@@ -65,7 +65,7 @@ export function DetailsStep({ form, isSubmitting }: DetailsStepProps) {
             <FormItem>
               <FormLabel className={fieldLabelClass}>Description</FormLabel>
               <FormControl>
-                <div className="overflow-hidden rounded-lg border border-border/60 transition-colors focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/10">
+                <div className="overflow-hidden rounded-lg border border-border/60 transition-colors focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/10">
                   <RichTextEditor
                     value={field.value || ""}
                     onChange={field.onChange}

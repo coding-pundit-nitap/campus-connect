@@ -272,7 +272,7 @@ export function CreateShopForm() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleRestore}
-              className="h-10 cursor-pointer rounded-xl border-none bg-blue-600 px-6 font-semibold text-white shadow shadow-blue-500/10 hover:bg-blue-700"
+              className="h-10 cursor-pointer rounded-xl border-none bg-indigo-600 px-6 font-semibold text-white shadow shadow-indigo-500/10 hover:bg-indigo-700"
             >
               Resume setup
             </AlertDialogAction>
@@ -300,7 +300,7 @@ export function CreateShopForm() {
         </div>
         <Progress
           value={(step / TOTAL_STEPS) * 100}
-          className="h-1.5 rounded-full bg-muted [&_div]:bg-blue-600"
+          className="h-1.5 rounded-full bg-muted [&_div]:bg-indigo-600"
         />
 
         <button
@@ -315,7 +315,7 @@ export function CreateShopForm() {
           <span className="flex-1 truncate text-xs font-semibold text-foreground">
             {previewValues.name || "Your shop"} · live preview
           </span>
-          <span className="text-xs font-medium text-blue-600">
+          <span className="text-xs font-medium text-indigo-600">
             {mobilePreviewOpen ? "Hide" : "View"}
           </span>
         </button>
@@ -373,7 +373,7 @@ export function CreateShopForm() {
                     <Button
                       type="button"
                       onClick={nextStep}
-                      className="h-11 cursor-pointer rounded-xl border-none bg-blue-600 px-6 text-sm font-semibold text-white shadow shadow-blue-500/10 hover:bg-blue-700"
+                      className="h-11 cursor-pointer rounded-xl border-none bg-indigo-600 px-6 text-sm font-semibold text-white shadow shadow-indigo-500/10 hover:bg-indigo-700"
                     >
                       Continue
                     </Button>
@@ -383,7 +383,7 @@ export function CreateShopForm() {
                       <Button
                         type="submit"
                         disabled={isSubmitting || isLoading}
-                        className="h-11 cursor-pointer rounded-xl border-none bg-blue-600 px-6 text-sm font-bold text-white shadow-md shadow-blue-500/10 transition-transform hover:scale-[1.01] hover:bg-blue-700 active:scale-[0.98] disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                        className="h-11 cursor-pointer rounded-xl border-none bg-indigo-600 px-6 text-sm font-bold text-white shadow-md shadow-indigo-500/10 transition-transform hover:scale-[1.01] hover:bg-indigo-700 active:scale-[0.98] disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
                       >
                         {isSubmitting || isLoading
                           ? "Launching your shop..."

@@ -103,7 +103,7 @@ export function ShopPreviewCard({
 
         <div className="mt-3 space-y-2.5 border-t border-border/20 pt-3">
           <div className="flex items-center text-xs font-medium text-muted-foreground">
-            <div className="mr-2.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-blue-500/5 bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400">
+            <div className="mr-2.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-indigo-500/5 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400">
               <MapPin className="h-3.5 w-3.5" />
             </div>
             <span className="line-clamp-1">

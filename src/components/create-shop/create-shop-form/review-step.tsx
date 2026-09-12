@@ -42,7 +42,7 @@ function ReviewGroup({
           variant="ghost"
           size="sm"
           onClick={() => goToStep(step)}
-          className="h-8 gap-1.5 px-2.5 text-xs font-medium text-blue-600 hover:text-blue-700"
+          className="h-8 gap-1.5 px-2.5 text-xs font-medium text-indigo-600 hover:text-indigo-700"
         >
           <Pencil className="h-3.5 w-3.5" />
           Edit
