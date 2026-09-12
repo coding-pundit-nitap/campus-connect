@@ -77,6 +77,7 @@ export function useUpdateProductForm({ product }: Props) {
 }
 
 export function useCreateProductForm() {
+  const [isOpen, setIsOpen] = useState(false);
   const {
     mutateAsync: createProduct,
     isPending,
@@ -93,6 +94,7 @@ export function useCreateProductForm() {
       image_key: undefined,
       discount: 0,
       category: "",
+      brand: "",
       image: undefined,
     },
   });
@@ -103,9 +105,28 @@ export function useCreateProductForm() {
     isSubmitting: form.formState.isSubmitting,
   };
 
+  const resetForCreate = () =>
+    form.reset({
+      name: "",
+      description: "",
+      price: 0,
+      stock_quantity: 0,
+      image_key: undefined,
+      discount: 0,
+      category: "",
+      brand: "",
+      image: undefined,
+    });
+
   const handlers = {
     onSubmit: form.handleSubmit(async (data) => {
       await createProduct(data);
+      setIsOpen(false);
+      resetForCreate();
+    }),
+    onSaveAndAddAnother: form.handleSubmit(async (data) => {
+      await createProduct(data);
+      resetForCreate();
     }),
   };
 
@@ -113,5 +134,7 @@ export function useCreateProductForm() {
     form,
     state,
     handlers,
+    isOpen,
+    setIsOpen,
   };
 }
