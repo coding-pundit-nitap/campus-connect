@@ -1,7 +1,7 @@
 "use client";
 
 import { Save } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 
 import {
@@ -86,9 +86,8 @@ export function ProductDrawerForm({
   onSubmit,
   onSaveAndAddAnother,
 }: ProductDrawerFormProps) {
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    existingImageUrl ?? null
-  );
+  const [objectUrl, setObjectUrl] = useState<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
 
   const [watchedImage, watchedPrice, watchedDiscount, watchedStock, watchedName, watchedCategory, watchedBrand, watchedDescription] =
     useWatch({
@@ -105,14 +104,25 @@ export function ProductDrawerForm({
       ],
     });
 
+  // Sync a blob URL with the external browser API whenever a new File is
+  // selected; this effect exists purely to create/revoke that URL (a real
+  // external-system side effect), not to mirror `image` into local state.
   useEffect(() => {
     if (watchedImage instanceof File) {
       const url = URL.createObjectURL(watchedImage);
-      setImagePreview(url);
-      return () => URL.revokeObjectURL(url);
+      objectUrlRef.current = url;
+      setObjectUrl(url);
+      return () => {
+        URL.revokeObjectURL(url);
+        objectUrlRef.current = null;
+      };
     }
-    setImagePreview(existingImageUrl ?? null);
-  }, [watchedImage, existingImageUrl]);
+  }, [watchedImage]);
+
+  const imagePreview =
+    watchedImage instanceof File
+      ? objectUrl
+      : (existingImageUrl ?? null);
 
   const price = Number(watchedPrice) || 0;
   const discount = Number(watchedDiscount) || 0;
