@@ -124,9 +124,11 @@ jobs:
               - 'tsconfig.worker.json'
               - 'prisma/**'
               - 'prisma.config.ts'
+              - 'docker/worker.package.json'
             migrator:
               - 'prisma/**'
               - 'prisma.config.ts'
+              - 'docker/migrator.package.json'
             nginx:
               - 'nginx/**'
             prometheus:
@@ -170,6 +172,7 @@ jobs:
           file: Dockerfile
           target: runner
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
@@ -180,6 +183,11 @@ jobs:
             NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Report image size
+        run: |
+          echo "### campus-connect-app image size" >> "$GITHUB_STEP_SUMMARY"
+          docker images --filter "reference=ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-app" --format '- `{{.Tag}}`: {{.Size}}' >> "$GITHUB_STEP_SUMMARY"
 
   build-worker:
     needs: [validate, test-integration, detect-changes]
@@ -211,16 +219,16 @@ jobs:
           file: Dockerfile
           target: worker-runner
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
-            NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
-            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'https://connect.nitap.ac.in' }}
-            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Report image size
+        run: |
+          echo "### campus-connect-worker image size" >> "$GITHUB_STEP_SUMMARY"
+          docker images --filter "reference=ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-worker" --format '- `{{.Tag}}`: {{.Size}}' >> "$GITHUB_STEP_SUMMARY"
 
   build-migrator:
     needs: [validate, test-integration, detect-changes]
@@ -252,16 +260,16 @@ jobs:
           file: Dockerfile
           target: migrator
           push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: |
-            NEXT_PUBLIC_MINIO_BUCKET=${{ secrets.NEXT_PUBLIC_MINIO_BUCKET || 'campus-connect' }}
-            NEXT_PUBLIC_MINIO_ENDPOINT=${{ secrets.NEXT_PUBLIC_MINIO_ENDPOINT || 'http://localhost:9000' }}
-            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL || 'https://connect.nitap.ac.in' }}
-            NEXT_PUBLIC_VAPID_PUBLIC_KEY=${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Report image size
+        run: |
+          echo "### campus-connect-migrator image size" >> "$GITHUB_STEP_SUMMARY"
+          docker images --filter "reference=ghcr.io/${{ needs.detect-changes.outputs.owner }}/campus-connect-migrator" --format '- `{{.Tag}}`: {{.Size}}' >> "$GITHUB_STEP_SUMMARY"
 
   build-nginx:
     needs: [validate, test-integration, detect-changes]

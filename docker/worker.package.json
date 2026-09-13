@@ -1,0 +1,18 @@
+{
+  "name": "campus-connect-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "3.1111.0",
+    "@prisma/adapter-pg": "7.9.1",
+    "@prisma/client-runtime-utils": "7.9.1",
+    "bullmq": "6.1.2",
+    "dotenv": "17.4.2",
+    "ioredis": "6.0.0",
+    "nodemailer": "9.0.5",
+    "pino": "10.3.1",
+    "web-push": "3.6.7",
+    "zod": "4.4.3"
+  }
+}

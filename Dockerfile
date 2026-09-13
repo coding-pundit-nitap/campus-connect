@@ -15,10 +15,18 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod=false
 
-FROM base AS prod-deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Install ONLY production dependencies
-RUN pnpm install --prod --frozen-lockfile
+# Worker and migrator only use a small slice of the app's dependencies
+# (no Next.js/React/UI libraries), so give them their own minimal installs
+# instead of inheriting the full app node_modules.
+FROM base AS worker-deps
+COPY pnpm-workspace.yaml ./
+COPY docker/worker.package.json ./package.json
+RUN pnpm install --prod
+
+FROM base AS migrator-deps
+COPY pnpm-workspace.yaml ./
+COPY docker/migrator.package.json ./package.json
+RUN pnpm install --prod
 
 # Development target
 FROM deps AS dev
@@ -29,11 +37,13 @@ ARG NEXT_PUBLIC_MINIO_BUCKET=campus-connect
 ARG NEXT_PUBLIC_MINIO_ENDPOINT=http://localhost:9000
 ARG NEXT_PUBLIC_APP_URL=http://localhost
 ARG NEXT_PUBLIC_VAPID_PUBLIC_KEY
+ARG NEXT_PUBLIC_API_URL=/api
 
 ENV NEXT_PUBLIC_MINIO_BUCKET=${NEXT_PUBLIC_MINIO_BUCKET}
 ENV NEXT_PUBLIC_MINIO_ENDPOINT=${NEXT_PUBLIC_MINIO_ENDPOINT}
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_VAPID_PUBLIC_KEY=${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -88,7 +98,7 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/worker --shell /bin/false worker
 
-COPY --from=prod-deps --chown=worker:nodejs /app/node_modules ./node_modules
+COPY --from=worker-deps --chown=worker:nodejs /app/node_modules ./node_modules
 COPY --from=worker-builder --chown=worker:nodejs /app/dist ./dist
 COPY --from=worker-builder --chown=worker:nodejs /app/workers/generated ./workers/generated
 
@@ -102,9 +112,8 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs \
     && adduser --system --uid 1001 --ingroup nodejs --home /home/migrator --shell /bin/false migrator
 
-COPY --from=deps --chown=migrator:nodejs /app/node_modules ./node_modules
-COPY --from=app-builder --chown=migrator:nodejs /app/src/generated ./src/generated
-COPY --chown=migrator:nodejs package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY --from=migrator-deps --chown=migrator:nodejs /app/node_modules ./node_modules
+COPY --chown=migrator:nodejs docker/migrator.package.json ./package.json
 COPY --chown=migrator:nodejs prisma ./prisma
 COPY --chown=migrator:nodejs prisma.config.ts ./prisma.config.ts
 

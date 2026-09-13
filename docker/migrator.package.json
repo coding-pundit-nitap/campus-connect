@@ -1,0 +1,10 @@
+{
+  "name": "campus-connect-migrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "prisma": "7.9.1",
+    "dotenv": "17.4.2"
+  }
+}
