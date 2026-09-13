@@ -7,7 +7,10 @@ import { toast } from "sonner";
 import { NEW_ORDER_NOTIFICATION_TITLE } from "@/config/constants";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import { playOrderAlertSound } from "@/lib/utils/order-alert-sound";
+import {
+  ensureOrderAlertAudioUnlocked,
+  playOrderAlertSound,
+} from "@/lib/utils/order-alert-sound";
 import { NotificationSummaryType } from "@/services/notification";
 import { BroadcastNotification, Notification } from "@/types/prisma.types";
 
@@ -35,6 +38,7 @@ export function useLiveNotifications() {
   const retryCountRef = useRef(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastToastTimeRef = useRef(0);
+  const seenNotificationIdsRef = useRef<Set<string>>(new Set());
   const watchdogRef = useRef<NodeJS.Timeout | null>(null);
   const lastEventIdRef = useRef<string | null>(null);
   const heartbeatIntervalMsRef = useRef(DEFAULT_HEARTBEAT_INTERVAL_MS);
@@ -48,6 +52,24 @@ export function useLiveNotifications() {
           JSON.parse(event.data);
 
         const isBroadcast = !("user_id" in newNotification);
+
+        const isNew = !seenNotificationIdsRef.current.has(newNotification.id);
+        if (isNew) {
+          seenNotificationIdsRef.current.add(newNotification.id);
+
+          if (
+            !isBroadcast &&
+            newNotification.title === NEW_ORDER_NOTIFICATION_TITLE
+          ) {
+            playOrderAlertSound();
+          }
+
+          const now = Date.now();
+          if (now - lastToastTimeRef.current >= TOAST_THROTTLE_MS) {
+            toast.success(newNotification.message);
+            lastToastTimeRef.current = now;
+          }
+        }
 
         queryClient.setQueryData(
           queryKeys.notifications.summary(),
@@ -66,19 +88,6 @@ export function useLiveNotifications() {
 
             if (exists) {
               return oldSummary;
-            }
-
-            if (
-              !isBroadcast &&
-              newNotification.title === NEW_ORDER_NOTIFICATION_TITLE
-            ) {
-              playOrderAlertSound();
-            }
-
-            const now = Date.now();
-            if (now - lastToastTimeRef.current >= TOAST_THROTTLE_MS) {
-              toast.success(newNotification.message);
-              lastToastTimeRef.current = now;
             }
 
             return {
@@ -114,10 +123,17 @@ export function useLiveNotifications() {
         queryClient.invalidateQueries({
           queryKey: queryKeys.batch.vendorDashboard(),
         });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.notifications.history(),
+        });
       } catch {}
     },
     [queryClient]
   );
+
+  useEffect(() => {
+    ensureOrderAlertAudioUnlocked();
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {

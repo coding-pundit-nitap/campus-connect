@@ -29,6 +29,35 @@ function getAudioResources() {
   return { ctx: audioCtx, buffer: audioBuffer };
 }
 
+let unlockListenersAttached = false;
+
+/**
+ * Browsers only let an AudioContext actually produce sound after a real user
+ * gesture on the page; resuming it later from an async event (like an SSE
+ * message) is not enough. Call this once on app mount to prime the context
+ * the moment the user first clicks/taps/types anywhere, so it's already
+ * unlocked by the time a notification needs to play.
+ */
+export function ensureOrderAlertAudioUnlocked() {
+  if (unlockListenersAttached || typeof document === "undefined") return;
+  unlockListenersAttached = true;
+
+  const events = ["pointerdown", "keydown", "touchstart"] as const;
+  const unlock = () => {
+    events.forEach((event) => document.removeEventListener(event, unlock));
+    const resources = getAudioResources();
+    if (resources?.ctx.state === "suspended") {
+      resources.ctx.resume().catch(() => {
+        // Ignore - will retry resuming on the next actual alert
+      });
+    }
+  };
+
+  events.forEach((event) =>
+    document.addEventListener(event, unlock, { once: true, passive: true })
+  );
+}
+
 /** Plays a short chime + vibration for a new order alert. Safe to call from anywhere client-side. */
 export function playOrderAlertSound() {
   const resources = getAudioResources();

@@ -10,6 +10,7 @@ import SharedSidebar, {
   NavigationItem,
   SidebarHeaderConfig,
 } from "@/components/shared/shared-sidebar";
+import { useIsMounted } from "@/hooks/common/useIsMounted";
 import { cn } from "@/lib/cn";
 import { queryKeys } from "@/lib/query-keys";
 import { navigationUIService } from "@/lib/utils";
@@ -35,6 +36,7 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const isOwnerRoute = pathname.startsWith("/owner-shops");
+  const mounted = useIsMounted();
 
   const { data: orderConsoleData } = useQuery({
     queryKey: queryKeys.batch.orderConsole(),
@@ -46,7 +48,7 @@ export default function AppSidebar({
   });
 
   const newOrderCount =
-    isOwnerRoute && orderConsoleData
+    mounted && isOwnerRoute && orderConsoleData
       ? [
           ...(orderConsoleData.batchOrders || []),
           ...(orderConsoleData.directOrders || []),
