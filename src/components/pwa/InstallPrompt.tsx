@@ -36,38 +36,66 @@ export function InstallPrompt() {
   const [showPrompt, setShowPrompt] = useState(false);
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   const engagementTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const engagementElapsedRef = useRef(false);
+  const visibilityRetryRef = useRef<(() => void) | null>(null);
 
-  const handleBeforeInstallPrompt = useCallback((e: Event) => {
-    e.preventDefault();
-    deferredPromptRef.current = e as BeforeInstallPromptEvent;
-
-    // Do not show if already running as an installed PWA (Standalone, Android TWA, iOS Web App)
-    if (
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone
-    ) {
-      return;
+  const clearEngagementTimers = useCallback(() => {
+    if (engagementTimerRef.current) {
+      clearTimeout(engagementTimerRef.current);
+      engagementTimerRef.current = null;
     }
-
-    // Only show on mobile
-    if (window.innerWidth >= 768) return;
-    if (isDismissedRecently()) return;
-
-    // Show after 30 seconds of engagement, but only if the user is actually looking at the tab
-    engagementTimerRef.current = setTimeout(() => {
-      if (document.visibilityState === "visible") {
-        setShowPrompt(true);
-      }
-    }, 30_000);
+    if (visibilityRetryRef.current) {
+      document.removeEventListener("visibilitychange", visibilityRetryRef.current);
+      visibilityRetryRef.current = null;
+    }
   }, []);
+
+  const handleBeforeInstallPrompt = useCallback(
+    (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e as BeforeInstallPromptEvent;
+
+      // Do not show if already running as an installed PWA (Standalone, Android TWA, iOS Web App)
+      if (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone
+      ) {
+        return;
+      }
+
+      // Only show on mobile
+      if (window.innerWidth >= 768) return;
+      if (isDismissedRecently()) return;
+
+      // Show after 30 seconds of engagement. If the tab is backgrounded
+      // right at the 30s mark (locked screen, switched apps - very common
+      // on mobile), wait for it to become visible again instead of giving
+      // up, otherwise the banner silently never appears for the rest of
+      // the visit.
+      const trigger = () => {
+        if (document.visibilityState !== "visible") return;
+        setShowPrompt(true);
+        clearEngagementTimers();
+      };
+
+      engagementTimerRef.current = setTimeout(() => {
+        engagementElapsedRef.current = true;
+        trigger();
+      }, 30_000);
+
+      visibilityRetryRef.current = () => {
+        if (engagementElapsedRef.current) trigger();
+      };
+      document.addEventListener("visibilitychange", visibilityRetryRef.current);
+    },
+    [clearEngagementTimers]
+  );
 
   const handleAppInstalled = useCallback(() => {
     setShowPrompt(false);
     deferredPromptRef.current = null;
-    if (engagementTimerRef.current) {
-      clearTimeout(engagementTimerRef.current);
-    }
-  }, []);
+    clearEngagementTimers();
+  }, [clearEngagementTimers]);
 
   useEffect(() => {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -79,19 +107,15 @@ export function InstallPrompt() {
         handleBeforeInstallPrompt
       );
       window.removeEventListener("appinstalled", handleAppInstalled);
-      if (engagementTimerRef.current) {
-        clearTimeout(engagementTimerRef.current);
-      }
+      clearEngagementTimers();
     };
-  }, [handleBeforeInstallPrompt, handleAppInstalled]);
+  }, [handleBeforeInstallPrompt, handleAppInstalled, clearEngagementTimers]);
 
   const handleDismiss = useCallback(() => {
     setShowPrompt(false);
     setDismissed();
-    if (engagementTimerRef.current) {
-      clearTimeout(engagementTimerRef.current);
-    }
-  }, []);
+    clearEngagementTimers();
+  }, [clearEngagementTimers]);
 
   const handleInstall = async () => {
     const prompt = deferredPromptRef.current;

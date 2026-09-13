@@ -2,9 +2,9 @@
 
 import { UserAddress } from "@/components/checkout";
 import { FavoriteShopsTab } from "@/components/profile/favorite-shops-tab";
+import { InstallAppCard } from "@/components/profile/install-app-card";
 import { OrderStatsTab } from "@/components/profile/order-stats-tab";
 import ProfileCard from "@/components/profile/profile-card";
-import { PwaUpdater } from "@/components/profile/pwa-updater";
 import { SecurityTab } from "@/components/profile/security-tab";
 import { StockWatchesTab } from "@/components/profile/stock-watches-tab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,7 +42,7 @@ export default function ProfilePage() {
             user={session.data.user}
             hasAddresses={!!addresses?.data?.length}
           />
-          <PwaUpdater />
+          <InstallAppCard />
         </TabsContent>
         <TabsContent value="addresses" className="mt-6">
           <UserAddress />
