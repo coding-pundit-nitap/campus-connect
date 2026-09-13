@@ -64,3 +64,4 @@ graphify-out/
 backup/backup.log
 .superpowers/
 docs/superpowers/
+.worktrees/
