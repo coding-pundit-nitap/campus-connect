@@ -96,6 +96,11 @@ export function useUpdateShop({ shop }: UpdateShopProps) {
       qr_image_key: shop.qr_image_key || undefined,
       upi_id: shop.upi_id || "",
       min_order_value: Number(shop.min_order_value) || 50,
+      batch_min_order_value:
+        shop.batch_min_order_value !== null &&
+        shop.batch_min_order_value !== undefined
+          ? Number(shop.batch_min_order_value)
+          : null,
       batch_slots: [],
       default_delivery_fee: Number(shop.default_delivery_fee) || 0,
       direct_delivery_fee: Number(shop.direct_delivery_fee) || 0,

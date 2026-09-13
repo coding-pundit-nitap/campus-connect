@@ -27,6 +27,7 @@ export default async function ShopProfilePage() {
       qr_image_key: true,
       upi_id: true,
       min_order_value: true,
+      batch_min_order_value: true,
       default_delivery_fee: true,
       direct_delivery_fee: true,
       user: { select: { name: true, email: true } },
@@ -42,6 +43,9 @@ export default async function ShopProfilePage() {
   const shop: ShopUpdateFormShop = {
     ...shopData,
     min_order_value: shopData.min_order_value.toString(),
+    batch_min_order_value: shopData.batch_min_order_value
+      ? shopData.batch_min_order_value.toString()
+      : null,
     default_delivery_fee: shopData.default_delivery_fee.toString(),
     direct_delivery_fee: shopData.direct_delivery_fee.toString(),
     description: shopData.description ?? "",

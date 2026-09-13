@@ -18,6 +18,7 @@ export type ShopUpdateFormShop = {
   qr_image_key: string;
   upi_id: string;
   min_order_value: string | number;
+  batch_min_order_value: string | number | null;
   default_delivery_fee: string | number;
   direct_delivery_fee: string | number;
   user: {

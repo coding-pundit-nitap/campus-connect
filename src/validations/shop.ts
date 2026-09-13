@@ -44,6 +44,13 @@ const minOrderValueSchema = z
   .min(0, "Minimum order value cannot be negative")
   .max(10000, "Minimum order value cannot exceed ₹10,000");
 
+const batchMinOrderValueSchema = z
+  .number()
+  .min(0, "Collective batch minimum cannot be negative")
+  .max(50000, "Collective batch minimum cannot exceed ₹50,000")
+  .nullable()
+  .optional();
+
 const batchCardSchema = z.object({
   cutoff_time_minutes: z
     .number()
@@ -63,6 +70,7 @@ export const shopSchema = z.object({
   qr_image_key: qr_image_keySchema,
   upi_id: z.string(),
   min_order_value: minOrderValueSchema,
+  batch_min_order_value: batchMinOrderValueSchema,
   batch_slots: z.array(batchCardSchema).max(48),
   default_delivery_fee: feeSchema,
   direct_delivery_fee: feeSchema,
