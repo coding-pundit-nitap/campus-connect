@@ -22,9 +22,7 @@ import {
 import { OrderStatus } from "@/generated/client";
 import { queryKeys } from "@/lib/query-keys";
 import { orderAPIService, OrderFilters } from "@/services";
-import {
-  SerializedOrderWithDetails,
-} from "@/types";
+import { SerializedOrderWithDetails } from "@/types";
 
 export type UseOrdersProps = {
   initialData: SerializedOrderWithDetails[];

@@ -17,7 +17,9 @@ if (env.NODE_ENV !== "production") {
 
 redisPublisher.setMaxListeners(0);
 redisPublisher.removeAllListeners("error");
-redisPublisher.on("error", (error: Error) => console.error("Redis Error:", error));
+redisPublisher.on("error", (error: Error) =>
+  console.error("Redis Error:", error)
+);
 redisPublisher.on("connect", () =>
   console.log("✅ Worker Redis client connected.")
 );

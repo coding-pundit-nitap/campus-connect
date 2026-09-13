@@ -1,5 +1,5 @@
 const CACHE_VERSION = "2026-09-12-v9";
-const PREFIX = `cc-v${CACHE_VERSION}-`;
+const PREFIX = `cc-${CACHE_VERSION}-`;
 
 const PRECACHE = `${PREFIX}precache`;
 const STATIC = `${PREFIX}static`; // Immutable Next.js chunks
@@ -231,7 +231,6 @@ async function cacheFirstWithLimit(request, event, cacheName, maxItems) {
   }
   return response;
 }
-
 
 async function networkFirstApi(request, event, cacheName, maxItems) {
   const cache = await caches.open(cacheName);

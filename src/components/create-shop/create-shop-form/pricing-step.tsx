@@ -49,7 +49,9 @@ export function PricingStep({ form }: PricingStepProps) {
                   step="1"
                   className={fieldInputClass}
                   value={field.value ?? 50}
-                  onChange={(e) => field.onChange(e.currentTarget.valueAsNumber)}
+                  onChange={(e) =>
+                    field.onChange(e.currentTarget.valueAsNumber)
+                  }
                 />
               </FormControl>
               <FormDescription className={fieldHintClass}>
@@ -66,13 +68,13 @@ export function PricingStep({ form }: PricingStepProps) {
           </p>
           <p>
             <span className="font-semibold text-foreground">Batch</span> —
-            orders are grouped and delivered together at set times. Cheaper
-            for the student, one trip for you.
+            orders are grouped and delivered together at set times. Cheaper for
+            the student, one trip for you.
           </p>
           <p className="mt-1">
             <span className="font-semibold text-foreground">Direct</span> —
-            delivered on its own as soon as it&apos;s ready. Costs the
-            student more, and is a separate trip for you.
+            delivered on its own as soon as it&apos;s ready. Costs the student
+            more, and is a separate trip for you.
           </p>
         </div>
 

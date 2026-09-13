@@ -63,9 +63,7 @@ export function HoursLocationStep({ form }: HoursLocationStepProps) {
             name="opening"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={fieldLabelClass}>
-                  Opening time
-                </FormLabel>
+                <FormLabel className={fieldLabelClass}>Opening time</FormLabel>
                 <FormControl>
                   <Input type="time" className={fieldInputClass} {...field} />
                 </FormControl>
@@ -78,9 +76,7 @@ export function HoursLocationStep({ form }: HoursLocationStepProps) {
             name="closing"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={fieldLabelClass}>
-                  Closing time
-                </FormLabel>
+                <FormLabel className={fieldLabelClass}>Closing time</FormLabel>
                 <FormControl>
                   <Input type="time" className={fieldInputClass} {...field} />
                 </FormControl>

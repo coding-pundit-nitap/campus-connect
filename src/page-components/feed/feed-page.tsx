@@ -39,6 +39,7 @@ export default function FeedPage() {
     isSupported,
     isSubscribed,
     isLoading: isPushLoading,
+    isBrave,
     subscribe,
     unsubscribe,
   } = usePushNotifications();
@@ -104,6 +105,13 @@ export default function FeedPage() {
                   </Button>
                 )}
               </div>
+            )}
+            {isSubscribed && isBrave && (
+              <p className="text-[10px] text-muted-foreground max-w-xl leading-relaxed">
+                Using Brave? Enable &quot;Use Google services for push
+                messaging&quot; in brave://settings/privacy, or alerts may
+                silently never arrive.
+              </p>
             )}
           </div>
         </div>

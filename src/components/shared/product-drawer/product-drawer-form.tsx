@@ -86,20 +86,28 @@ export function ProductDrawerForm({
   onSubmit,
   onSaveAndAddAnother,
 }: ProductDrawerFormProps) {
-  const [watchedImage, watchedPrice, watchedDiscount, watchedStock, watchedName, watchedCategory, watchedBrand, watchedDescription] =
-    useWatch({
-      control: form.control,
-      name: [
-        "image",
-        "price",
-        "discount",
-        "stock_quantity",
-        "name",
-        "category",
-        "brand",
-        "description",
-      ],
-    });
+  const [
+    watchedImage,
+    watchedPrice,
+    watchedDiscount,
+    watchedStock,
+    watchedName,
+    watchedCategory,
+    watchedBrand,
+    watchedDescription,
+  ] = useWatch({
+    control: form.control,
+    name: [
+      "image",
+      "price",
+      "discount",
+      "stock_quantity",
+      "name",
+      "category",
+      "brand",
+      "description",
+    ],
+  });
 
   const objectUrl = useMemo(() => {
     if (watchedImage instanceof File) {
@@ -117,13 +125,12 @@ export function ProductDrawerForm({
   }, [objectUrl]);
 
   const imagePreview =
-    watchedImage instanceof File
-      ? objectUrl
-      : (existingImageUrl ?? null);
+    watchedImage instanceof File ? objectUrl : (existingImageUrl ?? null);
 
   const price = Number(watchedPrice) || 0;
   const discount = Number(watchedDiscount) || 0;
-  const discountedPrice = discount > 0 ? price - (price * discount) / 100 : price;
+  const discountedPrice =
+    discount > 0 ? price - (price * discount) / 100 : price;
 
   return (
     <div className="space-y-6">
@@ -169,9 +176,7 @@ export function ProductDrawerForm({
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className={sectionLabelClass}>
-                    Category
-                  </FormLabel>
+                  <FormLabel className={sectionLabelClass}>Category</FormLabel>
                   <FormControl>
                     <SharedCategoryInput
                       value={field.value || ""}
@@ -217,9 +222,7 @@ export function ProductDrawerForm({
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className={sectionLabelClass}>
-                  Price (₹)
-                </FormLabel>
+                <FormLabel className={sectionLabelClass}>Price (₹)</FormLabel>
                 <FormControl>
                   <Input
                     type="number"

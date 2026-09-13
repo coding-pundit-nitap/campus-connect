@@ -73,9 +73,7 @@ export function ReviewStep({ form, goToStep }: ReviewStepProps) {
       <Separator className="mt-6 bg-border/50" />
 
       <ReviewGroup title="Shop details" step={1} goToStep={goToStep}>
-        <p className="font-semibold text-foreground">
-          {values.name || "—"}
-        </p>
+        <p className="font-semibold text-foreground">{values.name || "—"}</p>
         <p className="line-clamp-2">
           {values.description?.replace(/<[^>]*>/g, " ").trim() || "—"}
         </p>

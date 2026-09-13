@@ -75,7 +75,9 @@ export function DetailsStep({ form, isSubmitting }: DetailsStepProps) {
                   />
                 </div>
               </FormControl>
-              <FormDescription className={`${fieldHintClass} flex justify-between`}>
+              <FormDescription
+                className={`${fieldHintClass} flex justify-between`}
+              >
                 <span>Describe what you sell to campus students.</span>
                 <span>{descriptionValue.length}/500</span>
               </FormDescription>

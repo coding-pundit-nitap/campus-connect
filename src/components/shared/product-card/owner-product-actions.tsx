@@ -4,11 +4,23 @@ import React from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { InlinePriceEdit } from "@/components/shared/product-drawer/inline-price-edit";
-import { ProductDrawerForm, ProductDrawerFormValues } from "@/components/shared/product-drawer/product-drawer-form";
+import {
+  ProductDrawerForm,
+  ProductDrawerFormValues,
+} from "@/components/shared/product-drawer/product-drawer-form";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { Switch } from "@/components/ui/switch";
-import { useBrandSearch, useCategorySearch, useUpdateProductForm } from "@/hooks";
+import {
+  useBrandSearch,
+  useCategorySearch,
+  useUpdateProductForm,
+} from "@/hooks";
 import { useToggleProductStock } from "@/hooks/queries/useShopProducts";
 import { ImageUtils } from "@/lib/utils";
 import { SerializedProduct } from "@/types/product.types";
@@ -66,7 +78,10 @@ export function OwnerProductActions({
         >
           Edit
         </Button>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto sm:max-w-lg"
+        >
           <SheetHeader>
             <SheetTitle>Edit product</SheetTitle>
           </SheetHeader>

@@ -61,9 +61,7 @@ export function PaymentsStep({ form }: PaymentsStepProps) {
           name="qr_image"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className={fieldLabelClass}>
-                Billing QR code
-              </FormLabel>
+              <FormLabel className={fieldLabelClass}>Billing QR code</FormLabel>
               <FormControl>
                 <SharedFileInput
                   value={field.value}

@@ -44,9 +44,7 @@ export function StepSidebar({
           value={(step / totalSteps) * 100}
           className="h-1.5 rounded-full bg-muted [&_div]:bg-indigo-600"
         />
-        <p className="text-xs text-muted-foreground">
-          {stepEstimates[step]}
-        </p>
+        <p className="text-xs text-muted-foreground">{stepEstimates[step]}</p>
       </div>
 
       <nav className="relative flex flex-col gap-6 pl-2">

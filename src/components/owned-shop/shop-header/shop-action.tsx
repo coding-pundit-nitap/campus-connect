@@ -16,7 +16,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { useBrandSearch, useCategorySearch, useCreateProductForm } from "@/hooks";
+import {
+  useBrandSearch,
+  useCategorySearch,
+  useCreateProductForm,
+} from "@/hooks";
 
 export function ShopAction() {
   const { form, state, handlers, isOpen, setIsOpen } = useCreateProductForm();
@@ -43,7 +47,10 @@ export function ShopAction() {
           <Plus className="h-4 w-4" />
           <span className="font-medium">Add Product</span>
         </Button>
-        <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+        <SheetContent
+          side="right"
+          className="w-full overflow-y-auto sm:max-w-lg"
+        >
           <SheetHeader>
             <SheetTitle>Add a product</SheetTitle>
           </SheetHeader>

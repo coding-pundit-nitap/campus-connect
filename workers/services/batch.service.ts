@@ -88,7 +88,17 @@ export class BatchService {
       const batchIds = expiredBatches.map((b: { id: string }) => b.id).sort();
 
       const { openBatchIds, countMap } = await this.prismaClient.$transaction(
-        async (tx: Omit<typeof prisma, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends">) => {
+        async (
+          tx: Omit<
+            typeof prisma,
+            | "$connect"
+            | "$disconnect"
+            | "$on"
+            | "$transaction"
+            | "$use"
+            | "$extends"
+          >
+        ) => {
           const locked: { id: string; status: string }[] = await tx.$queryRaw`
             SELECT id, status FROM "Batch"
             WHERE id IN (${Prisma.join(batchIds)}) AND status = 'OPEN'
@@ -122,7 +132,12 @@ export class BatchService {
             _count: { id: true },
           });
           const countMap = new Map(
-            orderCounts.map((c: { batch_id: string | null; _count: { id: number } }) => [c.batch_id ?? "", c._count.id])
+            orderCounts.map(
+              (c: { batch_id: string | null; _count: { id: number } }) => [
+                c.batch_id ?? "",
+                c._count.id,
+              ]
+            )
           );
 
           return { openBatchIds, countMap };

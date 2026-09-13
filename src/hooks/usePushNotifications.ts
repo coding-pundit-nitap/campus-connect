@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -26,6 +26,21 @@ export function usePushNotifications() {
   const [isSupported, setIsSupported] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+
+  const { data: isBrave = false } = useQuery({
+    queryKey: ["is-brave-browser"],
+    queryFn: async () => {
+      const brave = (
+        navigator as Navigator & { brave?: { isBrave: () => Promise<boolean> } }
+      ).brave;
+      try {
+        return (await brave?.isBrave()) ?? false;
+      } catch {
+        return false;
+      }
+    },
+    staleTime: Infinity,
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -153,6 +168,12 @@ export function usePushNotifications() {
     onSuccess: () => {
       setIsSubscribed(true);
       toast.success("Push notifications enabled");
+      if (isBrave) {
+        toast.info(
+          'Using Brave? Enable "Use Google services for push messaging" in brave://settings/privacy, or notifications may silently never arrive.',
+          { duration: 12000 }
+        );
+      }
     },
     onError: (err) => {
       toast.error(err.message, { duration: 8000 });
@@ -205,5 +226,12 @@ export function usePushNotifications() {
   const isLoading =
     isChecking || subscribeMutation.isPending || unsubscribeMutation.isPending;
 
-  return { isSupported, isSubscribed, isLoading, subscribe, unsubscribe };
+  return {
+    isSupported,
+    isSubscribed,
+    isLoading,
+    isBrave,
+    subscribe,
+    unsubscribe,
+  };
 }

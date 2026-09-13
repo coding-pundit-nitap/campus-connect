@@ -216,13 +216,8 @@ export function useToggleProductStock() {
 export function useUpdateProductPrice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      productId,
-      price,
-    }: {
-      productId: string;
-      price: number;
-    }) => updateProductPriceAction(productId, price),
+    mutationFn: ({ productId, price }: { productId: string; price: number }) =>
+      updateProductPriceAction(productId, price),
     onSuccess: (data) => {
       toast.success("Price updated!");
       queryClient.invalidateQueries({ queryKey: queryKeys.products.all });

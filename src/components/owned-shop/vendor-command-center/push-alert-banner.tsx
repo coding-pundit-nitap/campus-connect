@@ -18,7 +18,7 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
  * Dismissal is per-mount only.
  */
 export function PushAlertBanner() {
-  const { isSupported, isSubscribed, isLoading, subscribe } =
+  const { isSupported, isSubscribed, isLoading, isBrave, subscribe } =
     usePushNotifications();
   const [dismissed, setDismissed] = useState(false);
   const [initialCheckDone, setInitialCheckDone] = useState(false);
@@ -51,6 +51,13 @@ export function PushAlertBanner() {
           or your phone locked. Without this, you only hear a sound while this
           page is open.
         </p>
+        {isBrave && (
+          <p className="mt-1 text-[10px] text-muted-foreground/80 leading-relaxed">
+            Using Brave? Enable &quot;Use Google services for push
+            messaging&quot; in brave://settings/privacy after turning this on,
+            or alerts may silently never arrive.
+          </p>
+        )}
         <Button
           type="button"
           size="sm"

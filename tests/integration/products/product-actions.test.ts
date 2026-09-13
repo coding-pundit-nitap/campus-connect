@@ -9,7 +9,11 @@ import {
   updateProductPriceAction,
 } from "@/actions/product/product-actions";
 import { fileUploadService } from "@/di/container";
-import { BadRequestError, ForbiddenError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 
 import { createShop, createUser, seedShopWithProducts } from "../../factories";
 import { asAnonymous, asUser } from "../../setup/auth";

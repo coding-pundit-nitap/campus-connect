@@ -13,11 +13,7 @@ type Props = {
 
 export default function CategoryPills({ selectedId, onChange }: Props) {
   const isMounted = useIsMounted();
-  const {
-    data: categories = [],
-    isLoading,
-    isError,
-  } = useActiveCategories();
+  const { data: categories = [], isLoading, isError } = useActiveCategories();
 
   return (
     <div className="relative w-full h-16 min-h-[64px] flex items-center mb-6">

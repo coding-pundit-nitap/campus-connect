@@ -1,8 +1,8 @@
 import { Job, Queue, Worker } from "bullmq";
 import webpush from "web-push";
 
-import { env } from "../lib/env.js";
 import { sendNotificationEmail } from "../lib/email.js";
+import { env } from "../lib/env.js";
 import { loggers } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
 import { redisPublisher } from "../lib/redis.js";
@@ -104,34 +104,42 @@ const workHandler = async (job: Job<NotificationJobData>) => {
           });
 
           const results = await Promise.allSettled(
-            subscriptions.map(async (sub: { endpoint: string; p256dh: string; auth: string }) => {
-              try {
-                await webpush.sendNotification(
-                  {
-                    endpoint: sub.endpoint,
-                    keys: { p256dh: sub.p256dh, auth: sub.auth },
-                  },
-                  payload
-                );
-              } catch (pushError) {
-                const err = pushError as { statusCode?: number };
-                // If subscription is invalid/expired (404/410), delete it
-                if (err.statusCode === 404 || err.statusCode === 410) {
-                  await prisma.pushSubscription.deleteMany({
-                    where: { endpoint: sub.endpoint },
-                  });
-                  logger.info(
-                    { endpoint: sub.endpoint },
-                    "Deleted stale push subscription"
+            subscriptions.map(
+              async (sub: {
+                endpoint: string;
+                p256dh: string;
+                auth: string;
+              }) => {
+                try {
+                  await webpush.sendNotification(
+                    {
+                      endpoint: sub.endpoint,
+                      keys: { p256dh: sub.p256dh, auth: sub.auth },
+                    },
+                    payload
                   );
-                } else {
-                  throw pushError;
+                } catch (pushError) {
+                  const err = pushError as { statusCode?: number };
+                  // If subscription is invalid/expired (404/410), delete it
+                  if (err.statusCode === 404 || err.statusCode === 410) {
+                    await prisma.pushSubscription.deleteMany({
+                      where: { endpoint: sub.endpoint },
+                    });
+                    logger.info(
+                      { endpoint: sub.endpoint },
+                      "Deleted stale push subscription"
+                    );
+                  } else {
+                    throw pushError;
+                  }
                 }
               }
-            })
+            )
           );
 
-          const failedPushes = results.filter((r: PromiseSettledResult<void>) => r.status === "rejected");
+          const failedPushes = results.filter(
+            (r: PromiseSettledResult<void>) => r.status === "rejected"
+          );
           if (failedPushes.length > 0) {
             logger.warn(
               { failedCount: failedPushes.length, userId: user_id },
@@ -203,37 +211,45 @@ const workHandler = async (job: Job<NotificationJobData>) => {
           for (let i = 0; i < subscriptions.length; i += CHUNK_SIZE) {
             const chunk = subscriptions.slice(i, i + CHUNK_SIZE);
             const results = await Promise.allSettled(
-              chunk.map(async (sub: { endpoint: string; p256dh: string; auth: string }) => {
-                try {
-                  await webpush.sendNotification(
-                    {
-                      endpoint: sub.endpoint,
-                      keys: { p256dh: sub.p256dh, auth: sub.auth },
-                    },
-                    payload
-                  );
-                } catch (pushError) {
-                  const err = pushError as { statusCode?: number };
-                  // If subscription is invalid/expired (404/410), delete it
-                  if (err.statusCode === 404 || err.statusCode === 410) {
-                    await prisma.pushSubscription.deleteMany({
-                      where: { endpoint: sub.endpoint },
-                    });
-                    logger.info(
-                      { endpoint: sub.endpoint },
-                      "Deleted stale push subscription"
+              chunk.map(
+                async (sub: {
+                  endpoint: string;
+                  p256dh: string;
+                  auth: string;
+                }) => {
+                  try {
+                    await webpush.sendNotification(
+                      {
+                        endpoint: sub.endpoint,
+                        keys: { p256dh: sub.p256dh, auth: sub.auth },
+                      },
+                      payload
                     );
-                  } else {
-                    throw pushError;
+                  } catch (pushError) {
+                    const err = pushError as { statusCode?: number };
+                    // If subscription is invalid/expired (404/410), delete it
+                    if (err.statusCode === 404 || err.statusCode === 410) {
+                      await prisma.pushSubscription.deleteMany({
+                        where: { endpoint: sub.endpoint },
+                      });
+                      logger.info(
+                        { endpoint: sub.endpoint },
+                        "Deleted stale push subscription"
+                      );
+                    } else {
+                      throw pushError;
+                    }
                   }
                 }
-              })
+              )
             );
 
             successCount += results.filter(
               (r: PromiseSettledResult<void>) => r.status === "fulfilled"
             ).length;
-            failCount += results.filter((r: PromiseSettledResult<void>) => r.status === "rejected").length;
+            failCount += results.filter(
+              (r: PromiseSettledResult<void>) => r.status === "rejected"
+            ).length;
           }
 
           if (failCount > 0) {

@@ -125,9 +125,8 @@ export function CheckoutForm({
     },
   });
 
-  const activeDeliveryFee = (isDirectDelivery || hasNoBatchSlots)
-    ? direct_delivery_fee
-    : deliveryFee;
+  const activeDeliveryFee =
+    isDirectDelivery || hasNoBatchSlots ? direct_delivery_fee : deliveryFee;
   const total = itemTotal + activeDeliveryFee + platformFee;
 
   const upiRegex = /^[A-Za-z0-9]{10,}$/;
@@ -330,20 +329,22 @@ export function CheckoutForm({
         <div className="lg:col-span-2 space-y-4">
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
-              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${activeStep === "address" ? "bg-muted/10" : ""
-                }`}
+              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
+                activeStep === "address" ? "bg-muted/10" : ""
+              }`}
               onClick={() =>
                 completedSteps.address && handleStepEdit("address")
               }
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${completedSteps.address
+                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${
+                    completedSteps.address
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "address"
                         ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
-                    }`}
+                  }`}
                 >
                   {completedSteps.address ? (
                     <Check className="h-4 w-4 stroke-[3]" />
@@ -409,18 +410,20 @@ export function CheckoutForm({
 
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
-              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${activeStep === "timing" ? "bg-muted/10" : ""
-                } ${!completedSteps.address ? "opacity-50 pointer-events-none" : ""}`}
+              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
+                activeStep === "timing" ? "bg-muted/10" : ""
+              } ${!completedSteps.address ? "opacity-50 pointer-events-none" : ""}`}
               onClick={() => completedSteps.timing && handleStepEdit("timing")}
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${completedSteps.timing
+                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${
+                    completedSteps.timing
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "timing"
                         ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
-                    }`}
+                  }`}
                 >
                   {completedSteps.timing ? (
                     <Check className="h-4 w-4 stroke-[3]" />
@@ -480,20 +483,22 @@ export function CheckoutForm({
 
           <Card className="border border-border/30 bg-card/25 backdrop-blur-xl rounded-2xl overflow-hidden shadow-xl shadow-blue-500/[0.01]">
             <div
-              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${activeStep === "payment" ? "bg-muted/10" : ""
-                } ${!completedSteps.timing ? "opacity-50 pointer-events-none" : ""}`}
+              className={`p-5 flex items-center justify-between border-b border-border/10 cursor-pointer transition-colors ${
+                activeStep === "payment" ? "bg-muted/10" : ""
+              } ${!completedSteps.timing ? "opacity-50 pointer-events-none" : ""}`}
               onClick={() =>
                 completedSteps.payment && handleStepEdit("payment")
               }
             >
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${completedSteps.payment
+                  className={`flex items-center justify-center h-8 w-8 rounded-lg border font-bold text-xs transition-all duration-300 ${
+                    completedSteps.payment
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
                       : activeStep === "payment"
                         ? "bg-blue-600 border-blue-600 text-white shadow shadow-blue-600/10"
                         : "border-border text-muted-foreground"
-                    }`}
+                  }`}
                 >
                   "3"
                 </div>

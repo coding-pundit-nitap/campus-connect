@@ -30,8 +30,8 @@ export function BatchScheduleStep({
       <div>
         <h2 className={stepHeadingClass}>Plan your delivery batches</h2>
         <p className={stepSubheadingClass}>
-          Set cutoff times so nearby orders go out together. Leave empty if
-          you only run direct delivery.
+          Set cutoff times so nearby orders go out together. Leave empty if you
+          only run direct delivery.
         </p>
       </div>
       <FormField

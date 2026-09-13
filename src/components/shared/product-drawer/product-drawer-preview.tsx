@@ -111,9 +111,7 @@ export function ProductDrawerPreview({
         </div>
 
         <p className="text-[11px] font-medium text-muted-foreground">
-          {stockQuantity === 0
-            ? "Out of stock"
-            : `${stockQuantity} in stock`}
+          {stockQuantity === 0 ? "Out of stock" : `${stockQuantity} in stock`}
         </p>
       </div>
     </div>

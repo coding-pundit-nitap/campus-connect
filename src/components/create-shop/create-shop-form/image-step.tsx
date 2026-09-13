@@ -11,7 +11,11 @@ import {
 import { ShopActionFormData } from "@/validations/shop";
 
 import { SharedFileInput } from "../../shared/shared-file-input";
-import { fieldHintClass, stepHeadingClass, stepSubheadingClass } from "./styles";
+import {
+  fieldHintClass,
+  stepHeadingClass,
+  stepSubheadingClass,
+} from "./styles";
 
 interface ImageStepProps {
   form: UseFormReturn<ShopActionFormData>;
@@ -23,8 +27,7 @@ export function ImageStep({ form }: ImageStepProps) {
       <div>
         <h2 className={stepHeadingClass}>Show off your shop</h2>
         <p className={stepSubheadingClass}>
-          A clear photo is the first thing that catches a hungry student's
-          eye.
+          A clear photo is the first thing that catches a hungry student's eye.
         </p>
       </div>
       <FormField

@@ -120,7 +120,11 @@ function validateDraft(envelope: unknown): envelope is DraftEnvelope {
 const stepFieldNames = {
   1: ["name", "description"] as const,
   2: ["location", "opening", "closing"] as const,
-  3: ["min_order_value", "default_delivery_fee", "direct_delivery_fee"] as const,
+  3: [
+    "min_order_value",
+    "default_delivery_fee",
+    "direct_delivery_fee",
+  ] as const,
   4: ["batch_slots"] as const,
   5: ["image"] as const,
   6: ["qr_image", "upi_id"] as const,
@@ -259,8 +263,8 @@ export function CreateShopForm() {
               Resume previous setup?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm leading-relaxed text-muted-foreground">
-              We found an unfinished draft for your shop setup. Would you
-              like to resume where you left off or start fresh?
+              We found an unfinished draft for your shop setup. Would you like
+              to resume where you left off or start fresh?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="mt-4 gap-2 border-t border-border/10 pt-3 sm:gap-0">
@@ -347,9 +351,7 @@ export function CreateShopForm() {
                 )}
                 {step === 5 && <ImageStep form={form} />}
                 {step === 6 && <PaymentsStep form={form} />}
-                {step === 7 && (
-                  <ReviewStep form={form} goToStep={goToStep} />
-                )}
+                {step === 7 && <ReviewStep form={form} goToStep={goToStep} />}
               </div>
 
               <div className="mt-auto flex items-center justify-between border-t border-border/20 p-6 sm:p-8">
@@ -414,8 +416,8 @@ export function CreateShopForm() {
           </div>
           <ShopPreviewCard values={previewValues} />
           <p className="px-1 text-xs leading-relaxed text-muted-foreground">
-            This is exactly how your shop will look to students browsing
-            campus listings.
+            This is exactly how your shop will look to students browsing campus
+            listings.
           </p>
         </div>
       </div>
