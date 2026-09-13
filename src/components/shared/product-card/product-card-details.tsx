@@ -20,7 +20,7 @@ const variantStyles = {
     ratingText: "",
     stockRow: "text-xs font-medium",
     categoryBadge:
-      "bg-indigo-500/5 text-indigo-600 border border-indigo-500/20 dark:bg-indigo-500/15 dark:text-indigo-400 dark:border-indigo-500/25 font-semibold text-[11px] rounded-full px-2.5 py-0.5",
+      "bg-primary/10 text-primary-foreground/90 dark:text-primary border border-primary/25 font-semibold text-[11px] rounded-full px-2.5 py-0.5",
     showDescription: true,
   },
   compact: {
@@ -35,7 +35,7 @@ const variantStyles = {
     ratingText: "text-[11px]",
     stockRow: "text-[11px] font-medium",
     categoryBadge:
-      "bg-indigo-500/5 text-indigo-600 border border-indigo-500/15 dark:bg-indigo-500/10 dark:text-indigo-400 dark:border-indigo-500/20 font-semibold text-[11px] rounded-full px-1.5 py-0",
+      "bg-primary/10 text-primary-foreground/90 dark:text-primary border border-primary/20 font-semibold text-[11px] rounded-full px-1.5 py-0",
     showDescription: false,
   },
 } as const;
@@ -95,7 +95,7 @@ export function ProductCardDetails({
           )}
           {product.shop && (
             <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1 bg-muted/40 px-1.5 py-0.5 rounded-md">
-              <Store className="w-3 h-3 text-orange-500" />
+              <Store className="w-3 h-3 text-primary" />
               <span className="truncate max-w-[80px]">{product.shop.name}</span>
             </span>
           )}
@@ -119,7 +119,7 @@ export function ProductCardDetails({
       <div className={styles.spacing}>
         <h3
           className={cn(
-            "truncate font-heading font-black tracking-tight leading-tight text-foreground transition-colors duration-300 group-hover:text-orange-500 dark:group-hover:text-orange-400",
+            "truncate font-heading font-black tracking-tight leading-tight text-foreground transition-colors duration-300 group-hover:text-primary",
             styles.title
           )}
         >

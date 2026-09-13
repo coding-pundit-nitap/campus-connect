@@ -8,8 +8,8 @@ export function ShopListEmpty() {
   return (
     <EmptyState
       icon={<Package className="h-12 w-12 text-muted-foreground" />}
-      title="No shops found"
-      description="Start adding shops to your shop to see them here."
+      title="No shops yet"
+      description="Campus shops will show up here as soon as they go live."
     />
   );
 }

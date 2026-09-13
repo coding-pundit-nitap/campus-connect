@@ -35,13 +35,13 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
             <button
               onClick={() => onChange(null)}
               className={cn(
-                "h-10 px-5 rounded-xl text-[11px] font-heading font-black uppercase tracking-wider shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 cursor-pointer",
+                "h-10 px-5 rounded-xl text-sm font-heading font-bold shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 cursor-pointer",
                 selectedId === null
-                  ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_#F97316] scale-[1.01]"
+                  ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_rgba(23,21,31,0.18)] scale-[1.01]"
                   : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:-translate-y-[1px]"
               )}
             >
-              All Categories
+              Everything
             </button>
 
             {categories.map((category) => {
@@ -51,9 +51,9 @@ export default function CategoryPills({ selectedId, onChange }: Props) {
                   key={category.id}
                   onClick={() => onChange(category.id)}
                   className={cn(
-                    "h-10 px-5 rounded-xl text-[11px] font-heading font-black uppercase tracking-wider shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 capitalize cursor-pointer",
+                    "h-10 px-5 rounded-xl text-sm font-heading font-bold shrink-0 snap-start transition-all duration-200 active:scale-95 flex items-center justify-center border-2 capitalize cursor-pointer",
                     isActive
-                      ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_#F97316] scale-[1.01]"
+                      ? "bg-primary text-primary-foreground border-primary shadow-[3px_3px_0px_0px_rgba(23,21,31,0.18)] scale-[1.01]"
                       : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:-translate-y-[1px]"
                   )}
                 >

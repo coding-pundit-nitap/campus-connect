@@ -60,7 +60,7 @@ export function ShopStatusBadge({ shop }: ShopStatusBadgeProps) {
   return (
     <Badge
       variant={shopOpen ? "default" : "destructive"}
-      className={shopOpen ? "bg-blue-500 hover:bg-blue-600" : ""}
+      className={shopOpen ? "bg-emerald-600 hover:bg-emerald-700" : ""}
       suppressHydrationWarning
     >
       {shopOpen ? "Open" : "Closed"}

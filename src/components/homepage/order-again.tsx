@@ -87,29 +87,19 @@ function OrderAgainFeed({
 }: OrderAgainFeedProps) {
   return (
     <div className="w-full mb-8 relative animate-fade-in">
-      <div className="flex items-center justify-between mb-4 px-4 md:px-1">
-        <div className="flex items-center gap-2">
-          <div className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-500 p-2 rounded-full">
-            <RotateCcw className="h-5 w-5 text-indigo-500" />
-          </div>
-          <div className="flex flex-col">
-            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
-              Order Again
-              <span className="text-[11px] bg-indigo-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Recent
-              </span>
-            </h2>
-            <p className="text-xs text-muted-foreground font-sans font-medium">
-              Fast checkout for your campus favorites
-            </p>
-          </div>
+      <div className="flex items-end justify-between mb-3 px-4 md:px-1">
+        <div className="flex items-center gap-1.5">
+          <RotateCcw className="h-4 w-4 text-primary shrink-0" />
+          <h2 className="text-base font-heading font-bold text-foreground">
+            Order again
+          </h2>
         </div>
 
         <Link
           href={"/orders" as Route}
-          className="text-xs font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
-          My Orders →
+          My orders
         </Link>
       </div>
 
@@ -148,21 +138,11 @@ function TrendingPicksFeed({
 }: TrendingPicksFeedProps) {
   return (
     <div className="w-full mb-8 relative animate-fade-in">
-      <div className="flex items-center gap-2 mb-4 px-4 md:px-1">
-        <div className="bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 p-2 rounded-full">
-          <Sparkles className="h-5 w-5 text-amber-500" />
-        </div>
-        <div className="flex flex-col">
-          <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
-            Trending Picks
-            <span className="text-[11px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-              Popular
-            </span>
-          </h2>
-          <p className="text-xs text-muted-foreground font-sans font-medium">
-            Top products ordered on campus today
-          </p>
-        </div>
+      <div className="flex items-center gap-1.5 mb-3 px-4 md:px-1">
+        <Sparkles className="h-4 w-4 text-amber-500 shrink-0" />
+        <h2 className="text-base font-heading font-bold text-foreground">
+          Trending on campus
+        </h2>
       </div>
 
       <div className="w-full flex items-stretch overflow-x-auto scrollbar-none snap-x snap-mandatory gap-5 py-2 px-4 md:px-1">

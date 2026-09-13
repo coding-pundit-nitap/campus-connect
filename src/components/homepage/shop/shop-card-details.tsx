@@ -23,7 +23,7 @@ export function ShopCardDetails() {
         <CardTitle className="line-clamp-1 text-lg font-extrabold tracking-tight">
           <Link
             href={`/shops/${shop.id}` as Route}
-            className="text-foreground transition-colors duration-300 hover:text-orange-500 dark:hover:text-orange-400 group-hover:text-orange-500 dark:group-hover:text-orange-400"
+            className="text-foreground transition-colors duration-300 group-hover:text-primary"
           >
             {shop.name}
           </Link>

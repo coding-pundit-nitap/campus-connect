@@ -9,9 +9,10 @@ import { usePushNotifications } from "@/hooks/usePushNotifications";
 /**
  * Prompts the vendor to enable push notifications for new orders.
  *
- * The server already sends a push on every new order, but nothing in the
- * vendor UI ever asked them to subscribe - so most vendors only ever got the
- * in-tab sound, which requires the tab to stay open and focused.
+ * The in-app chime (useLiveNotifications) already alerts vendors across any
+ * owner-shops page via SSE, but that only works while a tab is open. Push
+ * notifications are the only way to alert them with the app fully closed or
+ * the phone locked, so this still nudges vendors to subscribe.
  *
  * Visibility is derived from live subscription state rather than a persisted
  * "dismissed" flag, so the prompt returns if permission is later revoked.
@@ -47,9 +48,9 @@ export function PushAlertBanner() {
           Turn on order alerts
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Get alerted the moment an order arrives - even with this page closed
-          or your phone locked. Without this, you only hear a sound while this
-          page is open.
+          Get alerted the moment an order arrives - even with the app closed
+          or your phone locked. Without this, you only hear a sound while a
+          dashboard tab is open.
         </p>
         {isBrave && (
           <p className="mt-1 text-[10px] text-muted-foreground/80 leading-relaxed">

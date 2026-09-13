@@ -30,7 +30,7 @@ export function UserProductCard({
 }: UserProductCardProps) {
   return (
     <ProductCardProvider product={product} priority={index < 4}>
-      <div className="group relative overflow-hidden rounded-2xl border-2 border-border bg-card shadow-[4px_4px_0px_0px_rgba(37,99,235,0.12)] transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(249,115,22,0.25)] hover:border-primary/45 flex flex-col h-full">
+      <div className="group relative overflow-hidden rounded-2xl border-2 border-border bg-card shadow-[4px_4px_0px_0px_rgba(217,155,26,0.16)] transition-all duration-300 hover:scale-[1.01] hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_rgba(180,83,9,0.3)] hover:border-primary/45 flex flex-col h-full">
         <Link
           href={`/product/${product.id}`}
           className="flex md:hidden min-h-[144px] h-auto"

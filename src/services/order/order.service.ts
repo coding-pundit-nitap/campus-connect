@@ -1,3 +1,4 @@
+import { NEW_ORDER_NOTIFICATION_TITLE } from "@/config/constants";
 import { PaymentMethod, Prisma } from "@/generated/client";
 import {
   NotFoundError,
@@ -525,10 +526,11 @@ export class OrderService {
     if (shopOwnerId) {
       try {
         await this.notificationService.publishNotification(shopOwnerId, {
-          title: "New Order Received",
+          title: NEW_ORDER_NOTIFICATION_TITLE,
           message: `You have received a new order with ID: ${order.display_id}`,
           action_url: getShopOrderUrl(order.id),
           type: "INFO",
+          category: "ORDER",
         });
       } catch (error) {
         log.error({ err: error }, "Notification Error:");

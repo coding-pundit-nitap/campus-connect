@@ -25,6 +25,7 @@ interface ProductListProps {
     index: number
   ) => React.ReactNode;
   skeletonCount?: number;
+  renderSkeletonCard?: () => React.ReactNode;
 }
 
 export function ProductList({
@@ -37,6 +38,7 @@ export function ProductList({
   fetchNextPage,
   renderProductCard,
   skeletonCount = 8,
+  renderSkeletonCard,
 }: ProductListProps) {
   const { lastElementRef } = useInfiniteScroll({
     hasNextPage,
@@ -45,7 +47,12 @@ export function ProductList({
   });
 
   if (isLoading) {
-    return <ProductSkeletonGrid count={skeletonCount} />;
+    return (
+      <ProductSkeletonGrid
+        count={skeletonCount}
+        renderSkeletonCard={renderSkeletonCard}
+      />
+    );
   }
 
   if (isError && error) {
@@ -59,22 +66,17 @@ export function ProductList({
   return (
     <div className="space-y-6">
       <ProductGrid count={products?.length}>
-        <AnimatePresence>
+        <AnimatePresence initial={false}>
           {products?.map((product, index) => {
             const isLastProduct = index === products.length - 1;
             return (
               <motion.div
                 key={product.id}
                 ref={isLastProduct ? lastElementRef : null}
-                layout
-                initial={{ opacity: 0, scale: 0.97, y: 8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.97, y: 8 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 400,
-                  damping: 30,
-                }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 {renderProductCard(product, index)}
               </motion.div>

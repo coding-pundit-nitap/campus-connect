@@ -14,7 +14,7 @@ import {
   Truck,
 } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useOwnerContext } from "@/components/owned-shop/owner-context";
@@ -67,62 +67,6 @@ import { PushAlertBanner } from "./push-alert-banner";
 import { SectionHeader } from "./section-header";
 
 const EMPTY_ORDERS: SerializedOrderWithDetails[] = [];
-
-function useNewOrderAlert(currentCount: number) {
-  const prevRef = useRef(currentCount);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    if (!audioRef.current && typeof window !== "undefined") {
-      try {
-        const ctx = new AudioContext();
-        const buffer = ctx.createBuffer(
-          1,
-          ctx.sampleRate * 0.15,
-          ctx.sampleRate
-        );
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < data.length; i++) {
-          data[i] =
-            Math.sin(2 * Math.PI * 880 * (i / ctx.sampleRate)) *
-            Math.exp(-i / (ctx.sampleRate * 0.05));
-        }
-        audioRef.current = new Audio();
-        (audioRef.current as unknown as Record<string, unknown>).__ctx = ctx;
-        (audioRef.current as unknown as Record<string, unknown>).__buf = buffer;
-      } catch {
-        // Web Audio unavailable
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentCount > prevRef.current && prevRef.current >= 0) {
-      try {
-        const el = audioRef.current as unknown as Record<
-          string,
-          unknown
-        > | null;
-        if (el?.__ctx && el?.__buf) {
-          const ctx = el.__ctx as AudioContext;
-          const buf = el.__buf as AudioBuffer;
-          if (ctx.state === "suspended") ctx.resume();
-          const src = ctx.createBufferSource();
-          src.buffer = buf;
-          src.connect(ctx.destination);
-          src.start();
-        }
-      } catch {
-        // Ignore audio errors
-      }
-
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate([100, 50, 100]);
-      }
-    }
-    prevRef.current = currentCount;
-  }, [currentCount]);
-}
 
 export function VendorCommandCenter() {
   const isOnline = useOnlineStatus();
@@ -216,8 +160,6 @@ export function VendorCommandCenter() {
     updateMilestoneMutation.isPending ||
     cancelBatchMutation.isPending ||
     markFailedMutation.isPending;
-
-  useNewOrderAlert(intakeOrders.length);
 
   const acceptOrder = useCallback(
     (id: string) => acceptMutation.mutate(id),

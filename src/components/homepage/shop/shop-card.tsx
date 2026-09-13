@@ -36,7 +36,7 @@ interface ShopCardFrameProps {
 function ShopCardFrame({ children }: ShopCardFrameProps) {
   return (
     <div className="group block h-full w-full relative">
-      <Card className="flex h-full w-full flex-col overflow-hidden rounded-xl border border-border/20 bg-card to-primary/[0.02] shadow-sm transition-all duration-500 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-blue-500/10 hover:border-blue-500/20 dark:hover:shadow-blue-950/20 dark:hover:border-blue-500/30">
+      <Card className="flex h-full w-full flex-col overflow-hidden rounded-xl border-2 border-border/40 bg-card shadow-[3px_3px_0px_0px_rgba(217,155,26,0.14)] transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-[5px_5px_0px_0px_rgba(217,155,26,0.3)] hover:border-primary/40">
         {children}
       </Card>
     </div>

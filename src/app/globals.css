@@ -51,24 +51,24 @@ body {
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.98 0.004 90);
   --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
+  --primary: oklch(0.74 0.15 75);
+  --primary-foreground: oklch(0.18 0.02 80);
+  --secondary: oklch(0.967 0.006 90);
   --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
+  --muted: oklch(0.967 0.006 90);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
+  --accent: oklch(0.94 0.035 80);
+  --accent-foreground: oklch(0.28 0.05 70);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
+  --border: oklch(0.9 0.006 90);
+  --input: oklch(0.9 0.006 90);
+  --ring: oklch(0.74 0.15 75);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -85,24 +85,24 @@ body {
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
+  --background: oklch(0.16 0.008 285);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
+  --primary: oklch(0.78 0.15 75);
+  --primary-foreground: oklch(0.16 0.02 80);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
   --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.3 0.035 75);
+  --accent-foreground: oklch(0.92 0.03 75);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+  --ring: oklch(0.78 0.15 75);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -172,44 +172,44 @@ body {
 
 .vibrant-card {
   border: 1.5px solid var(--border);
-  box-shadow: 4px 4px 0px 0px rgba(37, 99, 235, 0.15);
+  box-shadow: 4px 4px 0px 0px rgba(217, 155, 26, 0.18);
   transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .vibrant-card:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px rgba(37, 99, 235, 0.35);
-  border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 6px 6px 0px 0px rgba(217, 155, 26, 0.38);
+  border-color: rgba(217, 155, 26, 0.45);
 }
 
 .vibrant-card-orange {
   border: 1.5px solid var(--border);
-  box-shadow: 4px 4px 0px 0px rgba(249, 115, 22, 0.15);
+  box-shadow: 4px 4px 0px 0px rgba(180, 83, 9, 0.16);
   transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .vibrant-card-orange:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px rgba(249, 115, 22, 0.4);
-  border-color: rgba(249, 115, 22, 0.45);
+  box-shadow: 6px 6px 0px 0px rgba(180, 83, 9, 0.32);
+  border-color: rgba(180, 83, 9, 0.4);
 }
 
 .dark .vibrant-card {
-  box-shadow: 4px 4px 0px 0px rgba(59, 130, 246, 0.1);
+  box-shadow: 4px 4px 0px 0px rgba(217, 155, 26, 0.14);
 }
 
 .dark .vibrant-card:hover {
-  box-shadow: 6px 6px 0px 0px rgba(59, 130, 246, 0.25);
-  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 6px 6px 0px 0px rgba(217, 155, 26, 0.3);
+  border-color: rgba(217, 155, 26, 0.35);
 }
 
 .dark .vibrant-card-orange {
-  box-shadow: 4px 4px 0px 0px rgba(249, 115, 22, 0.1);
+  box-shadow: 4px 4px 0px 0px rgba(217, 119, 6, 0.12);
 }
 
 .dark .vibrant-card-orange:hover {
-  box-shadow: 6px 6px 0px 0px rgba(249, 115, 22, 0.25);
-  border-color: rgba(249, 115, 22, 0.3);
+  box-shadow: 6px 6px 0px 0px rgba(217, 119, 6, 0.28);
+  border-color: rgba(217, 119, 6, 0.32);
 }
 
 @media print {

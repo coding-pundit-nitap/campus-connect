@@ -45,27 +45,27 @@ function HotDealsFeed({
     <div className="w-full mb-8 relative animate-fade-in">
       <div className="flex items-center justify-between mb-4 px-4 md:px-1">
         <div className="flex items-center gap-2">
-          <div className="bg-gradient-to-tr from-red-500 to-orange-500 text-white p-2 rounded-full shadow-[0_0_12px_rgba(239,68,68,0.35)] animate-pulse">
+          <div className="bg-amber-500/15 text-amber-600 dark:text-amber-400 p-2 rounded-full">
             <Flame className="h-5 w-5 fill-current" />
           </div>
           <div className="flex flex-col">
             <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
-              Hot Deals
-              <span className="text-[11px] bg-gradient-to-r from-red-600 to-orange-500 text-white font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider animate-bounce shadow-xs">
-                Save Big
+              Hot deals
+              <span className="text-[11px] bg-amber-600 text-white font-bold px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                Save big
               </span>
             </h2>
             <p className="text-xs text-muted-foreground font-sans font-medium">
-              Top discounts curated just for you
+              Top discounts across every shop, right now
             </p>
           </div>
         </div>
 
         <Link
           href={"/deals" as Route}
-          className="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 active:scale-95 shadow-xs cursor-pointer"
         >
-          View All ⚡
+          View all
         </Link>
       </div>
 

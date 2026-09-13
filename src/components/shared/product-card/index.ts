@@ -8,3 +8,4 @@ export { ProductCardImage } from "./product-card-header";
 export { ProductWatchlistButton } from "./product-watchlist-button";
 export { UserProductActions } from "./user-product-actions";
 export { UserProductCard } from "./user-product-card";
+export { UserProductCardSkeleton } from "./user-product-card-skeleton";

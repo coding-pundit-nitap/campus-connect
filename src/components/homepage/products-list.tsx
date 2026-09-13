@@ -9,6 +9,7 @@ import { SerializedProduct } from "@/types/product.types";
 import { ShopProductList } from "../shops/shop-product-list";
 import CategoryPills from "./category-pills";
 import FavoriteShopsStrip from "./favorite-shops-strip";
+import HomepageGreeting from "./homepage-greeting";
 import HotDeals from "./hot-deals";
 import OrderAgain from "./order-again";
 
@@ -55,6 +56,10 @@ export default function ProductsList({
     <div className="flex-1 hide-scrollbar overflow-y-auto w-full max-w-7xl mx-auto py-2 px-1 pb-12">
       <div className="grid grid-cols-1 gap-8 items-start">
         <div className="lg:col-span-8 space-y-6">
+          <div className="px-1 animate-fade-in">
+            <HomepageGreeting />
+          </div>
+
           <div
             id="category-pills-section"
             className="animate-fade-in [animation-delay:100ms]"

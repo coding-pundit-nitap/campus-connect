@@ -57,7 +57,7 @@ export async function ShopDetails({ shop_id }: Props) {
   });
 
   return (
-    <Card className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-blue-500/[0.01] overflow-hidden relative">
+    <Card className="bg-card/45 backdrop-blur-xl border border-border/30 rounded-2xl shadow-xl shadow-primary/[0.03] overflow-hidden relative">
       <CardContent className="p-6 sm:p-8">
         <div className="flex flex-col gap-6 md:flex-row items-start">
           <Avatar className="h-24 w-24 border border-border/20 rounded-2xl overflow-hidden shadow-md shrink-0">
@@ -77,27 +77,21 @@ export async function ShopDetails({ shop_id }: Props) {
                 <h1 className="text-2xl font-black font-heading tracking-tight text-foreground mr-1">
                   {shop.name}
                 </h1>
-                <Badge
-                  variant={shop.is_active ? "outline" : "destructive"}
-                  className={
-                    shop.is_active
-                      ? "bg-green-500/10 text-green-600 border border-green-500/20 rounded-lg text-xs font-bold"
-                      : "bg-destructive/10 text-destructive border border-destructive/20 rounded-lg text-xs font-bold"
-                  }
-                >
-                  {shop.is_active ? "Active" : "Inactive"}
-                </Badge>
                 <ShopStatusBadge shop={shop} />
-                <Badge
-                  variant={shop.accepting_orders ? "outline" : "outline"}
-                  className={
-                    shop.accepting_orders
-                      ? "bg-blue-500/10 text-blue-600 border border-blue-500/20 rounded-lg text-xs font-bold"
-                      : "bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-lg text-xs font-bold"
-                  }
-                >
-                  {shop.accepting_orders ? "Accepting Orders" : "Orders Paused"}
-                </Badge>
+                {shop.is_active && (
+                  <Badge
+                    variant="outline"
+                    className={
+                      shop.accepting_orders
+                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 rounded-lg text-xs font-bold"
+                        : "bg-amber-500/10 text-amber-600 border border-amber-500/20 rounded-lg text-xs font-bold"
+                    }
+                  >
+                    {shop.accepting_orders
+                      ? "Accepting Orders"
+                      : "Orders Paused"}
+                  </Badge>
+                )}
                 <FavoriteShopButton shopId={shop.id} />
               </div>
 
@@ -158,7 +152,7 @@ export async function ShopDetails({ shop_id }: Props) {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/10">
                   <Package className="h-5 w-5" />
                 </div>
                 <div>
@@ -172,7 +166,7 @@ export async function ShopDetails({ shop_id }: Props) {
               </div>
 
               <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/10">
                   <Truck className="h-5 w-5" />
                 </div>
                 <div>
@@ -186,7 +180,7 @@ export async function ShopDetails({ shop_id }: Props) {
               </div>
 
               <div className="rounded-xl border border-border/20 bg-muted/15 p-4 flex items-center gap-3.5 shadow-xs transition-all hover:scale-[1.02]">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/10">
                   <Truck className="h-5 w-5" />
                 </div>
                 <div>

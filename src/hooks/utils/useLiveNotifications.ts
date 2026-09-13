@@ -4,8 +4,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
+import { NEW_ORDER_NOTIFICATION_TITLE } from "@/config/constants";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
+import { playOrderAlertSound } from "@/lib/utils/order-alert-sound";
 import { NotificationSummaryType } from "@/services/notification";
 import { BroadcastNotification, Notification } from "@/types/prisma.types";
 
@@ -64,6 +66,13 @@ export function useLiveNotifications() {
 
             if (exists) {
               return oldSummary;
+            }
+
+            if (
+              !isBroadcast &&
+              newNotification.title === NEW_ORDER_NOTIFICATION_TITLE
+            ) {
+              playOrderAlertSound();
             }
 
             const now = Date.now();

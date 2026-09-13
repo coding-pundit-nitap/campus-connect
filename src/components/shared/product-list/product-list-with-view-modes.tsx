@@ -1,4 +1,4 @@
-import { Grid3X3, List } from "lucide-react";
+import { LayoutGrid, Tags } from "lucide-react";
 import React, { useState } from "react";
 
 import { ProductList } from "@/components/shared/product-list";
@@ -19,6 +19,7 @@ interface ProductListWithViewModesProps {
     product: SerializedProduct,
     index: number
   ) => React.ReactNode;
+  renderSkeletonCard?: () => React.ReactNode;
 
   defaultViewMode?: "grid" | "category";
   showViewModeToggle?: boolean;
@@ -33,6 +34,7 @@ export function ProductListWithViewModes({
   isFetchingNextPage,
   fetchNextPage,
   renderProductCard,
+  renderSkeletonCard,
   defaultViewMode = "grid",
   showViewModeToggle = true,
 }: ProductListWithViewModesProps) {
@@ -52,13 +54,23 @@ export function ProductListWithViewModes({
                 setViewMode(value as "grid" | "category");
               }
             }}
-            className="border rounded-md p-1"
+            className="border border-border rounded-lg p-1 bg-card"
           >
-            <ToggleGroupItem value="grid" aria-label="Grid view">
-              <Grid3X3 className="h-4 w-4" />
+            <ToggleGroupItem
+              value="grid"
+              aria-label="Show all products"
+              className="gap-1.5 px-3 text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              All
             </ToggleGroupItem>
-            <ToggleGroupItem value="category" aria-label="Category view">
-              <List className="h-4 w-4" />
+            <ToggleGroupItem
+              value="category"
+              aria-label="Group by category"
+              className="gap-1.5 px-3 text-xs font-semibold data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              <Tags className="h-3.5 w-3.5" />
+              By category
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -79,6 +91,7 @@ export function ProductListWithViewModes({
           isFetchingNextPage={isFetchingNextPage}
           fetchNextPage={fetchNextPage}
           renderProductCard={renderProductCard}
+          renderSkeletonCard={renderSkeletonCard}
         />
       )}
     </div>

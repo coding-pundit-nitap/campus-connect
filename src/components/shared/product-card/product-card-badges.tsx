@@ -12,7 +12,7 @@ const variantStyles = {
     lowStock:
       "border border-red-500/20 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 font-black rounded-md shadow-xs text-[11px] tracking-wider uppercase px-2 py-0.5 animate-pulse",
     discount:
-      "border border-orange-600/20 bg-orange-500 text-white font-black rounded-md shadow-xs uppercase tracking-wider text-[11px] px-2 py-0.5",
+      "border border-amber-700/20 bg-amber-600 text-white font-black rounded-md shadow-xs uppercase tracking-wider text-[11px] px-2 py-0.5",
   },
   compact: {
     container: "absolute top-1.5 left-1.5 flex flex-col gap-1 z-10",
@@ -21,7 +21,7 @@ const variantStyles = {
     lowStock:
       "border border-red-500/20 bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-[8px] px-1.5 py-0.5 shadow-xs rounded-sm font-black tracking-wider uppercase",
     discount:
-      "border border-orange-600/20 bg-orange-500 text-white text-[8px] px-1.5 py-0.5 shadow-xs rounded-sm font-black tracking-wider uppercase",
+      "border border-amber-700/20 bg-amber-600 text-white text-[8px] px-1.5 py-0.5 shadow-xs rounded-sm font-black tracking-wider uppercase",
   },
 } as const;
 

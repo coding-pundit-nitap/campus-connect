@@ -26,7 +26,7 @@ export function ProductCardImage({
         src={ImageUtils.getImageUrl(product.image_key)}
         alt={product.name}
         fill
-        className="object-contain p-4 transition-all duration-500 ease-out group-hover:scale-105 group-hover:-rotate-1 group-hover:translate-y-[-2px] filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)] group-hover:drop-shadow-[0_16px_24px_rgba(37,99,235,0.18)]"
+        className="object-contain p-4 transition-all duration-500 ease-out group-hover:scale-105 group-hover:-rotate-1 group-hover:translate-y-[-2px] filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.06)] group-hover:drop-shadow-[0_16px_24px_rgba(217,155,26,0.22)]"
         priority={priority}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
       />

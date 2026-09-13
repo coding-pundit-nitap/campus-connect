@@ -1,3 +1,5 @@
+export const NEW_ORDER_NOTIFICATION_TITLE = "New Order Received";
+
 export const VALID_ORDER_TRANSITIONS = {
   NEW: ["BATCHED", "CANCELLED"],
   BATCHED: ["OUT_FOR_DELIVERY", "CANCELLED"],

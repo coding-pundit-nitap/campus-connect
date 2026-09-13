@@ -117,29 +117,19 @@ interface FavoriteShopsFeedProps {
 function FavoriteShopsFeed({ favorites }: FavoriteShopsFeedProps) {
   return (
     <div className="w-full mb-6 relative">
-      <div className="flex items-center justify-between mb-4 px-4 md:px-1">
-        <div className="flex items-center gap-2">
-          <div className="bg-rose-500/10 dark:bg-rose-500/20 text-rose-500 p-2 rounded-full">
-            <Heart className="h-5 w-5 fill-rose-500 text-rose-500" />
-          </div>
-          <div className="flex flex-col">
-            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
-              Favorite Canteens
-              <span className="text-[11px] bg-rose-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Saved
-              </span>
-            </h2>
-            <p className="text-xs text-muted-foreground font-sans font-medium">
-              Quick access to canteens you love
-            </p>
-          </div>
+      <div className="flex items-end justify-between mb-3 px-4 md:px-1">
+        <div className="flex items-center gap-1.5">
+          <Heart className="h-4 w-4 fill-rose-500 text-rose-500 shrink-0" />
+          <h2 className="text-base font-heading font-bold text-foreground">
+            Your favorite shops
+          </h2>
         </div>
 
         <Link
           href={"/favorites" as Route}
-          className="text-xs font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
         >
-          Manage →
+          Manage
         </Link>
       </div>
 
@@ -166,29 +156,24 @@ interface ExploreCanteensFeedProps {
 function ExploreCanteensFeed({ shops }: ExploreCanteensFeedProps) {
   return (
     <div className="w-full mb-6 relative">
-      <div className="flex items-center justify-between mb-4 px-4 md:px-1">
-        <div className="flex items-center gap-2">
-          <div className="bg-amber-500/10 dark:bg-amber-500/20 text-amber-500 p-2 rounded-full">
-            <Sparkles className="h-5 w-5 text-amber-500 fill-amber-500/10" />
-          </div>
-          <div className="flex flex-col">
-            <h2 className="text-xl font-heading font-black tracking-tight text-foreground flex items-center gap-1.5">
-              Explore Canteens
-              <span className="text-[11px] bg-amber-500 text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                Discover
-              </span>
+      <div className="flex items-end justify-between mb-3 px-4 md:px-1">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-primary shrink-0" />
+            <h2 className="text-base font-heading font-bold text-foreground">
+              Explore campus shops
             </h2>
-            <p className="text-xs text-muted-foreground font-sans font-medium">
-              Order from popular canteens on campus
-            </p>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Canteens, stationery and general stores near you
+          </p>
         </div>
 
         <Link
           href="/shops"
-          className="text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 transition-all duration-300 flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 active:scale-95 shadow-xs cursor-pointer"
+          className="text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
-          See All →
+          See all
         </Link>
       </div>
 

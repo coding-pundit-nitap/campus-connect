@@ -2,7 +2,10 @@
 
 import { ShoppingBag } from "lucide-react";
 
-import { UserProductCard } from "@/components/shared/product-card";
+import {
+  UserProductCard,
+  UserProductCardSkeleton,
+} from "@/components/shared/product-card";
 import { ProductListWithViewModes } from "@/components/shared/product-list";
 import { SerializedProduct } from "@/types/product.types";
 
@@ -59,6 +62,7 @@ export function ShopProductList({
         isFetchingNextPage={isFetchingNextPage}
         fetchNextPage={fetchNextPage}
         renderProductCard={renderProductCard}
+        renderSkeletonCard={() => <UserProductCardSkeleton />}
         showViewModeToggle={true}
       />
     </div>

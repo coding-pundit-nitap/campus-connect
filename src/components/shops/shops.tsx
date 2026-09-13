@@ -9,7 +9,7 @@ type Props = {
 
 export default function Shops({ shop_id }: Props) {
   return (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <ShopDetails shop_id={shop_id} />
       <Products shop_id={shop_id} />
     </div>
