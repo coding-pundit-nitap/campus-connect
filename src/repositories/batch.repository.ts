@@ -247,6 +247,29 @@ export class BatchRepository extends BaseRepository<
     });
   }
 
+  async adjustCollectiveTotal(
+    batchId: string,
+    delta: number,
+    tx?: Prisma.TransactionClient
+  ): Promise<Batch | null> {
+    const client = tx ?? this.prismaClient;
+    const existing = await client.batch.findUnique({
+      where: { id: batchId },
+      select: { collective_total: true },
+    });
+    if (!existing) {
+      return null;
+    }
+    const nextTotal = Math.max(
+      0,
+      Math.round((Number(existing.collective_total) + delta) * 100) / 100
+    );
+    return client.batch.update({
+      where: { id: batchId },
+      data: { collective_total: nextTotal },
+    });
+  }
+
   async update<T extends Prisma.BatchUpdateArgs>(
     args: T
   ): Promise<Prisma.Result<Prisma.BatchDelegate, T, "update">>;
