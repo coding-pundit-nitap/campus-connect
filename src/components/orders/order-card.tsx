@@ -80,14 +80,30 @@ export default function OrderCard({ order }: Props) {
                   >
                     {order.batch.status === "OPEN"
                       ? "Collecting orders"
-                      : order.batch.status === "LOCKED"
-                        ? "Batch confirmed"
-                        : order.batch.status === "IN_TRANSIT"
-                          ? "On the way"
-                          : order.batch.status === "COMPLETED"
-                            ? "Delivered"
-                            : order.batch.status}
+                      : order.batch.status === "PENDING_REVIEW"
+                        ? "Awaiting shop decision"
+                        : order.batch.status === "LOCKED"
+                          ? "Batch confirmed"
+                          : order.batch.status === "IN_TRANSIT"
+                            ? "On the way"
+                            : order.batch.status === "COMPLETED"
+                              ? "Delivered"
+                              : order.batch.status === "CANCELLED"
+                                ? "Batch cancelled"
+                                : order.batch.status}
                   </Badge>
+                  {order.batch.status === "OPEN" &&
+                    order.batch.min_order_value_snapshot !== null && (
+                      <span className="text-muted-foreground/80 font-medium">
+                        ₹
+                        {Math.max(
+                          0,
+                          order.batch.min_order_value_snapshot -
+                            order.batch.collective_total
+                        ).toFixed(0)}{" "}
+                        more needed to confirm this batch
+                      </span>
+                    )}
                 </>
               ) : (
                 <span className="text-muted-foreground/80 font-medium">

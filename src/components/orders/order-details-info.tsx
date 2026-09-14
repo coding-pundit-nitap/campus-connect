@@ -117,13 +117,30 @@ export default function OrderDetailsInfo({ order }: Props) {
 
           <InfoRow Icon={Package} label="Batch Slot">
             {batch ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-orange-600">
-                  <DateDisplay date={batch.cutoff_time} />
-                </span>
-                <Badge variant="secondary" className="uppercase">
-                  {batch.status}
-                </Badge>
+              <div className="flex flex-col gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-orange-600">
+                    <DateDisplay date={batch.cutoff_time} />
+                  </span>
+                  <Badge variant="secondary" className="uppercase">
+                    {batch.status === "PENDING_REVIEW"
+                      ? "Awaiting shop decision"
+                      : batch.status === "CANCELLED"
+                        ? "Batch cancelled"
+                        : batch.status}
+                  </Badge>
+                </div>
+                {batch.status === "OPEN" &&
+                  batch.min_order_value_snapshot !== null && (
+                    <span className="text-xs text-muted-foreground">
+                      ₹
+                      {Math.max(
+                        0,
+                        batch.min_order_value_snapshot - batch.collective_total
+                      ).toFixed(0)}{" "}
+                      more needed to confirm this batch
+                    </span>
+                  )}
               </div>
             ) : (
               <span className="text-muted-foreground">

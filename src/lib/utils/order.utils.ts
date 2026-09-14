@@ -129,6 +129,11 @@ export const serializeOrderWithDetails = (
           id: order.batch.id,
           cutoff_time: transformDateToLocaleString(order.batch.cutoff_time),
           status: order.batch.status,
+          collective_total: Number(order.batch.collective_total),
+          min_order_value_snapshot:
+            order.batch.min_order_value_snapshot !== null
+              ? Number(order.batch.min_order_value_snapshot)
+              : null,
           delivery_status: order.batch.delivery_status
             ? {
                 id: order.batch.delivery_status.id,

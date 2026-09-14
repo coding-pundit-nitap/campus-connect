@@ -4,6 +4,7 @@ import {
   Category,
   Order,
   OrderItem,
+  Prisma,
   Product,
   Shop,
   UserAddress,
@@ -26,6 +27,8 @@ export type OrderWithDetails = Order & {
     id: string;
     cutoff_time: Date;
     status: BatchStatus;
+    collective_total: Prisma.Decimal;
+    min_order_value_snapshot: Prisma.Decimal | null;
     delivery_status: {
       id: string;
       batch_id: string;
@@ -110,6 +113,8 @@ export type SerializedOrderWithDetails = SerializedOrder & {
     id: string;
     cutoff_time: string;
     status: BatchStatus;
+    collective_total: number;
+    min_order_value_snapshot: number | null;
     delivery_status: {
       id: string;
       batch_id: string;
