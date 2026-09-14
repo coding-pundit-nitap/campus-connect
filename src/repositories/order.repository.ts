@@ -201,7 +201,8 @@ export class OrderRepository extends BaseRepository<
   async update<T extends Omit<Prisma.OrderUpdateArgs, "where" | "data">>(
     id: string,
     data: Prisma.OrderUpdateInput,
-    options?: T
+    options?: T,
+    tx?: Prisma.TransactionClient
   ): Promise<
     Prisma.Result<
       Prisma.OrderDelegate,
@@ -212,23 +213,25 @@ export class OrderRepository extends BaseRepository<
   override async update(
     idOrArgs: string | Prisma.OrderUpdateArgs,
     data?: Prisma.OrderUpdateInput,
-    options?: Prisma.OrderUpdateArgs
+    options?: Prisma.OrderUpdateArgs,
+    tx?: Prisma.TransactionClient
   ): Promise<
     | Order
     | Prisma.Result<Prisma.OrderDelegate, Prisma.OrderUpdateArgs, "update">
   > {
+    const client = tx ?? this.prismaClient;
     if (typeof idOrArgs === "string") {
       // Scope hardening - see base.repository.ts. `where` and `data` are
       // re-applied after `...rest`, so `options` can neither redirect the
       // update at a different row nor swap out `data`.
       const { where, ...rest } = options ?? {};
-      return this.prismaClient.order.update({
+      return client.order.update({
         ...rest,
         where: { ...where, id: idOrArgs },
         data: data || {},
       });
     }
-    return this.prismaClient.order.update(idOrArgs);
+    return client.order.update(idOrArgs);
   }
 
   async updateStatus(

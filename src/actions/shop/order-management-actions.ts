@@ -3,6 +3,7 @@
 import { randomInt } from "node:crypto";
 
 import {
+  batchRepository,
   batchService,
   notificationService,
   orderRepository,
@@ -240,13 +241,27 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
     const paymentStatus =
       order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
 
-    await orderRepository.update(orderId, {
-      order_status: "CANCELLED",
-      payment_status: paymentStatus,
-      cancellation_reason: reason || null,
-      customer_notes: order.customer_notes
-        ? `${order.customer_notes}\n${rejectionNote}`
-        : rejectionNote,
+    await prisma.$transaction(async (tx) => {
+      await orderRepository.update(
+        orderId,
+        {
+          order_status: "CANCELLED",
+          payment_status: paymentStatus,
+          cancellation_reason: reason || null,
+          customer_notes: order.customer_notes
+            ? `${order.customer_notes}\n${rejectionNote}`
+            : rejectionNote,
+        },
+        undefined,
+        tx
+      );
+      if (order.batch_id) {
+        await batchRepository.adjustCollectiveTotal(
+          order.batch_id,
+          -Number(order.item_total),
+          tx
+        );
+      }
     });
 
     if (order.user_id) {
