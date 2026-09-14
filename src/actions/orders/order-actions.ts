@@ -1,6 +1,7 @@
 "use server";
 import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
 import {
+  batchRepository,
   notificationService,
   orderRepository,
   orderService,
@@ -324,6 +325,8 @@ export async function cancelOrderAction(
         display_id: true,
         order_status: true,
         payment_status: true,
+        batch_id: true,
+        item_total: true,
       },
     });
 
@@ -350,7 +353,24 @@ export async function cancelOrderAction(
       );
     }
 
-    await orderRepository.updateStatus(order_id, OrderStatus.CANCELLED);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- captured for Task 15's realtime publish
+    const cancelledOrder = await prisma.$transaction(async (tx) => {
+      await orderRepository.updateStatus(
+        order_id,
+        OrderStatus.CANCELLED,
+        undefined,
+        undefined,
+        tx
+      );
+      if (order.batch_id) {
+        return batchRepository.adjustCollectiveTotal(
+          order.batch_id,
+          -Number(order.item_total),
+          tx
+        );
+      }
+      return null;
+    });
 
     try {
       await notificationService.publishNotification(user_id, {

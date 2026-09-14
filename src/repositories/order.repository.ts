@@ -235,9 +235,11 @@ export class OrderRepository extends BaseRepository<
     order_id: string,
     order_status: OrderStatus,
     assigned_to?: string,
-    actual_delivery_time?: Date
+    actual_delivery_time?: Date,
+    tx?: Prisma.TransactionClient
   ): Promise<Order> {
-    const order = await this.prismaClient.order.update({
+    const client = tx ?? this.prismaClient;
+    const order = await client.order.update({
       where: { id: order_id },
       data: {
         order_status,
