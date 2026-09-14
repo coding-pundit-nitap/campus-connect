@@ -71,6 +71,40 @@ export function ShopSettingsForm({ shop }: ShopSettingsFormProps) {
 
           <FormField
             control={form.control}
+            name="batch_min_order_value"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5">
+                <FormLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Collective Batch Minimum (optional)
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/50 font-bold text-sm">
+                      ₹
+                    </span>
+                    <Input
+                      type="number"
+                      placeholder="No collective minimum"
+                      className="pl-8 h-11 bg-muted/20 border-border/50 hover:border-border focus:border-blue-600 focus:ring-2 focus:ring-blue-600/10 rounded-xl transition-all duration-300 font-semibold text-sm"
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const raw = e.target.value;
+                        field.onChange(raw === "" ? null : Number(raw));
+                      }}
+                    />
+                  </div>
+                </FormControl>
+                <FormDescription className="text-[11px] text-muted-foreground/80 leading-normal font-medium">
+                  Minimum combined order total for a batch to be confirmed.
+                  Leave blank to disable.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
             name="default_delivery_fee"
             render={({ field }) => (
               <FormItem className="space-y-1.5">

@@ -90,6 +90,10 @@ export function ReviewStep({ form, goToStep }: ReviewStepProps) {
 
       <ReviewGroup title="Pricing" step={3} goToStep={goToStep}>
         <p>Minimum order ₹{values.min_order_value ?? 0}</p>
+        {values.batch_min_order_value !== null &&
+          values.batch_min_order_value !== undefined && (
+            <p>Collective batch minimum ₹{values.batch_min_order_value}</p>
+          )}
         <p>Batch delivery fee ₹{values.default_delivery_fee ?? 0}</p>
         <p>Direct delivery fee ₹{values.direct_delivery_fee ?? 0}</p>
       </ReviewGroup>

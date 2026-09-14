@@ -62,6 +62,38 @@ export function PricingStep({ form }: PricingStepProps) {
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="batch_min_order_value"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className={fieldLabelClass}>
+                Collective batch minimum (₹) — optional
+              </FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  min={0}
+                  step="1"
+                  className={fieldInputClass}
+                  value={field.value ?? ""}
+                  placeholder="No collective minimum"
+                  onChange={(e) => {
+                    const raw = e.currentTarget.value;
+                    field.onChange(raw === "" ? null : Number(raw));
+                  }}
+                />
+              </FormControl>
+              <FormDescription className={fieldHintClass}>
+                If set, a batch won&apos;t be confirmed unless everyone&apos;s
+                orders together reach this amount by the cutoff — you decide
+                what happens if it falls short.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="rounded-lg border border-border/50 bg-muted/30 p-4 text-sm leading-relaxed text-muted-foreground">
           <p className="mb-1.5 font-semibold text-foreground">
             Two ways students get their order
