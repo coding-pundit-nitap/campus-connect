@@ -92,7 +92,8 @@ export class OrderService {
   private async findOrCreateBatchForRequestedTime(
     tx: Prisma.TransactionClient,
     shop_id: string,
-    requested_delivery_time: Date
+    requested_delivery_time: Date,
+    batchMinOrderValue: number | null
   ) {
     const now = new Date();
     const cutoffTime = this.normalizeToMinute(requested_delivery_time);
@@ -177,6 +178,8 @@ export class OrderService {
           cutoff_time: cutoffTime,
           status: "OPEN",
           slot_id: matchingSlot.id,
+          collective_total: 0,
+          min_order_value_snapshot: batchMinOrderValue,
         },
       });
       await tx.$executeRawUnsafe(`RELEASE SAVEPOINT batch_insert`);
@@ -280,6 +283,7 @@ export class OrderService {
             is_active: true,
             accepting_orders: true,
             min_order_value: true,
+            batch_min_order_value: true,
             default_delivery_fee: true,
             direct_delivery_fee: true,
             user: { select: { id: true } },
@@ -459,7 +463,11 @@ export class OrderService {
           const batch = await this.findOrCreateBatchForRequestedTime(
             tx,
             shop_id,
-            requested_delivery_time
+            requested_delivery_time,
+            shop.batch_min_order_value !== null &&
+              shop.batch_min_order_value !== undefined
+              ? Number(shop.batch_min_order_value)
+              : null
           );
           if (batch) {
             batchIdToLink = batch.id;

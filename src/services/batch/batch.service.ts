@@ -378,12 +378,18 @@ export class BatchService {
       (item) => item.cutoff_time_minutes === minutesFromMidnight
     );
 
+    const shop = await this.shopRepository.findById(shopId, {
+      select: { batch_min_order_value: true },
+    });
+
     await this.batchRepository.create({
       data: {
         shop_id: shopId,
         cutoff_time: cutoffTime,
         status: "OPEN",
         slot_id: slot?.id,
+        collective_total: 0,
+        min_order_value_snapshot: shop?.batch_min_order_value ?? null,
       },
     });
   }
