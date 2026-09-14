@@ -184,6 +184,8 @@ export async function updateOrderStatusAction({
         display_id: true,
         order_status: true,
         payment_method: true,
+        batch_id: true,
+        item_total: true,
       },
     });
     if (!order || order.shop_id !== shop_id) {
@@ -213,13 +215,26 @@ export async function updateOrderStatusAction({
             : "CANCELLED"
           : undefined;
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: order_id },
-      data: {
-        order_status: status,
-        payment_status: paymentStatus,
-        actual_delivery_time: status === "COMPLETED" ? new Date() : undefined,
-      },
+    const wasAlreadyCancelled = order.order_status === "CANCELLED";
+
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      const result = await tx.order.update({
+        where: { id: order_id },
+        data: {
+          order_status: status,
+          payment_status: paymentStatus,
+          actual_delivery_time:
+            status === "COMPLETED" ? new Date() : undefined,
+        },
+      });
+      if (status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id) {
+        await batchRepository.adjustCollectiveTotal(
+          order.batch_id,
+          -Number(order.item_total),
+          tx
+        );
+      }
+      return result;
     });
 
     if (order.user_id) {
@@ -456,6 +471,8 @@ export async function batchUpdateOrderStatusAction({
         display_id: true,
         order_status: true,
         payment_method: true,
+        batch_id: true,
+        item_total: true,
       },
     });
 
@@ -491,8 +508,8 @@ export async function batchUpdateOrderStatusAction({
     const ordersToUpdate = orders.filter((o) => o.order_status !== status);
 
     if (ordersToUpdate.length > 0) {
-      await prisma.$transaction(
-        ordersToUpdate.map((o) => {
+      await prisma.$transaction([
+        ...ordersToUpdate.map((o) => {
           const paymentStatus =
             status === "COMPLETED"
               ? o.payment_method === "CASH"
@@ -513,8 +530,20 @@ export async function batchUpdateOrderStatusAction({
                 status === "COMPLETED" ? new Date() : undefined,
             },
           });
-        })
-      );
+        }),
+        ...(status === "CANCELLED"
+          ? ordersToUpdate
+              .filter((o) => o.batch_id)
+              .map((o) =>
+                prisma.batch.update({
+                  where: { id: o.batch_id! },
+                  data: {
+                    collective_total: { decrement: Number(o.item_total) },
+                  },
+                })
+              )
+          : []),
+      ]);
     }
 
     await Promise.allSettled(
