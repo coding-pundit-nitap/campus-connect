@@ -844,21 +844,56 @@ export class BatchService {
 
       const batchIds = expiredBatches.map((b) => b.id).sort();
 
-      const { openBatchIds, countMap } = await this.prismaClient.$transaction(
-        async (tx) => {
-          const locked: { id: string; status: string }[] = await tx.$queryRaw`
-            SELECT id, status FROM "Batch"
+      const { lockedBatchIds, pendingReviewBatchIds, countMap, shortfallMap } =
+        await this.prismaClient.$transaction(async (tx) => {
+          const locked: {
+            id: string;
+            status: string;
+            collective_total: string;
+            min_order_value_snapshot: string | null;
+          }[] = await tx.$queryRaw`
+            SELECT id, status, collective_total, min_order_value_snapshot FROM "Batch"
             WHERE id IN (${Prisma.join(batchIds)}) AND status = 'OPEN'
             ORDER BY id
             FOR UPDATE
           `;
-          const openBatchIds = locked.map((b) => b.id);
-          if (openBatchIds.length === 0) {
-            return { openBatchIds: [], countMap: new Map<string, number>() };
+
+          const lockedBatchIds: string[] = [];
+          const pendingReviewBatchIds: string[] = [];
+          const shortfallMap = new Map<string, number>();
+
+          for (const row of locked) {
+            const minRequired =
+              row.min_order_value_snapshot !== null
+                ? Number(row.min_order_value_snapshot)
+                : null;
+            const collectiveTotal = Number(row.collective_total);
+            if (minRequired !== null && collectiveTotal < minRequired) {
+              pendingReviewBatchIds.push(row.id);
+              shortfallMap.set(row.id, minRequired - collectiveTotal);
+            } else {
+              lockedBatchIds.push(row.id);
+            }
+          }
+
+          if (pendingReviewBatchIds.length > 0) {
+            await tx.batch.updateMany({
+              where: { id: { in: pendingReviewBatchIds } },
+              data: { status: "PENDING_REVIEW" },
+            });
+          }
+
+          if (lockedBatchIds.length === 0) {
+            return {
+              lockedBatchIds: [],
+              pendingReviewBatchIds,
+              countMap: new Map<string, number>(),
+              shortfallMap,
+            };
           }
 
           await tx.batch.updateMany({
-            where: { id: { in: openBatchIds } },
+            where: { id: { in: lockedBatchIds } },
             data: { status: "LOCKED" },
           });
 
@@ -867,13 +902,13 @@ export class BatchService {
             SET order_status = 'BATCHED',
                 delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text,
                 updated_at = NOW()
-            WHERE batch_id = ANY(${openBatchIds}::text[]) AND order_status = 'NEW'
+            WHERE batch_id = ANY(${lockedBatchIds}::text[]) AND order_status = 'NEW'
           `;
 
           const orderCounts = await tx.order.groupBy({
             by: ["batch_id"],
             where: {
-              batch_id: { in: openBatchIds },
+              batch_id: { in: lockedBatchIds },
               order_status: "BATCHED",
             },
             _count: { id: true },
@@ -882,15 +917,14 @@ export class BatchService {
             orderCounts.map((c) => [c.batch_id ?? "", c._count.id])
           );
 
-          return { openBatchIds, countMap };
-        }
-      );
+          return { lockedBatchIds, pendingReviewBatchIds, countMap, shortfallMap };
+        });
 
-      if (openBatchIds.length > 0) {
-        log.info(`✅ Successfully LOCKED ${openBatchIds.length} batches.`);
+      if (lockedBatchIds.length > 0) {
+        log.info(`✅ Successfully LOCKED ${lockedBatchIds.length} batches.`);
 
         const processedBatches = expiredBatches.filter((b) =>
-          openBatchIds.includes(b.id)
+          lockedBatchIds.includes(b.id)
         );
 
         for (const batch of processedBatches) {
@@ -911,6 +945,39 @@ export class BatchService {
               log.error(
                 { err: notifError, batchId: batch.id },
                 "Failed to publish batch notification"
+              );
+            }
+          }
+        }
+      }
+
+      if (pendingReviewBatchIds.length > 0) {
+        log.info(
+          `⏸️ ${pendingReviewBatchIds.length} batches fell short of their collective minimum. Awaiting owner decision.`
+        );
+
+        const processedBatches = expiredBatches.filter((b) =>
+          pendingReviewBatchIds.includes(b.id)
+        );
+
+        for (const batch of processedBatches) {
+          const shortfall = shortfallMap.get(batch.id) ?? 0;
+          if (batch.shop.user) {
+            try {
+              await this.notificationService.publishNotification(
+                batch.shop.user.id,
+                {
+                  title: "⚠️ Batch Below Minimum",
+                  message: `Batch for ${batch.shop.name} is ₹${shortfall.toFixed(0)} short of its collective minimum. Decide whether to proceed or cancel.`,
+                  type: "WARNING",
+                  category: "ORDER",
+                  action_url: `/owner-shops/dashboard`,
+                }
+              );
+            } catch (notifError) {
+              log.error(
+                { err: notifError, batchId: batch.id },
+                "Failed to publish pending-review notification"
               );
             }
           }
