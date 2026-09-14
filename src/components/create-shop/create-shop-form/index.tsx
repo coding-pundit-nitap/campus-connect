@@ -90,6 +90,7 @@ const serializableDraftSchema = z.object({
   opening: z.string(),
   closing: z.string(),
   min_order_value: z.number().min(0),
+  batch_min_order_value: z.number().min(0).max(50000).nullable().optional(),
   default_delivery_fee: z.number().min(0),
   direct_delivery_fee: z.number().min(0),
   upi_id: z.string(),
@@ -122,6 +123,7 @@ const stepFieldNames = {
   2: ["location", "opening", "closing"] as const,
   3: [
     "min_order_value",
+    "batch_min_order_value",
     "default_delivery_fee",
     "direct_delivery_fee",
   ] as const,
@@ -170,6 +172,7 @@ export function CreateShopForm() {
         opening: data.opening,
         closing: data.closing,
         min_order_value: data.min_order_value,
+        batch_min_order_value: data.batch_min_order_value ?? null,
         default_delivery_fee: data.default_delivery_fee,
         direct_delivery_fee: data.direct_delivery_fee,
         upi_id: data.upi_id,
@@ -205,6 +208,12 @@ export function CreateShopForm() {
             opening: values.opening || "07:00",
             closing: values.closing || "20:00",
             min_order_value: Number(values.min_order_value) || 50,
+            batch_min_order_value:
+              values.batch_min_order_value !== null &&
+              values.batch_min_order_value !== undefined &&
+              values.batch_min_order_value !== ("" as unknown)
+                ? Number(values.batch_min_order_value)
+                : null,
             default_delivery_fee: Number(values.default_delivery_fee) || 0,
             direct_delivery_fee: Number(values.direct_delivery_fee) || 0,
             upi_id: values.upi_id || "",
