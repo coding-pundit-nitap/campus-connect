@@ -201,6 +201,8 @@ describe("serializeOrderWithDetails", () => {
         id: "batch_1",
         cutoff_time: new Date("2026-08-14T09:00:00.000Z"),
         status: "OPEN",
+        collective_total: new Decimal("150.00"),
+        min_order_value_snapshot: new Decimal("300.00"),
         delivery_status: null,
       },
     });
@@ -211,6 +213,8 @@ describe("serializeOrderWithDetails", () => {
       id: "batch_1",
       cutoff_time: "2026-08-14T09:00:00.000Z",
       status: "OPEN",
+      collective_total: 150,
+      min_order_value_snapshot: 300,
       delivery_status: null,
     });
   });
@@ -221,6 +225,8 @@ describe("serializeOrderWithDetails", () => {
         id: "batch_1",
         cutoff_time: new Date("2026-08-14T09:00:00.000Z"),
         status: "IN_TRANSIT",
+        collective_total: new Decimal("450.00"),
+        min_order_value_snapshot: null,
         delivery_status: {
           id: "ds_1",
           batch_id: "batch_1",
@@ -240,6 +246,8 @@ describe("serializeOrderWithDetails", () => {
       id: "batch_1",
       cutoff_time: "2026-08-14T09:00:00.000Z",
       status: "IN_TRANSIT",
+      collective_total: 450,
+      min_order_value_snapshot: null,
       delivery_status: {
         id: "ds_1",
         batch_id: "batch_1",
@@ -259,6 +267,8 @@ describe("serializeOrderWithDetails", () => {
         id: "batch_1",
         cutoff_time: new Date("2026-08-14T09:00:00.000Z"),
         status: "OPEN",
+        collective_total: new Decimal("0.00"),
+        min_order_value_snapshot: null,
         delivery_status: {
           id: "ds_1",
           batch_id: "batch_1",
