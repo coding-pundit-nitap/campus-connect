@@ -265,8 +265,8 @@ export class OrderService {
         "Provide either batch ID or requested delivery time, not both."
       );
     }
-    const { order, shopOwnerId } = await this.prismaClient.$transaction(
-      async (tx) => {
+    const { order, shopOwnerId, updatedBatch } =
+      await this.prismaClient.$transaction(async (tx) => {
         const cart = await tx.cart.findUnique({
           where: { user_id_shop_id: { user_id: user_id, shop_id: shop_id } },
           include: {
@@ -507,6 +507,37 @@ export class OrderService {
           },
         });
 
+        let updatedBatch: {
+          id: string;
+          shop_id: string;
+          status: string;
+          collective_total: number;
+          min_order_value_snapshot: number | null;
+        } | null = null;
+        if (batchIdToLink) {
+          const batchAfterIncrement = await tx.batch.update({
+            where: { id: batchIdToLink },
+            data: { collective_total: { increment: itemTotal } },
+            select: {
+              id: true,
+              shop_id: true,
+              status: true,
+              collective_total: true,
+              min_order_value_snapshot: true,
+            },
+          });
+          updatedBatch = {
+            id: batchAfterIncrement.id,
+            shop_id: batchAfterIncrement.shop_id,
+            status: batchAfterIncrement.status,
+            collective_total: Number(batchAfterIncrement.collective_total),
+            min_order_value_snapshot:
+              batchAfterIncrement.min_order_value_snapshot !== null
+                ? Number(batchAfterIncrement.min_order_value_snapshot)
+                : null,
+          };
+        }
+
         await Promise.all(
           cart.items.map(async (item) => {
             const result = await tx.product.updateMany({
@@ -527,9 +558,8 @@ export class OrderService {
 
         await tx.cartItem.deleteMany({ where: { cart_id: cart.id } });
 
-        return { order, shopOwnerId: shop.user?.id };
-      }
-    );
+        return { order, shopOwnerId: shop.user?.id, updatedBatch };
+      });
 
     if (shopOwnerId) {
       try {
