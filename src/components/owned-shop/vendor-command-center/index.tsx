@@ -93,6 +93,7 @@ export function VendorCommandCenter() {
   const updateMilestoneMutation = useUpdateBatchMilestone();
   const cancelBatchMutation = useCancelBatch();
   const markFailedMutation = useMarkDeliveryFailed();
+  const forceLockBatchMutation = useForceLockBatch();
 
   const [otpInputs, setOtpInputs] = useState<Record<string, string>>({});
   const [selectedHostel, setSelectedHostel] = useState<string | null>(null);
@@ -160,7 +161,8 @@ export function VendorCommandCenter() {
     verifyOtpMutation.isPending ||
     updateMilestoneMutation.isPending ||
     cancelBatchMutation.isPending ||
-    markFailedMutation.isPending;
+    markFailedMutation.isPending ||
+    forceLockBatchMutation.isPending;
 
   const acceptOrder = useCallback(
     (id: string) => acceptMutation.mutate(id),
@@ -263,8 +265,6 @@ export function VendorCommandCenter() {
       });
     }
   }, [activeBatch, cancelBatchMutation]);
-
-  const forceLockBatchMutation = useForceLockBatch();
 
   const handleForceLockBatch = useCallback(() => {
     if (activeBatch) {
