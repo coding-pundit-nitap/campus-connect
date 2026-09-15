@@ -10,6 +10,7 @@ import {
   shopRepository,
 } from "@/di/container";
 import { Prisma } from "@/generated/client";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
   BadRequestError,
   InternalServerError,
@@ -241,7 +242,7 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
     const paymentStatus =
       order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
 
-    await prisma.$transaction(async (tx) => {
+    const updatedBatchAfterReject = await prisma.$transaction(async (tx) => {
       await orderRepository.update(
         orderId,
         {
@@ -256,13 +257,27 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
         tx
       );
       if (order.batch_id) {
-        await batchRepository.adjustCollectiveTotal(
+        return batchRepository.adjustCollectiveTotal(
           order.batch_id,
           -Number(order.item_total),
           tx
         );
       }
+      return null;
     });
+
+    if (updatedBatchAfterReject) {
+      await publishBatchProgress({
+        batchId: updatedBatchAfterReject.id,
+        shopId: updatedBatchAfterReject.shop_id,
+        status: updatedBatchAfterReject.status,
+        collectiveTotal: Number(updatedBatchAfterReject.collective_total),
+        minRequired:
+          updatedBatchAfterReject.min_order_value_snapshot !== null
+            ? Number(updatedBatchAfterReject.min_order_value_snapshot)
+            : null,
+      });
+    }
 
     if (order.user_id) {
       try {

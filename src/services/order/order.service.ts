@@ -1,5 +1,6 @@
 import { NEW_ORDER_NOTIFICATION_TITLE } from "@/config/constants";
 import { PaymentMethod, Prisma } from "@/generated/client";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
   NotFoundError,
   UnauthorizedError,
@@ -573,6 +574,16 @@ export class OrderService {
       } catch (error) {
         log.error({ err: error }, "Notification Error:");
       }
+    }
+
+    if (updatedBatch) {
+      await publishBatchProgress({
+        batchId: updatedBatch.id,
+        shopId: updatedBatch.shop_id,
+        status: updatedBatch.status,
+        collectiveTotal: updatedBatch.collective_total,
+        minRequired: updatedBatch.min_order_value_snapshot,
+      });
     }
 
     return order;

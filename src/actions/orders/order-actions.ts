@@ -8,6 +8,7 @@ import {
   shopRepository,
 } from "@/di/container";
 import { OrderStatus, PaymentMethod } from "@/generated/client";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
   InternalServerError,
   NotFoundError,
@@ -217,25 +218,41 @@ export async function updateOrderStatusAction({
 
     const wasAlreadyCancelled = order.order_status === "CANCELLED";
 
-    const updatedOrder = await prisma.$transaction(async (tx) => {
-      const result = await tx.order.update({
-        where: { id: order_id },
-        data: {
-          order_status: status,
-          payment_status: paymentStatus,
-          actual_delivery_time:
-            status === "COMPLETED" ? new Date() : undefined,
-        },
-      });
-      if (status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id) {
-        await batchRepository.adjustCollectiveTotal(
-          order.batch_id,
-          -Number(order.item_total),
-          tx
-        );
+    const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
+      async (tx) => {
+        const result = await tx.order.update({
+          where: { id: order_id },
+          data: {
+            order_status: status,
+            payment_status: paymentStatus,
+            actual_delivery_time:
+              status === "COMPLETED" ? new Date() : undefined,
+          },
+        });
+        const updatedBatch =
+          status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id
+            ? await batchRepository.adjustCollectiveTotal(
+                order.batch_id,
+                -Number(order.item_total),
+                tx
+              )
+            : null;
+        return { result, updatedBatch };
       }
-      return result;
-    });
+    );
+
+    if (updatedBatch) {
+      await publishBatchProgress({
+        batchId: updatedBatch.id,
+        shopId: updatedBatch.shop_id,
+        status: updatedBatch.status,
+        collectiveTotal: Number(updatedBatch.collective_total),
+        minRequired:
+          updatedBatch.min_order_value_snapshot !== null
+            ? Number(updatedBatch.min_order_value_snapshot)
+            : null,
+      });
+    }
 
     if (order.user_id) {
       try {
@@ -368,8 +385,7 @@ export async function cancelOrderAction(
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- captured for Task 15's realtime publish
-    const cancelledOrder = await prisma.$transaction(async (tx) => {
+    const updatedBatchAfterCancel = await prisma.$transaction(async (tx) => {
       await orderRepository.updateStatus(
         order_id,
         OrderStatus.CANCELLED,
@@ -386,6 +402,19 @@ export async function cancelOrderAction(
       }
       return null;
     });
+
+    if (updatedBatchAfterCancel) {
+      await publishBatchProgress({
+        batchId: updatedBatchAfterCancel.id,
+        shopId: updatedBatchAfterCancel.shop_id,
+        status: updatedBatchAfterCancel.status,
+        collectiveTotal: Number(updatedBatchAfterCancel.collective_total),
+        minRequired:
+          updatedBatchAfterCancel.min_order_value_snapshot !== null
+            ? Number(updatedBatchAfterCancel.min_order_value_snapshot)
+            : null,
+      });
+    }
 
     try {
       await notificationService.publishNotification(user_id, {
@@ -544,6 +573,40 @@ export async function batchUpdateOrderStatusAction({
               )
           : []),
       ]);
+
+      if (status === "CANCELLED") {
+        const affectedBatchIds = [
+          ...new Set(
+            ordersToUpdate.filter((o) => o.batch_id).map((o) => o.batch_id!)
+          ),
+        ];
+        if (affectedBatchIds.length > 0) {
+          const freshBatches = await prisma.batch.findMany({
+            where: { id: { in: affectedBatchIds } },
+            select: {
+              id: true,
+              shop_id: true,
+              status: true,
+              collective_total: true,
+              min_order_value_snapshot: true,
+            },
+          });
+          await Promise.all(
+            freshBatches.map((b) =>
+              publishBatchProgress({
+                batchId: b.id,
+                shopId: b.shop_id,
+                status: b.status,
+                collectiveTotal: Number(b.collective_total),
+                minRequired:
+                  b.min_order_value_snapshot !== null
+                    ? Number(b.min_order_value_snapshot)
+                    : null,
+              })
+            )
+          );
+        }
+      }
     }
 
     await Promise.allSettled(
