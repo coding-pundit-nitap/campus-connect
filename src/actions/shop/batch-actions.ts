@@ -4,6 +4,7 @@ import { batchRepository, batchService, shopRepository } from "@/di/container";
 import {
   BadRequestError,
   InternalServerError,
+  NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
@@ -135,7 +136,8 @@ export async function forceLockBatchAction(batchId: string) {
     log.error({ err: error }, "FORCE LOCK BATCH ERROR:");
     if (
       error instanceof UnauthorizedError ||
-      error instanceof BadRequestError
+      error instanceof BadRequestError ||
+      error instanceof NotFoundError
     ) {
       throw error;
     }
