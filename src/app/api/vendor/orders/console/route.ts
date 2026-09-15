@@ -27,6 +27,9 @@ export async function GET() {
       return jsonResponse(createErrorResponse("Shop not found"), 400);
     }
 
+    // NOTE: uses `include` (not `select`) so new Batch scalar columns
+    // (e.g. collective_total, min_order_value_snapshot) pass through
+    // automatically — switching to `select` requires listing them explicitly.
     const [openBatch, activeBatches] = await Promise.all([
       batchRepository.findOpenBatchByShopId(shop.id, {
         include: { delivery_status: true },

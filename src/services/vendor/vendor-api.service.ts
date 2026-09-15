@@ -14,6 +14,8 @@ export interface SerializedBatch {
   slot_id: string | null;
   cutoff_time: string;
   status: BatchStatus;
+  collective_total: string;
+  min_order_value_snapshot: string | null;
   created_at: string;
   updated_at: string;
   delivery_status?: {

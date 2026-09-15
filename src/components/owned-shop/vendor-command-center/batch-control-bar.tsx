@@ -28,6 +28,7 @@ export function BatchControlBar({
   currentMilestone,
   onUpdateMilestone,
   onCancelRun,
+  onForceLock,
   vocabulary,
 }: {
   activeBatch: {
@@ -35,6 +36,8 @@ export function BatchControlBar({
     cutoff_time: string;
     status: string;
     delivery_status?: { current_milestone: string } | null;
+    collective_total?: string | null;
+    min_order_value_snapshot?: string | null;
   } | null;
   batchNewCount: number;
   batchAcceptedCount: number;
@@ -47,6 +50,7 @@ export function BatchControlBar({
   currentMilestone?: string | null;
   onUpdateMilestone?: (milestone: BatchMilestone) => void;
   onCancelRun?: () => void;
+  onForceLock?: () => void;
   vocabulary: VendorVocabulary;
 }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -232,6 +236,31 @@ export function BatchControlBar({
               )}
             </div>
 
+            {activeBatch.status === "PENDING_REVIEW" && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 space-y-2">
+                <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  This batch is ₹
+                  {Math.max(
+                    0,
+                    Number(activeBatch.min_order_value_snapshot ?? 0) -
+                      Number(activeBatch.collective_total ?? 0)
+                  ).toFixed(0)}{" "}
+                  short of its collective minimum.
+                </p>
+                {onForceLock && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={onForceLock}
+                    disabled={pending}
+                    className="h-9 px-4 rounded-xl font-semibold text-xs cursor-pointer"
+                  >
+                    Proceed Anyway
+                  </Button>
+                )}
+              </div>
+            )}
+
             {onCancelRun && (
               <Button
                 type="button"
@@ -249,7 +278,8 @@ export function BatchControlBar({
                 disabled={
                   pending ||
                   (activeBatch.status !== "LOCKED" &&
-                    activeBatch.status !== "IN_TRANSIT")
+                    activeBatch.status !== "IN_TRANSIT" &&
+                    activeBatch.status !== "PENDING_REVIEW")
                 }
                 className={`h-10 sm:h-9 px-4 rounded-xl font-semibold text-xs cursor-pointer transition-all hover:scale-102 active:scale-98 disabled:opacity-50 ${
                   showCancelConfirm

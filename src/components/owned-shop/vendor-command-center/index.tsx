@@ -39,6 +39,7 @@ import {
   useCancelBatch,
   useCloseBatch,
   useCompleteBatch,
+  useForceLockBatch,
   useMarkDeliveryFailed,
   useOrderConsoleData,
   useRejectOrder,
@@ -262,6 +263,14 @@ export function VendorCommandCenter() {
       });
     }
   }, [activeBatch, cancelBatchMutation]);
+
+  const forceLockBatchMutation = useForceLockBatch();
+
+  const handleForceLockBatch = useCallback(() => {
+    if (activeBatch) {
+      forceLockBatchMutation.mutate(activeBatch.id);
+    }
+  }, [activeBatch, forceLockBatchMutation]);
 
   const handleMarkFailed = useCallback(
     (orderId: string, reason: string) => {
@@ -602,6 +611,7 @@ export function VendorCommandCenter() {
         currentMilestone={activeBatch?.delivery_status?.current_milestone}
         onUpdateMilestone={handleUpdateMilestone}
         onCancelRun={handleCancelBatch}
+        onForceLock={handleForceLockBatch}
         vocabulary={vocabulary}
       />
 
