@@ -175,6 +175,7 @@ export const queryKeys = {
     all: ["batch"] as const,
     vendorDashboard: () => ["batch", "vendor", "dashboard"] as const,
     nextSlot: (shopId: string) => ["batch", "next-slot", shopId] as const,
+    progress: (shopId: string) => ["batch", "progress", shopId] as const,
     summary: (batchId: string) => ["batch", batchId, "summary"] as const,
     active: () => ["batch", "active"] as const,
     directDeliveries: () => ["batch", "direct-deliveries"] as const,
