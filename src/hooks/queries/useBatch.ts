@@ -14,6 +14,7 @@ import {
 } from "@/actions";
 import {
   closeBatchAction,
+  forceLockBatchAction,
   updateBatchCutoffTimeAction,
 } from "@/actions/shop/batch-actions";
 import {
@@ -269,6 +270,22 @@ export function useCloseBatch() {
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to close batch");
+    },
+  });
+}
+
+export function useForceLockBatch() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: forceLockBatchAction,
+    onSuccess: () => {
+      toast.success("Batch force-locked and prepared for delivery.");
+      queryClient.invalidateQueries({ queryKey: queryKeys.batch.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.orders.all });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to force-lock batch");
     },
   });
 }

@@ -115,6 +115,34 @@ export async function closeBatchAction(batchId: string) {
   }
 }
 
+export async function forceLockBatchAction(batchId: string) {
+  try {
+    const user = await authUtils.getUserData();
+    if (!user.id) throw new UnauthorizedError("Not authorized");
+
+    const shop = await shopRepository.findByOwnerId(user.id, {
+      select: { id: true },
+    });
+    if (!shop) throw new BadRequestError("Shop not found");
+
+    await batchService.forceLockBatch(batchId, shop.id);
+
+    return createSuccessResponse(
+      null,
+      "Batch force-locked and prepared for delivery."
+    );
+  } catch (error) {
+    log.error({ err: error }, "FORCE LOCK BATCH ERROR:");
+    if (
+      error instanceof UnauthorizedError ||
+      error instanceof BadRequestError
+    ) {
+      throw error;
+    }
+    throw new InternalServerError("Failed to force-lock batch.");
+  }
+}
+
 export async function cancelBatchAction(
   batchId: string,
   reason: string = "Cancelled by vendor"
