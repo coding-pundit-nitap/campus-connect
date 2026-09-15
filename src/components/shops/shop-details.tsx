@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { notFound } from "next/navigation";
 
+import { BatchProgressBanner } from "@/components/shops/batch/batch-progress-banner";
 import { FavoriteShopButton } from "@/components/shops/favorite-shop-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -193,6 +194,8 @@ export async function ShopDetails({ shop_id }: Props) {
                 </div>
               </div>
             </div>
+
+            <BatchProgressBanner shopId={shop.id} />
           </div>
         </div>
       </CardContent>
