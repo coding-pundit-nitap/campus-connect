@@ -133,8 +133,14 @@ export async function cancelBatchAction(
       throw new BadRequestError("Batch not found or unauthorized");
     }
 
-    if (batch.status !== "LOCKED" && batch.status !== "IN_TRANSIT") {
-      throw new BadRequestError("Can only cancel LOCKED or IN_TRANSIT batches");
+    if (
+      batch.status !== "LOCKED" &&
+      batch.status !== "IN_TRANSIT" &&
+      batch.status !== "PENDING_REVIEW"
+    ) {
+      throw new BadRequestError(
+        "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches"
+      );
     }
 
     const result = await batchService.cancelBatch(batchId, reason);

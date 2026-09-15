@@ -242,6 +242,44 @@ export class BatchService {
     await this.generateOtpForBatch(batchId);
   }
 
+  async forceLockBatch(batchId: string, shopId: string): Promise<void> {
+    const batch = await this.batchRepository.findById(batchId, {
+      select: { id: true, shop_id: true, status: true },
+    });
+
+    if (!batch) {
+      throw new NotFoundError("Batch not found");
+    }
+
+    if (batch.shop_id !== shopId) {
+      throw new Error("Unauthorized: Batch does not belong to your shop");
+    }
+
+    if (batch.status !== "PENDING_REVIEW") {
+      throw new Error("Only PENDING_REVIEW batches can be force-locked");
+    }
+
+    await this.batchRepository.updateStatus(batchId, "LOCKED");
+
+    await this.prismaClient.batchDeliveryStatus.upsert({
+      where: { batch_id: batchId },
+      update: { current_milestone: BatchMilestone.PACKING },
+      create: { batch_id: batchId, current_milestone: BatchMilestone.PACKING },
+    });
+
+    const orders = await this.orderRepository.findMany({
+      where: { batch_id: batchId },
+      select: { id: true },
+    });
+    const orderIds = orders.map((o) => o.id);
+
+    if (orderIds.length > 0) {
+      await this.orderRepository.batchUpdateStatus(orderIds, "BATCHED");
+    }
+
+    await this.generateOtpForBatch(batchId);
+  }
+
   async getBatchSummary(batchId: string): Promise<BatchSummaryItem[]> {
     const batch = await this.batchRepository.findById(batchId);
 
@@ -748,8 +786,14 @@ export class BatchService {
       throw new NotFoundError("Batch not found");
     }
 
-    if (batch.status !== "LOCKED" && batch.status !== "IN_TRANSIT") {
-      throw new Error("Can only cancel LOCKED or IN_TRANSIT batches");
+    if (
+      batch.status !== "LOCKED" &&
+      batch.status !== "IN_TRANSIT" &&
+      batch.status !== "PENDING_REVIEW"
+    ) {
+      throw new Error(
+        "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches"
+      );
     }
 
     await this.batchRepository.updateStatus(batchId, "CANCELLED");
