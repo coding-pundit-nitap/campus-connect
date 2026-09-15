@@ -19,6 +19,7 @@ export default function CartContent({ summary }: CartContentProps) {
       <CartItems
         cart_id={cart.id}
         items={cart.items}
+        shop_id={cart.items[0]?.shop_id}
         min_order_value={cart.min_order_value}
         shop_accepting_orders={cart.shop_accepting_orders}
       />

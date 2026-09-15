@@ -11,6 +11,7 @@ import { CartItemContainer } from "./cart-item-container";
 interface CartItemsProps {
   items: CartItemData[];
   cart_id: string;
+  shop_id: string | undefined;
   min_order_value: string;
   shop_accepting_orders: boolean;
 }
@@ -18,6 +19,7 @@ interface CartItemsProps {
 export function CartItems({
   items,
   cart_id,
+  shop_id,
   min_order_value,
   shop_accepting_orders,
 }: CartItemsProps) {
@@ -31,11 +33,9 @@ export function CartItems({
     router.push(`/checkout/${cart_id}`);
   };
 
-  const shopId = items[0]?.shop_id;
-
   return (
     <div className="flex-1 flex flex-col h-full space-y-2 p-4">
-      {shopId && <BatchCountdownBanner shopId={shopId} />}
+      {shop_id && <BatchCountdownBanner shopId={shop_id} />}
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
@@ -59,6 +59,7 @@ export function CartItems({
         total_price={total_price}
         min_order_value={Number(min_order_value)}
         shop_accepting_orders={shop_accepting_orders}
+        shop_id={shop_id}
         onProceed={handlePlaceOrder}
       />
     </div>

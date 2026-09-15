@@ -1,5 +1,6 @@
 import React from "react";
 
+import { BatchProgress } from "@/components/cart-drawer/batch-progress";
 import { MOVProgress } from "@/components/cart-drawer/mov-progress";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +10,7 @@ type Props = {
   total_price: number;
   min_order_value: number;
   shop_accepting_orders: boolean;
+  shop_id?: string;
   onProceed: () => void;
 };
 
@@ -16,6 +18,7 @@ export function CartFooter({
   total_price,
   min_order_value,
   shop_accepting_orders,
+  shop_id,
   onProceed,
 }: Props) {
   const isMOVMet = total_price >= min_order_value;
@@ -24,6 +27,7 @@ export function CartFooter({
   return (
     <div className="border-t bg-background p-4 sticky bottom-0 z-10">
       <div className="space-y-4">
+        {shop_id && <BatchProgress shopId={shop_id} />}
         <MOVProgress
           currentTotal={total_price}
           minOrderValue={min_order_value}
