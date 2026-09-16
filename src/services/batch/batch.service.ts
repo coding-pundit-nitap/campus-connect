@@ -6,6 +6,7 @@ import {
   BatchStatus,
   Prisma,
 } from "@/generated/client";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import { NotFoundError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -221,7 +222,21 @@ export class BatchService {
       throw new Error("Only OPEN batches can be locked");
     }
 
-    await this.batchRepository.updateStatus(batchId, "LOCKED");
+    const updatedBatchRow = await this.batchRepository.updateStatus(
+      batchId,
+      "LOCKED"
+    );
+
+    await publishBatchProgress({
+      batchId: updatedBatchRow.id,
+      shopId: updatedBatchRow.shop_id,
+      status: updatedBatchRow.status,
+      collectiveTotal: Number(updatedBatchRow.collective_total),
+      minRequired:
+        updatedBatchRow.min_order_value_snapshot !== null
+          ? Number(updatedBatchRow.min_order_value_snapshot)
+          : null,
+    });
 
     await this.prismaClient.batchDeliveryStatus.upsert({
       where: { batch_id: batchId },
@@ -259,7 +274,21 @@ export class BatchService {
       throw new Error("Only PENDING_REVIEW batches can be force-locked");
     }
 
-    await this.batchRepository.updateStatus(batchId, "LOCKED");
+    const updatedBatchRow = await this.batchRepository.updateStatus(
+      batchId,
+      "LOCKED"
+    );
+
+    await publishBatchProgress({
+      batchId: updatedBatchRow.id,
+      shopId: updatedBatchRow.shop_id,
+      status: updatedBatchRow.status,
+      collectiveTotal: Number(updatedBatchRow.collective_total),
+      minRequired:
+        updatedBatchRow.min_order_value_snapshot !== null
+          ? Number(updatedBatchRow.min_order_value_snapshot)
+          : null,
+    });
 
     await this.prismaClient.batchDeliveryStatus.upsert({
       where: { batch_id: batchId },
@@ -796,7 +825,21 @@ export class BatchService {
       );
     }
 
-    await this.batchRepository.updateStatus(batchId, "CANCELLED");
+    const updatedBatchRow = await this.batchRepository.updateStatus(
+      batchId,
+      "CANCELLED"
+    );
+
+    await publishBatchProgress({
+      batchId: updatedBatchRow.id,
+      shopId: updatedBatchRow.shop_id,
+      status: updatedBatchRow.status,
+      collectiveTotal: Number(updatedBatchRow.collective_total),
+      minRequired:
+        updatedBatchRow.min_order_value_snapshot !== null
+          ? Number(updatedBatchRow.min_order_value_snapshot)
+          : null,
+    });
 
     const orderIds = batch.orders.map((o) => o.id);
 
@@ -888,60 +931,71 @@ export class BatchService {
 
       const batchIds = expiredBatches.map((b) => b.id).sort();
 
-      const { lockedBatchIds, pendingReviewBatchIds, countMap, shortfallMap } =
-        await this.prismaClient.$transaction(async (tx) => {
-          const locked: {
-            id: string;
-            status: string;
-            collective_total: string;
-            min_order_value_snapshot: string | null;
-          }[] = await tx.$queryRaw`
+      const {
+        lockedBatchIds,
+        pendingReviewBatchIds,
+        countMap,
+        shortfallMap,
+        progressSnapshotMap,
+      } = await this.prismaClient.$transaction(async (tx) => {
+        const locked: {
+          id: string;
+          status: string;
+          collective_total: string;
+          min_order_value_snapshot: string | null;
+        }[] = await tx.$queryRaw`
             SELECT id, status, collective_total, min_order_value_snapshot FROM "Batch"
             WHERE id IN (${Prisma.join(batchIds)}) AND status = 'OPEN'
             ORDER BY id
             FOR UPDATE
           `;
 
-          const lockedBatchIds: string[] = [];
-          const pendingReviewBatchIds: string[] = [];
-          const shortfallMap = new Map<string, number>();
+        const lockedBatchIds: string[] = [];
+        const pendingReviewBatchIds: string[] = [];
+        const shortfallMap = new Map<string, number>();
+        const progressSnapshotMap = new Map<
+          string,
+          { collectiveTotal: number; minRequired: number | null }
+        >();
 
-          for (const row of locked) {
-            const minRequired =
-              row.min_order_value_snapshot !== null
-                ? Number(row.min_order_value_snapshot)
-                : null;
-            const collectiveTotal = Number(row.collective_total);
-            if (minRequired !== null && collectiveTotal < minRequired) {
-              pendingReviewBatchIds.push(row.id);
-              shortfallMap.set(row.id, minRequired - collectiveTotal);
-            } else {
-              lockedBatchIds.push(row.id);
-            }
+        for (const row of locked) {
+          const minRequired =
+            row.min_order_value_snapshot !== null
+              ? Number(row.min_order_value_snapshot)
+              : null;
+          const collectiveTotal = Number(row.collective_total);
+          progressSnapshotMap.set(row.id, { collectiveTotal, minRequired });
+          if (minRequired !== null && collectiveTotal < minRequired) {
+            pendingReviewBatchIds.push(row.id);
+            shortfallMap.set(row.id, minRequired - collectiveTotal);
+          } else {
+            lockedBatchIds.push(row.id);
           }
+        }
 
-          if (pendingReviewBatchIds.length > 0) {
-            await tx.batch.updateMany({
-              where: { id: { in: pendingReviewBatchIds } },
-              data: { status: "PENDING_REVIEW" },
-            });
-          }
-
-          if (lockedBatchIds.length === 0) {
-            return {
-              lockedBatchIds: [],
-              pendingReviewBatchIds,
-              countMap: new Map<string, number>(),
-              shortfallMap,
-            };
-          }
-
+        if (pendingReviewBatchIds.length > 0) {
           await tx.batch.updateMany({
-            where: { id: { in: lockedBatchIds } },
-            data: { status: "LOCKED" },
+            where: { id: { in: pendingReviewBatchIds } },
+            data: { status: "PENDING_REVIEW" },
           });
+        }
 
-          await tx.$executeRaw`
+        if (lockedBatchIds.length === 0) {
+          return {
+            lockedBatchIds: [],
+            pendingReviewBatchIds,
+            countMap: new Map<string, number>(),
+            shortfallMap,
+            progressSnapshotMap,
+          };
+        }
+
+        await tx.batch.updateMany({
+          where: { id: { in: lockedBatchIds } },
+          data: { status: "LOCKED" },
+        });
+
+        await tx.$executeRaw`
             UPDATE "Order"
             SET order_status = 'BATCHED',
                 delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text,
@@ -949,20 +1003,55 @@ export class BatchService {
             WHERE batch_id = ANY(${lockedBatchIds}::text[]) AND order_status = 'NEW'
           `;
 
-          const orderCounts = await tx.order.groupBy({
-            by: ["batch_id"],
-            where: {
-              batch_id: { in: lockedBatchIds },
-              order_status: "BATCHED",
-            },
-            _count: { id: true },
-          });
-          const countMap = new Map(
-            orderCounts.map((c) => [c.batch_id ?? "", c._count.id])
-          );
-
-          return { lockedBatchIds, pendingReviewBatchIds, countMap, shortfallMap };
+        const orderCounts = await tx.order.groupBy({
+          by: ["batch_id"],
+          where: {
+            batch_id: { in: lockedBatchIds },
+            order_status: "BATCHED",
+          },
+          _count: { id: true },
         });
+        const countMap = new Map(
+          orderCounts.map((c) => [c.batch_id ?? "", c._count.id])
+        );
+
+        return {
+          lockedBatchIds,
+          pendingReviewBatchIds,
+          countMap,
+          shortfallMap,
+          progressSnapshotMap,
+        };
+      });
+
+      const shopIdByBatchId = new Map(
+        expiredBatches.map((b) => [b.id, b.shop_id])
+      );
+
+      const publishProgressFor = async (
+        ids: string[],
+        status: BatchStatus
+      ): Promise<void> => {
+        await Promise.all(
+          ids.map((id) => {
+            const snapshot = progressSnapshotMap.get(id);
+            const shopId = shopIdByBatchId.get(id);
+            if (!snapshot || !shopId) {
+              return Promise.resolve();
+            }
+            return publishBatchProgress({
+              batchId: id,
+              shopId,
+              status,
+              collectiveTotal: snapshot.collectiveTotal,
+              minRequired: snapshot.minRequired,
+            });
+          })
+        );
+      };
+
+      await publishProgressFor(lockedBatchIds, "LOCKED");
+      await publishProgressFor(pendingReviewBatchIds, "PENDING_REVIEW");
 
       if (lockedBatchIds.length > 0) {
         log.info(`✅ Successfully LOCKED ${lockedBatchIds.length} batches.`);

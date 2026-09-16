@@ -2,8 +2,13 @@
 
 import z from "zod";
 
-import { notificationService, orderRepository } from "@/di/container";
+import {
+  batchRepository,
+  notificationService,
+  orderRepository,
+} from "@/di/container";
 import { OrderStatus, PaymentStatus, Prisma } from "@/generated/client";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
   BadRequestError,
   ForbiddenError,
@@ -12,6 +17,7 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -153,7 +159,40 @@ export async function updateOrderStatusAdminAction(
       updateData.actual_delivery_time = new Date();
     }
 
-    const updatedOrder = await orderRepository.update(order_id, updateData);
+    const wasAlreadyCancelled = order.order_status === OrderStatus.CANCELLED;
+
+    const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
+      async (tx) => {
+        const result = await tx.order.update({
+          where: { id: order_id },
+          data: updateData,
+        });
+        const updatedBatch =
+          order_status === OrderStatus.CANCELLED &&
+          !wasAlreadyCancelled &&
+          order.batch_id
+            ? await batchRepository.adjustCollectiveTotal(
+                order.batch_id,
+                -Number(order.item_total),
+                tx
+              )
+            : null;
+        return { result, updatedBatch };
+      }
+    );
+
+    if (updatedBatch) {
+      await publishBatchProgress({
+        batchId: updatedBatch.id,
+        shopId: updatedBatch.shop_id,
+        status: updatedBatch.status,
+        collectiveTotal: Number(updatedBatch.collective_total),
+        minRequired:
+          updatedBatch.min_order_value_snapshot !== null
+            ? Number(updatedBatch.min_order_value_snapshot)
+            : null,
+      });
+    }
 
     const statusMessages: Record<OrderStatus, string> = {
       NEW: "has been received",
