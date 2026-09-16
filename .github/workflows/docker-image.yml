@@ -99,9 +99,19 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
 
+      - name: Resolve diff base
+        id: base
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && git rev-parse --verify refs/tags/ci-last-success >/dev/null 2>&1; then
+            echo "ref=ci-last-success" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: dorny/paths-filter@v4.0.2
         id: changes
         with:
+          base: ${{ steps.base.outputs.ref }}
           filters: |
             docker-base:
               - 'Dockerfile'
@@ -485,3 +495,38 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  mark-ci-success:
+    needs:
+      [
+        validate,
+        test-integration,
+        detect-changes,
+        build-app,
+        build-worker,
+        build-migrator,
+        build-nginx,
+        build-prometheus,
+        build-alertmanager,
+        build-grafana,
+        build-loki,
+        build-promtail,
+      ]
+    if: |
+      always() &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+      !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Advance ci-last-success tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f ci-last-success "${{ github.sha }}"
+          git push origin ci-last-success --force
