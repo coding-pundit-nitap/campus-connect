@@ -1,6 +1,7 @@
 import { ReviewFormData } from "@/components/orders/review-form";
 import { ForbiddenError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
+import { getProductUrl } from "@/lib/utils/url.utils";
 import { ProductRepository } from "@/repositories/product.repository";
 import { ReviewRepository } from "@/repositories/reviews.repository";
 import { NotificationService } from "@/services/notification/notification.service";
@@ -53,7 +54,7 @@ export class ReviewService {
       await this.notificationService.publishNotification(product.shop.user.id, {
         title: "New Review on Your Product",
         message: `Your product ${product.name} has received a new review.`,
-        action_url: `/product/${product.id}`,
+        action_url: getProductUrl(product.id),
         type: "INFO",
       });
     }

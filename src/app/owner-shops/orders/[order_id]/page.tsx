@@ -44,6 +44,32 @@ type Props = {
   params: Promise<{ order_id: string }>;
 };
 
+const ORDER_STATUS_MESSAGES: Record<
+  OrderStatus,
+  (customerName: string, displayId: string) => string
+> = {
+  NEW: (name, displayId) =>
+    `Hi ${name}, we've received your order #${displayId} and it's being prepared.`,
+  BATCHED: (name, displayId) =>
+    `Hi ${name}, your order #${displayId} has been batched with other orders and will be delivered soon.`,
+  OUT_FOR_DELIVERY: (name, displayId) =>
+    `Hi ${name}, your order #${displayId} is out for delivery!`,
+  DELIVERY_FAILED: (name, displayId) =>
+    `Hi ${name}, we tried delivering your order #${displayId} but couldn't reach you. Could you let us know a good time to redeliver?`,
+  COMPLETED: (name, displayId) =>
+    `Hi ${name}, your order #${displayId} has been delivered. Thank you for ordering with us!`,
+  CANCELLED: (name, displayId) =>
+    `Hi ${name}, your order #${displayId} has been cancelled.`,
+  RESCHEDULED: (name, displayId) =>
+    `Hi ${name}, the delivery for your order #${displayId} has been rescheduled. We'll update you with a new time soon.`,
+};
+
+const getOrderWhatsappMessage = (
+  status: OrderStatus,
+  customerName: string,
+  displayId: string
+) => ORDER_STATUS_MESSAGES[status](customerName, displayId);
+
 const DetailItem = ({
   icon,
   label,
@@ -229,7 +255,15 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                   <Link
                     target="_blank"
                     rel="noopener noreferrer"
-                    href={`https://wa.me/91${order.user.phone}` as Route}
+                    href={
+                      `https://wa.me/91${order.user.phone}?text=${encodeURIComponent(
+                        getOrderWhatsappMessage(
+                          order.order_status as OrderStatus,
+                          order.user.name,
+                          order.display_id
+                        )
+                      )}` as Route
+                    }
                     className="text-blue-500 hover:underline"
                   >
                     <Image

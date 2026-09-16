@@ -16,6 +16,7 @@ import {
   getZonedParts,
   zonedPartsToUtcDate,
 } from "@/lib/utils/timezone";
+import { getOrderUrl, getShopOrderUrl } from "@/lib/utils/url.utils";
 import { BatchRepository } from "@/repositories/batch.repository";
 import { OrderRepository } from "@/repositories/order.repository";
 import { ProductRepository } from "@/repositories/product.repository";
@@ -672,7 +673,7 @@ export class BatchService {
               message: `Your order ${order.display_id} is out for delivery in the batch run. Share OTP ${order.delivery_otp || ""} to complete delivery.`,
               type: "SUCCESS",
               category: "ORDER",
-              action_url: `/orders/${order.id}`,
+              action_url: getOrderUrl(order.id),
             });
           } catch (notifyErr) {
             log.error(
@@ -779,7 +780,7 @@ export class BatchService {
           message: `Your order ${order.display_id} was successfully delivered. Thank you!`,
           type: "SUCCESS",
           category: "ORDER",
-          action_url: `/orders/${orderId}`,
+          action_url: getOrderUrl(orderId),
         });
       } catch (notifyErr) {
         log.error(
@@ -861,7 +862,7 @@ export class BatchService {
               message: `Your order ${order.display_id} was cancelled because the delivery run was cancelled. A refund has been initiated if you paid online.`,
               type: "ERROR",
               category: "ORDER",
-              action_url: `/orders/${order.id}`,
+              action_url: getOrderUrl(order.id),
             });
           } catch (notifyErr) {
             log.error({
@@ -1063,6 +1064,7 @@ export class BatchService {
         for (const batch of processedBatches) {
           const activeOrderCount = countMap.get(batch.id) ?? 0;
           if (batch.shop.user && activeOrderCount > 0) {
+            const firstOrderId = batch.orders[0]?.id;
             try {
               await this.notificationService.publishNotification(
                 batch.shop.user.id,
@@ -1071,7 +1073,9 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ready with ${activeOrderCount} orders. Start preparing!`,
                   type: "SUCCESS",
                   category: "ORDER",
-                  action_url: `/owner-shops`,
+                  action_url: firstOrderId
+                    ? getShopOrderUrl(firstOrderId)
+                    : `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -1096,6 +1100,7 @@ export class BatchService {
         for (const batch of processedBatches) {
           const shortfall = shortfallMap.get(batch.id) ?? 0;
           if (batch.shop.user) {
+            const firstOrderId = batch.orders[0]?.id;
             try {
               await this.notificationService.publishNotification(
                 batch.shop.user.id,
@@ -1104,7 +1109,9 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ₹${shortfall.toFixed(0)} short of its collective minimum. Decide whether to proceed or cancel.`,
                   type: "WARNING",
                   category: "ORDER",
-                  action_url: `/owner-shops`,
+                  action_url: firstOrderId
+                    ? getShopOrderUrl(firstOrderId)
+                    : `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -1155,7 +1162,7 @@ export class BatchService {
               message: `You have ${batch.orders.length} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
               type: "WARNING",
               category: "ORDER",
-              action_url: `/owner-shops`,
+              action_url: getShopOrderUrl(batch.orders[0].id),
             }
           );
         } catch (notifError) {

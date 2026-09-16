@@ -19,6 +19,7 @@ import {
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
+import { getOrderUrl } from "@/lib/utils/url.utils";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("order-management-actions");
 
@@ -119,7 +120,7 @@ export async function acceptOrderAction(orderId: string) {
             message: msg,
             type: "WARNING",
             category: "ORDER",
-            action_url: `/orders/${orderId}`,
+            action_url: getOrderUrl(orderId),
           });
         } else {
           await notificationService.publishNotification(order.user_id, {
@@ -127,7 +128,7 @@ export async function acceptOrderAction(orderId: string) {
             message: `Your order ${order.display_id} has been accepted by the shop and is being prepared.`,
             type: "SUCCESS",
             category: "ORDER",
-            action_url: `/orders/${orderId}`,
+            action_url: getOrderUrl(orderId),
           });
         }
       } catch (notifyErr) {
@@ -191,7 +192,7 @@ export async function startDirectDeliveryAction(orderId: string) {
           message: `Your order ${order.display_id} is out for delivery. Share OTP ${otp} to complete delivery.`,
           type: "SUCCESS",
           category: "ORDER",
-          action_url: `/orders/${orderId}`,
+          action_url: getOrderUrl(orderId),
         });
       } catch (notifyErr) {
         log.error(`Failed to send direct delivery notification: ${notifyErr}`);
@@ -286,7 +287,7 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
           message: `Your order ${order.display_id} was rejected by the shop. A refund has been initiated if you paid online.`,
           type: "ERROR",
           category: "ORDER",
-          action_url: `/orders/${orderId}`,
+          action_url: getOrderUrl(orderId),
         });
       } catch (notifyErr) {
         log.error(`Failed to send order rejection notification: ${notifyErr}`);
@@ -348,7 +349,7 @@ export async function verifyDeliveryOtpAction(orderId: string, otp: string) {
           message: `Your order ${order.display_id} was successfully delivered. Thank you!`,
           type: "SUCCESS",
           category: "ORDER",
-          action_url: `/orders/${orderId}`,
+          action_url: getOrderUrl(orderId),
         });
       } catch (notifyErr) {
         log.error(
@@ -413,7 +414,7 @@ export async function markDeliveryFailedAction(
           message: `The runner was unable to deliver your order ${order.display_id}. Please contact the shop immediately.`,
           type: "ERROR",
           category: "ORDER",
-          action_url: `/orders/${orderId}`,
+          action_url: getOrderUrl(orderId),
         });
       } catch (notifyErr) {
         log.error(`Failed to send delivery failed notification: ${notifyErr}`);

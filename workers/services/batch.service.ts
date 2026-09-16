@@ -2,6 +2,7 @@ import { BatchSlot, BatchStatus, Prisma } from "../generated/client/index.js";
 import { publishBatchProgress } from "../lib/batch-progress-publisher.js";
 import { loggers } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
+import { getShopOrderUrl } from "../lib/url.utils.js";
 import { NotificationService } from "./notification.service.js";
 const log = loggers.batch;
 
@@ -240,6 +241,7 @@ export class BatchService {
         for (const batch of processedBatches) {
           const activeOrderCount = countMap.get(batch.id) ?? 0;
           if (batch.shop.user && activeOrderCount > 0) {
+            const firstOrderId = batch.orders[0]?.id;
             try {
               await this.notificationService.publishNotification(
                 batch.shop.user.id,
@@ -248,7 +250,9 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ready with ${activeOrderCount} orders. Start preparing!`,
                   type: "SUCCESS",
                   category: "ORDER",
-                  action_url: `/owner-shops`,
+                  action_url: firstOrderId
+                    ? getShopOrderUrl(firstOrderId)
+                    : `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -273,6 +277,7 @@ export class BatchService {
         for (const batch of processedBatches) {
           const shortfall = shortfallMap.get(batch.id) ?? 0;
           if (batch.shop.user) {
+            const firstOrderId = batch.orders[0]?.id;
             try {
               await this.notificationService.publishNotification(
                 batch.shop.user.id,
@@ -281,7 +286,9 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ₹${shortfall.toFixed(0)} short of its collective minimum. Decide whether to proceed or cancel.`,
                   type: "WARNING",
                   category: "ORDER",
-                  action_url: `/owner-shops`,
+                  action_url: firstOrderId
+                    ? getShopOrderUrl(firstOrderId)
+                    : `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -332,7 +339,7 @@ export class BatchService {
               message: `You have ${batch.orders.length} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
               type: "WARNING",
               category: "ORDER",
-              action_url: `/owner-shops`,
+              action_url: getShopOrderUrl(batch.orders[0].id),
             }
           );
         } catch (notifError) {

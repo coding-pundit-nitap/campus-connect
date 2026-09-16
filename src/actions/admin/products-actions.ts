@@ -167,7 +167,7 @@ export async function deleteProductAction(
         message: `Product "${product.name}" from your shop "${product.shop.name}" has been deleted by an admin.`,
         type: "WARNING",
         category: "SYSTEM",
-        action_url: "/owner-shops",
+        action_url: "/owner-shops/products",
       });
     }
 

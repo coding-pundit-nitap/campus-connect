@@ -22,6 +22,7 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
+import { getOrderUrl } from "@/lib/utils/url.utils";
 import { verifyAdmin } from "@/lib/verify-admin";
 import { SerializedOrderWithDetails } from "@/types";
 import {
@@ -215,7 +216,7 @@ export async function updateOrderStatusAdminAction(
               ? "ERROR"
               : "INFO",
         category: "ORDER",
-        action_url: `/orders/${order.id}`,
+        action_url: getOrderUrl(order.id),
       });
     }
 
@@ -286,7 +287,7 @@ export async function updatePaymentStatusAction(
               ? "ERROR"
               : "INFO",
         category: "ORDER",
-        action_url: `/orders/${order.id}`,
+        action_url: getOrderUrl(order.id),
       });
     }
 

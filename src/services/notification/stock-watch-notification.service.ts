@@ -1,6 +1,7 @@
 import { notificationService } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { getProductUrl } from "@/lib/utils/url.utils";
 
 const log = createLogger("stock-watch-notification-service");
 
@@ -40,7 +41,7 @@ export async function notifyStockWatchers(
           message: `"${product_name}" at ${shop_name} is now back in stock.`,
           type: "SUCCESS",
           category: "ORDER",
-          action_url: `/product/${product_id}`,
+          action_url: getProductUrl(product_id),
         })
       )
     );
