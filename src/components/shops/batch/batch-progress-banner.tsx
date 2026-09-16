@@ -12,9 +12,7 @@ interface BatchProgressBannerProps {
   shopId: string;
 }
 
-async function fetchBatchProgress(
-  shopId: string
-): Promise<BatchProgressState> {
+async function fetchBatchProgress(shopId: string): Promise<BatchProgressState> {
   const response = await axiosInstance.get<ActionResponse<BatchProgressState>>(
     `/shops/${shopId}/batch-progress`
   );

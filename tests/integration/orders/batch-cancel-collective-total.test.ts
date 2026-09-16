@@ -14,22 +14,45 @@ import { testPrisma } from "../../setup/integration-setup";
 describe("batchUpdateOrderStatusAction decrements Batch.collective_total on CANCELLED", () => {
   it("decrements the batch total to zero when all orders in the batch are bulk-cancelled", async () => {
     const { at, cutoffMinutes } = futureSlotTime();
-    const shop = await createShop({ accepting_orders: true, batch_min_order_value: 1000 });
+    const shop = await createShop({
+      accepting_orders: true,
+      batch_min_order_value: 1000,
+    });
     const owner = await createUser({ shop_id: shop.id });
-    await createBatchSlot({ shop_id: shop.id, cutoff_time_minutes: cutoffMinutes, is_active: true });
+    await createBatchSlot({
+      shop_id: shop.id,
+      cutoff_time_minutes: cutoffMinutes,
+      is_active: true,
+    });
 
     const a = await seedCartForShop(shop);
     const b = await seedCartForShop(shop);
     const { createContainer } = await import("../../../src/di/container");
     const { orderService } = createContainer({ prisma: testPrisma });
 
-    const orderA = await orderService.createOrderFromCart(a.user.id, shop.id, "CASH", a.address.id, undefined, at);
-    const orderB = await orderService.createOrderFromCart(b.user.id, shop.id, "CASH", b.address.id, undefined, at);
+    const orderA = await orderService.createOrderFromCart(
+      a.user.id,
+      shop.id,
+      "CASH",
+      a.address.id,
+      undefined,
+      at
+    );
+    const orderB = await orderService.createOrderFromCart(
+      b.user.id,
+      shop.id,
+      "CASH",
+      b.address.id,
+      undefined,
+      at
+    );
 
     expect(orderA.batch_id).toBe(orderB.batch_id);
 
     const expectedTotal = Number(orderA.item_total) + Number(orderB.item_total);
-    const batchBefore = await testPrisma.batch.findUnique({ where: { id: orderA.batch_id! } });
+    const batchBefore = await testPrisma.batch.findUnique({
+      where: { id: orderA.batch_id! },
+    });
     expect(Number(batchBefore!.collective_total)).toBeCloseTo(expectedTotal, 2);
 
     asUser(owner);
@@ -40,7 +63,9 @@ describe("batchUpdateOrderStatusAction decrements Batch.collective_total on CANC
 
     expect(result.details).toContain("2 orders");
 
-    const batchAfter = await testPrisma.batch.findUnique({ where: { id: orderA.batch_id! } });
+    const batchAfter = await testPrisma.batch.findUnique({
+      where: { id: orderA.batch_id! },
+    });
     expect(Number(batchAfter!.collective_total)).toBe(0);
 
     const ordersAfter = await testPrisma.order.findMany({
@@ -51,9 +76,16 @@ describe("batchUpdateOrderStatusAction decrements Batch.collective_total on CANC
 
   it("decrements the batch total by only the cancelled orders' item_total when some orders are left un-cancelled", async () => {
     const { at, cutoffMinutes } = futureSlotTime();
-    const shop = await createShop({ accepting_orders: true, batch_min_order_value: 1000 });
+    const shop = await createShop({
+      accepting_orders: true,
+      batch_min_order_value: 1000,
+    });
     const owner = await createUser({ shop_id: shop.id });
-    await createBatchSlot({ shop_id: shop.id, cutoff_time_minutes: cutoffMinutes, is_active: true });
+    await createBatchSlot({
+      shop_id: shop.id,
+      cutoff_time_minutes: cutoffMinutes,
+      is_active: true,
+    });
 
     const a = await seedCartForShop(shop);
     const b = await seedCartForShop(shop);
@@ -85,10 +117,17 @@ describe("batchUpdateOrderStatusAction decrements Batch.collective_total on CANC
       status: "CANCELLED",
     });
 
-    const batchAfter = await testPrisma.batch.findUnique({ where: { id: orderToKeep.batch_id! } });
-    expect(Number(batchAfter!.collective_total)).toBeCloseTo(Number(orderToKeep.item_total), 2);
+    const batchAfter = await testPrisma.batch.findUnique({
+      where: { id: orderToKeep.batch_id! },
+    });
+    expect(Number(batchAfter!.collective_total)).toBeCloseTo(
+      Number(orderToKeep.item_total),
+      2
+    );
 
-    const keptOrderAfter = await testPrisma.order.findUnique({ where: { id: orderToKeep.id } });
+    const keptOrderAfter = await testPrisma.order.findUnique({
+      where: { id: orderToKeep.id },
+    });
     expect(keptOrderAfter!.order_status).not.toBe("CANCELLED");
   });
 });

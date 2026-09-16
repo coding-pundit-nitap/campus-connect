@@ -11,7 +11,10 @@ describe("autoCloseExpiredBatches with a collective minimum", () => {
   });
 
   it("transitions an under-threshold expired batch to PENDING_REVIEW instead of LOCKED", async () => {
-    const shop = await createShop({ accepting_orders: true, batch_min_order_value: 10000 });
+    const shop = await createShop({
+      accepting_orders: true,
+      batch_min_order_value: 10000,
+    });
     const pastCutoff = new Date(Date.now() - 60_000);
     const batch = await testPrisma.batch.create({
       data: {
@@ -44,10 +47,14 @@ describe("autoCloseExpiredBatches with a collective minimum", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.autoCloseExpiredBatches();
 
-    const updated = await testPrisma.batch.findUnique({ where: { id: batch.id } });
+    const updated = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
     expect(updated!.status).toBe("PENDING_REVIEW");
 
-    const order = await testPrisma.order.findFirst({ where: { batch_id: batch.id } });
+    const order = await testPrisma.order.findFirst({
+      where: { batch_id: batch.id },
+    });
     expect(order!.order_status).toBe("NEW");
 
     expect(publishSpy).toHaveBeenCalledTimes(1);
@@ -61,7 +68,10 @@ describe("autoCloseExpiredBatches with a collective minimum", () => {
   });
 
   it("locks an at-or-above-threshold expired batch exactly as before", async () => {
-    const shop = await createShop({ accepting_orders: true, batch_min_order_value: 50 });
+    const shop = await createShop({
+      accepting_orders: true,
+      batch_min_order_value: 50,
+    });
     const pastCutoff = new Date(Date.now() - 60_000);
     const batch = await testPrisma.batch.create({
       data: {
@@ -92,10 +102,14 @@ describe("autoCloseExpiredBatches with a collective minimum", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.autoCloseExpiredBatches();
 
-    const updated = await testPrisma.batch.findUnique({ where: { id: batch.id } });
+    const updated = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
     expect(updated!.status).toBe("LOCKED");
 
-    const order = await testPrisma.order.findFirst({ where: { batch_id: batch.id } });
+    const order = await testPrisma.order.findFirst({
+      where: { batch_id: batch.id },
+    });
     expect(order!.order_status).toBe("BATCHED");
 
     expect(publishSpy).toHaveBeenCalledTimes(1);
@@ -124,7 +138,9 @@ describe("autoCloseExpiredBatches with a collective minimum", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.autoCloseExpiredBatches();
 
-    const updated = await testPrisma.batch.findUnique({ where: { id: batch.id } });
+    const updated = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
     expect(updated!.status).toBe("LOCKED");
   });
 

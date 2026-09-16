@@ -26,9 +26,11 @@ export function ServiceWorkerRegistrar() {
 
     bindControllerChange();
 
-    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch((error) => {
-      logger.error({ err: error }, "Service worker registration failed:");
-    });
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch((error) => {
+        logger.error({ err: error }, "Service worker registration failed:");
+      });
   }, []);
 
   return null;

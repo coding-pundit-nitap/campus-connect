@@ -17,8 +17,8 @@ export default function Page() {
                 Campus partner shops
               </h1>
               <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 leading-relaxed font-medium">
-                Canteens, stationery and general stores, delivering straight
-                to your hostel.
+                Canteens, stationery and general stores, delivering straight to
+                your hostel.
               </p>
             </div>
           </div>

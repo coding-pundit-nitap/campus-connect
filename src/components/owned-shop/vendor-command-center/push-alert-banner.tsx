@@ -48,8 +48,8 @@ export function PushAlertBanner() {
           Turn on order alerts
         </p>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Get alerted the moment an order arrives - even with the app closed
-          or your phone locked. Without this, you only hear a sound while a
+          Get alerted the moment an order arrives - even with the app closed or
+          your phone locked. Without this, you only hear a sound while a
           dashboard tab is open.
         </p>
         {isBrave && (

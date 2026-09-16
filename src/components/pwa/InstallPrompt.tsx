@@ -45,7 +45,10 @@ export function InstallPrompt() {
       engagementTimerRef.current = null;
     }
     if (visibilityRetryRef.current) {
-      document.removeEventListener("visibilitychange", visibilityRetryRef.current);
+      document.removeEventListener(
+        "visibilitychange",
+        visibilityRetryRef.current
+      );
       visibilityRetryRef.current = null;
     }
   }, []);

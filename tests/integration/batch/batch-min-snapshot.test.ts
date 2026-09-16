@@ -20,7 +20,9 @@ describe("batch_min_order_value snapshot on creation", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.ensureNextOpenBatch(shop.id);
 
-    const batch = await testPrisma.batch.findFirst({ where: { shop_id: shop.id } });
+    const batch = await testPrisma.batch.findFirst({
+      where: { shop_id: shop.id },
+    });
     expect(batch).not.toBeNull();
     expect(Number(batch!.min_order_value_snapshot)).toBe(500);
     expect(Number(batch!.collective_total)).toBe(0);
@@ -38,7 +40,9 @@ describe("batch_min_order_value snapshot on creation", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.ensureNextOpenBatch(shop.id);
 
-    const batch = await testPrisma.batch.findFirst({ where: { shop_id: shop.id } });
+    const batch = await testPrisma.batch.findFirst({
+      where: { shop_id: shop.id },
+    });
     expect(batch!.min_order_value_snapshot).toBeNull();
   });
 });

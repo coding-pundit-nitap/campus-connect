@@ -32,9 +32,13 @@ describe("resolving a PENDING_REVIEW batch", () => {
     const { batchService } = createContainer({ prisma: testPrisma });
     await batchService.forceLockBatch(batch.id, shop.id);
 
-    const updated = await testPrisma.batch.findUnique({ where: { id: batch.id } });
+    const updated = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
     expect(updated!.status).toBe("LOCKED");
-    const order = await testPrisma.order.findFirst({ where: { batch_id: batch.id } });
+    const order = await testPrisma.order.findFirst({
+      where: { batch_id: batch.id },
+    });
     expect(order!.order_status).toBe("BATCHED");
     expect(order!.delivery_otp).not.toBeNull();
   });
@@ -46,21 +50,27 @@ describe("resolving a PENDING_REVIEW batch", () => {
     });
 
     const { batchService } = createContainer({ prisma: testPrisma });
-    await expect(batchService.forceLockBatch(batch.id, shop.id)).rejects.toThrow(
-      "Only PENDING_REVIEW batches can be force-locked"
-    );
+    await expect(
+      batchService.forceLockBatch(batch.id, shop.id)
+    ).rejects.toThrow("Only PENDING_REVIEW batches can be force-locked");
   });
 
   it("cancelBatch accepts PENDING_REVIEW as a valid source status", async () => {
     const shop = await createShop({ accepting_orders: true });
     const batch = await testPrisma.batch.create({
-      data: { shop_id: shop.id, cutoff_time: new Date(), status: "PENDING_REVIEW" },
+      data: {
+        shop_id: shop.id,
+        cutoff_time: new Date(),
+        status: "PENDING_REVIEW",
+      },
     });
 
     const { batchService } = createContainer({ prisma: testPrisma });
     const result = await batchService.cancelBatch(batch.id, "Owner declined");
 
-    const updated = await testPrisma.batch.findUnique({ where: { id: batch.id } });
+    const updated = await testPrisma.batch.findUnique({
+      where: { id: batch.id },
+    });
     expect(updated!.status).toBe("CANCELLED");
     expect(result.cancelled_orders).toBe(0);
   });
