@@ -1,5 +1,6 @@
 // Relative imports, not the "@/" alias - vite-tsconfig-paths does not cover
 // tests/**/*.ts (see tests/factories/index.ts for the full rationale).
+import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
 import { GET } from "../../../src/app/api/shops/[shop_id]/batch-progress/route";
@@ -23,7 +24,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     });
 
     const response = await GET(
-      new Request(`http://localhost/api/shops/${shop.id}/batch-progress`),
+      new NextRequest(`http://localhost/api/shops/${shop.id}/batch-progress`),
       { params: Promise.resolve({ shop_id: shop.id }) }
     );
     const body = await response.json();
@@ -41,7 +42,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     const shop = await createShop({ accepting_orders: true });
 
     const response = await GET(
-      new Request(`http://localhost/api/shops/${shop.id}/batch-progress`),
+      new NextRequest(`http://localhost/api/shops/${shop.id}/batch-progress`),
       { params: Promise.resolve({ shop_id: shop.id }) }
     );
     const body = await response.json();
