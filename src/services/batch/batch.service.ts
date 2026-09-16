@@ -1071,7 +1071,7 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ready with ${activeOrderCount} orders. Start preparing!`,
                   type: "SUCCESS",
                   category: "ORDER",
-                  action_url: `/owner-shops/dashboard`,
+                  action_url: `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -1104,7 +1104,7 @@ export class BatchService {
                   message: `Batch for ${batch.shop.name} is ₹${shortfall.toFixed(0)} short of its collective minimum. Decide whether to proceed or cancel.`,
                   type: "WARNING",
                   category: "ORDER",
-                  action_url: `/owner-shops/dashboard`,
+                  action_url: `/owner-shops`,
                 }
               );
             } catch (notifError) {
@@ -1155,7 +1155,7 @@ export class BatchService {
               message: `You have ${batch.orders.length} orders waiting for ${minutesLate} mins! Start delivery NOW or they will be cancelled.`,
               type: "WARNING",
               category: "ORDER",
-              action_url: `/owner-shops/dashboard`,
+              action_url: `/owner-shops`,
             }
           );
         } catch (notifError) {
