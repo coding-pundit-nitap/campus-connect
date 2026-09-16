@@ -11,6 +11,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +21,7 @@ import {
 } from "@/hooks/queries";
 import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
+import { loginUIService } from "@/lib/utils";
 
 type ProductActionsProps = {
   productId: string;
@@ -54,6 +56,16 @@ export default function ProductActions({
     useToggleStockWatch();
 
   const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to add items to your cart", {
+        action: {
+          label: "Sign In",
+          onClick: () => loginUIService.handleGoogleLogin(),
+        },
+      });
+      return;
+    }
+
     upsertProduct(
       { product_id: productId, quantity },
       {
@@ -66,6 +78,16 @@ export default function ProductActions({
   };
 
   const handleToggleWatch = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in to watch this product's stock", {
+        action: {
+          label: "Sign In",
+          onClick: () => loginUIService.handleGoogleLogin(),
+        },
+      });
+      return;
+    }
+
     toggleWatch(productId);
   };
 

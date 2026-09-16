@@ -17,6 +17,7 @@ export const publicRoutes: string[] = [
   "/shops/:shop_id",
   "/product/:product_id",
   "/manifest.json",
+  "/.well-known/assetlinks.json",
   "/robots.txt",
   "/sitemap.xml",
   "/favicon.ico",

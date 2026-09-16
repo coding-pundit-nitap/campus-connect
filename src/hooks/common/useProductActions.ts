@@ -2,12 +2,15 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { toast } from "sonner";
 
 import {
   useAddToCart,
   useImageDelete,
   useShopProductsDelete,
 } from "@/hooks/queries";
+import { useSession } from "@/lib/auth-client";
+import { loginUIService } from "@/lib/utils";
 
 type UseProductActionsProps = {
   mode: "owner" | "user";
@@ -19,6 +22,8 @@ export const useProductActions = ({
   shop_id,
 }: UseProductActionsProps) => {
   const router = useRouter();
+  const session = useSession();
+  const isAuthenticated = !!session.data?.user?.id;
   const { mutate: deleteProduct } = useShopProductsDelete();
   const { mutateAsync: deleteImage } = useImageDelete();
   const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
@@ -38,6 +43,15 @@ export const useProductActions = ({
 
     return {
       onAddToCart: (product_id: string, quantity: number) => {
+        if (!isAuthenticated) {
+          toast.error("Please sign in to add items to your cart", {
+            action: {
+              label: "Sign In",
+              onClick: () => loginUIService.handleGoogleLogin(),
+            },
+          });
+          return;
+        }
         addToCart({ product_id, quantity });
       },
       onViewDetails: (product_id: string) => {
@@ -45,7 +59,15 @@ export const useProductActions = ({
       },
       onDeleteProduct: undefined,
     };
-  }, [mode, shop_id, deleteProduct, deleteImage, addToCart, router]);
+  }, [
+    mode,
+    shop_id,
+    deleteProduct,
+    deleteImage,
+    addToCart,
+    router,
+    isAuthenticated,
+  ]);
 
   return {
     ...handlers,
