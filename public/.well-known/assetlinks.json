@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "in.ac.nitap.connect",
+      "package_name": "in.ac.nitap.connect.twa",
       "sha256_cert_fingerprints": [
-        "__REPLACE_WITH_YOUR_SIGNING_KEY_SHA256_FINGERPRINT__"
+        "7C:E9:78:C0:88:A4:21:C4:FA:CE:83:B3:4A:F9:04:D8:E8:76:9C:39:79:FE:3F:3A:08:90:2F:08:E1:A9:27:27"
       ]
     }
   }
