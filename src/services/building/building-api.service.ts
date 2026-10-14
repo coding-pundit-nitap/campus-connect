@@ -1,5 +1,4 @@
-import axiosInstance from "@/lib/axios";
-import type { ActionResponse } from "@/types";
+import { apiGet } from "../api-client";
 
 export interface SerializedBuilding {
   id: string;
@@ -22,27 +21,19 @@ export interface SerializedShopDeliveryBuilding {
 
 class BuildingApiService {
   async getBuildings(): Promise<SerializedBuilding[]> {
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedBuilding[]>>(
-        "/buildings"
-      );
-    return response.data.data;
+    return apiGet<SerializedBuilding[]>("/buildings");
   }
 
   async getShopDeliveryBuildings(): Promise<SerializedShopDeliveryBuilding[]> {
-    const response = await axiosInstance.get<
-      ActionResponse<SerializedShopDeliveryBuilding[]>
-    >("/vendor/delivery-buildings");
-    return response.data.data;
+    return apiGet<SerializedShopDeliveryBuilding[]>(
+      "/vendor/delivery-buildings"
+    );
   }
 
   async getPublicShopDeliveryBuildings(
     shopId: string
   ): Promise<SerializedBuilding[]> {
-    const response = await axiosInstance.get<
-      ActionResponse<SerializedBuilding[]>
-    >(`/shops/${shopId}/delivery-buildings`);
-    return response.data.data;
+    return apiGet<SerializedBuilding[]>(`/shops/${shopId}/delivery-buildings`);
   }
 }
 

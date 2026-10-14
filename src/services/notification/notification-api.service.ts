@@ -2,7 +2,8 @@ import { Route } from "next";
 
 import { BroadcastNotification, Notification } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types/response.types";
+
+import { apiGet } from "../api-client";
 
 export type NotificationSummaryType = {
   unreadNotifications: (Omit<Notification, "action_url"> & {
@@ -38,16 +39,9 @@ class NotificationAPIService {
     limit?: number;
     cursor: string | null;
   }): Promise<PaginatedNotificationsResponse> {
-    const url = `notifications/history`;
-    const response = await axiosInstance.get<
-      ActionResponse<PaginatedNotificationsResponse>
-    >(url, {
-      params: {
-        limit,
-        cursor: cursor || undefined,
-      },
+    return apiGet<PaginatedNotificationsResponse>("notifications/history", {
+      params: { limit, cursor: cursor || undefined },
     });
-    return response.data.data;
   }
 
   async markAsRead(data: {
@@ -64,10 +58,7 @@ class NotificationAPIService {
   }
 
   async fetchNotificationSummary() {
-    const { data } = await axiosInstance.get<
-      ActionResponse<NotificationSummaryType>
-    >("notifications/summary");
-    return data.data;
+    return apiGet<NotificationSummaryType>("notifications/summary");
   }
 
   async subscribePush(subscription: PushSubscriptionJSON | PushSubscription) {

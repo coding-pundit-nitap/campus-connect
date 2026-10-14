@@ -1,9 +1,9 @@
 import axios from "axios";
 
-import { env } from "@/config/env.config";
 import axiosInstance from "@/lib/axios";
 import { createLogger } from "@/lib/logger";
-import { ActionResponse } from "@/types";
+
+import { apiPost } from "../api-client";
 const log = createLogger("file-upload-api.service");
 
 interface PresignedUrlResponse {
@@ -14,21 +14,6 @@ interface PresignedUrlResponse {
 }
 
 class FileUploadAPIService {
-  private async getPresignedUrl(
-    file: File,
-    prefix?: string
-  ): Promise<PresignedUrlResponse> {
-    const response = await axiosInstance.post<
-      ActionResponse<PresignedUrlResponse>
-    >(`${env.NEXT_PUBLIC_API_URL}/upload`, {
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      prefix,
-    });
-    return response.data.data;
-  }
-
   async putToPreSignedUrl(
     file: File,
     presignedUrl: string,
@@ -55,16 +40,15 @@ class FileUploadAPIService {
     prefix?: string,
     onProgress?: (percent: number) => void
   ): Promise<string> {
-    const presignResponse = await axiosInstance.post<
-      ActionResponse<PresignedUrlResponse>
-    >("/upload", {
-      fileName: file.name,
-      fileType: file.type,
-      fileSize: file.size,
-      prefix,
-    });
-
-    const { presignedUrl, objectKey } = presignResponse.data.data;
+    const { presignedUrl, objectKey } = await apiPost<PresignedUrlResponse>(
+      "/upload",
+      {
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        prefix,
+      }
+    );
 
     await this.putToPreSignedUrl(file, presignedUrl, onProgress);
 

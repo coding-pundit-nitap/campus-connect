@@ -1,6 +1,6 @@
-import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types";
 import { ReviewWithUser } from "@/types/review.type";
+
+import { apiGet } from "../api-client";
 
 export interface PaginatedReviewResponse {
   data: ReviewWithUser[];
@@ -14,23 +14,13 @@ class ReviewApiService {
     cursor?: string | null;
     product_id: string;
   }) {
-    const url = `reviews/${product_id}`;
-    const response = await axiosInstance.get<
-      ActionResponse<PaginatedReviewResponse>
-    >(url, {
-      params: {
-        limit: 5,
-        cursor: cursor || undefined,
-      },
+    return apiGet<PaginatedReviewResponse>(`reviews/${product_id}`, {
+      params: { limit: 5, cursor: cursor || undefined },
     });
-    return response.data.data;
   }
 
   async fetchReviewByOrderItemId(order_item_id: string) {
-    const url = `reviews/order-item/${order_item_id}`;
-    const response =
-      await axiosInstance.get<ActionResponse<ReviewWithUser | null>>(url);
-    return response.data.data;
+    return apiGet<ReviewWithUser | null>(`reviews/order-item/${order_item_id}`);
   }
 }
 

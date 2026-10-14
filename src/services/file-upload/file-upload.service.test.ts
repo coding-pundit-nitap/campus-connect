@@ -48,15 +48,6 @@ vi.mock("@/lib/utils/image-optimizer", () => ({
   getCompressionRatio: vi.fn(),
 }));
 
-vi.mock("@/lib/logger", () => ({
-  createLogger: vi.fn().mockReturnValue({
-    error: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-  }),
-}));
-
 describe("FileUploadService", () => {
   let fileUploadService: FileUploadService;
 
@@ -100,7 +91,7 @@ describe("FileUploadService", () => {
     });
 
     it("Wildcard MIME image/* matches image/jpeg → passes", async () => {
-      const options = { ...defaultOptions, allowedMimeTypes: ["image/*"] };
+      const options = { ...defaultOptions, allowedTypes: ["image/*"] };
       await expect(
         fileUploadService.upload(
           "test.jpg",
@@ -310,6 +301,7 @@ describe("FileUploadService", () => {
         hasAlpha: false,
       });
 
+      vi.mocked(getCompressionRatio).mockReturnValueOnce(50);
       sendMock.mockRejectedValueOnce(new Error("S3 error"));
 
       await expect(
@@ -323,7 +315,7 @@ describe("FileUploadService", () => {
             allowedTypes: ["image/jpeg"],
           }
         )
-      ).rejects.toThrow();
+      ).rejects.toThrow("Failed to upload optimized image to MinIO");
     });
   });
 

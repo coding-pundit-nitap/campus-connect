@@ -1,10 +1,8 @@
 import { OrderStatus } from "@/generated/client";
 import axiosInstance from "@/lib/axios";
-import {
-  ActionResponse,
-  CursorPaginatedResponse,
-  SerializedOrderWithDetails,
-} from "@/types";
+import { CursorPaginatedResponse, SerializedOrderWithDetails } from "@/types";
+
+import { apiGet } from "../api-client";
 
 export interface OrderFilters {
   status?: OrderStatus;
@@ -27,19 +25,18 @@ class OrderAPIService {
   }: FetchOrdersParams): Promise<
     CursorPaginatedResponse<SerializedOrderWithDetails>
   > {
-    const url = `orders`;
-    const response = await axiosInstance.get<
-      ActionResponse<CursorPaginatedResponse<SerializedOrderWithDetails>>
-    >(url, {
-      params: {
-        limit,
-        cursor: cursor || undefined,
-        status: status || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-      },
-    });
-    return response.data.data;
+    return apiGet<CursorPaginatedResponse<SerializedOrderWithDetails>>(
+      "orders",
+      {
+        params: {
+          limit,
+          cursor: cursor || undefined,
+          status: status || undefined,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+        },
+      }
+    );
   }
 
   async dounloadInvoice(order_id: string): Promise<Blob> {
@@ -51,10 +48,7 @@ class OrderAPIService {
   }
 
   async fetchOrderById(order_id: string): Promise<SerializedOrderWithDetails> {
-    const url = `orders/${order_id}`;
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedOrderWithDetails>>(url);
-    return response.data.data;
+    return apiGet<SerializedOrderWithDetails>(`orders/${order_id}`);
   }
 }
 

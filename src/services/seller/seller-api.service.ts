@@ -1,12 +1,10 @@
 import { Order } from "@/generated/client";
-import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types/response.types";
+
+import { apiGet } from "../api-client";
 
 class SellerAPIService {
   async fetchSellerOrders(): Promise<Order[]> {
-    const url = `seller/orders`;
-    const response = await axiosInstance.get<ActionResponse<Order[]>>(url);
-    return response.data.data;
+    return apiGet<Order[]>("seller/orders");
   }
 }
 

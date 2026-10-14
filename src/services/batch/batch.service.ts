@@ -1,6 +1,7 @@
 import { randomInt } from "node:crypto";
 
 import {
+  Batch,
   BatchMilestone,
   BatchSlot,
   BatchStatus,
@@ -206,38 +207,31 @@ export class BatchService {
     );
   }
 
-  async lockBatch(batchId: string, shopId: string): Promise<void> {
-    const batch = await this.batchRepository.findById(batchId, {
-      select: { id: true, shop_id: true, status: true, cutoff_time: true },
+  /** Broadcasts a batch row's collective progress to subscribed clients. */
+  private async publishRowProgress(row: Batch): Promise<void> {
+    await publishBatchProgress({
+      batchId: row.id,
+      shopId: row.shop_id,
+      status: row.status,
+      collectiveTotal: Number(row.collective_total),
+      minRequired:
+        row.min_order_value_snapshot !== null
+          ? Number(row.min_order_value_snapshot)
+          : null,
     });
+  }
 
-    if (!batch) {
-      throw new NotFoundError("Batch not found");
-    }
-
-    if (batch.shop_id !== shopId) {
-      throw new Error("Unauthorized: Batch does not belong to your shop");
-    }
-
-    if (batch.status !== "OPEN") {
-      throw new Error("Only OPEN batches can be locked");
-    }
-
+  /**
+   * Shared tail of lockBatch/forceLockBatch: mark LOCKED, publish progress,
+   * move delivery to PACKING, mark the batch's orders BATCHED and issue OTPs.
+   */
+  private async lockAndPrepareBatch(batchId: string): Promise<void> {
     const updatedBatchRow = await this.batchRepository.updateStatus(
       batchId,
       "LOCKED"
     );
 
-    await publishBatchProgress({
-      batchId: updatedBatchRow.id,
-      shopId: updatedBatchRow.shop_id,
-      status: updatedBatchRow.status,
-      collectiveTotal: Number(updatedBatchRow.collective_total),
-      minRequired:
-        updatedBatchRow.min_order_value_snapshot !== null
-          ? Number(updatedBatchRow.min_order_value_snapshot)
-          : null,
-    });
+    await this.publishRowProgress(updatedBatchRow);
 
     await this.prismaClient.batchDeliveryStatus.upsert({
       where: { batch_id: batchId },
@@ -258,6 +252,26 @@ export class BatchService {
     await this.generateOtpForBatch(batchId);
   }
 
+  async lockBatch(batchId: string, shopId: string): Promise<void> {
+    const batch = await this.batchRepository.findById(batchId, {
+      select: { id: true, shop_id: true, status: true, cutoff_time: true },
+    });
+
+    if (!batch) {
+      throw new NotFoundError("Batch not found");
+    }
+
+    if (batch.shop_id !== shopId) {
+      throw new Error("Unauthorized: Batch does not belong to your shop");
+    }
+
+    if (batch.status !== "OPEN") {
+      throw new Error("Only OPEN batches can be locked");
+    }
+
+    await this.lockAndPrepareBatch(batchId);
+  }
+
   async forceLockBatch(batchId: string, shopId: string): Promise<void> {
     const batch = await this.batchRepository.findById(batchId, {
       select: { id: true, shop_id: true, status: true },
@@ -275,39 +289,7 @@ export class BatchService {
       throw new Error("Only PENDING_REVIEW batches can be force-locked");
     }
 
-    const updatedBatchRow = await this.batchRepository.updateStatus(
-      batchId,
-      "LOCKED"
-    );
-
-    await publishBatchProgress({
-      batchId: updatedBatchRow.id,
-      shopId: updatedBatchRow.shop_id,
-      status: updatedBatchRow.status,
-      collectiveTotal: Number(updatedBatchRow.collective_total),
-      minRequired:
-        updatedBatchRow.min_order_value_snapshot !== null
-          ? Number(updatedBatchRow.min_order_value_snapshot)
-          : null,
-    });
-
-    await this.prismaClient.batchDeliveryStatus.upsert({
-      where: { batch_id: batchId },
-      update: { current_milestone: BatchMilestone.PACKING },
-      create: { batch_id: batchId, current_milestone: BatchMilestone.PACKING },
-    });
-
-    const orders = await this.orderRepository.findMany({
-      where: { batch_id: batchId },
-      select: { id: true },
-    });
-    const orderIds = orders.map((o) => o.id);
-
-    if (orderIds.length > 0) {
-      await this.orderRepository.batchUpdateStatus(orderIds, "BATCHED");
-    }
-
-    await this.generateOtpForBatch(batchId);
+    await this.lockAndPrepareBatch(batchId);
   }
 
   async getBatchSummary(batchId: string): Promise<BatchSummaryItem[]> {
@@ -831,16 +813,7 @@ export class BatchService {
       "CANCELLED"
     );
 
-    await publishBatchProgress({
-      batchId: updatedBatchRow.id,
-      shopId: updatedBatchRow.shop_id,
-      status: updatedBatchRow.status,
-      collectiveTotal: Number(updatedBatchRow.collective_total),
-      minRequired:
-        updatedBatchRow.min_order_value_snapshot !== null
-          ? Number(updatedBatchRow.min_order_value_snapshot)
-          : null,
-    });
+    await this.publishRowProgress(updatedBatchRow);
 
     const orderIds = batch.orders.map((o) => o.id);
 

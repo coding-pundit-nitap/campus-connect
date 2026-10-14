@@ -1,10 +1,10 @@
 import { DateRange } from "react-day-picker";
 
 import { OrderStatus } from "@/generated/client";
-import axiosInstance from "@/lib/axios";
 import { SerializedOrderWithDetails } from "@/types";
-import { ActionResponse } from "@/types/response.types";
 import { SearchResult } from "@/types/search.types";
+
+import { apiGet } from "../api-client";
 
 type FetchOrdersParams = {
   query: string;
@@ -17,33 +17,17 @@ type FetchOrdersParams = {
 
 class SearchAPIService {
   async search(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
-    const url = `search`;
-    const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
-      url,
-      {
-        params: {
-          q: query,
-        },
-        signal,
-      }
-    );
-    return response.data.data;
+    return apiGet<SearchResult[]>("search", { params: { q: query }, signal });
   }
+
   async searchProducts(
     query: string,
     signal?: AbortSignal
   ): Promise<SearchResult[]> {
-    const url = `search/product`;
-    const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
-      url,
-      {
-        params: {
-          q: query,
-        },
-        signal,
-      }
-    );
-    return response.data.data;
+    return apiGet<SearchResult[]>("search/product", {
+      params: { q: query },
+      signal,
+    });
   }
 
   async searchOrders({
@@ -57,33 +41,7 @@ class SearchAPIService {
     orders: SerializedOrderWithDetails[];
     nextCursor?: string;
   }> {
-    const params = new URLSearchParams();
-    if (query) {
-      params.append("q", query);
-    }
-    if (status) {
-      params.append("status", status);
-    }
-    if (dateRange?.from) {
-      params.append("from", dateRange.from.toISOString());
-    }
-    if (dateRange?.to) {
-      params.append("to", dateRange.to.toISOString());
-    }
-    if (pageParam) {
-      params.append("cursor", pageParam);
-    }
-    if (hostelBlock) {
-      params.append("hostel_block", hostelBlock);
-    }
-
-    const url = `search/orders`;
-    const response = await axiosInstance.get<
-      ActionResponse<{
-        orders: SerializedOrderWithDetails[];
-        nextCursor?: string;
-      }>
-    >(url, {
+    return apiGet("search/orders", {
       params: {
         q: query,
         status: status,
@@ -94,7 +52,6 @@ class SearchAPIService {
       },
       signal,
     });
-    return response.data.data;
   }
 }
 

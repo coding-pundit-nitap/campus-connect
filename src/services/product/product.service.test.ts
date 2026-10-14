@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockOf } from "@tests/helpers";
+import { beforeEach, describe, expect, it, type Mocked, vi } from "vitest";
 
 import { Prisma, Product } from "@/generated/client";
 import { ProductRepository } from "@/repositories/product.repository";
@@ -9,29 +10,13 @@ vi.mock("@/lib/utils", () => ({
   serializeProducts: vi.fn((x) => x),
 }));
 
-vi.mock("@/lib/logger", () => ({
-  createLogger: vi.fn(() => ({
-    error: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  })),
-}));
-
 describe("ProductService", () => {
-  let productRepository: ProductRepository;
+  let productRepository: Mocked<ProductRepository>;
   let productService: ProductService;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    productRepository = {
-      create: vi.fn(),
-      update: vi.fn(),
-      delete: vi.fn(),
-      findById: vi.fn(),
-      findMany: vi.fn(),
-      findManyByShopId: vi.fn(),
-    } as unknown as ProductRepository;
+    productRepository = mockOf<ProductRepository>();
 
     productService = new ProductService(productRepository);
   });
@@ -170,7 +155,7 @@ describe("ProductService", () => {
       );
     });
 
-    it("returns hasNextPage true and nextCursor when products.length > limit", async () => {
+    it("uses the last returned product as the cursor (look-ahead row is not skipped)", async () => {
       const products = [{ id: "prod-1" }, { id: "prod-2" }] as Product[];
       vi.mocked(productRepository.findMany).mockResolvedValue([...products]);
 
@@ -178,8 +163,22 @@ describe("ProductService", () => {
       expect(result).toEqual({
         initialProducts: [{ id: "prod-1" }],
         hasNextPage: true,
-        nextCursor: "prod-2",
+        nextCursor: "prod-1",
       });
+    });
+  });
+
+  it("returns a null cursor when a zero limit leaves an empty page", async () => {
+    vi.mocked(productRepository.findMany).mockResolvedValue([
+      { id: "prod-1" },
+    ] as Product[]);
+
+    const result = await productService.getPaginatedProducts({ limit: 0 });
+
+    expect(result).toEqual({
+      initialProducts: [],
+      hasNextPage: true,
+      nextCursor: null,
     });
   });
 
@@ -250,7 +249,9 @@ describe("ProductService", () => {
 
       const result = await productService.fetchShopProducts("shop-1");
       expect(result.hasNextPage).toBe(true);
-      expect(result.nextCursor).toBe("prod-11");
+      // prod-11 is only the look-ahead row; the next page (skip: 1 past the
+      // cursor) must start with it, so the cursor is prod-10.
+      expect(result.nextCursor).toBe("prod-10");
       expect(result.initialProducts).toHaveLength(10);
     });
 

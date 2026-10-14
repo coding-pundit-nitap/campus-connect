@@ -1,18 +1,10 @@
-import axiosInstance from "@/lib/axios";
-import { ActionResponse, SearchResult } from "@/types";
+import { SearchResult } from "@/types";
+
+import { apiGet } from "../api-client";
 
 class CategoryAPIService {
   async search(query: string): Promise<SearchResult[]> {
-    const url = `shops/category`;
-    const response = await axiosInstance.get<ActionResponse<SearchResult[]>>(
-      url,
-      {
-        params: {
-          q: query,
-        },
-      }
-    );
-    return response.data.data;
+    return apiGet<SearchResult[]>("shops/category", { params: { q: query } });
   }
 }
 

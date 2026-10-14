@@ -1,17 +1,14 @@
 import { SerializedAnnouncement } from "@/actions/vendor/announcement-actions";
-import axiosInstance from "@/lib/axios";
-import { ActionResponse } from "@/types";
+
+import { apiGet } from "../api-client";
 
 class AnnouncementAPIService {
   async fetchAnnouncements(
     shopType?: "ALL" | "CANTEEN" | "STATIONERY"
   ): Promise<SerializedAnnouncement[]> {
-    const response = await axiosInstance.get<
-      ActionResponse<SerializedAnnouncement[]>
-    >("announcements", {
+    return apiGet<SerializedAnnouncement[]>("announcements", {
       params: shopType && shopType !== "ALL" ? { type: shopType } : {},
     });
-    return response.data.data;
   }
 
   async fetchShopAnnouncements(): Promise<
@@ -24,19 +21,7 @@ class AnnouncementAPIService {
       product_name: string | null;
     }[]
   > {
-    const response = await axiosInstance.get<
-      ActionResponse<
-        {
-          id: string;
-          title: string;
-          message: string;
-          expires_at: string;
-          created_at: string;
-          product_name: string | null;
-        }[]
-      >
-    >("vendor/announcements");
-    return response.data.data;
+    return apiGet("vendor/announcements");
   }
 }
 

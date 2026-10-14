@@ -1,4 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockOf } from "@tests/helpers";
+import { beforeEach, describe, expect, it, type Mocked, vi } from "vitest";
 
 import type { Prisma } from "@/generated/client";
 import { notificationQueue } from "@/lib/notification/notification-producer";
@@ -7,174 +8,182 @@ import type { NotificationRepository } from "@/repositories/notification.reposit
 
 import { NotificationService } from "./notification.service";
 
-vi.mock("@/lib/logger", () => ({
-  createLogger: vi.fn(() => ({
-    error: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    debug: vi.fn(),
-  })),
+vi.mock("@/lib/notification/notification-producer", () => ({
+  notificationQueue: { add: vi.fn() },
 }));
 
-vi.mock("@/lib/notification/notification-producer", () => ({
-  notificationQueue: {
-    add: vi.fn(),
-  },
-}));
+const at = (iso: string) => new Date(iso);
 
 describe("NotificationService", () => {
   let service: NotificationService;
-  let broadcastRepo: {
-    getByCreatedAtBefore: ReturnType<typeof vi.fn>;
-    findUnreadForUser: ReturnType<typeof vi.fn>;
-    markManyAsReadForUser: ReturnType<typeof vi.fn>;
-    getUnreadWithCount: ReturnType<typeof vi.fn>;
-  };
-  let notificationRepo: {
-    getNotificationsByUserId: ReturnType<typeof vi.fn>;
-    getByCreatedAtBefore: ReturnType<typeof vi.fn>;
-    markManyAsRead: ReturnType<typeof vi.fn>;
-    getUnreadWithCount: ReturnType<typeof vi.fn>;
-  };
+  let broadcastRepo: Mocked<BroadcastNotificationRepository>;
+  let notificationRepo: Mocked<NotificationRepository>;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    broadcastRepo = mockOf<BroadcastNotificationRepository>();
+    notificationRepo = mockOf<NotificationRepository>();
+    service = new NotificationService(broadcastRepo, notificationRepo);
+  });
 
-    broadcastRepo = {
-      getByCreatedAtBefore: vi.fn(),
-      findUnreadForUser: vi.fn(),
-      markManyAsReadForUser: vi.fn(),
-      getUnreadWithCount: vi.fn(),
-    };
+  it("publishNotification enqueues a SEND_NOTIFICATION job", async () => {
+    const data = {
+      title: "Title",
+      message: "Message",
+      type: "INFO",
+    } as Prisma.NotificationCreateWithoutUserInput;
 
-    notificationRepo = {
-      getNotificationsByUserId: vi.fn(),
-      getByCreatedAtBefore: vi.fn(),
-      markManyAsRead: vi.fn(),
-      getUnreadWithCount: vi.fn(),
-    };
+    await service.publishNotification("user-1", data);
 
-    service = new NotificationService(
-      broadcastRepo as unknown as BroadcastNotificationRepository,
-      notificationRepo as unknown as NotificationRepository
+    expect(notificationQueue.add).toHaveBeenCalledWith("send-notification", {
+      type: "SEND_NOTIFICATION",
+      payload: { type: "SEND_NOTIFICATION", user_id: "user-1", data },
+    });
+  });
+
+  it("broadcastNotification enqueues a BROADCAST_NOTIFICATION job", async () => {
+    const data = {
+      title: "Broadcast",
+      message: "Broadcast msg",
+      type: "INFO",
+    } as Prisma.BroadcastNotificationCreateInput;
+
+    await service.broadcastNotification(data);
+
+    expect(notificationQueue.add).toHaveBeenCalledWith(
+      "broadcast-notification",
+      {
+        type: "BROADCAST_NOTIFICATION",
+        payload: { type: "BROADCAST_NOTIFICATION", data },
+      }
     );
   });
 
-  describe("publishNotification", () => {
-    it("should add job to notification queue", async () => {
-      await service.publishNotification("user-1", {
-        title: "Title",
-        message: "Message",
-        type: "INFO",
-      } as unknown as Prisma.NotificationCreateWithoutUserInput);
-      expect(notificationQueue.add).toHaveBeenCalledWith("send-notification", {
-        type: "SEND_NOTIFICATION",
-        payload: {
-          type: "SEND_NOTIFICATION",
-          user_id: "user-1",
-          data: { title: "Title", message: "Message", type: "INFO" },
-        },
-      });
-    });
+  it.each<[[number?, string?], object]>([
+    [[10, "cursor-1"], { limit: 10, cursor: "cursor-1" }],
+    [[], { limit: 20, cursor: undefined }],
+  ])("getUserNotifications(%j) queries %j", async (args, expected) => {
+    notificationRepo.getNotificationsByUserId.mockResolvedValue([] as never);
+
+    await service.getUserNotifications("user-1", ...args);
+
+    expect(notificationRepo.getNotificationsByUserId).toHaveBeenCalledWith(
+      "user-1",
+      expected
+    );
   });
 
-  describe("broadcastNotification", () => {
-    it("should add job to notification queue", async () => {
-      await service.broadcastNotification({
-        title: "Broadcast",
-        message: "Broadcast msg",
-        type: "INFO",
-      } as unknown as Prisma.BroadcastNotificationCreateInput);
-      expect(notificationQueue.add).toHaveBeenCalledWith(
-        "broadcast-notification",
-        {
-          type: "BROADCAST_NOTIFICATION",
-          payload: {
-            type: "BROADCAST_NOTIFICATION",
-            data: {
-              title: "Broadcast",
-              message: "Broadcast msg",
-              type: "INFO",
-            },
-          },
-        }
-      );
-    });
-  });
+  it.each<[[number?, string?], object]>([
+    [[10, "cursor-1"], { limit: 10, cursor: "cursor-1" }],
+    [[], { limit: 20, cursor: undefined }],
+  ])("getPaginatedUnreadBroadcasts(%j) queries %j", async (args, expected) => {
+    broadcastRepo.findUnreadForUser.mockResolvedValue([] as never);
 
-  describe("getUserNotifications", () => {
-    it("should call repository getNotificationsByUserId", async () => {
-      notificationRepo.getNotificationsByUserId.mockResolvedValue([]);
-      await service.getUserNotifications("user-1", 10, "cursor-1");
-      expect(notificationRepo.getNotificationsByUserId).toHaveBeenCalledWith(
-        "user-1",
-        { limit: 10, cursor: "cursor-1" }
-      );
-    });
+    await service.getPaginatedUnreadBroadcasts("user-1", ...args);
+
+    expect(broadcastRepo.findUnreadForUser).toHaveBeenCalledWith(
+      "user-1",
+      expected
+    );
   });
 
   describe("getAllNotificationsWithBroadcasts", () => {
-    it("should return merged notifications and broadcasts", async () => {
-      const date1 = new Date("2023-01-02T00:00:00Z");
-      const date2 = new Date("2023-01-01T00:00:00Z");
+    it("merges both sources newest first", async () => {
       notificationRepo.getByCreatedAtBefore.mockResolvedValue([
-        { id: "notif-1", created_at: date2 },
-      ]);
+        { id: "notif-1", created_at: at("2023-01-01T00:00:00Z") },
+      ] as never);
       broadcastRepo.getByCreatedAtBefore.mockResolvedValue([
-        { id: "broad-1", created_at: date1, isRead: false },
+        { id: "broad-1", created_at: at("2023-01-02T00:00:00Z"), isRead: true },
+        { id: "broad-2", created_at: at("2022-12-31T00:00:00Z") },
+      ] as never);
+
+      const result = await service.getAllNotificationsWithBroadcasts("user-1");
+
+      expect(result.data.map((n) => [n.id, n.source])).toEqual([
+        ["broad-1", "broadcast"],
+        ["notif-1", "notification"],
+        ["broad-2", "broadcast"],
       ]);
+      expect(result.data[0]).toMatchObject({ user_id: "user-1", read: true });
+      expect(result.data[2]).toMatchObject({ read: false });
+      expect(result).toMatchObject({ hasMore: false, nextCursor: null });
+      expect(notificationRepo.getByCreatedAtBefore).toHaveBeenCalledWith(
+        "user-1",
+        { limit: 21, beforeDate: undefined }
+      );
+    });
+
+    it("truncates to the limit and returns the last item's timestamp as cursor", async () => {
+      notificationRepo.getByCreatedAtBefore.mockResolvedValue([
+        { id: "n1", created_at: at("2023-01-03T00:00:00Z") },
+        { id: "n2", created_at: at("2023-01-02T00:00:00Z") },
+      ] as never);
+      broadcastRepo.getByCreatedAtBefore.mockResolvedValue([
+        { id: "b1", created_at: at("2023-01-01T00:00:00Z"), isRead: false },
+      ] as never);
 
       const result = await service.getAllNotificationsWithBroadcasts(
         "user-1",
-        10
+        2,
+        "2023-02-01T00:00:00.000Z"
       );
-      expect(result.data.length).toBe(2);
-      expect(result.data[0].id).toBe("broad-1"); // date1 is newer
-      expect(result.data[0].source).toBe("broadcast");
-      expect(result.data[1].id).toBe("notif-1");
-      expect(result.data[1].source).toBe("notification");
-      expect(result.hasMore).toBe(false);
-    });
-  });
 
-  describe("getPaginatedUnreadBroadcasts", () => {
-    it("should call repository findUnreadForUser", async () => {
-      broadcastRepo.findUnreadForUser.mockResolvedValue([]);
-      await service.getPaginatedUnreadBroadcasts("user-1", 10, "cursor-1");
-      expect(broadcastRepo.findUnreadForUser).toHaveBeenCalledWith("user-1", {
-        limit: 10,
-        cursor: "cursor-1",
+      expect(result.data.map((n) => n.id)).toEqual(["n1", "n2"]);
+      expect(result).toMatchObject({
+        hasMore: true,
+        nextCursor: "2023-01-02T00:00:00.000Z",
       });
-    });
-  });
-
-  describe("markNotificationsAsRead", () => {
-    it("should call repository markManyAsRead", async () => {
-      await service.markNotificationsAsRead("user-1", ["notif-1"]);
-      expect(notificationRepo.markManyAsRead).toHaveBeenCalledWith("user-1", [
-        "notif-1",
-      ]);
-    });
-  });
-
-  describe("markBroadcastsAsRead", () => {
-    it("should call repository markManyAsReadForUser", async () => {
-      await service.markBroadcastsAsRead("user-1", ["broad-1"]);
-      expect(broadcastRepo.markManyAsReadForUser).toHaveBeenCalledWith(
+      expect(broadcastRepo.getByCreatedAtBefore).toHaveBeenCalledWith(
         "user-1",
-        ["broad-1"]
+        { limit: 3, beforeDate: at("2023-02-01T00:00:00.000Z") }
       );
     });
+
+    it("returns no cursor when a zero limit yields an empty page", async () => {
+      notificationRepo.getByCreatedAtBefore.mockResolvedValue([
+        { id: "n1", created_at: at("2023-01-03T00:00:00Z") },
+      ] as never);
+      broadcastRepo.getByCreatedAtBefore.mockResolvedValue([] as never);
+
+      const result = await service.getAllNotificationsWithBroadcasts(
+        "user-1",
+        0
+      );
+
+      expect(result).toEqual({ data: [], hasMore: true, nextCursor: null });
+    });
   });
 
-  describe("getNotificationSummary", () => {
-    it("should aggregate counts", async () => {
-      notificationRepo.getUnreadWithCount.mockResolvedValue([[], 5]);
-      broadcastRepo.getUnreadWithCount.mockResolvedValue([[], 3]);
-      const result = await service.getNotificationSummary("user-1");
-      expect(result.unreadCount.notifications).toBe(5);
-      expect(result.unreadCount.broadcasts).toBe(3);
-      expect(result.unreadCount.total).toBe(8);
+  it("markNotificationsAsRead delegates to the repository", async () => {
+    await service.markNotificationsAsRead("user-1", ["notif-1"]);
+
+    expect(notificationRepo.markManyAsRead).toHaveBeenCalledWith("user-1", [
+      "notif-1",
+    ]);
+  });
+
+  it("markBroadcastsAsRead delegates to the repository", async () => {
+    await service.markBroadcastsAsRead("user-1", ["broad-1"]);
+
+    expect(broadcastRepo.markManyAsReadForUser).toHaveBeenCalledWith("user-1", [
+      "broad-1",
+    ]);
+  });
+
+  it("getNotificationSummary aggregates unread items and counts", async () => {
+    notificationRepo.getUnreadWithCount.mockResolvedValue([
+      [{ id: "n" }],
+      5,
+    ] as never);
+    broadcastRepo.getUnreadWithCount.mockResolvedValue([
+      [{ id: "b" }],
+      3,
+    ] as never);
+
+    await expect(service.getNotificationSummary("user-1")).resolves.toEqual({
+      unreadNotifications: [{ id: "n" }],
+      unreadBroadcasts: [{ id: "b" }],
+      unreadCount: { notifications: 5, broadcasts: 3, total: 8 },
     });
   });
 });

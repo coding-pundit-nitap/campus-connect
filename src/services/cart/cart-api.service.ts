@@ -1,23 +1,16 @@
-import axiosInstance from "@/lib/axios";
-import { ActionResponse, SerializedFullCart } from "@/types";
+import { SerializedFullCart } from "@/types";
+
+import { apiGet } from "../api-client";
+
 class CartAPIService {
   async fetchCartForShop(shop_id: string): Promise<SerializedFullCart> {
-    const url = `cart?shop_id=${shop_id}`;
-    const response = await axiosInstance.get<
-      ActionResponse<SerializedFullCart>
-    >(url, {
-      params: {
-        shop_id: shop_id,
-      },
+    return apiGet<SerializedFullCart>(`cart?shop_id=${shop_id}`, {
+      params: { shop_id },
     });
-    return response.data.data;
   }
 
   async fetchAllUserCarts(): Promise<SerializedFullCart[]> {
-    const url = `cart/all`;
-    const response =
-      await axiosInstance.get<ActionResponse<SerializedFullCart[]>>(url);
-    return response.data.data;
+    return apiGet<SerializedFullCart[]>("cart/all");
   }
 }
 

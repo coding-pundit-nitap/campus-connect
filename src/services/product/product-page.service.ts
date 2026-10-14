@@ -45,8 +45,9 @@ export async function getProductPageData(product_id: string) {
 
   if (reviews.length > 10) {
     hasNextPage = true;
-    const lastItem = reviews.pop();
-    nextCursor = lastItem!.id;
+    // Cursor = last returned review; the next page query skips the cursor row.
+    reviews.pop();
+    nextCursor = reviews[reviews.length - 1].id;
     initialReviews = reviews;
   }
 

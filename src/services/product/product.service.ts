@@ -110,8 +110,10 @@ export class ProductService {
 
     if (products.length > limit) {
       hasNextPage = true;
-      const lastItem = products.pop();
-      nextCursor = lastItem!.id;
+      // Drop the look-ahead row; the cursor is the last row actually returned
+      // because the next page query uses `cursor: { id }, skip: 1`.
+      products.pop();
+      nextCursor = products.at(-1)?.id ?? null;
       initialProducts = products;
     }
 
@@ -202,8 +204,9 @@ export class ProductService {
 
       if (products.length > 10) {
         hasNextPage = true;
-        const lastItem = products.pop();
-        nextCursor = lastItem!.id;
+        // Cursor = last returned row; the next page query skips the cursor row.
+        products.pop();
+        nextCursor = products[products.length - 1].id;
         initialProducts = products;
       }
 
