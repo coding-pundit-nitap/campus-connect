@@ -5,6 +5,7 @@ import {
   closeBatchCloserQueues,
 } from "./batch/batch-closer.js";
 import { loggers } from "./lib/logger.js";
+import { notificationQueue } from "./lib/notification/notification-producer.js";
 import { prisma } from "./lib/prisma.js";
 import { redisPublisher } from "./lib/redis.js";
 import {
@@ -18,15 +19,31 @@ export const BATCH_CLOSER_SCHEDULER_ID = "batch-closer-job";
 
 export const gracefulShutdown = async (signal: string) => {
   logger.info({ signal }, "Received shutdown signal, closing workers...");
-  await Promise.all([
+  // allSettled at every step: one failing close() must not stop the rest of
+  // the teardown or leave the process hanging without an exit.
+  const failures: unknown[] = [];
+  const settle = async (tasks: Promise<unknown>[]) => {
+    for (const result of await Promise.allSettled(tasks)) {
+      if (result.status === "rejected") failures.push(result.reason);
+    }
+  };
+
+  await settle([
     notificationWorker.close(),
     auditWorker.close(),
     batchCloserWorker.close(),
     closeBatchCloserQueues(),
     closeNotificationDlqQueue(),
+    notificationQueue.close(),
   ]);
-  await redisPublisher.quit();
-  await prisma.$disconnect();
+  await settle([redisPublisher.quit()]);
+  await settle([prisma.$disconnect()]);
+
+  if (failures.length > 0) {
+    logger.error({ errors: failures }, "Workers closed with errors. Exiting.");
+    process.exit(1);
+    return;
+  }
   logger.info("Workers closed. Exiting.");
   process.exit(0);
 };

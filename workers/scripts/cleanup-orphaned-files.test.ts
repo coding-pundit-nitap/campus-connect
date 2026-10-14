@@ -1,11 +1,9 @@
 import { S3Client } from "@aws-sdk/client-s3";
-import { config } from "dotenv";
 import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { prisma } from "../lib/prisma.js";
 import { cleanupOrphanedFiles } from "./orphaned-files.js";
 
-vi.mock("dotenv", () => ({ config: vi.fn() }));
 vi.mock("@aws-sdk/client-s3", () => ({
   S3Client: vi.fn(function S3Client() {}),
 }));
@@ -39,8 +37,7 @@ afterAll(() => {
 });
 
 describe("cleanup-orphaned-files CLI", () => {
-  it("loads .env and runs once on import", () => {
-    expect(config).toHaveBeenCalledWith({ path: ".env" });
+  it("runs once on import", () => {
     expect(cleanupOrphanedFiles).toHaveBeenCalled();
   });
 

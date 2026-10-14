@@ -7,6 +7,7 @@ import {
   closeBatchCloserQueues,
 } from "./batch/batch-closer.js";
 import { loggers } from "./lib/logger.js";
+import { notificationQueue } from "./lib/notification/notification-producer.js";
 import { prisma } from "./lib/prisma.js";
 import { redisPublisher } from "./lib/redis.js";
 import {
@@ -30,6 +31,9 @@ vi.mock("./batch/batch-closer.js", () => ({
     removeJobScheduler: vi.fn(),
     upsertJobScheduler: vi.fn(),
   },
+}));
+vi.mock("./lib/notification/notification-producer.js", () => ({
+  notificationQueue: { close: vi.fn() },
 }));
 vi.mock("./lib/prisma.js", () => ({ prisma: { $disconnect: vi.fn() } }));
 vi.mock("./lib/redis.js", () => ({ redisPublisher: { quit: vi.fn() } }));
@@ -106,10 +110,28 @@ describe("gracefulShutdown", () => {
     expect(batchCloserWorker.close).toHaveBeenCalledTimes(1);
     expect(closeBatchCloserQueues).toHaveBeenCalledTimes(1);
     expect(closeNotificationDlqQueue).toHaveBeenCalledTimes(1);
+    expect(notificationQueue.close).toHaveBeenCalledTimes(1);
     expect(order).toEqual(["redis", "prisma", "exit"]);
     expect(loggers.worker.info).toHaveBeenCalledWith(
       "Workers closed. Exiting."
     );
+  });
+
+  it("keeps tearing down and exits 1 when a close() rejects", async () => {
+    const failure = new Error("close failed");
+    vi.mocked(auditWorker.close).mockRejectedValueOnce(failure);
+    exitSpy.mockImplementationOnce((() => undefined) as never);
+
+    await worker.gracefulShutdown("SIGINT");
+
+    expect(redisPublisher.quit).toHaveBeenCalledTimes(1);
+    expect(prisma.$disconnect).toHaveBeenCalledTimes(1);
+    expect(loggers.worker.error).toHaveBeenCalledWith(
+      { errors: [failure] },
+      "Workers closed with errors. Exiting."
+    );
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(exitSpy).not.toHaveBeenCalledWith(0);
   });
 });
 
