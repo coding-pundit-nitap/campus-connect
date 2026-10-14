@@ -2,6 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 
 import { env } from "./env.js";
 import { loggers } from "./logger.js";
+import { toAbsoluteUrl } from "./url.utils.js";
 
 const logger = loggers.notification;
 
@@ -67,6 +68,9 @@ export async function sendNotificationEmail({
   const safeTitle = escapeHtml(title);
   const safeMessage = escapeHtml(message);
   const safeName = recipientName ? escapeHtml(recipientName) : "there";
+  // Email clients have no page origin, so relative app paths must be made
+  // absolute. Non-http(s) URLs are dropped.
+  const link = toAbsoluteUrl(actionUrl, env.NEXT_PUBLIC_APP_URL);
 
   const html = `
     <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111827;">
@@ -74,8 +78,8 @@ export async function sendNotificationEmail({
       <h2 style="margin-bottom: 8px;">${safeTitle}</h2>
       <p>${safeMessage}</p>
       ${
-        actionUrl
-          ? `<p style="margin-top: 20px;"><a href="${actionUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 10px 14px; text-decoration: none; border-radius: 6px;">View Details</a></p>`
+        link
+          ? `<p style="margin-top: 20px;"><a href="${escapeHtml(link)}" style="display: inline-block; background: #111827; color: #ffffff; padding: 10px 14px; text-decoration: none; border-radius: 6px;">View Details</a></p>`
           : ""
       }
       <p style="margin-top: 24px; color: #6b7280; font-size: 12px;">This is an automated notification from Campus Connect.</p>
@@ -86,7 +90,7 @@ export async function sendNotificationEmail({
     from: smtpFrom,
     to,
     subject: `[Campus Connect] ${title}`,
-    text: `${title}\n\n${message}${actionUrl ? `\n\nOpen: ${actionUrl}` : ""}`,
+    text: `${title}\n\n${message}${link ? `\n\nOpen: ${link}` : ""}`,
     html,
   });
 

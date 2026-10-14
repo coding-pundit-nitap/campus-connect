@@ -2,6 +2,10 @@ import { BatchSlot, BatchStatus, Prisma } from "../generated/client/index.js";
 import { publishBatchProgress } from "../lib/batch-progress-publisher.js";
 import { loggers } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
+import {
+  createRedisReminderGate,
+  type ReminderGate,
+} from "../lib/reminder-gate.js";
 import { getShopOrderUrl } from "../lib/url.utils.js";
 import { NotificationService } from "./notification.service.js";
 const log = loggers.batch;
@@ -58,7 +62,8 @@ export interface BatchSlotWithAvailability extends BatchSlot {
 export class BatchService {
   constructor(
     private readonly notificationService: NotificationService,
-    private readonly prismaClient: typeof prisma = prisma
+    private readonly prismaClient: typeof prisma = prisma,
+    private readonly reminderGate: ReminderGate = createRedisReminderGate()
   ) {}
   async autoCloseExpiredBatches(): Promise<void> {
     const now = new Date();
@@ -303,6 +308,9 @@ export class BatchService {
     }
 
     const IDLE_THRESHOLD_MINUTES = 30;
+    // The scheduler ticks every minute; remind the owner once per interval
+    // per batch instead of on every tick.
+    const STALE_REMINDER_INTERVAL_SECONDS = 30 * 60;
     const idleThreshold = new Date();
     idleThreshold.setMinutes(
       idleThreshold.getMinutes() - IDLE_THRESHOLD_MINUTES
@@ -332,6 +340,21 @@ export class BatchService {
         );
 
         try {
+          const due = await this.reminderGate
+            .tryAcquire(
+              `stale-batch:${batch.id}`,
+              STALE_REMINDER_INTERVAL_SECONDS
+            )
+            .catch((gateError: unknown) => {
+              // Fail open: a missed dedupe is better than a missed warning.
+              log.warn(
+                { err: gateError, batchId: batch.id },
+                "Reminder gate unavailable; sending stale notification"
+              );
+              return true;
+            });
+          if (!due) continue;
+
           await this.notificationService.publishNotification(
             batch.shop.user.id,
             {

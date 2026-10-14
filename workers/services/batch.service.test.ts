@@ -12,6 +12,11 @@ vi.mock("../lib/logger.js", async () =>
 vi.mock("../lib/batch-progress-publisher.js", () => ({
   publishBatchProgress: vi.fn(),
 }));
+vi.mock("../lib/reminder-gate.js", () => ({
+  createRedisReminderGate: vi.fn(() => ({
+    tryAcquire: vi.fn().mockResolvedValue(true),
+  })),
+}));
 vi.mock("../lib/prisma.js", () => ({
   prisma: { batch: { findMany: vi.fn().mockResolvedValue([]) } },
 }));
@@ -75,11 +80,13 @@ function setup({
     $transaction: vi.fn(async (fn: (t: typeof tx) => unknown) => fn(tx)),
   };
   const notifications = { publishNotification: vi.fn() };
+  const gate = { tryAcquire: vi.fn().mockResolvedValue(true) };
   const service = new BatchService(
     notifications as unknown as NotificationService,
-    db as unknown as typeof prisma
+    db as unknown as typeof prisma,
+    gate
   );
-  return { service, db, tx, notifications };
+  return { service, db, tx, notifications, gate };
 }
 
 beforeEach(() => {
@@ -381,6 +388,41 @@ describe("BatchService.autoCloseExpiredBatches — stale LOCKED batches", () => 
     await service.autoCloseExpiredBatches();
 
     expect(notifications.publishNotification).not.toHaveBeenCalled();
+  });
+
+  it("reminds at most once per 30 minutes per batch", async () => {
+    const { service, notifications, gate } = setup({ stale: [staleBatch()] });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(gate.tryAcquire).toHaveBeenCalledWith("stale-batch:s1", 30 * 60);
+    expect(notifications.publishNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips the reminder while the previous one is still in its window", async () => {
+    const { service, notifications, gate } = setup({
+      stale: [staleBatch(), staleBatch({ id: "s2" })],
+    });
+    gate.tryAcquire.mockResolvedValueOnce(false);
+
+    await service.autoCloseExpiredBatches();
+
+    expect(notifications.publishNotification).toHaveBeenCalledTimes(1);
+    expect(gate.tryAcquire).toHaveBeenCalledWith("stale-batch:s2", 30 * 60);
+  });
+
+  it("still sends the reminder when the gate errors (fail open)", async () => {
+    const failure = new Error("redis down");
+    const { service, notifications, gate } = setup({ stale: [staleBatch()] });
+    gate.tryAcquire.mockRejectedValueOnce(failure);
+
+    await service.autoCloseExpiredBatches();
+
+    expect(loggers.batch.warn).toHaveBeenCalledWith(
+      { err: failure, batchId: "s1" },
+      "Reminder gate unavailable; sending stale notification"
+    );
+    expect(notifications.publishNotification).toHaveBeenCalledTimes(1);
   });
 
   it("logs stale notification failures and keeps going", async () => {

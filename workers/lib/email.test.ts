@@ -15,6 +15,7 @@ const smtp = {
   SMTP_USER: "bot@example.com",
   SMTP_PASS: "pw",
   ALERT_EMAIL_FROM: "alerts@example.com",
+  NEXT_PUBLIC_APP_URL: "https://app.example",
 };
 
 async function load(env: Partial<typeof smtp> = {}) {
@@ -97,6 +98,49 @@ describe("sendNotificationEmail", () => {
     });
     expect(mail.html).toContain("Hello Ada,");
     expect(mail.html).toContain('href="https://app.example/orders/1"');
+  });
+
+  it("resolves relative app paths against NEXT_PUBLIC_APP_URL", async () => {
+    const { sendNotificationEmail } = await load();
+
+    await sendNotificationEmail({
+      ...params,
+      actionUrl: "/owner-shops/orders/o9",
+    });
+
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.text).toContain(
+      "Open: https://app.example/owner-shops/orders/o9"
+    );
+    expect(mail.html).toContain(
+      'href="https://app.example/owner-shops/orders/o9"'
+    );
+  });
+
+  it("HTML-escapes the link so it can't break out of the href", async () => {
+    const { sendNotificationEmail } = await load();
+
+    await sendNotificationEmail({
+      ...params,
+      actionUrl: '/orders/1"><script>x</script>',
+    });
+
+    const html: string = sendMail.mock.calls[0][0].html;
+    expect(html).not.toContain("<script>");
+    expect(html).not.toMatch(/href="[^"]*"><script/);
+  });
+
+  it("drops non-http(s) action URLs", async () => {
+    const { sendNotificationEmail } = await load();
+
+    await sendNotificationEmail({
+      ...params,
+      actionUrl: "javascript:alert(1)",
+    });
+
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.text).toBe("Order ready\n\nPick it up");
+    expect(mail.html).not.toContain("View Details");
   });
 
   it("falls back to SMTP_USER as the sender", async () => {

@@ -8,6 +8,7 @@ const envSchema = z.object({
     .default("development"),
   DATABASE_URL: z.string().default(""),
   LOG_LEVEL: z.string().default("info"),
+  NEXT_PUBLIC_APP_URL: z.string().default("https://connect.nitap.ac.in"),
   REDIS_URL: z.string().default("redis://redis:6379"),
   REDIS_HOST: z.string().default("redis"),
   SMTP_HOST: z.string().default("smtp.gmail.com"),
