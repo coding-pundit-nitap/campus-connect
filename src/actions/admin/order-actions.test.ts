@@ -299,6 +299,63 @@ describe("admin order actions", () => {
       }
     );
 
+    it("adds a reverted cancelled order back to the batch total and publishes progress", async () => {
+      // Regression: reverting a cancellation left the batch total too low.
+      orders.findById.mockResolvedValue(
+        order({ batch_id: "batch-1", order_status: "CANCELLED" })
+      );
+      vi.mocked(batchRepository.adjustCollectiveTotal).mockResolvedValue({
+        id: "batch-1",
+        shop_id: "shop-1",
+        status: "OPEN",
+        collective_total: 500,
+        min_order_value_snapshot: 500,
+      } as never);
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "BATCHED",
+      });
+
+      expect(batchRepository.adjustCollectiveTotal).toHaveBeenCalledWith(
+        "batch-1",
+        150,
+        tx
+      );
+      expect(publishBatchProgress).toHaveBeenCalledWith({
+        batchId: "batch-1",
+        shopId: "shop-1",
+        status: "OPEN",
+        collectiveTotal: 500,
+        minRequired: 500,
+      });
+    });
+
+    it("does not touch any batch when reverting an unbatched cancelled order", async () => {
+      orders.findById.mockResolvedValue(
+        order({ batch_id: null, order_status: "CANCELLED" })
+      );
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "NEW",
+      });
+
+      expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+      expect(publishBatchProgress).not.toHaveBeenCalled();
+    });
+
+    it("leaves the batch total alone for active-to-active transitions", async () => {
+      orders.findById.mockResolvedValue(order({ batch_id: "batch-1" }));
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "OUT_FOR_DELIVERY",
+      });
+
+      expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+    });
+
     it("skips the notification for guest orders", async () => {
       orders.findById.mockResolvedValue(order({ user_id: null }));
 

@@ -156,7 +156,17 @@ export async function updateOrderStatusAdminAction(
         updateData.actual_delivery_time = new Date();
       }
 
-      const wasAlreadyCancelled = order.order_status === OrderStatus.CANCELLED;
+      // Cancelling removes the order's item_total from its batch's collective
+      // total; reverting a cancelled order to an active status adds it back.
+      const wasCancelled = order.order_status === OrderStatus.CANCELLED;
+      const isCancelled = order_status === OrderStatus.CANCELLED;
+      const itemTotal = Number(order.item_total);
+      const batchDelta =
+        isCancelled && !wasCancelled
+          ? -itemTotal
+          : wasCancelled && !isCancelled
+            ? itemTotal
+            : 0;
 
       const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
         async (tx) => {
@@ -165,12 +175,10 @@ export async function updateOrderStatusAdminAction(
             data: updateData,
           });
           const updatedBatch =
-            order_status === OrderStatus.CANCELLED &&
-            !wasAlreadyCancelled &&
-            order.batch_id
+            batchDelta !== 0 && order.batch_id
               ? await batchRepository.adjustCollectiveTotal(
                   order.batch_id,
-                  -Number(order.item_total),
+                  batchDelta,
                   tx
                 )
               : null;

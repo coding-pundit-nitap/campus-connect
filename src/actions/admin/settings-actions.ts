@@ -1,7 +1,7 @@
 "use server";
 
 import { container } from "@/di/container";
-import { ValidationError } from "@/lib/custom-error";
+import { BadRequestError, ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 
@@ -129,8 +129,14 @@ export async function getCleanupStatsAction(): Promise<
 /**
  * Clean up old data.
  */
+const CLEANUP_TYPES = ["notifications", "sessions", "carts"] as const;
+type CleanupType = (typeof CLEANUP_TYPES)[number];
+
+const isCleanupType = (value: unknown): value is CleanupType =>
+  CLEANUP_TYPES.includes(value as CleanupType);
+
 export async function runCleanupAction(
-  type: "notifications" | "sessions" | "carts"
+  type: CleanupType
 ): Promise<ActionResponse<{ deletedCount: number }>> {
   return runAdminAction(
     log,
@@ -139,6 +145,12 @@ export async function runCleanupAction(
       fallback: "Failed to run cleanup.",
     },
     async (adminId) => {
+      // Server actions accept arbitrary client input: reject unknown types
+      // before anything is deleted or audited.
+      if (!isCleanupType(type)) {
+        throw new BadRequestError("Invalid cleanup type");
+      }
+
       let deletedCount = 0;
 
       switch (type) {

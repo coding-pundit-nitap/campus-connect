@@ -7,7 +7,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { container } from "@/di/container";
-import { ValidationError } from "@/lib/custom-error";
+import { BadRequestError, ValidationError } from "@/lib/custom-error";
 
 import {
   getCleanupStatsAction,
@@ -139,6 +139,24 @@ describe("admin settings actions", () => {
         });
         expect(res.data).toEqual({ deletedCount: 3 });
         expect(res.details).toBe(`Cleaned up 3 ${type}`);
+      }
+    );
+
+    // Regression: unknown types used to fall through the switch and still
+    // write an audit entry (or crash on undefined with a 500).
+    it.each([
+      ["an unknown type", "users"],
+      ["undefined", undefined],
+    ])(
+      "rejects %s with BadRequestError before deleting or auditing",
+      async (_name, type) => {
+        await expect(runCleanupAction(type as never)).rejects.toThrow(
+          BadRequestError
+        );
+        expect(db.notification.deleteMany).not.toHaveBeenCalled();
+        expect(db.session.deleteMany).not.toHaveBeenCalled();
+        expect(db.cart.deleteMany).not.toHaveBeenCalled();
+        expect(c.adminAuditRepository.create).not.toHaveBeenCalled();
       }
     );
   });
