@@ -2,10 +2,10 @@
 // NOTE: deliberately NOT a "use server" module: nothing here may become a
 // client-callable endpoint.
 
+import { runAction } from "@/actions/_shared/action-helpers";
 import {
   BadRequestError,
   ForbiddenError,
-  InternalServerError,
   UnauthorizedError,
 } from "@/lib/custom-error";
 import type { createLogger } from "@/lib/logger";
@@ -43,16 +43,11 @@ export async function runAdminAction<T>(
   { label, fallback, passthrough = [] }: AdminActionOptions,
   fn: (adminId: string) => Promise<T>
 ): Promise<T> {
-  try {
-    const adminId = await verifyAdmin();
-    return await fn(adminId);
-  } catch (error) {
-    log.error({ err: error }, label);
-    if ([...ALWAYS_RETHROWN, ...passthrough].some((E) => error instanceof E)) {
-      throw error;
-    }
-    throw new InternalServerError(fallback);
-  }
+  return runAction(
+    log,
+    { label, fallback, passthrough: [...ALWAYS_RETHROWN, ...passthrough] },
+    async () => fn(await verifyAdmin())
+  );
 }
 
 /** Prisma pagination args fetching one extra row to detect a next page. */

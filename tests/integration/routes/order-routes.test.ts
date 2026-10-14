@@ -42,12 +42,12 @@ function createOrder(args: CreateOrderArgs) {
 }
 
 describe("GET /api/orders", () => {
-  it("returns 500 when signed out (UnauthenticatedError isn't a ZodError, so it falls to the generic 500 catch)", async () => {
+  it("returns 401 when signed out", async () => {
     asAnonymous();
     const res = await GET_ORDERS(
       new NextRequest("http://localhost/api/orders")
     );
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(401);
     const body = await res.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe(true);

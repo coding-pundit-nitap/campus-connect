@@ -13,6 +13,7 @@ vi.mock("@/lib/utils/order.utils", async () =>
 );
 
 import { orderRepository } from "@/di/container";
+import { UnauthenticatedError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 
 import { GET } from "./route";
@@ -105,5 +106,14 @@ describe("GET /api/orders", () => {
       500,
       "Failed to fetch orders"
     );
+  });
+
+  it("returns 401 (not 500) when the caller is signed out", async () => {
+    auth.getUserId.mockRejectedValue(
+      new UnauthenticatedError("Please log in first.")
+    );
+
+    await expectError(await GET(makeRequest("/api/orders")), 401);
+    expect(orders.getOrdersByUserId).not.toHaveBeenCalled();
   });
 });

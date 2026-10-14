@@ -1,7 +1,10 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
-import { zodErrorResponse } from "@/app/api/_lib/route-helpers";
+import {
+  authErrorResponse,
+  zodErrorResponse,
+} from "@/app/api/_lib/route-helpers";
 import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -72,6 +75,8 @@ export async function GET(request: NextRequest) {
     if (error instanceof z.ZodError) {
       return zodErrorResponse(error);
     }
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     log.error({ err: error }, "GET ORDERS ERROR:");
     const errorResponse = createErrorResponse("Failed to fetch orders");
     return jsonResponse(errorResponse, 500);
