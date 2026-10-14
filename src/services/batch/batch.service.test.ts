@@ -2,11 +2,12 @@ import { randomInt } from "node:crypto";
 
 import {
   asPrisma,
+  callArg,
   createPrismaMock,
   mockOf,
   type PrismaMock,
 } from "@tests/helpers";
-import { argOf, buildBatchRow } from "@tests/helpers/services";
+import { buildBatchRow } from "@tests/helpers/services";
 import {
   afterEach,
   beforeEach,
@@ -373,7 +374,7 @@ describe("BatchService", () => {
 
       expect(batchRepository.findFirst).toHaveBeenCalledTimes(6);
       expect(
-        argOf<{ where: { cutoff_time: Date } }>(batchRepository.findFirst, 5)
+        callArg<{ where: { cutoff_time: Date } }>(batchRepository.findFirst, 5)
           .where.cutoff_time
       ).toEqual(ist(14, 0, 3));
       expect(result).toMatchObject({ cutoff_time: ist(10, 0, 2) });
@@ -435,7 +436,7 @@ describe("BatchService", () => {
       await service.ensureNextOpenBatch("shop-1");
 
       expect(
-        argOf<{ data: object }>(batchRepository.create).data
+        callArg<{ data: object }>(batchRepository.create).data
       ).toMatchObject({
         min_order_value_snapshot: null,
       });
@@ -545,7 +546,7 @@ describe("BatchService", () => {
         },
         expect.objectContaining({ id: "d2", phone: null }),
       ]);
-      expect(argOf(orderRepository.findMany)).toMatchObject({
+      expect(callArg(orderRepository.findMany)).toMatchObject({
         where: {
           shop_id: "shop-1",
           order_status: { notIn: ["COMPLETED", "CANCELLED"] },
@@ -629,7 +630,7 @@ describe("BatchService", () => {
         }
       );
       expect(
-        argOf<{ message: string }>(
+        callArg<{ message: string }>(
           notificationService.publishNotification,
           1,
           1
@@ -756,7 +757,7 @@ describe("BatchService", () => {
 
       expect(result.success).toBe(true);
       expect(
-        argOf<{ payment_status: unknown }>(orderRepository.update, 0, 1)
+        callArg<{ payment_status: unknown }>(orderRepository.update, 0, 1)
           .payment_status
       ).toBeUndefined();
     });
@@ -914,7 +915,7 @@ describe("BatchService", () => {
       await service.updateBatchMilestone("b1", "PACKING", "");
 
       expect(
-        argOf<{ update: object }>(prisma.batchDeliveryStatus.upsert).update
+        callArg<{ update: object }>(prisma.batchDeliveryStatus.upsert).update
       ).toEqual({
         current_milestone: "PACKING",
         rider_name: undefined,
@@ -1142,7 +1143,9 @@ describe("BatchService", () => {
 
       await service.autoCloseExpiredBatches();
 
-      expect(argOf<{ where: object }>(prisma.batch.findMany, 1).where).toEqual({
+      expect(
+        callArg<{ where: object }>(prisma.batch.findMany, 1).where
+      ).toEqual({
         status: "LOCKED",
         cutoff_time: { lt: new Date(NOW.getTime() - 30 * 60_000) },
         orders: { some: { order_status: "BATCHED" } },

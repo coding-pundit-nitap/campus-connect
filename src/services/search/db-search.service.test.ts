@@ -1,5 +1,4 @@
-import { mockOf } from "@tests/helpers";
-import { argOf } from "@tests/helpers/services";
+import { callArg, mockOf } from "@tests/helpers";
 import { beforeEach, describe, expect, it, type Mocked } from "vitest";
 
 import type {
@@ -75,7 +74,7 @@ describe("DBSearchService", () => {
   });
 
   const productQuery = () =>
-    argOf<{ where: Where; orderBy: object; take: number; skip: number }>(
+    callArg<{ where: Where; orderBy: object; take: number; skip: number }>(
       productRepo.findMany
     );
 
@@ -215,7 +214,7 @@ describe("DBSearchService", () => {
         limit: 5,
       });
 
-      const q = argOf<{ where: Where }>(shopRepo.findMany);
+      const q = callArg<{ where: Where }>(shopRepo.findMany);
       expect(q).toMatchObject({
         where: { deleted_at: null, is_active: true },
         take: 5,
@@ -236,7 +235,7 @@ describe("DBSearchService", () => {
     it("lists newest shops without a query and honours isActive=false", async () => {
       await service.searchShops({ isActive: false });
 
-      expect(argOf(shopRepo.findMany)).toEqual({
+      expect(callArg(shopRepo.findMany)).toEqual({
         where: { deleted_at: null, is_active: false },
         take: 10,
         skip: 0,

@@ -1,4 +1,4 @@
-import { type Mock, type Mocked, vi } from "vitest";
+import { type Mocked, vi } from "vitest";
 
 /**
  * Builds an auto-mocking stand-in for any object/interface: every property
@@ -21,9 +21,15 @@ export function mockOf<T extends object>(
   }) as Mocked<T>;
 }
 
-/** Narrow helper for reading the args of the n-th call of a mock. */
-export const callArg = <T = unknown>(fn: Mock, call = 0, arg = 0): T =>
-  fn.mock.calls[call]?.[arg] as T;
+/**
+ * Reads argument `arg` of call `call` from any mock, including the
+ * `MockInstance` members of a `mockOf()` double.
+ */
+export const callArg = <T = unknown>(
+  fn: { mock: { calls: unknown[][] } },
+  call = 0,
+  arg = 0
+): T => fn.mock.calls[call]?.[arg] as T;
 
 /**
  * Module factory whose every export is itself a `mockOf()` object. Fits

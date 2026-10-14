@@ -1,11 +1,11 @@
 import {
   asPrisma,
+  callArg,
   createPrismaMock,
   mockOf,
   type PrismaMock,
 } from "@tests/helpers";
 import {
-  argOf,
   buildAddress,
   buildCart,
   buildCartItem,
@@ -164,7 +164,7 @@ describe("OrderService", () => {
     );
 
   const createdOrder = () =>
-    argOf<{ data: Record<string, unknown> }>(prisma.order.create).data;
+    callArg<{ data: Record<string, unknown> }>(prisma.order.create).data;
 
   describe("getOrders", () => {
     it("pages the user's orders and reports totals", async () => {
@@ -202,7 +202,7 @@ describe("OrderService", () => {
 
       const result = await service.getOrders({ userId: "u1" });
 
-      expect(argOf(orderRepository.getOrdersByUserId, 0, 1)).toMatchObject({
+      expect(callArg(orderRepository.getOrdersByUserId, 0, 1)).toMatchObject({
         skip: 0,
         take: 10,
       });
@@ -671,9 +671,11 @@ describe("OrderService", () => {
     it("snapshots a null batch minimum when the shop has none", async () => {
       await byTime();
 
-      expect(argOf<{ data: object }>(prisma.batch.create).data).toMatchObject({
-        min_order_value_snapshot: null,
-      });
+      expect(callArg<{ data: object }>(prisma.batch.create).data).toMatchObject(
+        {
+          min_order_value_snapshot: null,
+        }
+      );
     });
 
     it("joins an existing open batch after re-locking it", async () => {
