@@ -25,6 +25,7 @@
     "test:integration": "vitest run --project=integration",
     "pretest:coverage": "node scripts/check-test-infra.js",
     "test:coverage": "vitest run --coverage",
+    "test:mutation": "stryker run",
     "test:infra": "docker compose -f compose.test.yml up -d --wait",
     "test:infra:down": "docker compose -f compose.test.yml down -v",
     "db:generate": "prisma generate",
@@ -118,6 +119,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@stryker-mutator/core": "10.0.0",
+    "@stryker-mutator/vitest-runner": "10.0.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/lodash": "^4.17.25",
     "@types/node": "^26.2.0",

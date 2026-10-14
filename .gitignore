@@ -65,3 +65,6 @@ backup/backup.log
 .superpowers/
 docs/superpowers/
 .worktrees/
+# mutation testing
+.stryker-tmp*
+reports/mutation
