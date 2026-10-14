@@ -4,20 +4,22 @@ import z from "zod";
 
 import { container } from "@/di/container";
 import { AdminAction, Prisma } from "@/generated/client";
-import {
-  BadRequestError,
-  ForbiddenError,
-  InternalServerError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+import { BadRequestError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import { verifyAdmin } from "@/lib/verify-admin";
 import {
   ActionResponse,
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
 import { searchSchema } from "@/validations";
+
+import {
+  cursorArgs,
+  dateRange,
+  groupCount,
+  runAdminAction,
+  toCursorPage,
+} from "./_shared";
 const log = createLogger("audit-log-actions");
 
 const AdminActionEnum = [
@@ -59,118 +61,117 @@ export type AuditLogEntry = {
   created_at: Date;
 };
 
+const auditLogSelect = {
+  id: true,
+  admin_id: true,
+  action: true,
+  target_type: true,
+  target_id: true,
+  details: true,
+  ip_address: true,
+  user_agent: true,
+  created_at: true,
+} as const;
+
+type AuditLogRow = Omit<AuditLogEntry, "admin_email" | "admin_name">;
+
+/** Attaches each log's admin email and name (null when the admin is gone). */
+async function withAdminInfo(logs: AuditLogRow[]): Promise<AuditLogEntry[]> {
+  const adminIds = [...new Set(logs.map((log) => log.admin_id))];
+  const adminUsers = await container.userRepository.findMany({
+    where: { id: { in: adminIds } },
+    select: { id: true, email: true, name: true },
+  });
+  const adminMap = new Map(adminUsers.map((u) => [u.id, u]));
+
+  return logs.map((log) => {
+    const admin = adminMap.get(log.admin_id);
+    return {
+      ...log,
+      admin_email: admin?.email ?? null,
+      admin_name: admin?.name ?? null,
+    };
+  });
+}
+
 export async function getAuditLogsAction(
   options: z.infer<typeof getAuditLogsSchema>
 ): Promise<ActionResponse<CursorPaginatedResponse<AuditLogEntry>>> {
-  try {
-    await verifyAdmin();
-
-    const parsedData = getAuditLogsSchema.safeParse(options);
-    if (!parsedData.success) {
-      throw new BadRequestError("Invalid options");
-    }
-
-    const {
-      limit,
-      cursor,
-      search,
-      action,
-      admin_id,
-      target_type,
-      target_id,
-      start_date,
-      end_date,
-    } = parsedData.data;
-
-    const where: Prisma.AdminAuditLogWhereInput = {};
-
-    if (action) {
-      where.action = action;
-    }
-
-    if (admin_id) {
-      where.admin_id = admin_id;
-    }
-
-    if (target_type) {
-      where.target_type = target_type;
-    }
-
-    if (target_id) {
-      where.target_id = target_id;
-    }
-
-    if (start_date || end_date) {
-      where.created_at = {};
-      if (start_date) {
-        where.created_at.gte = start_date;
+  return runAdminAction(
+    log,
+    {
+      label: "GET AUDIT LOGS ERROR:",
+      fallback: "Failed to retrieve audit logs.",
+    },
+    async () => {
+      const parsedData = getAuditLogsSchema.safeParse(options);
+      if (!parsedData.success) {
+        throw new BadRequestError("Invalid options");
       }
-      if (end_date) {
-        where.created_at.lte = end_date;
+
+      const {
+        limit,
+        cursor,
+        search,
+        action,
+        admin_id,
+        target_type,
+        target_id,
+        start_date,
+        end_date,
+      } = parsedData.data;
+
+      const where: Prisma.AdminAuditLogWhereInput = {};
+
+      if (action) {
+        where.action = action;
       }
+
+      if (admin_id) {
+        where.admin_id = admin_id;
+      }
+
+      if (target_type) {
+        where.target_type = target_type;
+      }
+
+      if (target_id) {
+        where.target_id = target_id;
+      }
+
+      const createdAt = dateRange(start_date, end_date);
+      if (createdAt) {
+        where.created_at = createdAt;
+      }
+
+      if (search) {
+        where.OR = [
+          { target_id: { contains: search, mode: "insensitive" } },
+          { admin_id: { contains: search, mode: "insensitive" } },
+        ];
+      }
+
+      const auditLogs = await container.adminAuditRepository.findMany({
+        where,
+        ...cursorArgs(limit, cursor),
+        orderBy: { created_at: "desc" },
+        select: auditLogSelect,
+      });
+
+      const { data, nextCursor, hasMore } = toCursorPage(auditLogs, limit);
+
+      const enrichedData = await withAdminInfo(data);
+
+      return createSuccessResponse(
+        {
+          data: enrichedData,
+          nextCursor,
+          hasMore,
+        },
+        "Audit logs retrieved successfully"
+      );
     }
-
-    if (search) {
-      where.OR = [
-        { target_id: { contains: search, mode: "insensitive" } },
-        { admin_id: { contains: search, mode: "insensitive" } },
-      ];
-    }
-
-    const auditLogs = await container.adminAuditRepository.findMany({
-      where,
-      take: limit + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { created_at: "desc" },
-      select: {
-        id: true,
-        admin_id: true,
-        action: true,
-        target_type: true,
-        target_id: true,
-        details: true,
-        ip_address: true,
-        user_agent: true,
-        created_at: true,
-      },
-    });
-
-    const hasMore = auditLogs.length > limit;
-    const data = hasMore ? auditLogs.slice(0, -1) : auditLogs;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
-
-    const adminIds = [...new Set(data.map((log) => log.admin_id))];
-    const adminUsers = await container.userRepository.findMany({
-      where: { id: { in: adminIds } },
-      select: { id: true, email: true, name: true },
-    });
-    const adminMap = new Map(adminUsers.map((u) => [u.id, u]));
-
-    const enrichedData: AuditLogEntry[] = data.map((log) => {
-      const admin = adminMap.get(log.admin_id);
-      return {
-        ...log,
-        admin_email: admin?.email ?? null,
-        admin_name: admin?.name ?? null,
-      };
-    });
-
-    return createSuccessResponse(
-      {
-        data: enrichedData,
-        nextCursor,
-        hasMore,
-      },
-      "Audit logs retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET AUDIT LOGS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to retrieve audit logs.");
-  }
+  );
 }
 
 export type AuditLogStats = {
@@ -183,124 +184,92 @@ export type AuditLogStats = {
 export async function getAuditLogStatsAction(): Promise<
   ActionResponse<AuditLogStats>
 > {
-  try {
-    await verifyAdmin();
+  return runAdminAction(
+    log,
+    {
+      label: "GET AUDIT LOG STATS ERROR:",
+      fallback: "Failed to retrieve audit log statistics.",
+    },
+    async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const [totalLogs, todayLogs, recentActionCounts, topAdminGroups] =
+        await Promise.all([
+          container.adminAuditRepository.count(),
+          container.adminAuditRepository.count({
+            where: { created_at: { gte: today } },
+          }),
+          container.adminAuditRepository.groupBy({
+            by: ["action"],
+            _count: { action: true },
+            where: { created_at: { gte: sevenDaysAgo } },
+            orderBy: { _count: { action: "desc" } },
+            take: 10,
+          }),
+          container.adminAuditRepository.groupBy({
+            by: ["admin_id"],
+            _count: { admin_id: true },
+            where: { created_at: { gte: sevenDaysAgo } },
+            orderBy: { _count: { admin_id: "desc" } },
+            take: 5,
+          }),
+        ]);
 
-    const [totalLogs, todayLogs, recentActionCounts, topAdminGroups] =
-      await Promise.all([
-        container.adminAuditRepository.count(),
-        container.adminAuditRepository.count({
-          where: { created_at: { gte: today } },
-        }),
-        container.adminAuditRepository.groupBy({
-          by: ["action"],
-          _count: { action: true },
-          where: { created_at: { gte: sevenDaysAgo } },
-          orderBy: { _count: { action: "desc" } },
-          take: 10,
-        }),
-        container.adminAuditRepository.groupBy({
-          by: ["admin_id"],
-          _count: { admin_id: true },
-          where: { created_at: { gte: sevenDaysAgo } },
-          orderBy: { _count: { admin_id: "desc" } },
-          take: 5,
-        }),
-      ]);
+      const adminIds = topAdminGroups.map((g) => g.admin_id);
+      const adminUsers = await container.userRepository.findMany({
+        where: { id: { in: adminIds } },
+        select: { id: true, name: true },
+      });
+      const adminMap = new Map(adminUsers.map((u) => [u.id, u.name]));
 
-    const adminIds = topAdminGroups.map((g) => g.admin_id);
-    const adminUsers = await container.userRepository.findMany({
-      where: { id: { in: adminIds } },
-      select: { id: true, name: true },
-    });
-    const adminMap = new Map(adminUsers.map((u) => [u.id, u.name]));
-
-    return createSuccessResponse(
-      {
-        totalLogs,
-        todayLogs,
-        recentActionCounts: recentActionCounts.map((r) => ({
-          action: r.action,
-          count:
-            r._count && typeof r._count === "object"
-              ? (r._count.action ?? 0)
-              : 0,
-        })),
-        topAdmins: topAdminGroups.map((g) => ({
-          admin_id: g.admin_id,
-          admin_name: adminMap.get(g.admin_id) ?? null,
-          count:
-            g._count && typeof g._count === "object"
-              ? (g._count.admin_id ?? 0)
-              : 0,
-        })),
-      },
-      "Audit log statistics retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET AUDIT LOG STATS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+      return createSuccessResponse(
+        {
+          totalLogs,
+          todayLogs,
+          recentActionCounts: recentActionCounts.map((r) => ({
+            action: r.action,
+            count: groupCount(r._count, "action"),
+          })),
+          topAdmins: topAdminGroups.map((g) => ({
+            admin_id: g.admin_id,
+            admin_name: adminMap.get(g.admin_id) ?? null,
+            count: groupCount(g._count, "admin_id"),
+          })),
+        },
+        "Audit log statistics retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve audit log statistics.");
-  }
+  );
 }
 
 export async function getRecentAuditLogsAction(
   limit: number = 10
 ): Promise<ActionResponse<AuditLogEntry[]>> {
-  try {
-    await verifyAdmin();
+  return runAdminAction(
+    log,
+    {
+      label: "GET RECENT AUDIT LOGS ERROR:",
+      fallback: "Failed to retrieve recent audit logs.",
+    },
+    async () => {
+      const safeLimit = Math.min(Math.max(1, limit), 50);
 
-    const safeLimit = Math.min(Math.max(1, limit), 50);
+      const auditLogs = await container.adminAuditRepository.findMany({
+        take: safeLimit,
+        orderBy: { created_at: "desc" },
+        select: auditLogSelect,
+      });
 
-    const auditLogs = await container.adminAuditRepository.findMany({
-      take: safeLimit,
-      orderBy: { created_at: "desc" },
-      select: {
-        id: true,
-        admin_id: true,
-        action: true,
-        target_type: true,
-        target_id: true,
-        details: true,
-        ip_address: true,
-        user_agent: true,
-        created_at: true,
-      },
-    });
+      const enrichedData = await withAdminInfo(auditLogs);
 
-    const adminIds = [...new Set(auditLogs.map((log) => log.admin_id))];
-    const adminUsers = await container.userRepository.findMany({
-      where: { id: { in: adminIds } },
-      select: { id: true, email: true, name: true },
-    });
-    const adminMap = new Map(adminUsers.map((u) => [u.id, u]));
-
-    const enrichedData: AuditLogEntry[] = auditLogs.map((log) => {
-      const admin = adminMap.get(log.admin_id);
-      return {
-        ...log,
-        admin_email: admin?.email ?? null,
-        admin_name: admin?.name ?? null,
-      };
-    });
-
-    return createSuccessResponse(
-      enrichedData,
-      "Recent audit logs retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET RECENT AUDIT LOGS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+      return createSuccessResponse(
+        enrichedData,
+        "Recent audit logs retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve recent audit logs.");
-  }
+  );
 }

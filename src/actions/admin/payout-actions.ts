@@ -4,21 +4,16 @@ import z from "zod";
 
 import { container } from "@/di/container";
 import { PayoutStatus, Prisma } from "@/generated/client";
-import {
-  BadRequestError,
-  ForbiddenError,
-  InternalServerError,
-  NotFoundError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+import { BadRequestError, NotFoundError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import { verifyAdmin } from "@/lib/verify-admin";
 import {
   ActionResponse,
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
 import { searchSchema } from "@/validations";
+
+import { cursorArgs, dateRange, runAdminAction, toCursorPage } from "./_shared";
 const log = createLogger("payout-actions");
 
 const PayoutStatusEnum = ["PENDING", "IN_TRANSIT", "PAID", "FAILED"] as const;
@@ -50,88 +45,78 @@ export type PayoutEntry = {
 export async function getAllPayoutsAction(
   options: z.infer<typeof getPayoutsSchema>
 ): Promise<ActionResponse<CursorPaginatedResponse<PayoutEntry>>> {
-  try {
-    await verifyAdmin();
-
-    const parsedData = getPayoutsSchema.safeParse(options);
-    if (!parsedData.success) {
-      throw new BadRequestError("Invalid options");
-    }
-
-    const { limit, cursor, search, status, shop_id, start_date, end_date } =
-      parsedData.data;
-
-    const where: Prisma.PayoutWhereInput = {};
-
-    if (status) {
-      where.status = status;
-    }
-
-    if (shop_id) {
-      where.shop_id = shop_id;
-    }
-
-    if (start_date || end_date) {
-      where.created_at = {};
-      if (start_date) {
-        where.created_at.gte = start_date;
+  return runAdminAction(
+    log,
+    {
+      label: "GET PAYOUTS ERROR:",
+      fallback: "Failed to retrieve payouts.",
+    },
+    async () => {
+      const parsedData = getPayoutsSchema.safeParse(options);
+      if (!parsedData.success) {
+        throw new BadRequestError("Invalid options");
       }
-      if (end_date) {
-        where.created_at.lte = end_date;
+
+      const { limit, cursor, search, status, shop_id, start_date, end_date } =
+        parsedData.data;
+
+      const where: Prisma.PayoutWhereInput = {};
+
+      if (status) {
+        where.status = status;
       }
-    }
 
-    if (search) {
-      where.OR = [
-        { pg_payout_id: { contains: search, mode: "insensitive" } },
-        { shop: { name: { contains: search, mode: "insensitive" } } },
-      ];
-    }
+      if (shop_id) {
+        where.shop_id = shop_id;
+      }
 
-    const payouts = await container.payoutRepository.findMany({
-      where,
-      take: limit + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { created_at: "desc" },
-      select: {
-        id: true,
-        amount: true,
-        status: true,
-        pg_payout_id: true,
-        arrival_date: true,
-        created_at: true,
-        shop: {
-          select: {
-            id: true,
-            name: true,
+      const createdAt = dateRange(start_date, end_date);
+      if (createdAt) {
+        where.created_at = createdAt;
+      }
+
+      if (search) {
+        where.OR = [
+          { pg_payout_id: { contains: search, mode: "insensitive" } },
+          { shop: { name: { contains: search, mode: "insensitive" } } },
+        ];
+      }
+
+      const payouts = await container.payoutRepository.findMany({
+        where,
+        ...cursorArgs(limit, cursor),
+        orderBy: { created_at: "desc" },
+        select: {
+          id: true,
+          amount: true,
+          status: true,
+          pg_payout_id: true,
+          arrival_date: true,
+          created_at: true,
+          shop: {
+            select: {
+              id: true,
+              name: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const hasMore = payouts.length > limit;
-    const data = hasMore ? payouts.slice(0, -1) : payouts;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+      const { data, nextCursor, hasMore } = toCursorPage(payouts, limit);
 
-    return createSuccessResponse(
-      {
-        data: data.map((payout) => ({
-          ...payout,
-          amount: Number(payout.amount),
-        })),
-        nextCursor,
-        hasMore,
-      },
-      "Payouts retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET PAYOUTS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+      return createSuccessResponse(
+        {
+          data: data.map((payout) => ({
+            ...payout,
+            amount: Number(payout.amount),
+          })),
+          nextCursor,
+          hasMore,
+        },
+        "Payouts retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve payouts.");
-  }
+  );
 }
 
 const updatePayoutStatusSchema = z.object({
@@ -151,59 +136,55 @@ export async function updatePayoutStatusAction(
     status: PayoutStatus;
   }>
 > {
-  try {
-    const admin = await verifyAdmin();
+  return runAdminAction(
+    log,
+    {
+      label: "UPDATE PAYOUT STATUS ERROR:",
+      fallback: "Failed to update payout status.",
+      passthrough: [NotFoundError],
+    },
+    async (admin) => {
+      const parsedData = updatePayoutStatusSchema.safeParse(data);
+      if (!parsedData.success) {
+        throw new BadRequestError(parsedData.error.message);
+      }
 
-    const parsedData = updatePayoutStatusSchema.safeParse(data);
-    if (!parsedData.success) {
-      throw new BadRequestError(parsedData.error.message);
-    }
+      const { payout_id, status } = parsedData.data;
 
-    const { payout_id, status } = parsedData.data;
+      const payout = await container.payoutRepository.findUnique({
+        where: { id: payout_id },
+        select: { id: true, pg_payout_id: true, status: true },
+      });
 
-    const payout = await container.payoutRepository.findUnique({
-      where: { id: payout_id },
-      select: { id: true, pg_payout_id: true, status: true },
-    });
+      if (!payout) {
+        throw new NotFoundError("Payout not found");
+      }
 
-    if (!payout) {
-      throw new NotFoundError("Payout not found");
-    }
+      const updatedPayout = await container.payoutRepository.update({
+        where: { id: payout_id },
+        data: { status },
+        select: { id: true, pg_payout_id: true, status: true },
+      });
 
-    const updatedPayout = await container.payoutRepository.update({
-      where: { id: payout_id },
-      data: { status },
-      select: { id: true, pg_payout_id: true, status: true },
-    });
-
-    await container.adminAuditRepository.create({
-      data: {
-        admin_id: admin,
-        action: "ORDER_STATUS_OVERRIDE",
-        target_type: "PAYOUT",
-        target_id: payout_id,
-        details: {
-          previous_status: payout.status,
-          new_status: status,
+      await container.adminAuditRepository.create({
+        data: {
+          admin_id: admin,
+          action: "ORDER_STATUS_OVERRIDE",
+          target_type: "PAYOUT",
+          target_id: payout_id,
+          details: {
+            previous_status: payout.status,
+            new_status: status,
+          },
         },
-      },
-    });
+      });
 
-    return createSuccessResponse(
-      updatedPayout,
-      `Payout status updated to ${status}`
-    );
-  } catch (error) {
-    log.error({ err: error }, "UPDATE PAYOUT STATUS ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        updatedPayout,
+        `Payout status updated to ${status}`
+      );
     }
-    throw new InternalServerError("Failed to update payout status.");
-  }
+  );
 }
 
 export type PayoutStats = {
@@ -222,50 +203,49 @@ export type PayoutStats = {
 export async function getPayoutStatsAction(): Promise<
   ActionResponse<PayoutStats>
 > {
-  try {
-    await verifyAdmin();
-
-    const [
-      totalPayouts,
-      pendingPayouts,
-      inTransitPayouts,
-      paidPayouts,
-      failedPayouts,
-      pendingAmountResult,
-      paidAmountResult,
-    ] = await Promise.all([
-      container.payoutRepository.count(),
-      container.payoutRepository.count({ where: { status: "PENDING" } }),
-      container.payoutRepository.count({ where: { status: "IN_TRANSIT" } }),
-      container.payoutRepository.count({ where: { status: "PAID" } }),
-      container.payoutRepository.count({ where: { status: "FAILED" } }),
-      container.payoutRepository.aggregate({
-        where: { status: { in: ["PENDING", "IN_TRANSIT"] } },
-        _sum: { amount: true },
-      }),
-      container.payoutRepository.aggregate({
-        where: { status: "PAID" },
-        _sum: { amount: true },
-      }),
-    ]);
-
-    return createSuccessResponse(
-      {
+  return runAdminAction(
+    log,
+    {
+      label: "GET PAYOUT STATS ERROR:",
+      fallback: "Failed to retrieve payout statistics.",
+    },
+    async () => {
+      const [
         totalPayouts,
         pendingPayouts,
         inTransitPayouts,
         paidPayouts,
         failedPayouts,
-        totalPendingAmount: Number(pendingAmountResult._sum?.amount ?? 0),
-        totalPaidAmount: Number(paidAmountResult._sum?.amount ?? 0),
-      },
-      "Payout statistics retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET PAYOUT STATS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+        pendingAmountResult,
+        paidAmountResult,
+      ] = await Promise.all([
+        container.payoutRepository.count(),
+        container.payoutRepository.count({ where: { status: "PENDING" } }),
+        container.payoutRepository.count({ where: { status: "IN_TRANSIT" } }),
+        container.payoutRepository.count({ where: { status: "PAID" } }),
+        container.payoutRepository.count({ where: { status: "FAILED" } }),
+        container.payoutRepository.aggregate({
+          where: { status: { in: ["PENDING", "IN_TRANSIT"] } },
+          _sum: { amount: true },
+        }),
+        container.payoutRepository.aggregate({
+          where: { status: "PAID" },
+          _sum: { amount: true },
+        }),
+      ]);
+
+      return createSuccessResponse(
+        {
+          totalPayouts,
+          pendingPayouts,
+          inTransitPayouts,
+          paidPayouts,
+          failedPayouts,
+          totalPendingAmount: Number(pendingAmountResult._sum?.amount ?? 0),
+          totalPaidAmount: Number(paidAmountResult._sum?.amount ?? 0),
+        },
+        "Payout statistics retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve payout statistics.");
-  }
+  );
 }

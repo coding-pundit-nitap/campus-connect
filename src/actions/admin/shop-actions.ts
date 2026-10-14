@@ -12,18 +12,17 @@ import { Prisma, SellerVerificationStatus } from "@/generated/client";
 import {
   BadRequestError,
   ForbiddenError,
-  InternalServerError,
   NotFoundError,
-  UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import { verifyAdmin } from "@/lib/verify-admin";
 import {
   ActionResponse,
   createSuccessResponse,
   CursorPaginatedResponse,
 } from "@/types/response.types";
 import { searchSchema } from "@/validations";
+
+import { cursorArgs, runAdminAction, toCursorPage } from "./_shared";
 const log = createLogger("shop-actions");
 
 const getAllShopsSchema = searchSchema.extend({
@@ -51,306 +50,302 @@ export async function getAllShopsAction(
     }>
   >
 > {
-  try {
-    await verifyAdmin();
-    const parsedData = getAllShopsSchema.safeParse(options);
-    if (!parsedData.success) {
-      throw new BadRequestError("Invalid options");
-    }
-    const { limit, cursor, search, is_active, verification_status } =
-      parsedData.data;
-    const where: Prisma.ShopWhereInput | undefined = {};
+  return runAdminAction(
+    log,
+    {
+      label: "GET ALL SHOPS ERROR:",
+      fallback: "Failed to retrieve shops.",
+    },
+    async () => {
+      const parsedData = getAllShopsSchema.safeParse(options);
+      if (!parsedData.success) {
+        throw new BadRequestError("Invalid options");
+      }
+      const { limit, cursor, search, is_active, verification_status } =
+        parsedData.data;
+      const where: Prisma.ShopWhereInput | undefined = {};
 
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: "insensitive" } },
-        { description: { contains: search, mode: "insensitive" } },
-        { location: { contains: search, mode: "insensitive" } },
-      ];
-    }
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: "insensitive" } },
+          { description: { contains: search, mode: "insensitive" } },
+          { location: { contains: search, mode: "insensitive" } },
+        ];
+      }
 
-    if (is_active !== undefined) {
-      where.is_active = is_active;
-    }
+      if (is_active !== undefined) {
+        where.is_active = is_active;
+      }
 
-    if (verification_status) {
-      where.verification_status = verification_status;
-    }
+      if (verification_status) {
+        where.verification_status = verification_status;
+      }
 
-    const shops = await container.shopRepository.findMany({
-      where,
-      take: limit + 1,
-      skip: cursor ? 1 : 0,
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { created_at: "desc" },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+      const shops = await container.shopRepository.findMany({
+        where,
+        ...cursorArgs(limit, cursor),
+        orderBy: { created_at: "desc" },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
           },
         },
-      },
-    });
+      });
 
-    const hasMore = shops.length > limit;
-    const data = hasMore ? shops.slice(0, -1) : shops;
-    const nextCursor = hasMore ? data[data.length - 1].id : null;
+      const { data, nextCursor, hasMore } = toCursorPage(shops, limit);
 
-    return createSuccessResponse(
-      {
-        data: data.map((shop) => ({
-          id: shop.id,
-          name: shop.name,
-          description: shop.description,
-          location: shop.location,
-          is_active: shop.is_active,
-          verification_status: shop.verification_status,
-          created_at: shop.created_at,
-          user: shop.user,
-        })),
-        nextCursor,
-        hasMore,
-      },
-      "Shops retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET ALL SHOPS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+      return createSuccessResponse(
+        {
+          data: data.map((shop) => ({
+            id: shop.id,
+            name: shop.name,
+            description: shop.description,
+            location: shop.location,
+            is_active: shop.is_active,
+            verification_status: shop.verification_status,
+            created_at: shop.created_at,
+            user: shop.user,
+          })),
+          nextCursor,
+          hasMore,
+        },
+        "Shops retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve shops.");
-  }
+  );
 }
 
 export async function activateShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
-  try {
-    const admin_id = await verifyAdmin();
-    if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
+  return runAdminAction(
+    log,
+    {
+      label: "ACTIVATE SHOP ERROR:",
+      fallback: "Failed to activate shop.",
+      passthrough: [NotFoundError],
+    },
+    async (admin_id) => {
+      if (typeof shopId !== "string" || shopId.trim() === "") {
+        throw new BadRequestError("Invalid shop ID");
+      }
+      const shop = await container.shopRepository.findById(shopId, {
+        include: { user: { select: { id: true } } },
+      });
+      if (!shop) {
+        throw new NotFoundError("Shop not found");
+      }
+
+      if (shop.is_active) {
+        throw new ForbiddenError("Shop is already active");
+      }
+
+      const updatedShop = await container.shopRepository.update(shopId, {
+        is_active: true,
+      });
+
+      // Shops can be ownerless (Shop.user is optional): skip the notice then.
+      if (shop.user?.id) {
+        await notificationService.publishNotification(shop.user.id, {
+          title: "Shop Activated",
+          message: `Your shop "${shop.name}" has been activated by an admin.`,
+          type: "SUCCESS",
+          category: "SYSTEM",
+          action_url: "/owner-shops",
+        });
+      }
+
+      auditService.log(admin_id, "SHOP_ACTIVATE", "SHOP", shopId, {
+        shop_name: shop.name,
+      });
+
+      return createSuccessResponse(
+        {
+          id: updatedShop.id,
+          name: updatedShop.name,
+          is_active: updatedShop.is_active,
+        },
+        `Successfully activated shop "${updatedShop.name}"`
+      );
     }
-    const shop = await container.shopRepository.findById(shopId, {
-      include: { user: { select: { id: true } } },
-    });
-    if (!shop) {
-      throw new NotFoundError("Shop not found");
-    }
-
-    if (shop.is_active) {
-      throw new ForbiddenError("Shop is already active");
-    }
-
-    const updatedShop = await container.shopRepository.update(shopId, {
-      is_active: true,
-    });
-
-    await notificationService.publishNotification(shop.user!.id, {
-      title: "Shop Activated",
-      message: `Your shop "${shop.name}" has been activated by an admin.`,
-      type: "SUCCESS",
-      category: "SYSTEM",
-      action_url: "/owner-shops",
-    });
-
-    auditService.log(admin_id, "SHOP_ACTIVATE", "SHOP", shopId, {
-      shop_name: shop.name,
-    });
-
-    return createSuccessResponse(
-      {
-        id: updatedShop.id,
-        name: updatedShop.name,
-        is_active: updatedShop.is_active,
-      },
-      `Successfully activated shop "${updatedShop.name}"`
-    );
-  } catch (error) {
-    log.error({ err: error }, "ACTIVATE SHOP ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to activate shop.");
-  }
+  );
 }
 
 export async function deactivateShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string; is_active: boolean }>> {
-  try {
-    const admin_id = await verifyAdmin();
-    if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
-    }
-    const shop = await container.shopRepository.findById(shopId, {
-      include: { user: { select: { id: true } } },
-    });
-    if (!shop) {
-      throw new NotFoundError("Shop not found");
-    }
-
-    if (!shop.is_active) {
-      throw new ForbiddenError("Shop is already inactive");
-    }
-
-    const affectedCarts = await container.cartRepository.findMany({
-      where: { shop_id: shopId },
-      include: {
-        items: true,
-        user: { select: { id: true, email: true } },
-      },
-    });
-
-    const affectedUserIds: string[] = [];
-    for (const cart of affectedCarts) {
-      if (cart.items.length > 0) {
-        affectedUserIds.push(cart.user.id);
-        await container.db.cartItem.deleteMany({
-          where: { cart_id: cart.id },
-        });
+  return runAdminAction(
+    log,
+    {
+      label: "DEACTIVATE SHOP ERROR:",
+      fallback: "Failed to deactivate shop.",
+      passthrough: [NotFoundError],
+    },
+    async (admin_id) => {
+      if (typeof shopId !== "string" || shopId.trim() === "") {
+        throw new BadRequestError("Invalid shop ID");
       }
-    }
+      const shop = await container.shopRepository.findById(shopId, {
+        include: { user: { select: { id: true } } },
+      });
+      if (!shop) {
+        throw new NotFoundError("Shop not found");
+      }
 
-    await Promise.allSettled(
-      affectedUserIds.map((userId) =>
-        notificationService.publishNotification(userId, {
-          title: "Cart Items Removed",
-          message: `Items from "${shop.name}" have been removed from your cart as the shop has been deactivated.`,
+      if (!shop.is_active) {
+        throw new ForbiddenError("Shop is already inactive");
+      }
+
+      const affectedCarts = await container.cartRepository.findMany({
+        where: { shop_id: shopId },
+        include: {
+          items: true,
+          user: { select: { id: true, email: true } },
+        },
+      });
+
+      const affectedUserIds: string[] = [];
+      for (const cart of affectedCarts) {
+        if (cart.items.length > 0) {
+          affectedUserIds.push(cart.user.id);
+          await container.db.cartItem.deleteMany({
+            where: { cart_id: cart.id },
+          });
+        }
+      }
+
+      await Promise.allSettled(
+        affectedUserIds.map((userId) =>
+          notificationService.publishNotification(userId, {
+            title: "Cart Items Removed",
+            message: `Items from "${shop.name}" have been removed from your cart as the shop has been deactivated.`,
+            type: "WARNING",
+            category: "SYSTEM",
+          })
+        )
+      );
+
+      const updatedShop = await container.shopRepository.update(shopId, {
+        is_active: false,
+      });
+
+      // Shops can be ownerless (Shop.user is optional): skip the notice then.
+      if (shop.user?.id) {
+        await notificationService.publishNotification(shop.user.id, {
+          title: "Shop Deactivated",
+          message: `Your shop "${shop.name}" has been deactivated by an admin.`,
           type: "WARNING",
           category: "SYSTEM",
-        })
-      )
-    );
+          action_url: "/owner-shops",
+        });
+      }
 
-    const updatedShop = await container.shopRepository.update(shopId, {
-      is_active: false,
-    });
+      auditService.log(admin_id, "SHOP_DEACTIVATE", "SHOP", shopId, {
+        shop_name: shop.name,
+        affected_users: affectedUserIds.length,
+      });
 
-    await notificationService.publishNotification(shop.user!.id, {
-      title: "Shop Deactivated",
-      message: `Your shop "${shop.name}" has been deactivated by an admin.`,
-      type: "WARNING",
-      category: "SYSTEM",
-      action_url: "/owner-shops",
-    });
-
-    auditService.log(admin_id, "SHOP_DEACTIVATE", "SHOP", shopId, {
-      shop_name: shop.name,
-      affected_users: affectedUserIds.length,
-    });
-
-    return createSuccessResponse(
-      {
-        id: updatedShop.id,
-        name: updatedShop.name,
-        is_active: updatedShop.is_active,
-      },
-      `Successfully deactivated shop "${updatedShop.name}". ${affectedUserIds.length} user carts were cleared.`
-    );
-  } catch (error) {
-    log.error({ err: error }, "DEACTIVATE SHOP ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        {
+          id: updatedShop.id,
+          name: updatedShop.name,
+          is_active: updatedShop.is_active,
+        },
+        `Successfully deactivated shop "${updatedShop.name}". ${affectedUserIds.length} user carts were cleared.`
+      );
     }
-    throw new InternalServerError("Failed to deactivate shop.");
-  }
+  );
 }
 
 export async function deleteShopAction(
   shopId: string
 ): Promise<ActionResponse<{ id: string; name: string }>> {
-  try {
-    const admin_id = await verifyAdmin();
-    if (typeof shopId !== "string" || shopId.trim() === "") {
-      throw new BadRequestError("Invalid shop ID");
-    }
-    const shop = await container.shopRepository.findById(shopId, {
-      include: { user: { select: { id: true } } },
-    });
-
-    if (!shop) {
-      throw new NotFoundError("Shop not found");
-    }
-
-    const fileDeletionPromises: Promise<void>[] = [];
-    if (shop.image_key) {
-      fileDeletionPromises.push(
-        fileUploadService.deleteFile(shop.image_key).catch((err) => {
-          log.error(
-            { err: err },
-            `Error deleting shop image ${shop.image_key}:`
-          );
-        })
-      );
-    }
-    if (shop.qr_image_key) {
-      fileDeletionPromises.push(
-        fileUploadService.deleteFile(shop.qr_image_key).catch((err) => {
-          log.error(`Error deleting shop QR image ${shop.qr_image_key}:`, err);
-        })
-      );
-    }
-    await Promise.all(fileDeletionPromises);
-
-    await container.db.$transaction(async (tx) => {
-      if (shop.user?.id) {
-        await tx.user.update({
-          where: { id: shop.user.id },
-          data: { owned_shop: { disconnect: true } },
-        });
+  return runAdminAction(
+    log,
+    {
+      label: "DELETE SHOP ERROR:",
+      fallback: "Failed to delete shop.",
+      passthrough: [NotFoundError],
+    },
+    async (admin_id) => {
+      if (typeof shopId !== "string" || shopId.trim() === "") {
+        throw new BadRequestError("Invalid shop ID");
       }
-      await tx.shop.delete({ where: { id: shopId } });
-    });
+      const shop = await container.shopRepository.findById(shopId, {
+        include: { user: { select: { id: true } } },
+      });
 
-    if (shop.user?.id) {
-      try {
-        await notificationService.publishNotification(shop.user.id, {
-          title: "Shop Deleted",
-          message: `Your shop "${shop.name}" has been deleted by an admin.`,
-          type: "ERROR",
-          category: "SYSTEM",
-        });
-      } catch (notifyErr) {
-        log.error(
-          { err: notifyErr },
-          "Failed to send shop deletion notification:"
+      if (!shop) {
+        throw new NotFoundError("Shop not found");
+      }
+
+      const fileDeletionPromises: Promise<void>[] = [];
+      if (shop.image_key) {
+        fileDeletionPromises.push(
+          fileUploadService.deleteFile(shop.image_key).catch((err) => {
+            log.error(
+              { err: err },
+              `Error deleting shop image ${shop.image_key}:`
+            );
+          })
         );
       }
-    }
+      if (shop.qr_image_key) {
+        fileDeletionPromises.push(
+          fileUploadService.deleteFile(shop.qr_image_key).catch((err) => {
+            log.error(
+              { err },
+              `Error deleting shop QR image ${shop.qr_image_key}:`
+            );
+          })
+        );
+      }
+      await Promise.all(fileDeletionPromises);
 
-    auditService.log(admin_id, "SHOP_DELETE", "SHOP", shop.id, {
-      shop_name: shop.name,
-      owner_id: shop.user?.id,
-    });
+      await container.db.$transaction(async (tx) => {
+        if (shop.user?.id) {
+          await tx.user.update({
+            where: { id: shop.user.id },
+            data: { owned_shop: { disconnect: true } },
+          });
+        }
+        await tx.shop.delete({ where: { id: shopId } });
+      });
 
-    return createSuccessResponse(
-      {
-        id: shop.id,
-        name: shop.name,
-      },
-      `Successfully deleted shop "${shop.name}"`
-    );
-  } catch (error) {
-    log.error({ err: error }, "DELETE SHOP ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
+      if (shop.user?.id) {
+        try {
+          await notificationService.publishNotification(shop.user.id, {
+            title: "Shop Deleted",
+            message: `Your shop "${shop.name}" has been deleted by an admin.`,
+            type: "ERROR",
+            category: "SYSTEM",
+          });
+        } catch (notifyErr) {
+          log.error(
+            { err: notifyErr },
+            "Failed to send shop deletion notification:"
+          );
+        }
+      }
+
+      auditService.log(admin_id, "SHOP_DELETE", "SHOP", shop.id, {
+        shop_name: shop.name,
+        owner_id: shop.user?.id,
+      });
+
+      return createSuccessResponse(
+        {
+          id: shop.id,
+          name: shop.name,
+        },
+        `Successfully deleted shop "${shop.name}"`
+      );
     }
-    throw new InternalServerError("Failed to delete shop.");
-  }
+  );
 }
 
 export async function updateShopVerificationAction(
@@ -363,84 +358,84 @@ export async function updateShopVerificationAction(
     verification_status: SellerVerificationStatus;
   }>
 > {
-  try {
-    const admin_id = await verifyAdmin();
-    if (
-      typeof shopId !== "string" ||
-      shopId.trim() === "" ||
-      !status ||
-      status.trim() === "" ||
-      !Object.values(SellerVerificationStatus).includes(status)
-    ) {
-      throw new BadRequestError("Invalid shop ID");
-    }
-    const shop = await container.shopRepository.findById(shopId, {
-      include: { user: { select: { id: true } } },
-    });
-    if (!shop) {
-      throw new NotFoundError("Shop not found");
-    }
-
-    const updatedShop = await container.shopRepository.update(shopId, {
-      verification_status: status,
-    });
-
-    const statusMessages = {
-      NOT_STARTED: "has been reset to not started",
-      PENDING: "is now pending verification",
-      REQUIRES_ACTION: "requires action from you",
-      VERIFIED: "has been verified",
-      REJECTED: "verification has been rejected",
-    };
-
-    await notificationService.publishNotification(shop.user!.id, {
-      title: "Shop Verification Status Updated",
-      message: `Your shop "${shop.name}" ${statusMessages[status]}.`,
-      type:
-        status === "VERIFIED"
-          ? "SUCCESS"
-          : status === "REJECTED"
-            ? "ERROR"
-            : "INFO",
-      category: "SYSTEM",
-      action_url: "/owner-shops",
-    });
-
-    auditService.log(
-      admin_id,
-      status === "VERIFIED"
-        ? "SHOP_VERIFY"
-        : status === "REJECTED"
-          ? "SHOP_REJECT"
-          : "SHOP_VERIFY",
-      "SHOP",
-      shopId,
-      {
-        shop_name: shop.name,
-        new_status: status,
-        old_status: shop.verification_status,
+  return runAdminAction(
+    log,
+    {
+      label: "UPDATE SHOP VERIFICATION ERROR:",
+      fallback: "Failed to update shop verification status.",
+      passthrough: [NotFoundError],
+    },
+    async (admin_id) => {
+      if (
+        typeof shopId !== "string" ||
+        shopId.trim() === "" ||
+        !status ||
+        status.trim() === "" ||
+        !Object.values(SellerVerificationStatus).includes(status)
+      ) {
+        throw new BadRequestError("Invalid shop ID");
       }
-    );
+      const shop = await container.shopRepository.findById(shopId, {
+        include: { user: { select: { id: true } } },
+      });
+      if (!shop) {
+        throw new NotFoundError("Shop not found");
+      }
 
-    return createSuccessResponse(
-      {
-        id: updatedShop.id,
-        name: updatedShop.name,
-        verification_status: updatedShop.verification_status,
-      },
-      `Successfully updated verification status for "${updatedShop.name}"`
-    );
-  } catch (error) {
-    log.error({ err: error }, "UPDATE SHOP VERIFICATION ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
+      const updatedShop = await container.shopRepository.update(shopId, {
+        verification_status: status,
+      });
+
+      const statusMessages = {
+        NOT_STARTED: "has been reset to not started",
+        PENDING: "is now pending verification",
+        REQUIRES_ACTION: "requires action from you",
+        VERIFIED: "has been verified",
+        REJECTED: "verification has been rejected",
+      };
+
+      // Shops can be ownerless (Shop.user is optional): skip the notice then.
+      if (shop.user?.id) {
+        await notificationService.publishNotification(shop.user.id, {
+          title: "Shop Verification Status Updated",
+          message: `Your shop "${shop.name}" ${statusMessages[status]}.`,
+          type:
+            status === "VERIFIED"
+              ? "SUCCESS"
+              : status === "REJECTED"
+                ? "ERROR"
+                : "INFO",
+          category: "SYSTEM",
+          action_url: "/owner-shops",
+        });
+      }
+
+      auditService.log(
+        admin_id,
+        status === "VERIFIED"
+          ? "SHOP_VERIFY"
+          : status === "REJECTED"
+            ? "SHOP_REJECT"
+            : "SHOP_VERIFY",
+        "SHOP",
+        shopId,
+        {
+          shop_name: shop.name,
+          new_status: status,
+          old_status: shop.verification_status,
+        }
+      );
+
+      return createSuccessResponse(
+        {
+          id: updatedShop.id,
+          name: updatedShop.name,
+          verification_status: updatedShop.verification_status,
+        },
+        `Successfully updated verification status for "${updatedShop.name}"`
+      );
     }
-    throw new InternalServerError("Failed to update shop verification status.");
-  }
+  );
 }
 
 export async function getShopStatsAction(): Promise<
@@ -453,49 +448,48 @@ export async function getShopStatsAction(): Promise<
     recentShops: number;
   }>
 > {
-  try {
-    await verifyAdmin();
-
-    const [
-      totalShops,
-      activeShops,
-      verifiedShops,
-      pendingVerification,
-      recentShops,
-    ] = await Promise.all([
-      container.shopRepository.count({}),
-      container.shopRepository.count({ where: { is_active: true } }),
-      container.shopRepository.count({
-        where: { verification_status: "VERIFIED" },
-      }),
-      container.shopRepository.count({
-        where: { verification_status: "PENDING" },
-      }),
-      container.shopRepository.count({
-        where: {
-          created_at: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          },
-        },
-      }),
-    ]);
-
-    return createSuccessResponse(
-      {
+  return runAdminAction(
+    log,
+    {
+      label: "GET SHOP STATS ERROR:",
+      fallback: "Failed to retrieve shop statistics.",
+    },
+    async () => {
+      const [
         totalShops,
         activeShops,
-        inactiveShops: totalShops - activeShops,
         verifiedShops,
         pendingVerification,
         recentShops,
-      },
-      "Shop statistics retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET SHOP STATS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+      ] = await Promise.all([
+        container.shopRepository.count({}),
+        container.shopRepository.count({ where: { is_active: true } }),
+        container.shopRepository.count({
+          where: { verification_status: "VERIFIED" },
+        }),
+        container.shopRepository.count({
+          where: { verification_status: "PENDING" },
+        }),
+        container.shopRepository.count({
+          where: {
+            created_at: {
+              gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            },
+          },
+        }),
+      ]);
+
+      return createSuccessResponse(
+        {
+          totalShops,
+          activeShops,
+          inactiveShops: totalShops - activeShops,
+          verifiedShops,
+          pendingVerification,
+          recentShops,
+        },
+        "Shop statistics retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve shop statistics.");
-  }
+  );
 }

@@ -3,16 +3,12 @@
 import z from "zod";
 
 import { auditService, container, notificationService } from "@/di/container";
-import {
-  BadRequestError,
-  ForbiddenError,
-  InternalServerError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+import { BadRequestError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import { verifyAdmin } from "@/lib/verify-admin";
 import { NotificationCategory, NotificationType } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
+
+import { runAdminAction } from "./_shared";
 const log = createLogger("broadcast-actions");
 
 const sendBroadcastNotificationSchema = z.object({
@@ -38,53 +34,48 @@ export async function sendBroadcastNotificationAction(
     message: string;
   }>
 > {
-  try {
-    const admin_id = await verifyAdmin();
+  return runAdminAction(
+    log,
+    {
+      label: "SEND BROADCAST NOTIFICATION ERROR:",
+      fallback: "Failed to send broadcast notification.",
+    },
+    async (admin_id) => {
+      const parsedData = sendBroadcastNotificationSchema.safeParse(data);
 
-    const parsedData = sendBroadcastNotificationSchema.safeParse(data);
+      if (!parsedData.success) {
+        throw new BadRequestError(parsedData.error.message);
+      }
 
-    if (!parsedData.success) {
-      throw new BadRequestError(parsedData.error.message);
+      // send broadcast notification
+      const broadcastData = {
+        title: data.title,
+        message: data.message,
+        type: data.type || NotificationType.INFO,
+        category: data.category || NotificationCategory.ANNOUNCEMENT,
+        action_url: data.action_url,
+      };
+
+      await notificationService.broadcastNotification(broadcastData);
+
+      // One id for both the audit entry and the response.
+      const broadcastId = `broadcast-${Date.now()}`;
+
+      auditService.log(admin_id, "BROADCAST_CREATE", "BROADCAST", broadcastId, {
+        title: data.title,
+        message: data.message.slice(0, 100),
+      });
+
+      return createSuccessResponse(
+        {
+          id: broadcastId,
+          title: broadcastData.title,
+          message: broadcastData.message,
+        },
+        "Broadcast notification queued successfully"
+      );
     }
-
-    // send broadcast notification
-    const broadcastData = {
-      title: data.title,
-      message: data.message,
-      type: data.type || NotificationType.INFO,
-      category: data.category || NotificationCategory.ANNOUNCEMENT,
-      action_url: data.action_url,
-    };
-
-    await notificationService.broadcastNotification(broadcastData);
-
-    auditService.log(
-      admin_id,
-      "BROADCAST_CREATE",
-      "BROADCAST",
-      `broadcast-${Date.now()}`,
-      { title: data.title, message: data.message.slice(0, 100) }
-    );
-
-    return createSuccessResponse(
-      {
-        id: `broadcast-${Date.now()}`,
-        title: broadcastData.title,
-        message: broadcastData.message,
-      },
-      "Broadcast notification queued successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "SEND BROADCAST NOTIFICATION ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to send broadcast notification.");
-  }
+  );
 }
 
 export async function getBroadcastStatsAction(): Promise<
@@ -94,38 +85,39 @@ export async function getBroadcastStatsAction(): Promise<
     totalUsers: number;
   }>
 > {
-  try {
-    await verifyAdmin();
+  return runAdminAction(
+    log,
+    {
+      label: "GET BROADCAST STATS ERROR:",
+      fallback: "Failed to retrieve broadcast statistics.",
+    },
+    async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      // get Stats Data
+      const [totalUsers, totalBroadcasts, recentBroadcasts] = await Promise.all(
+        [
+          container.userRepository.count({}),
+          container.broadcastRepository.getCount({}),
+          container.broadcastRepository.getCount({
+            where: {
+              created_at: {
+                gte: thirtyDaysAgo,
+              },
+            },
+          }),
+        ]
+      );
 
-    // get Stats Data
-    const [totalUsers, totalBroadcasts, recentBroadcasts] = await Promise.all([
-      container.userRepository.count({}),
-      container.broadcastRepository.getCount({}),
-      container.broadcastRepository.getCount({
-        where: {
-          created_at: {
-            gte: thirtyDaysAgo,
-          },
+      return createSuccessResponse(
+        {
+          totalBroadcasts,
+          recentBroadcasts,
+          totalUsers,
         },
-      }),
-    ]);
-
-    return createSuccessResponse(
-      {
-        totalBroadcasts,
-        recentBroadcasts,
-        totalUsers,
-      },
-      "Broadcast statistics retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET BROADCAST STATS ERROR:");
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      throw error;
+        "Broadcast statistics retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve broadcast statistics.");
-  }
+  );
 }
