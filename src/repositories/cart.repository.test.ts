@@ -1,37 +1,16 @@
+import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { prisma as prismaType } from "@/lib/prisma";
-
-import { CartRepository } from "./cart.repository";
-
-// Mock Prisma Client
-const buildFakePrismaClient = () => {
-  return {
-    cart: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-      findMany: vi.fn(),
-      count: vi.fn(),
-    },
-    cartItem: {
-      upsert: vi.fn(),
-      deleteMany: vi.fn(),
-      findMany: vi.fn(),
-    },
-    product: {
-      findUnique: vi.fn(),
-    },
-  };
-};
+import { CartRepository, fullCartInclude } from "./cart.repository";
 
 describe("CartRepository", () => {
-  let prisma: ReturnType<typeof buildFakePrismaClient>;
+  let prisma: PrismaMock;
   let repository: CartRepository;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    prisma = buildFakePrismaClient();
-    repository = new CartRepository(prisma as unknown as typeof prismaType);
+    prisma = createPrismaMock();
+    repository = new CartRepository(asPrisma(prisma));
   });
 
   describe("findOrCreate", () => {
@@ -174,7 +153,7 @@ describe("CartRepository", () => {
       expect(prisma.cart.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { user_id: "user-1" },
-          include: expect.any(Object),
+          include: fullCartInclude,
         })
       );
     });
@@ -190,7 +169,7 @@ describe("CartRepository", () => {
             id: "cart-1",
             user_id: "user-1", // Scope hardening check
           },
-          include: expect.any(Object),
+          include: fullCartInclude,
         })
       );
     });
@@ -221,6 +200,107 @@ describe("CartRepository", () => {
         include: { cart: { select: { user_id: true } } },
       });
       expect(result).toEqual(["user-1", "user-2"]);
+    });
+  });
+
+  describe("findOrCreate include shape", () => {
+    it("loads items with product, category, brand and the active shop batch slots", async () => {
+      prisma.cart.findUnique.mockResolvedValueOnce({ id: "cart-1" });
+
+      await repository.findOrCreate("user-1", "shop-1");
+
+      const { include } = prisma.cart.findUnique.mock.calls[0][0];
+      expect(include).toBe(fullCartInclude);
+      expect(include.items.orderBy).toEqual({ id: "asc" });
+      const shop = include.items.include.product.include.shop;
+      expect(shop.select.batch_slots.where).toEqual({ is_active: true });
+      expect(shop.select.batch_slots.orderBy).toEqual([
+        { sort_order: "asc" },
+        { cutoff_time_minutes: "asc" },
+      ]);
+    });
+  });
+
+  describe("upsertItemForUser result", () => {
+    it("returns the refreshed full cart after the write", async () => {
+      const fresh = { id: "cart-1", items: [{ id: "item-1" }] };
+      prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
+      prisma.cart.findUnique.mockResolvedValue(fresh);
+
+      const result = await repository.upsertItemForUser("user-1", "prod-1", 1);
+
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { id: "prod-1" },
+        select: { shop_id: true },
+      });
+      expect(result).toBe(fresh);
+    });
+  });
+
+  describe("findOrCreateByUserAndShop", () => {
+    it("returns the existing cart without creating one", async () => {
+      const existing = { id: "cart-1" };
+      prisma.cart.findUnique.mockResolvedValueOnce(existing);
+
+      const result = await repository.findOrCreateByUserAndShop(
+        "user-1",
+        "shop-1"
+      );
+
+      expect(prisma.cart.findUnique).toHaveBeenCalledWith({
+        where: { user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" } },
+      });
+      expect(prisma.cart.create).not.toHaveBeenCalled();
+      expect(result).toBe(existing);
+    });
+
+    it("creates a bare cart when none exists", async () => {
+      const created = { id: "cart-2" };
+      prisma.cart.findUnique.mockResolvedValueOnce(null);
+      prisma.cart.create.mockResolvedValueOnce(created);
+
+      const result = await repository.findOrCreateByUserAndShop(
+        "user-1",
+        "shop-1"
+      );
+
+      expect(prisma.cart.create).toHaveBeenCalledWith({
+        data: { user_id: "user-1", shop_id: "shop-1" },
+      });
+      expect(result).toBe(created);
+    });
+  });
+
+  describe("delegating finders", () => {
+    it("findMany passes args through", async () => {
+      prisma.cart.findMany.mockResolvedValueOnce([{ id: "cart-1" }]);
+
+      const result = await repository.findMany({ take: 2 });
+
+      expect(prisma.cart.findMany).toHaveBeenCalledWith({ take: 2 });
+      expect(result).toEqual([{ id: "cart-1" }]);
+    });
+
+    it("findUnique passes args through", async () => {
+      prisma.cart.findUnique.mockResolvedValueOnce({ id: "cart-1" });
+
+      const result = await repository.findUnique({ where: { id: "cart-1" } });
+
+      expect(prisma.cart.findUnique).toHaveBeenCalledWith({
+        where: { id: "cart-1" },
+      });
+      expect(result).toEqual({ id: "cart-1" });
+    });
+
+    it("count passes args through", async () => {
+      prisma.cart.count.mockResolvedValueOnce(4);
+
+      const result = await repository.count({ where: { user_id: "user-1" } });
+
+      expect(prisma.cart.count).toHaveBeenCalledWith({
+        where: { user_id: "user-1" },
+      });
+      expect(result).toBe(4);
     });
   });
 });

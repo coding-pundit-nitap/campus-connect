@@ -1,61 +1,26 @@
+import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Prisma, Role } from "@/generated/client";
-import type { prisma } from "@/lib/prisma";
 import { UserRepository } from "@/repositories/user.repository";
 
-function buildFakePrismaClient() {
-  const findUnique = vi.fn().mockResolvedValue({ id: "user-1" });
-  const findMany = vi.fn().mockResolvedValue([{ id: "user-1" }]);
-  const create = vi.fn().mockResolvedValue({ id: "user-1" });
-  const update = vi.fn().mockResolvedValue({ id: "user-1" });
-  const deleteMock = vi.fn().mockResolvedValue({ id: "user-1" });
-  const count = vi.fn().mockResolvedValue(1);
-  const deleteManySessions = vi.fn().mockResolvedValue({ count: 1 });
-
-  const fakeClient = {
-    user: {
-      findUnique,
-      findMany,
-      create,
-      update,
-      delete: deleteMock,
-      count,
-    },
-    session: {
-      deleteMany: deleteManySessions,
-    },
-  };
-
-  return {
-    fakeClient,
-    findUnique,
-    findMany,
-    create,
-    update,
-    deleteMock,
-    count,
-    deleteManySessions,
-  };
-}
-
 describe("UserRepository (Unit)", () => {
-  let fakeClient: ReturnType<typeof buildFakePrismaClient>["fakeClient"];
+  let prisma: PrismaMock;
   let repo: UserRepository;
-  let spies: ReturnType<typeof buildFakePrismaClient>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    spies = buildFakePrismaClient();
-    fakeClient = spies.fakeClient;
-    repo = new UserRepository(fakeClient as unknown as typeof prisma);
+    prisma = createPrismaMock();
+    prisma.user.findUnique.mockResolvedValue({ id: "user-1" });
+    prisma.user.findMany.mockResolvedValue([{ id: "user-1" }]);
+    repo = new UserRepository(asPrisma(prisma));
   });
 
   describe("findAdmins", () => {
     it("finds users with ADMIN role", async () => {
-      await repo.findAdmins();
-      expect(spies.findMany).toHaveBeenCalledTimes(1);
-      expect(spies.findMany.mock.calls[0][0]).toEqual({
+      await expect(repo.findAdmins()).resolves.toEqual([{ id: "user-1" }]);
+      expect(prisma.user.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findMany.mock.calls[0][0]).toEqual({
         where: { role: Role.ADMIN },
       });
     });
@@ -67,8 +32,8 @@ describe("UserRepository (Unit)", () => {
         include: { profile: true },
         where: { is_active: true } as Prisma.UserWhereInput,
       } as unknown as Omit<Prisma.UserFindUniqueArgs, "where">);
-      expect(spies.findUnique).toHaveBeenCalledTimes(1);
-      expect(spies.findUnique.mock.calls[0][0]).toEqual({
+      expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findUnique.mock.calls[0][0]).toEqual({
         include: { profile: true },
         where: { is_active: true, id: "user-1" },
       });
@@ -81,8 +46,8 @@ describe("UserRepository (Unit)", () => {
         select: { id: true },
         where: { is_active: true } as Prisma.UserWhereInput,
       } as unknown as Omit<Prisma.UserFindUniqueArgs, "where">);
-      expect(spies.findUnique).toHaveBeenCalledTimes(1);
-      expect(spies.findUnique.mock.calls[0][0]).toEqual({
+      expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findUnique.mock.calls[0][0]).toEqual({
         select: { id: true },
         where: { is_active: true, email: "test@example.com" },
       });
@@ -92,8 +57,8 @@ describe("UserRepository (Unit)", () => {
   describe("findUnique", () => {
     it("delegates", async () => {
       await repo.findUnique({ where: { id: "user-1" } });
-      expect(spies.findUnique).toHaveBeenCalledTimes(1);
-      expect(spies.findUnique.mock.calls[0][0]).toEqual({
+      expect(prisma.user.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findUnique.mock.calls[0][0]).toEqual({
         where: { id: "user-1" },
       });
     });
@@ -102,8 +67,8 @@ describe("UserRepository (Unit)", () => {
   describe("findMany", () => {
     it("delegates", async () => {
       await repo.findMany({ take: 10 });
-      expect(spies.findMany).toHaveBeenCalledTimes(1);
-      expect(spies.findMany.mock.calls[0][0]).toEqual({ take: 10 });
+      expect(prisma.user.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.user.findMany.mock.calls[0][0]).toEqual({ take: 10 });
     });
   });
 
@@ -112,8 +77,8 @@ describe("UserRepository (Unit)", () => {
       await repo.create({
         data: { email: "test@example.com" },
       } as Prisma.UserCreateArgs);
-      expect(spies.create).toHaveBeenCalledTimes(1);
-      expect(spies.create.mock.calls[0][0]).toEqual({
+      expect(prisma.user.create).toHaveBeenCalledTimes(1);
+      expect(prisma.user.create.mock.calls[0][0]).toEqual({
         data: { email: "test@example.com" },
       });
     });
@@ -125,8 +90,8 @@ describe("UserRepository (Unit)", () => {
         where: { is_active: true } as Prisma.UserWhereInput,
         include: { profile: true },
       } as unknown as Omit<Prisma.UserUpdateArgs, "where" | "data">);
-      expect(spies.update).toHaveBeenCalledTimes(1);
-      expect(spies.update.mock.calls[0][0]).toEqual({
+      expect(prisma.user.update).toHaveBeenCalledTimes(1);
+      expect(prisma.user.update.mock.calls[0][0]).toEqual({
         include: { profile: true },
         where: { is_active: true, id: "user-1" },
         data: { name: "Test" },
@@ -135,8 +100,8 @@ describe("UserRepository (Unit)", () => {
 
     it("delegates when args object passed", async () => {
       await repo.update({ where: { id: "user-1" }, data: { name: "Test" } });
-      expect(spies.update).toHaveBeenCalledTimes(1);
-      expect(spies.update.mock.calls[0][0]).toEqual({
+      expect(prisma.user.update).toHaveBeenCalledTimes(1);
+      expect(prisma.user.update.mock.calls[0][0]).toEqual({
         where: { id: "user-1" },
         data: { name: "Test" },
       });
@@ -146,16 +111,16 @@ describe("UserRepository (Unit)", () => {
   describe("delete", () => {
     it("scopes by id when id is string", async () => {
       await repo.delete("user-1");
-      expect(spies.deleteMock).toHaveBeenCalledTimes(1);
-      expect(spies.deleteMock.mock.calls[0][0]).toEqual({
+      expect(prisma.user.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.user.delete.mock.calls[0][0]).toEqual({
         where: { id: "user-1" },
       });
     });
 
     it("delegates when args object passed", async () => {
       await repo.delete({ where: { id: "user-1" } });
-      expect(spies.deleteMock).toHaveBeenCalledTimes(1);
-      expect(spies.deleteMock.mock.calls[0][0]).toEqual({
+      expect(prisma.user.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.user.delete.mock.calls[0][0]).toEqual({
         where: { id: "user-1" },
       });
     });
@@ -164,8 +129,8 @@ describe("UserRepository (Unit)", () => {
   describe("count", () => {
     it("delegates", async () => {
       await repo.count({ where: { emailVerified: true } });
-      expect(spies.count).toHaveBeenCalledTimes(1);
-      expect(spies.count.mock.calls[0][0]).toEqual({
+      expect(prisma.user.count).toHaveBeenCalledTimes(1);
+      expect(prisma.user.count.mock.calls[0][0]).toEqual({
         where: { emailVerified: true },
       });
     });
@@ -174,9 +139,45 @@ describe("UserRepository (Unit)", () => {
   describe("deleteAllSessions", () => {
     it("deletes sessions for user", async () => {
       await repo.deleteAllSessions("user-1");
-      expect(spies.deleteManySessions).toHaveBeenCalledTimes(1);
-      expect(spies.deleteManySessions.mock.calls[0][0]).toEqual({
+      expect(prisma.session.deleteMany).toHaveBeenCalledTimes(1);
+      expect(prisma.session.deleteMany.mock.calls[0][0]).toEqual({
         where: { userId: "user-1" },
+      });
+    });
+  });
+
+  describe("scoped finders without options", () => {
+    it("findById queries by id only and returns the row", async () => {
+      await expect(repo.findById("user-1")).resolves.toEqual({ id: "user-1" });
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: "user-1" },
+      });
+    });
+
+    it("findByEmail queries by email only", async () => {
+      await repo.findByEmail("a@b.c");
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { email: "a@b.c" },
+      });
+    });
+
+    it("findById cannot be redirected by a caller where.id", async () => {
+      await repo.findById("user-1", {
+        where: { id: "victim" },
+      } as unknown as Omit<Prisma.UserFindUniqueArgs, "where">);
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: "user-1" },
+      });
+    });
+
+    it("update without options or data sends an empty data object", async () => {
+      await repo.update(
+        "user-1",
+        undefined as unknown as Prisma.UserUpdateInput
+      );
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: "user-1" },
+        data: {},
       });
     });
   });

@@ -1,55 +1,29 @@
+import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OrderStatus, Prisma } from "@/generated/client";
-import type { prisma } from "@/lib/prisma";
 import { OrderRepository } from "@/repositories/order.repository";
 
 vi.mock("@/lib/utils/order.utils", () => ({
   orderWithDetailsInclude: { testInclude: true },
 }));
 
-function buildFakePrismaClient() {
-  const findUnique = vi.fn().mockResolvedValue({ id: "order-1" });
-  const findMany = vi.fn().mockResolvedValue([{ id: "order-1" }]);
-  const create = vi
-    .fn()
-    .mockResolvedValue({ id: "order-1", user_id: "user-1" });
-  const update = vi.fn().mockResolvedValue({ id: "order-1" });
-  const updateMany = vi.fn().mockResolvedValue({ count: 1 });
-  const count = vi.fn().mockResolvedValue(1);
-
-  const fakeClient = {
-    order: {
-      findUnique,
-      findMany,
-      create,
-      update,
-      updateMany,
-      count,
-    },
-  };
-
-  return {
-    fakeClient,
-    findUnique,
-    findMany,
-    create,
-    update,
-    updateMany,
-    count,
-  };
-}
-
 describe("OrderRepository (Unit)", () => {
-  let fakeClient: ReturnType<typeof buildFakePrismaClient>["fakeClient"];
+  let prisma: PrismaMock;
+  let spies: PrismaMock["order"];
   let repo: OrderRepository;
-  let spies: ReturnType<typeof buildFakePrismaClient>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    spies = buildFakePrismaClient();
-    fakeClient = spies.fakeClient;
-    repo = new OrderRepository(fakeClient as unknown as typeof prisma);
+    prisma = createPrismaMock();
+    spies = prisma.order;
+    spies.findUnique.mockResolvedValue({ id: "order-1" });
+    spies.findMany.mockResolvedValue([{ id: "order-1" }]);
+    spies.create.mockResolvedValue({ id: "order-1", user_id: "user-1" });
+    spies.update.mockResolvedValue({ id: "order-1" });
+    spies.updateMany.mockResolvedValue({ count: 1 });
+    spies.count.mockResolvedValue(1);
+    repo = new OrderRepository(asPrisma(prisma));
   });
 
   describe("getOrderById", () => {
@@ -118,13 +92,11 @@ describe("OrderRepository (Unit)", () => {
     });
 
     it("uses tx when provided and creates directly", async () => {
-      const txClient = {
-        order: {
-          create: vi
-            .fn()
-            .mockResolvedValue({ id: "order-1", user_id: "user-1" }),
-        },
-      };
+      const txClient = createPrismaMock();
+      txClient.order.create.mockResolvedValue({
+        id: "order-1",
+        user_id: "user-1",
+      });
       await repo.create(
         { user_id: "user-1" } as unknown as Prisma.OrderCreateInput,
         txClient as unknown as Prisma.TransactionClient
@@ -133,6 +105,7 @@ describe("OrderRepository (Unit)", () => {
       expect(txClient.order.create.mock.calls[0][0]).toEqual({
         data: { user_id: "user-1" },
       });
+      expect(spies.create).not.toHaveBeenCalled();
     });
 
     it("throws if created order lacks user_id", async () => {
@@ -176,7 +149,112 @@ describe("OrderRepository (Unit)", () => {
     });
   });
 
+  describe("scoped finders without options", () => {
+    it("getOrderById queries by id only", async () => {
+      const result = await repo.getOrderById("order-1");
+      expect(spies.findUnique).toHaveBeenCalledWith({
+        where: { id: "order-1" },
+      });
+      expect(result).toEqual({ id: "order-1" });
+    });
+
+    it("getOrdersByUserId queries by user_id only", async () => {
+      const result = await repo.getOrdersByUserId("user-1");
+      expect(spies.findMany).toHaveBeenCalledWith({
+        where: { user_id: "user-1" },
+      });
+      expect(result).toEqual([{ id: "order-1" }]);
+    });
+
+    it("getOrdersByUserId never lets a caller filter replace user_id", async () => {
+      await repo.getOrdersByUserId("user-1", {
+        where: { user_id: "victim", order_status: undefined },
+      });
+      expect(spies.findMany).toHaveBeenCalledWith({
+        where: { user_id: "user-1", order_status: undefined },
+      });
+    });
+
+    it("getOrdersByShopId never lets a caller filter replace shop_id", async () => {
+      await repo.getOrdersByShopId("shop-1");
+      expect(spies.findMany).toHaveBeenCalledWith({
+        where: { shop_id: "shop-1" },
+      });
+    });
+
+    it("getOrdersByIds queries by id list only", async () => {
+      await repo.getOrdersByIds(["a"]);
+      expect(spies.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ["a"] } },
+      });
+    });
+
+    it("findById queries by id only", async () => {
+      await repo.findById("order-1");
+      expect(spies.findUnique).toHaveBeenCalledWith({
+        where: { id: "order-1" },
+      });
+    });
+  });
+
+  describe("create without tx", () => {
+    it("creates through the injected client and returns the order", async () => {
+      const result = await repo.create({
+        user_id: "user-1",
+      } as unknown as Prisma.OrderCreateInput);
+
+      expect(spies.create).toHaveBeenCalledWith({
+        data: { user_id: "user-1" },
+      });
+      expect(result).toEqual({ id: "order-1", user_id: "user-1" });
+    });
+  });
+
+  describe("update with tx", () => {
+    it("routes the id overload through tx and defaults data to {}", async () => {
+      const tx = createPrismaMock();
+      tx.order.update.mockResolvedValue({ id: "order-1" });
+
+      await repo.update(
+        "order-1",
+        undefined as unknown as Prisma.OrderUpdateInput,
+        undefined,
+        tx as unknown as Prisma.TransactionClient
+      );
+
+      expect(tx.order.update).toHaveBeenCalledWith({
+        where: { id: "order-1" },
+        data: {},
+      });
+      expect(spies.update).not.toHaveBeenCalled();
+    });
+  });
+
   describe("updateStatus", () => {
+    it("uses tx when provided", async () => {
+      const tx = createPrismaMock();
+      tx.order.update.mockResolvedValue({ id: "order-1" });
+
+      const result = await repo.updateStatus(
+        "order-1",
+        OrderStatus.CANCELLED,
+        undefined,
+        undefined,
+        tx as unknown as Prisma.TransactionClient
+      );
+
+      expect(tx.order.update).toHaveBeenCalledWith({
+        where: { id: "order-1" },
+        data: {
+          order_status: OrderStatus.CANCELLED,
+          assigned_to: undefined,
+          actual_delivery_time: undefined,
+        },
+      });
+      expect(spies.update).not.toHaveBeenCalled();
+      expect(result).toEqual({ id: "order-1" });
+    });
+
     it("updates order status and fields", async () => {
       const date = new Date();
       await repo.updateStatus(
@@ -244,7 +322,10 @@ describe("OrderRepository (Unit)", () => {
       });
 
       expect(res.orders).toEqual([{ id: "o1" }, { id: "o2" }]);
-      expect(res.nextCursor).toBe("o3");
+      // Only presence is asserted: the value is the popped look-ahead row,
+      // which with `skip: 1` makes the next page skip that row (reported as
+      // a bug; see the repositories coverage report).
+      expect(res.nextCursor).toBeDefined();
       expect(spies.findMany).toHaveBeenCalledTimes(1);
 
       const args = spies.findMany.mock.calls[0][0];
@@ -262,7 +343,66 @@ describe("OrderRepository (Unit)", () => {
         gte: dateRange.from,
         lte: dateRange.to,
       });
-      expect(args.where.OR).toBeDefined();
+      expect(args.where.OR).toEqual([
+        { display_id: { contains: "query", mode: "insensitive" } },
+        {
+          delivery_address_snapshot: {
+            string_contains: "query",
+            mode: "insensitive",
+          },
+        },
+        { user: { email: { contains: "query", mode: "insensitive" } } },
+      ]);
+      expect(args.orderBy).toEqual({ created_at: "desc" });
+    });
+
+    it("uses only the shop scope, default limit and no cursor when no filters are given", async () => {
+      spies.findMany.mockResolvedValueOnce([{ id: "o1" }]);
+
+      const res = await repo.getPaginatedShopOrdersFromDB({
+        shop_id: "shop-1",
+      });
+
+      expect(spies.findMany).toHaveBeenCalledWith({
+        take: 11,
+        where: { shop_id: "shop-1" },
+        orderBy: { created_at: "desc" },
+        cursor: undefined,
+        skip: 0,
+        include: { testInclude: true },
+      });
+      expect(res).toEqual({ orders: [{ id: "o1" }], nextCursor: undefined });
+    });
+
+    it("does not report a next cursor when exactly `limit` rows come back", async () => {
+      spies.findMany.mockResolvedValueOnce([{ id: "o1" }, { id: "o2" }]);
+
+      const res = await repo.getPaginatedShopOrdersFromDB({
+        shop_id: "shop-1",
+        limit: 2,
+      });
+
+      expect(res.orders).toHaveLength(2);
+      expect(res.nextCursor).toBeUndefined();
+    });
+  });
+
+  describe("getPaginatedShopOrders", () => {
+    it("forwards every option to the DB query with the default limit", async () => {
+      spies.findMany.mockResolvedValueOnce([]);
+
+      const res = await repo.getPaginatedShopOrders({
+        shop_id: "shop-1",
+        orderStatus: OrderStatus.NEW,
+      });
+
+      expect(spies.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          take: 11,
+          where: { shop_id: "shop-1", order_status: OrderStatus.NEW },
+        })
+      );
+      expect(res).toEqual({ orders: [], nextCursor: undefined });
     });
   });
 

@@ -1,102 +1,44 @@
+import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Prisma } from "@/generated/client";
-import type { prisma } from "@/lib/prisma";
 
 import { ProductRepository } from "./product.repository";
 
-function buildFakePrismaClient() {
-  const productFindFirst = vi.fn().mockResolvedValue(null);
-  const productFindUnique = vi.fn().mockResolvedValue(null);
-  const productFindMany = vi.fn().mockResolvedValue([]);
-  const productCreate = vi.fn().mockResolvedValue({ id: "prod-1" });
-  const productUpdate = vi.fn().mockResolvedValue({ id: "prod-1" });
-  const productDelete = vi.fn().mockResolvedValue({ id: "prod-1" });
-  const productCount = vi.fn().mockResolvedValue(0);
-
-  const stockWatchFindUnique = vi.fn().mockResolvedValue(null);
-  const stockWatchCreate = vi.fn().mockResolvedValue({ id: "sw-1" });
-  const stockWatchDelete = vi.fn().mockResolvedValue({ id: "sw-1" });
-  const stockWatchFindMany = vi.fn().mockResolvedValue([]);
-  const stockWatchDeleteMany = vi.fn().mockResolvedValue({ count: 1 });
-
-  const fakeClient = {
-    product: {
-      findFirst: productFindFirst,
-      findUnique: productFindUnique,
-      findMany: productFindMany,
-      create: productCreate,
-      update: productUpdate,
-      delete: productDelete,
-      count: productCount,
-    },
-    stockWatch: {
-      findUnique: stockWatchFindUnique,
-      create: stockWatchCreate,
-      delete: stockWatchDelete,
-      findMany: stockWatchFindMany,
-      deleteMany: stockWatchDeleteMany,
-    },
-  };
-
-  return {
-    fakeClient,
-    productFindFirst,
-    productFindUnique,
-    productFindMany,
-    productCreate,
-    productUpdate,
-    productDelete,
-    productCount,
-    stockWatchFindUnique,
-    stockWatchCreate,
-    stockWatchDelete,
-    stockWatchFindMany,
-    stockWatchDeleteMany,
-  };
-}
-
 describe("ProductRepository", () => {
+  let prisma: PrismaMock;
+  let repo: ProductRepository;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    prisma = createPrismaMock();
+    repo = new ProductRepository(asPrisma(prisma));
   });
 
   describe("findById", () => {
     it("calls findFirst with scope hardening", async () => {
-      const { fakeClient, productFindFirst } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findById("prod-1");
-      expect(productFindFirst).toHaveBeenCalledTimes(1);
-      expect(productFindFirst).toHaveBeenCalledWith({
+      expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findFirst).toHaveBeenCalledWith({
         where: { id: "prod-1", deleted_at: null },
       });
     });
 
     it("passes through include options AND enforces scope keys", async () => {
-      const { fakeClient, productFindFirst } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findById("prod-1", { include: { shop: true } });
-      expect(productFindFirst).toHaveBeenCalledTimes(1);
-      expect(productFindFirst).toHaveBeenCalledWith({
+      expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findFirst).toHaveBeenCalledWith({
         include: { shop: true },
         where: { id: "prod-1", deleted_at: null },
       });
     });
 
     it("overwrites caller deleted_at in where clause", async () => {
-      const { fakeClient, productFindFirst } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findById("prod-1", {
         where: { deleted_at: new Date() },
       } as unknown as Omit<Prisma.ProductFindFirstArgs, "where">);
-      expect(productFindFirst).toHaveBeenCalledTimes(1);
-      expect(productFindFirst).toHaveBeenCalledWith({
+      expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findFirst).toHaveBeenCalledWith({
         where: { id: "prod-1", deleted_at: null },
       });
     });
@@ -104,13 +46,9 @@ describe("ProductRepository", () => {
 
   describe("findUnique", () => {
     it("delegates directly", async () => {
-      const { fakeClient, productFindUnique } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findUnique({ where: { id: "prod-1" } });
-      expect(productFindUnique).toHaveBeenCalledTimes(1);
-      expect(productFindUnique).toHaveBeenCalledWith({
+      expect(prisma.product.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
         where: { id: "prod-1" },
       });
     });
@@ -118,13 +56,9 @@ describe("ProductRepository", () => {
 
   describe("findMany", () => {
     it("delegates directly", async () => {
-      const { fakeClient, productFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findMany({ where: { shop_id: "shop-1" } });
-      expect(productFindMany).toHaveBeenCalledTimes(1);
-      expect(productFindMany).toHaveBeenCalledWith({
+      expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findMany).toHaveBeenCalledWith({
         where: { shop_id: "shop-1" },
       });
     });
@@ -132,45 +66,33 @@ describe("ProductRepository", () => {
 
   describe("create", () => {
     it("delegates directly", async () => {
-      const { fakeClient, productCreate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       const data = {
         name: "test",
         shop_id: "shop-1",
       } as unknown as Prisma.ProductCreateInput;
       await repo.create({ data });
-      expect(productCreate).toHaveBeenCalledTimes(1);
-      expect(productCreate).toHaveBeenCalledWith({ data });
+      expect(prisma.product.create).toHaveBeenCalledTimes(1);
+      expect(prisma.product.create).toHaveBeenCalledWith({ data });
     });
   });
 
   describe("update", () => {
     it("string overload calls update with where id and data", async () => {
-      const { fakeClient, productUpdate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.update("prod-1", { name: "new name" });
-      expect(productUpdate).toHaveBeenCalledTimes(1);
-      expect(productUpdate).toHaveBeenCalledWith({
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: "prod-1" },
         data: { name: "new name" },
       });
     });
 
     it("string overload with options applies scope hardening", async () => {
-      const { fakeClient, productUpdate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.update("prod-1", { name: "new name" }, {
         include: { shop: true },
         where: { id: "other" },
       } as unknown as Omit<Prisma.ProductUpdateArgs, "where" | "data">);
-      expect(productUpdate).toHaveBeenCalledTimes(1);
-      expect(productUpdate).toHaveBeenCalledWith({
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
         include: { shop: true },
         where: { id: "prod-1" },
         data: { name: "new name" },
@@ -178,13 +100,9 @@ describe("ProductRepository", () => {
     });
 
     it("args overload delegates directly", async () => {
-      const { fakeClient, productUpdate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.update({ where: { id: "prod-1" }, data: { name: "test" } });
-      expect(productUpdate).toHaveBeenCalledTimes(1);
-      expect(productUpdate).toHaveBeenCalledWith({
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: "prod-1" },
         data: { name: "test" },
       });
@@ -193,26 +111,18 @@ describe("ProductRepository", () => {
 
   describe("delete", () => {
     it("string overload performs soft delete", async () => {
-      const { fakeClient, productUpdate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.delete("prod-1");
-      expect(productUpdate).toHaveBeenCalledTimes(1);
-      expect(productUpdate).toHaveBeenCalledWith({
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: "prod-1" },
         data: { deleted_at: expect.any(Date) },
       });
     });
 
     it("args overload performs soft delete", async () => {
-      const { fakeClient, productUpdate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.delete({ where: { id: "prod-1" } });
-      expect(productUpdate).toHaveBeenCalledTimes(1);
-      expect(productUpdate).toHaveBeenCalledWith({
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
         where: { id: "prod-1" },
         data: { deleted_at: expect.any(Date) },
       });
@@ -221,13 +131,9 @@ describe("ProductRepository", () => {
 
   describe("hardDelete", () => {
     it("calls product delete with id", async () => {
-      const { fakeClient, productDelete } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.hardDelete("prod-1");
-      expect(productDelete).toHaveBeenCalledTimes(1);
-      expect(productDelete).toHaveBeenCalledWith({
+      expect(prisma.product.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.product.delete).toHaveBeenCalledWith({
         where: { id: "prod-1" },
       });
     });
@@ -235,25 +141,17 @@ describe("ProductRepository", () => {
 
   describe("findManyByShopId", () => {
     it("calls findMany with scope hardening", async () => {
-      const { fakeClient, productFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findManyByShopId("shop-1");
-      expect(productFindMany).toHaveBeenCalledTimes(1);
-      expect(productFindMany).toHaveBeenCalledWith({
+      expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findMany).toHaveBeenCalledWith({
         where: { shop_id: "shop-1", deleted_at: null },
       });
     });
 
     it("overwrites caller shop_id in where clause", async () => {
-      const { fakeClient, productFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findManyByShopId("shop-1", { where: { shop_id: "other" } });
-      expect(productFindMany).toHaveBeenCalledTimes(1);
-      expect(productFindMany).toHaveBeenCalledWith({
+      expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.product.findMany).toHaveBeenCalledWith({
         where: { shop_id: "shop-1", deleted_at: null },
       });
     });
@@ -261,13 +159,9 @@ describe("ProductRepository", () => {
 
   describe("count", () => {
     it("delegates directly", async () => {
-      const { fakeClient, productCount } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.count({ where: { shop_id: "shop-1" } });
-      expect(productCount).toHaveBeenCalledTimes(1);
-      expect(productCount).toHaveBeenCalledWith({
+      expect(prisma.product.count).toHaveBeenCalledTimes(1);
+      expect(prisma.product.count).toHaveBeenCalledWith({
         where: { shop_id: "shop-1" },
       });
     });
@@ -275,13 +169,9 @@ describe("ProductRepository", () => {
 
   describe("findStockWatch", () => {
     it("calls findUnique with compound key", async () => {
-      const { fakeClient, stockWatchFindUnique } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.findStockWatch("user-1", "prod-1");
-      expect(stockWatchFindUnique).toHaveBeenCalledTimes(1);
-      expect(stockWatchFindUnique).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.findUnique).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.findUnique).toHaveBeenCalledWith({
         where: {
           user_id_product_id: { user_id: "user-1", product_id: "prod-1" },
         },
@@ -291,13 +181,9 @@ describe("ProductRepository", () => {
 
   describe("createStockWatch", () => {
     it("delegates directly", async () => {
-      const { fakeClient, stockWatchCreate } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.createStockWatch("user-1", "prod-1");
-      expect(stockWatchCreate).toHaveBeenCalledTimes(1);
-      expect(stockWatchCreate).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.create).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.create).toHaveBeenCalledWith({
         data: { user_id: "user-1", product_id: "prod-1" },
       });
     });
@@ -305,13 +191,9 @@ describe("ProductRepository", () => {
 
   describe("deleteStockWatch", () => {
     it("delegates directly", async () => {
-      const { fakeClient, stockWatchDelete } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.deleteStockWatch("sw-1");
-      expect(stockWatchDelete).toHaveBeenCalledTimes(1);
-      expect(stockWatchDelete).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.delete).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.delete).toHaveBeenCalledWith({
         where: { id: "sw-1" },
       });
     });
@@ -319,16 +201,12 @@ describe("ProductRepository", () => {
 
   describe("getStockWatches", () => {
     it("applies scope hardening on user_id", async () => {
-      const { fakeClient, stockWatchFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.getStockWatches("user-1", {
         include: { product: true },
         where: { user_id: "other" },
       } as unknown as Parameters<typeof repo.getStockWatches>[1]);
-      expect(stockWatchFindMany).toHaveBeenCalledTimes(1);
-      expect(stockWatchFindMany).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledWith({
         include: { product: true },
         where: { user_id: "user-1" },
       });
@@ -337,15 +215,11 @@ describe("ProductRepository", () => {
 
   describe("getStockWatchersByProductId", () => {
     it("applies scope hardening on product_id", async () => {
-      const { fakeClient, stockWatchFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.getStockWatchersByProductId("prod-1", {
         where: { product_id: "other" },
       } as unknown as Parameters<typeof repo.getStockWatchersByProductId>[1]);
-      expect(stockWatchFindMany).toHaveBeenCalledTimes(1);
-      expect(stockWatchFindMany).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledWith({
         where: { product_id: "prod-1" },
       });
     });
@@ -353,13 +227,9 @@ describe("ProductRepository", () => {
 
   describe("deleteStockWatchesByProductId", () => {
     it("delegates directly", async () => {
-      const { fakeClient, stockWatchDeleteMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.deleteStockWatchesByProductId("prod-1");
-      expect(stockWatchDeleteMany).toHaveBeenCalledTimes(1);
-      expect(stockWatchDeleteMany).toHaveBeenCalledWith({
+      expect(prisma.stockWatch.deleteMany).toHaveBeenCalledTimes(1);
+      expect(prisma.stockWatch.deleteMany).toHaveBeenCalledWith({
         where: { product_id: "prod-1" },
       });
     });
@@ -367,13 +237,9 @@ describe("ProductRepository", () => {
 
   describe("searchProducts", () => {
     it("trims search term and constructs correct query", async () => {
-      const { fakeClient, productFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.searchProducts("  term  ", 5);
-      expect(productFindMany).toHaveBeenCalledTimes(1);
-      const args = productFindMany.mock.calls[0][0];
+      expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+      const args = prisma.product.findMany.mock.calls[0][0];
 
       expect(args.take).toBe(5);
       expect(args.where.deleted_at).toBeNull();
@@ -394,17 +260,86 @@ describe("ProductRepository", () => {
     });
 
     it("handles empty search term by excluding OR clause", async () => {
-      const { fakeClient, productFindMany } = buildFakePrismaClient();
-      const repo = new ProductRepository(
-        fakeClient as unknown as typeof prisma
-      );
       await repo.searchProducts("   ");
-      expect(productFindMany).toHaveBeenCalledTimes(1);
-      const args = productFindMany.mock.calls[0][0];
+      expect(prisma.product.findMany).toHaveBeenCalledTimes(1);
+      const args = prisma.product.findMany.mock.calls[0][0];
 
       expect(args.where.deleted_at).toBeNull();
       expect(args.where.shop).toEqual({ is_active: true, deleted_at: null });
       expect(args.where.OR).toBeUndefined();
+    });
+  });
+
+  describe("scope hardening edge cases", () => {
+    it("findById returns what findFirst resolves", async () => {
+      prisma.product.findFirst.mockResolvedValueOnce({ id: "prod-1" });
+      await expect(repo.findById("prod-1")).resolves.toEqual({ id: "prod-1" });
+    });
+
+    it("hardDelete keeps extra args but forces the product id", async () => {
+      await repo.hardDelete("prod-1", {
+        select: { id: true },
+        where: { id: "other" },
+      } as unknown as Parameters<typeof repo.hardDelete>[1]);
+      expect(prisma.product.delete).toHaveBeenCalledWith({
+        select: { id: true },
+        where: { id: "prod-1" },
+      });
+    });
+
+    it("findManyByShopId ANDs caller filters and keeps take/orderBy", async () => {
+      await repo.findManyByShopId("shop-1", {
+        where: { name: "x", deleted_at: { not: null } },
+        take: 3,
+        orderBy: { name: "asc" },
+      });
+      expect(prisma.product.findMany).toHaveBeenCalledWith({
+        take: 3,
+        orderBy: { name: "asc" },
+        where: { name: "x", shop_id: "shop-1", deleted_at: null },
+      });
+    });
+
+    it("update(id) without data sends an empty data object", async () => {
+      await repo.update(
+        "prod-1",
+        undefined as unknown as Prisma.ProductUpdateInput
+      );
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: "prod-1" },
+        data: {},
+      });
+    });
+
+    it("getStockWatches queries by user only without options", async () => {
+      await repo.getStockWatches("user-1");
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledWith({
+        where: { user_id: "user-1" },
+      });
+    });
+
+    it("getStockWatchersByProductId queries by product only without options", async () => {
+      await repo.getStockWatchersByProductId("prod-1");
+      expect(prisma.stockWatch.findMany).toHaveBeenCalledWith({
+        where: { product_id: "prod-1" },
+      });
+    });
+  });
+
+  describe("searchProducts shape", () => {
+    it("selects shop id/name, sorts by name and defaults to 10 results", async () => {
+      const rows = [{ id: "p1", shop: { id: "s1", name: "Shop" } }];
+      prisma.product.findMany.mockResolvedValueOnce(rows);
+
+      const result = await repo.searchProducts("tea");
+
+      const args = prisma.product.findMany.mock.calls[0][0];
+      expect(args.include).toEqual({
+        shop: { select: { id: true, name: true } },
+      });
+      expect(args.orderBy).toEqual({ name: "asc" });
+      expect(args.take).toBe(10);
+      expect(result).toBe(rows);
     });
   });
 });
