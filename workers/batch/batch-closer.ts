@@ -1,4 +1,5 @@
 import { Queue, Worker } from "bullmq";
+import type { Logger } from "pino";
 
 import { batchService } from "../di/container.js";
 import { loggers } from "../lib/logger.js";
@@ -19,20 +20,29 @@ export async function closeBatchCloserQueues(): Promise<void> {
   await batchCloserQueue.close();
 }
 
-export async function runBatchCloserLogic(): Promise<void> {
+/** Never throws: a failed tick is logged and retried on the next schedule. */
+export async function runBatchCloserLogic(
+  service: Pick<typeof batchService, "autoCloseExpiredBatches"> = batchService,
+  log: Logger = logger
+): Promise<void> {
   try {
-    await batchService.autoCloseExpiredBatches();
+    await service.autoCloseExpiredBatches();
   } catch (error) {
-    logger.error({ err: error }, "🔥 Error in Batch Closer main loop");
+    log.error({ err: error }, "🔥 Error in Batch Closer main loop");
   }
+}
+
+export async function processBatchCloserJob(
+  service: Pick<typeof batchService, "autoCloseExpiredBatches"> = batchService,
+  log: Logger = logger
+): Promise<void> {
+  log.info("Executing batch closer job...");
+  await runBatchCloserLogic(service, log);
 }
 
 export const batchCloserWorker = new Worker(
   BATCH_CLOSER_QUEUE_NAME,
-  async (_job) => {
-    logger.info("Executing batch closer job...");
-    await runBatchCloserLogic();
-  },
+  async () => processBatchCloserJob(),
   { connection: redisConnection }
 );
 

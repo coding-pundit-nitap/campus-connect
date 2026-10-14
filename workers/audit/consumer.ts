@@ -1,4 +1,5 @@
 import { Job, Worker } from "bullmq";
+import type { Logger } from "pino";
 
 import { Prisma } from "../generated/client/index.js";
 import { loggers } from "../lib/logger.js";
@@ -8,14 +9,24 @@ import { AUDIT_QUEUE_NAME, AuditJobData } from "./types.js";
 
 const logger = loggers.audit;
 
-const workHandler = async (job: Job<AuditJobData>) => {
-  logger.debug(
+export interface AuditDeps {
+  prisma: Pick<typeof prisma, "adminAuditLog">;
+  logger: Logger;
+}
+
+const defaultDeps: AuditDeps = { prisma, logger };
+
+export async function processAuditJob(
+  job: Pick<Job<AuditJobData>, "id" | "data">,
+  deps: AuditDeps = defaultDeps
+): Promise<void> {
+  deps.logger.debug(
     { jobId: job.id, action: job.data.action },
     "Processing audit log job"
   );
 
   try {
-    await prisma.adminAuditLog.create({
+    await deps.prisma.adminAuditLog.create({
       data: {
         admin_id: job.data.admin_id,
         action: job.data.action,
@@ -27,7 +38,7 @@ const workHandler = async (job: Job<AuditJobData>) => {
       },
     });
 
-    logger.info(
+    deps.logger.info(
       {
         jobId: job.id,
         adminId: job.data.admin_id,
@@ -37,14 +48,17 @@ const workHandler = async (job: Job<AuditJobData>) => {
       "Audit log created"
     );
   } catch (error) {
-    logger.error({ err: error, jobId: job.id }, "Failed to create audit log");
+    deps.logger.error(
+      { err: error, jobId: job.id },
+      "Failed to create audit log"
+    );
     throw error;
   }
-};
+}
 
 export const auditWorker = new Worker<AuditJobData>(
   AUDIT_QUEUE_NAME,
-  workHandler,
+  (job) => processAuditJob(job),
   {
     connection: redisConnection,
     concurrency: 5,

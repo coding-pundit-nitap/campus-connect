@@ -1,23 +1,12 @@
 import { Queue } from "bullmq";
 
-import { Prisma } from "../../generated/client/index.js";
+import {
+  NOTIFICATION_QUEUE_NAME,
+  type NotificationJobData,
+} from "../../notification/types.js";
 import { redisConnection } from "../redis-connection.js";
 
-export const NOTIFICATION_QUEUE_NAME = "notification-queue";
-
-export interface NotificationJobData {
-  type: "SEND_NOTIFICATION" | "BROADCAST_NOTIFICATION";
-  payload:
-    | {
-        type: "SEND_NOTIFICATION";
-        user_id: string;
-        data: Prisma.NotificationCreateWithoutUserInput;
-      }
-    | {
-        type: "BROADCAST_NOTIFICATION";
-        data: Prisma.BroadcastNotificationCreateInput;
-      };
-}
+export { NOTIFICATION_QUEUE_NAME, type NotificationJobData };
 
 export const notificationQueue = new Queue<NotificationJobData>(
   NOTIFICATION_QUEUE_NAME,

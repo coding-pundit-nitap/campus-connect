@@ -14,7 +14,9 @@ import {
 
 export const logger = loggers.worker;
 
-const gracefulShutdown = async (signal: string) => {
+export const BATCH_CLOSER_SCHEDULER_ID = "batch-closer-job";
+
+export const gracefulShutdown = async (signal: string) => {
   logger.info({ signal }, "Received shutdown signal, closing workers...");
   await Promise.all([
     notificationWorker.close(),
@@ -29,34 +31,43 @@ const gracefulShutdown = async (signal: string) => {
   process.exit(0);
 };
 
-process.on("SIGINT", () => gracefulShutdown("SIGINT"));
-process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
-
-async function main() {
-  try {
-    const schedulers = await batchCloserQueue.getJobSchedulers();
-    for (const scheduler of schedulers) {
-      if (scheduler.id) {
-        await batchCloserQueue.removeJobScheduler(scheduler.id);
-      }
+/** Drops any stale schedulers, then (re)registers the per-minute batch closer. */
+export async function syncBatchCloserSchedule(
+  queue: Pick<
+    typeof batchCloserQueue,
+    "getJobSchedulers" | "removeJobScheduler" | "upsertJobScheduler"
+  > = batchCloserQueue
+): Promise<void> {
+  const schedulers = await queue.getJobSchedulers();
+  for (const scheduler of schedulers) {
+    if (scheduler.id) {
+      await queue.removeJobScheduler(scheduler.id);
     }
+  }
 
-    await batchCloserQueue.upsertJobScheduler(
-      "batch-closer-job",
-      { pattern: "* * * * *" },
-      {
-        opts: {
-          removeOnComplete: true,
-          removeOnFail: 100,
-        },
-      }
-    );
+  await queue.upsertJobScheduler(
+    BATCH_CLOSER_SCHEDULER_ID,
+    { pattern: "* * * * *" },
+    {
+      opts: {
+        removeOnComplete: true,
+        removeOnFail: 100,
+      },
+    }
+  );
+}
 
+export async function main() {
+  try {
+    await syncBatchCloserSchedule();
     logger.info("🚀 Worker Service Initialized");
   } catch (error) {
     logger.error({ err: error }, "Failed to initialize worker service");
     process.exit(1);
   }
 }
+
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 
 main();
