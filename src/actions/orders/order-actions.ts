@@ -1,16 +1,25 @@
 "use server";
+import {
+  AUTH_ERRORS,
+  notifyUserSafely,
+  publishBatchRowProgress,
+  requireOwnedShopId,
+  requireUserId,
+  runAction,
+} from "@/actions/_shared/action-helpers";
+import {
+  orderStatusNotification,
+  paymentStatusForTransition,
+} from "@/actions/orders/order-status";
 import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
 import {
   batchRepository,
-  notificationService,
   orderRepository,
   orderService,
   shopRepository,
 } from "@/di/container";
 import { OrderStatus, PaymentMethod } from "@/generated/client";
-import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
-  InternalServerError,
   NotFoundError,
   UnauthenticatedError,
   UnauthorizedError,
@@ -25,7 +34,7 @@ import {
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
 import { getOrderUrl } from "@/lib/utils/url.utils";
-import { SerializedOrder, SerializedOrderWithDetails } from "@/types";
+import { SerializedOrderWithDetails } from "@/types";
 import {
   ActionResponse,
   createErrorResponse,
@@ -35,43 +44,46 @@ import {
 import { validateDeliveryTime } from "@/validations/order.validation";
 const log = createLogger("order-actions");
 
+const STATUS_ERRORS = [ValidationError, ...AUTH_ERRORS];
+const LOOKUP_ERRORS = [NotFoundError, ...AUTH_ERRORS];
+
+function allowedTransitions(from: string): readonly string[] {
+  return (
+    VALID_ORDER_TRANSITIONS[from as keyof typeof VALID_ORDER_TRANSITIONS] || []
+  );
+}
+
 export async function getOrdersAction(options: {
   page?: number;
   limit?: number;
 }): Promise<ActionResponse<PaginatedResponse<SerializedOrderWithDetails>>> {
-  try {
-    const userId = await authUtils.getUserId();
-    if (!userId) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
-    }
-    const queryOptions = {
-      page: options.page || 1,
-      limit: options.limit || 10,
-    };
+  return runAction(
+    log,
+    {
+      label: "GET ORDERS ERROR:",
+      fallback: "Failed to retrieve orders.",
+      passthrough: AUTH_ERRORS,
+    },
+    async () => {
+      const userId = await requireUserId();
+      const { orders, total_pages, currentPage } = await orderService.getOrders(
+        {
+          page: options.page || 1,
+          limit: options.limit || 10,
+          userId,
+        }
+      );
 
-    const { orders, total_pages, currentPage } = await orderService.getOrders({
-      ...queryOptions,
-      userId,
-    });
-
-    return createSuccessResponse(
-      {
-        data: orders.map(serializeOrderWithDetails),
-        total_pages,
-        currentPage,
-      },
-      "Orders retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET ORDERS ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        {
+          data: orders.map(serializeOrderWithDetails),
+          total_pages,
+          currentPage,
+        },
+        "Orders retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve orders.");
-  }
+  );
 }
 
 export async function createOrderAction({
@@ -175,308 +187,238 @@ export async function updateOrderStatusAction({
   order_id: string;
   status: OrderStatus;
 }) {
-  try {
-    const shop_id = await authUtils.getOwnedShopId();
+  return runAction(
+    log,
+    {
+      label: "UPDATE ORDER STATUS ERROR:",
+      fallback: "Failed to update order status.",
+      passthrough: STATUS_ERRORS,
+    },
+    async () => {
+      const shop_id = await authUtils.getOwnedShopId();
 
-    const order = await orderRepository.getOrderById(order_id, {
-      select: {
-        shop_id: true,
-        user_id: true,
-        display_id: true,
-        order_status: true,
-        payment_method: true,
-        batch_id: true,
-        item_total: true,
-      },
-    });
-    if (!order || order.shop_id !== shop_id) {
-      throw new UnauthorizedError(
-        "Unauthorized: Order does not belong to your shop."
-      );
-    }
-
-    const allowedStatuses =
-      VALID_ORDER_TRANSITIONS[
-        order.order_status as keyof typeof VALID_ORDER_TRANSITIONS
-      ] || [];
-    if (!allowedStatuses.includes(status as never)) {
-      throw new ValidationError(
-        `Invalid status transition from ${order.order_status} to ${status}`
-      );
-    }
-
-    const paymentStatus =
-      status === "COMPLETED"
-        ? order.payment_method === "CASH"
-          ? "COMPLETED"
-          : undefined
-        : status === "CANCELLED"
-          ? order.payment_method === "ONLINE"
-            ? "REFUNDED"
-            : "CANCELLED"
-          : undefined;
-
-    const wasAlreadyCancelled = order.order_status === "CANCELLED";
-
-    const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
-      async (tx) => {
-        const result = await tx.order.update({
-          where: { id: order_id },
-          data: {
-            order_status: status,
-            payment_status: paymentStatus,
-            actual_delivery_time:
-              status === "COMPLETED" ? new Date() : undefined,
-          },
-        });
-        const updatedBatch =
-          status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id
-            ? await batchRepository.adjustCollectiveTotal(
-                order.batch_id,
-                -Number(order.item_total),
-                tx
-              )
-            : null;
-        return { result, updatedBatch };
-      }
-    );
-
-    if (updatedBatch) {
-      await publishBatchProgress({
-        batchId: updatedBatch.id,
-        shopId: updatedBatch.shop_id,
-        status: updatedBatch.status,
-        collectiveTotal: Number(updatedBatch.collective_total),
-        minRequired:
-          updatedBatch.min_order_value_snapshot !== null
-            ? Number(updatedBatch.min_order_value_snapshot)
-            : null,
+      const order = await orderRepository.getOrderById(order_id, {
+        select: {
+          shop_id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_method: true,
+          batch_id: true,
+          item_total: true,
+        },
       });
-    }
-
-    if (order.user_id) {
-      try {
-        let title = "Order Status Updated";
-        let message = `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`;
-        let type: "INFO" | "SUCCESS" | "ERROR" | "WARNING" = "INFO";
-
-        if (status === "COMPLETED") {
-          title = "🎉 Order Delivered!";
-          message = `Your order ${order.display_id} was successfully delivered. Thank you!`;
-          type = "SUCCESS";
-        } else if (status === "CANCELLED") {
-          title = "❌ Order Cancelled";
-          message = `Your order ${order.display_id} has been cancelled.`;
-          type = "ERROR";
-        } else if (status === "OUT_FOR_DELIVERY") {
-          title = "🚀 Order Out for Delivery!";
-          message = `Your order ${order.display_id} is out for delivery.`;
-          type = "SUCCESS";
-        }
-
-        await notificationService.publishNotification(order.user_id, {
-          title,
-          message,
-          action_url: getOrderUrl(order_id),
-          type,
-          category: "ORDER",
-        });
-      } catch (error) {
-        log.error({ err: error }, "Notification Error:");
+      if (!order || order.shop_id !== shop_id) {
+        throw new UnauthorizedError(
+          "Unauthorized: Order does not belong to your shop."
+        );
       }
-    }
 
-    return createSuccessResponse(
-      { ...updatedOrder, total_price: Number(updatedOrder.total_price) },
-      `Order status updated to ${status}`
-    );
-  } catch (error) {
-    log.error({ err: error }, "UPDATE ORDER STATUS ERROR:");
-    if (
-      error instanceof ValidationError ||
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      if (!allowedTransitions(order.order_status).includes(status)) {
+        throw new ValidationError(
+          `Invalid status transition from ${order.order_status} to ${status}`
+        );
+      }
+
+      const paymentStatus = paymentStatusForTransition(
+        status,
+        order.payment_method
+      );
+      const wasAlreadyCancelled = order.order_status === "CANCELLED";
+
+      const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
+        async (tx) => {
+          const result = await tx.order.update({
+            where: { id: order_id },
+            data: {
+              order_status: status,
+              payment_status: paymentStatus,
+              actual_delivery_time:
+                status === "COMPLETED" ? new Date() : undefined,
+            },
+          });
+          const updatedBatch =
+            status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id
+              ? await batchRepository.adjustCollectiveTotal(
+                  order.batch_id,
+                  -Number(order.item_total),
+                  tx
+                )
+              : null;
+          return { result, updatedBatch };
+        }
+      );
+
+      await publishBatchRowProgress(updatedBatch);
+
+      await notifyUserSafely(
+        log,
+        order.user_id,
+        {
+          ...orderStatusNotification(status, order.display_id),
+          action_url: getOrderUrl(order_id),
+          category: "ORDER",
+        },
+        "Notification Error:"
+      );
+
+      return createSuccessResponse(
+        { ...updatedOrder, total_price: Number(updatedOrder.total_price) },
+        `Order status updated to ${status}`
+      );
     }
-    throw new InternalServerError("Failed to update order status.");
-  }
+  );
 }
 
 export async function getOrderByIdAction(
   order_id: string
 ): Promise<ActionResponse<SerializedOrderWithDetails>> {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
-    }
+  return runAction(
+    log,
+    {
+      label: "GET ORDER BY ID ERROR:",
+      fallback: "Failed to retrieve order details.",
+      passthrough: LOOKUP_ERRORS,
+    },
+    async () => {
+      const user_id = await requireUserId();
 
-    const order = await orderRepository.getOrderById(order_id, {
-      include: orderWithDetailsInclude,
-    });
+      const order = await orderRepository.getOrderById(order_id, {
+        include: orderWithDetailsInclude,
+      });
 
-    // A missing order and an order that exists but belongs to someone
-    // else are deliberately indistinguishable here - a separate branch
-    // per case would let the response act as an existence oracle for
-    // orders the caller doesn't own.
-    if (!order || order.user_id !== user_id) {
-      throw new NotFoundError("Order not found.");
-    }
+      // A missing order and an order that exists but belongs to someone
+      // else are deliberately indistinguishable here - a separate branch
+      // per case would let the response act as an existence oracle for
+      // orders the caller doesn't own.
+      if (!order || order.user_id !== user_id) {
+        throw new NotFoundError("Order not found.");
+      }
 
-    return createSuccessResponse(
-      serializeOrderWithDetails(order),
-      "Order details retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET ORDER BY ID ERROR:");
-    if (
-      error instanceof NotFoundError ||
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        serializeOrderWithDetails(order),
+        "Order details retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve order details.");
-  }
+  );
 }
 
 export async function cancelOrderAction(
   order_id: string
 ): Promise<ActionResponse<null>> {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
-    }
+  return runAction(
+    log,
+    {
+      label: "CANCEL ORDER ERROR:",
+      fallback: "Failed to cancel order.",
+      passthrough: STATUS_ERRORS,
+    },
+    async () => {
+      const user_id = await requireUserId();
 
-    const order = await orderRepository.getOrderById(order_id, {
-      select: {
-        id: true,
-        user_id: true,
-        display_id: true,
-        order_status: true,
-        payment_status: true,
-        batch_id: true,
-        item_total: true,
-      },
-    });
+      const order = await orderRepository.getOrderById(order_id, {
+        select: {
+          id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_status: true,
+          batch_id: true,
+          item_total: true,
+        },
+      });
 
-    // A missing order and an order that exists but belongs to someone
-    // else are deliberately indistinguishable here - a separate branch
-    // per case would let the response act as an existence oracle for
-    // orders the caller doesn't own. Matches the single-branch pattern
-    // updateOrderStatusAction already uses.
-    if (!order || order.user_id !== user_id) {
-      throw new UnauthorizedError(
-        "Unauthorized: This order doesn't belong to you."
-      );
-    }
-
-    if (order.order_status !== "NEW") {
-      throw new ValidationError(
-        "Only orders with status NEW can be cancelled."
-      );
-    }
-
-    if (order.payment_status === "COMPLETED") {
-      throw new ValidationError(
-        "Cannot cancel an order with completed payment. Please contact support."
-      );
-    }
-
-    const updatedBatchAfterCancel = await prisma.$transaction(async (tx) => {
-      await orderRepository.updateStatus(
-        order_id,
-        OrderStatus.CANCELLED,
-        undefined,
-        undefined,
-        tx
-      );
-      if (order.batch_id) {
-        return batchRepository.adjustCollectiveTotal(
-          order.batch_id,
-          -Number(order.item_total),
-          tx
+      // A missing order and an order that exists but belongs to someone
+      // else are deliberately indistinguishable here - a separate branch
+      // per case would let the response act as an existence oracle for
+      // orders the caller doesn't own. Matches the single-branch pattern
+      // updateOrderStatusAction already uses.
+      if (!order || order.user_id !== user_id) {
+        throw new UnauthorizedError(
+          "Unauthorized: This order doesn't belong to you."
         );
       }
-      return null;
-    });
 
-    if (updatedBatchAfterCancel) {
-      await publishBatchProgress({
-        batchId: updatedBatchAfterCancel.id,
-        shopId: updatedBatchAfterCancel.shop_id,
-        status: updatedBatchAfterCancel.status,
-        collectiveTotal: Number(updatedBatchAfterCancel.collective_total),
-        minRequired:
-          updatedBatchAfterCancel.min_order_value_snapshot !== null
-            ? Number(updatedBatchAfterCancel.min_order_value_snapshot)
-            : null,
+      if (order.order_status !== "NEW") {
+        throw new ValidationError(
+          "Only orders with status NEW can be cancelled."
+        );
+      }
+
+      if (order.payment_status === "COMPLETED") {
+        throw new ValidationError(
+          "Cannot cancel an order with completed payment. Please contact support."
+        );
+      }
+
+      const updatedBatch = await prisma.$transaction(async (tx) => {
+        await orderRepository.updateStatus(
+          order_id,
+          OrderStatus.CANCELLED,
+          undefined,
+          undefined,
+          tx
+        );
+        if (order.batch_id) {
+          return batchRepository.adjustCollectiveTotal(
+            order.batch_id,
+            -Number(order.item_total),
+            tx
+          );
+        }
+        return null;
       });
-    }
 
-    try {
-      await notificationService.publishNotification(user_id, {
-        title: "Order Cancelled",
-        message: `Your order ${order.display_id} has been cancelled.`,
-        action_url: getOrderUrl(order_id),
-        type: "WARNING",
-      });
-    } catch (error) {
-      log.error({ err: error }, "Notification Error:");
-    }
+      await publishBatchRowProgress(updatedBatch);
 
-    return createSuccessResponse(null, "Order cancelled successfully.");
-  } catch (error) {
-    if (
-      error instanceof ValidationError ||
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      await notifyUserSafely(
+        log,
+        user_id,
+        {
+          title: "Order Cancelled",
+          message: `Your order ${order.display_id} has been cancelled.`,
+          action_url: getOrderUrl(order_id),
+          type: "WARNING",
+        },
+        "Notification Error:"
+      );
+
+      return createSuccessResponse(null, "Order cancelled successfully.");
     }
-    log.error({ err: error }, "CANCEL ORDER ERROR:");
-    throw new InternalServerError("Failed to cancel order.");
-  }
+  );
 }
 
 export async function getShopOrderByIdAction(
   order_id: string
 ): Promise<ActionResponse<SerializedOrderWithDetails>> {
-  try {
-    const shop_id = await authUtils.getOwnedShopId();
-    if (!shop_id) {
-      throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-    }
+  return runAction(
+    log,
+    {
+      label: "GET SHOP ORDER BY ID ERROR:",
+      fallback: "Failed to retrieve order details.",
+      passthrough: LOOKUP_ERRORS,
+    },
+    async () => {
+      const shop_id = await requireOwnedShopId();
 
-    const order = await orderRepository.getOrderById(order_id, {
-      include: orderWithDetailsInclude,
-    });
+      const order = await orderRepository.getOrderById(order_id, {
+        include: orderWithDetailsInclude,
+      });
 
-    // A missing order and an order that exists but belongs to a
-    // different shop are deliberately indistinguishable here - a
-    // separate branch per case would let the response act as an
-    // existence oracle for orders the caller's shop doesn't own.
-    if (!order || order.shop_id !== shop_id) {
-      throw new NotFoundError("Order not found.");
-    }
+      // A missing order and an order that exists but belongs to a
+      // different shop are deliberately indistinguishable here - a
+      // separate branch per case would let the response act as an
+      // existence oracle for orders the caller's shop doesn't own.
+      if (!order || order.shop_id !== shop_id) {
+        throw new NotFoundError("Order not found.");
+      }
 
-    return createSuccessResponse(
-      serializeOrderWithDetails(order),
-      "Order details retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET SHOP ORDER BY ID ERROR:");
-    if (
-      error instanceof NotFoundError ||
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        serializeOrderWithDetails(order),
+        "Order details retrieved successfully"
+      );
     }
-    throw new InternalServerError("Failed to retrieve order details.");
-  }
+  );
 }
 
 export async function batchUpdateOrderStatusAction({
@@ -486,99 +428,86 @@ export async function batchUpdateOrderStatusAction({
   orderIds: string[];
   status: OrderStatus;
 }) {
-  try {
-    const shop_id = await authUtils.getOwnedShopId();
-    if (!shop_id) {
-      throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-    }
+  return runAction(
+    log,
+    {
+      label: "BATCH UPDATE ORDER STATUS ERROR:",
+      fallback: "Failed to update order statuses.",
+      passthrough: STATUS_ERRORS,
+    },
+    async () => {
+      const shop_id = await requireOwnedShopId();
 
-    const orders = await orderRepository.getOrdersByIds(orderIds, {
-      select: {
-        id: true,
-        shop_id: true,
-        user_id: true,
-        display_id: true,
-        order_status: true,
-        payment_method: true,
-        batch_id: true,
-        item_total: true,
-      },
-    });
+      const orders = await orderRepository.getOrdersByIds(orderIds, {
+        select: {
+          id: true,
+          shop_id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_method: true,
+          batch_id: true,
+          item_total: true,
+        },
+      });
 
-    const invalidTransitions: string[] = [];
-    for (const order of orders) {
-      if (order.shop_id !== shop_id) {
-        throw new UnauthorizedError(
-          "Unauthorized: One or more orders do not belong to your shop."
+      const invalidTransitions: string[] = [];
+      for (const order of orders) {
+        if (order.shop_id !== shop_id) {
+          throw new UnauthorizedError(
+            "Unauthorized: One or more orders do not belong to your shop."
+          );
+        }
+
+        if (order.order_status === status) {
+          continue;
+        }
+
+        if (!allowedTransitions(order.order_status).includes(status)) {
+          invalidTransitions.push(
+            `${order.display_id}: ${order.order_status} → ${status}`
+          );
+        }
+      }
+
+      if (invalidTransitions.length > 0) {
+        throw new ValidationError(
+          `Invalid status transitions: ${invalidTransitions.join(", ")}`
         );
       }
 
-      if (order.order_status === status) {
-        continue;
-      }
+      const ordersToUpdate = orders.filter((o) => o.order_status !== status);
+      const batchedOrders =
+        status === "CANCELLED" ? ordersToUpdate.filter((o) => o.batch_id) : [];
 
-      const allowedStatuses =
-        VALID_ORDER_TRANSITIONS[
-          order.order_status as keyof typeof VALID_ORDER_TRANSITIONS
-        ] || [];
-      if (!allowedStatuses.includes(status as never)) {
-        invalidTransitions.push(
-          `${order.display_id}: ${order.order_status} → ${status}`
-        );
-      }
-    }
-
-    if (invalidTransitions.length > 0) {
-      throw new ValidationError(
-        `Invalid status transitions: ${invalidTransitions.join(", ")}`
-      );
-    }
-
-    const ordersToUpdate = orders.filter((o) => o.order_status !== status);
-
-    if (ordersToUpdate.length > 0) {
-      await prisma.$transaction([
-        ...ordersToUpdate.map((o) => {
-          const paymentStatus =
-            status === "COMPLETED"
-              ? o.payment_method === "CASH"
-                ? "COMPLETED"
-                : undefined
-              : status === "CANCELLED"
-                ? o.payment_method === "ONLINE"
-                  ? "REFUNDED"
-                  : "CANCELLED"
-                : undefined;
-
-          return prisma.order.update({
-            where: { id: o.id },
-            data: {
-              order_status: status,
-              payment_status: paymentStatus,
-              actual_delivery_time:
-                status === "COMPLETED" ? new Date() : undefined,
-            },
-          });
-        }),
-        ...(status === "CANCELLED"
-          ? ordersToUpdate
-              .filter((o) => o.batch_id)
-              .map((o) =>
-                prisma.batch.update({
-                  where: { id: o.batch_id! },
-                  data: {
-                    collective_total: { decrement: Number(o.item_total) },
-                  },
-                })
-              )
-          : []),
-      ]);
-
-      if (status === "CANCELLED") {
-        const affectedBatchIds = [
-          ...new Set(
-            ordersToUpdate.filter((o) => o.batch_id).map((o) => o.batch_id!)
+      if (ordersToUpdate.length > 0) {
+        await prisma.$transaction([
+          ...ordersToUpdate.map((o) =>
+            prisma.order.update({
+              where: { id: o.id },
+              data: {
+                order_status: status,
+                payment_status: paymentStatusForTransition(
+                  status,
+                  o.payment_method
+                ),
+                actual_delivery_time:
+                  status === "COMPLETED" ? new Date() : undefined,
+              },
+            })
           ),
+          ...batchedOrders.map((o) =>
+            prisma.batch.update({
+              where: { id: o.batch_id! },
+              data: {
+                collective_total: { decrement: Number(o.item_total) },
+              },
+            })
+          ),
+        ]);
+
+        const affectedBatchIds = [
+          ...new Set(batchedOrders.map((o) => o.batch_id!)),
         ];
         if (affectedBatchIds.length > 0) {
           const freshBatches = await prisma.batch.findMany({
@@ -591,69 +520,29 @@ export async function batchUpdateOrderStatusAction({
               min_order_value_snapshot: true,
             },
           });
-          await Promise.all(
-            freshBatches.map((b) =>
-              publishBatchProgress({
-                batchId: b.id,
-                shopId: b.shop_id,
-                status: b.status,
-                collectiveTotal: Number(b.collective_total),
-                minRequired:
-                  b.min_order_value_snapshot !== null
-                    ? Number(b.min_order_value_snapshot)
-                    : null,
-              })
-            )
-          );
+          await Promise.all(freshBatches.map(publishBatchRowProgress));
         }
       }
+
+      await Promise.all(
+        ordersToUpdate.map((order) =>
+          notifyUserSafely(
+            log,
+            order.user_id,
+            {
+              ...orderStatusNotification(status, order.display_id),
+              action_url: getOrderUrl(order.id),
+              category: "ORDER",
+            },
+            "Notification Error:"
+          )
+        )
+      );
+
+      return createSuccessResponse(
+        null,
+        `Successfully updated ${ordersToUpdate.length} orders to ${status}`
+      );
     }
-
-    await Promise.allSettled(
-      ordersToUpdate.map((order) => {
-        if (!order.user_id) return Promise.resolve();
-
-        let title = "Order Status Updated";
-        let message = `Your order with ID: ${order.display_id} has been updated to ${status.replaceAll("_", " ")}`;
-        let type: "INFO" | "SUCCESS" | "ERROR" | "WARNING" = "INFO";
-
-        if (status === "COMPLETED") {
-          title = "🎉 Order Delivered!";
-          message = `Your order ${order.display_id} was successfully delivered. Thank you!`;
-          type = "SUCCESS";
-        } else if (status === "CANCELLED") {
-          title = "❌ Order Cancelled";
-          message = `Your order ${order.display_id} has been cancelled.`;
-          type = "ERROR";
-        } else if (status === "OUT_FOR_DELIVERY") {
-          title = "🚀 Order Out for Delivery!";
-          message = `Your order ${order.display_id} is out for delivery.`;
-          type = "SUCCESS";
-        }
-
-        return notificationService.publishNotification(order.user_id, {
-          title,
-          message,
-          action_url: getOrderUrl(order.id),
-          type,
-          category: "ORDER",
-        });
-      })
-    );
-
-    return createSuccessResponse(
-      null,
-      `Successfully updated ${ordersToUpdate.length} orders to ${status}`
-    );
-  } catch (error) {
-    log.error({ err: error }, "BATCH UPDATE ORDER STATUS ERROR:");
-    if (
-      error instanceof ValidationError ||
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to update order statuses.");
-  }
+  );
 }

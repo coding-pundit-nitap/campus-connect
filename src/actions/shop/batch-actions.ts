@@ -1,192 +1,165 @@
 "use server";
 
-import { batchRepository, batchService, shopRepository } from "@/di/container";
+import {
+  requireVendorShopId,
+  runAction,
+} from "@/actions/_shared/action-helpers";
+import { batchRepository, batchService } from "@/di/container";
 import {
   BadRequestError,
-  InternalServerError,
   NotFoundError,
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
-import authUtils from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("batch-actions");
+
+const VENDOR_ERRORS = [UnauthorizedError, BadRequestError];
+const MAX_CUTOFF_ADJUSTMENT_HOURS = 3;
+const CANCELLABLE_STATUSES = ["LOCKED", "IN_TRANSIT", "PENDING_REVIEW"];
+
+/** Batch `batchId` when it belongs to `shopId`, else BadRequestError. */
+async function requireShopBatch(batchId: string, shopId: string) {
+  const batch = await batchRepository.findById(batchId);
+  if (!batch || batch.shop_id !== shopId) {
+    throw new BadRequestError("Batch not found or unauthorized");
+  }
+  return batch;
+}
 
 export async function updateBatchCutoffTimeAction(
   batchId: string,
   newCutoffTime: Date
 ) {
-  try {
-    const user = await authUtils.getUserData();
-    if (!user.id) throw new UnauthorizedError("Not authorized");
+  return runAction(
+    log,
+    {
+      label: "UPDATE BATCH TIME ERROR:",
+      fallback: "Failed to update batch time.",
+      passthrough: VENDOR_ERRORS,
+    },
+    async () => {
+      const shopId = await requireVendorShopId();
+      const batch = await requireShopBatch(batchId, shopId);
 
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) throw new BadRequestError("Shop not found");
+      if (batch.status !== "OPEN") {
+        throw new BadRequestError(
+          "Cannot adjust time for a closed or locked batch"
+        );
+      }
 
-    const batch = await batchRepository.findById(batchId);
-    if (!batch || batch.shop_id !== shop.id) {
-      throw new BadRequestError("Batch not found or unauthorized");
+      const currentCutoff = new Date(batch.cutoff_time);
+      const updatedCutoff = new Date(newCutoffTime);
+
+      const diffHours =
+        Math.abs(updatedCutoff.getTime() - currentCutoff.getTime()) /
+        (1000 * 60 * 60);
+
+      if (diffHours > MAX_CUTOFF_ADJUSTMENT_HOURS) {
+        throw new BadRequestError(
+          "Batch adjustment limit is 3 hours from the original time."
+        );
+      }
+
+      await batchRepository.update(batchId, {
+        cutoff_time: updatedCutoff,
+      });
+
+      return createSuccessResponse(null, "Batch time updated successfully.");
     }
-
-    if (batch.status !== "OPEN") {
-      throw new BadRequestError(
-        "Cannot adjust time for a closed or locked batch"
-      );
-    }
-
-    const currentCutoff = new Date(batch.cutoff_time);
-    const updatedCutoff = new Date(newCutoffTime);
-
-    const diffHours =
-      Math.abs(updatedCutoff.getTime() - currentCutoff.getTime()) /
-      (1000 * 60 * 60);
-
-    if (diffHours > 3) {
-      throw new BadRequestError(
-        "Batch adjustment limit is 3 hours from the original time."
-      );
-    }
-
-    await batchRepository.update(batchId, {
-      cutoff_time: updatedCutoff,
-    });
-
-    return createSuccessResponse(null, "Batch time updated successfully.");
-  } catch (error) {
-    log.error({ err: error }, "UPDATE BATCH TIME ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to update batch time.");
-  }
+  );
 }
 
 export async function closeBatchAction(batchId: string) {
-  try {
-    const user = await authUtils.getUserData();
-    if (!user.id) throw new UnauthorizedError("Not authorized");
+  return runAction(
+    log,
+    {
+      label: "CLOSE BATCH ERROR:",
+      fallback: "Failed to close batch.",
+      passthrough: VENDOR_ERRORS,
+    },
+    async () => {
+      const shopId = await requireVendorShopId();
+      const batch = await requireShopBatch(batchId, shopId);
 
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) throw new BadRequestError("Shop not found");
+      if (batch.status !== "OPEN") {
+        throw new BadRequestError("Batch is already closed or locked");
+      }
 
-    const batch = await batchRepository.findById(batchId);
-    if (!batch || batch.shop_id !== shop.id) {
-      throw new BadRequestError("Batch not found or unauthorized");
-    }
+      const pendingNewOrders = await prisma.order.count({
+        where: {
+          batch_id: batchId,
+          order_status: "NEW",
+        },
+      });
 
-    if (batch.status !== "OPEN") {
-      throw new BadRequestError("Batch is already closed or locked");
-    }
+      if (pendingNewOrders > 0) {
+        throw new BadRequestError(
+          `Accept or reject ${pendingNewOrders} new orders before closing this batch.`
+        );
+      }
 
-    const pendingNewOrders = await prisma.order.count({
-      where: {
-        batch_id: batchId,
-        order_status: "NEW",
-      },
-    });
+      await batchRepository.updateStatus(batchId, "LOCKED");
+      await batchService.generateOtpForBatch(batchId);
+      await batchService.ensureNextOpenBatch(shopId);
 
-    if (pendingNewOrders > 0) {
-      throw new BadRequestError(
-        `Accept or reject ${pendingNewOrders} new orders before closing this batch.`
+      return createSuccessResponse(
+        null,
+        "Batch closed and locked for delivery."
       );
     }
-
-    await batchRepository.updateStatus(batchId, "LOCKED");
-    await batchService.generateOtpForBatch(batchId);
-    await batchService.ensureNextOpenBatch(shop.id);
-
-    return createSuccessResponse(null, "Batch closed and locked for delivery.");
-  } catch (error) {
-    log.error({ err: error }, "CLOSE BATCH ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to close batch.");
-  }
+  );
 }
 
 export async function forceLockBatchAction(batchId: string) {
-  try {
-    const user = await authUtils.getUserData();
-    if (!user.id) throw new UnauthorizedError("Not authorized");
+  return runAction(
+    log,
+    {
+      label: "FORCE LOCK BATCH ERROR:",
+      fallback: "Failed to force-lock batch.",
+      passthrough: [...VENDOR_ERRORS, NotFoundError],
+    },
+    async () => {
+      const shopId = await requireVendorShopId();
 
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) throw new BadRequestError("Shop not found");
+      await batchService.forceLockBatch(batchId, shopId);
 
-    await batchService.forceLockBatch(batchId, shop.id);
-
-    return createSuccessResponse(
-      null,
-      "Batch force-locked and prepared for delivery."
-    );
-  } catch (error) {
-    log.error({ err: error }, "FORCE LOCK BATCH ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof BadRequestError ||
-      error instanceof NotFoundError
-    ) {
-      throw error;
+      return createSuccessResponse(
+        null,
+        "Batch force-locked and prepared for delivery."
+      );
     }
-    throw new InternalServerError("Failed to force-lock batch.");
-  }
+  );
 }
 
 export async function cancelBatchAction(
   batchId: string,
   reason: string = "Cancelled by vendor"
 ) {
-  try {
-    const user = await authUtils.getUserData();
-    if (!user.id) throw new UnauthorizedError("Not authorized");
+  return runAction(
+    log,
+    {
+      label: "CANCEL BATCH ERROR:",
+      fallback: "Failed to cancel batch.",
+      passthrough: VENDOR_ERRORS,
+    },
+    async () => {
+      const shopId = await requireVendorShopId();
+      const batch = await requireShopBatch(batchId, shopId);
 
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) throw new BadRequestError("Shop not found");
+      if (!CANCELLABLE_STATUSES.includes(batch.status)) {
+        throw new BadRequestError(
+          "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches"
+        );
+      }
 
-    const batch = await batchRepository.findById(batchId);
-    if (!batch || batch.shop_id !== shop.id) {
-      throw new BadRequestError("Batch not found or unauthorized");
-    }
+      const result = await batchService.cancelBatch(batchId, reason);
 
-    if (
-      batch.status !== "LOCKED" &&
-      batch.status !== "IN_TRANSIT" &&
-      batch.status !== "PENDING_REVIEW"
-    ) {
-      throw new BadRequestError(
-        "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches"
+      return createSuccessResponse(
+        null,
+        `Batch cancelled successfully. ${result.cancelled_orders} orders refunded.`
       );
     }
-
-    const result = await batchService.cancelBatch(batchId, reason);
-
-    return createSuccessResponse(
-      null,
-      `Batch cancelled successfully. ${result.cancelled_orders} orders refunded.`
-    );
-  } catch (error) {
-    log.error({ err: error }, "CANCEL BATCH ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to cancel batch.");
-  }
+  );
 }

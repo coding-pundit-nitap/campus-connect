@@ -1,5 +1,6 @@
 "use server";
 
+import { runAction } from "@/actions/_shared/action-helpers";
 import {
   batchRepository,
   categoryServices,
@@ -19,6 +20,28 @@ import authUtils from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types/response.types";
 import { ShopActionFormData, shopActionSchema } from "@/validations/shop";
 const log = createLogger("shop-actions");
+
+type BatchSlotInput = NonNullable<ShopActionFormData["batch_slots"]>[number];
+
+/** Positional upload arguments (name, type, size, buffer) for `file`. */
+async function uploadArgs(file: File) {
+  return [
+    file.name,
+    file.type,
+    file.size,
+    Buffer.from(await file.arrayBuffer()),
+  ] as const;
+}
+
+/** Batch-slot rows (without shop id) in the order the vendor listed them. */
+function toBatchSlotRows(slots: BatchSlotInput[]) {
+  return slots.map((card, idx) => ({
+    cutoff_time_minutes: card.cutoff_time_minutes,
+    label: card.label?.trim() || null,
+    is_active: true,
+    sort_order: idx,
+  }));
+}
 
 export async function createShopAction(formData: ShopActionFormData) {
   const uploadedFiles: string[] = [];
@@ -67,16 +90,9 @@ export async function createShopAction(formData: ShopActionFormData) {
 
     let image_key = "";
     if (image) {
-      const imageFile = image;
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
       const uploadResult = await fileUploadService.uploadOptimizedImage(
-        imageFile.name,
-        imageFile.type,
-        imageFile.size,
-        buffer,
-        {
-          prefix: "shop-images",
-        }
+        ...(await uploadArgs(image)),
+        { prefix: "shop-images" }
       );
       image_key = uploadResult.key;
       uploadedFiles.push(image_key);
@@ -84,16 +100,9 @@ export async function createShopAction(formData: ShopActionFormData) {
 
     let qr_image_key = "";
     if (qr_image) {
-      const qrImageFile = qr_image;
-      const buffer = Buffer.from(await qrImageFile.arrayBuffer());
       const uploadResult = await fileUploadService.uploadOptimizedImage(
-        qrImageFile.name,
-        qrImageFile.type,
-        qrImageFile.size,
-        buffer,
-        {
-          prefix: "shop-qr-images",
-        }
+        ...(await uploadArgs(qr_image)),
+        { prefix: "shop-qr-images" }
       );
       qr_image_key = uploadResult.key;
       uploadedFiles.push(qr_image_key);
@@ -121,12 +130,9 @@ export async function createShopAction(formData: ShopActionFormData) {
     if (batch_slots && batch_slots.length > 0) {
       try {
         await batchRepository.createManySlots(
-          batch_slots.map((card, idx) => ({
+          toBatchSlotRows(batch_slots).map((row) => ({
             shop_id: newShop.id,
-            cutoff_time_minutes: card.cutoff_time_minutes,
-            label: card.label?.trim() || null,
-            is_active: true,
-            sort_order: idx,
+            ...row,
           }))
         );
       } catch {
@@ -163,188 +169,167 @@ export async function createShopAction(formData: ShopActionFormData) {
 }
 
 export async function updateShopAction(formData: ShopActionFormData) {
-  try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true, image_key: true, qr_image_key: true },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to update a shop");
-    }
-
-    const shop_id = context.id;
-
-    const parsedData = shopActionSchema.safeParse(formData);
-    if (!parsedData.success) {
-      throw new BadRequestError(parsedData.error.message);
-    }
-
-    const values = parsedData.data;
-    await categoryServices.cleanupEmptyCategories();
-
-    const { image, qr_image, batch_slots, ...rest } = values;
-
-    const updateData: Omit<
-      ShopActionFormData,
-      "image" | "qr_image" | "batch_slots"
-    > & {
-      image_key?: string;
-      qr_image_key?: string;
-    } = {
-      ...rest,
-    };
-
-    if (image) {
-      const imageFile = image;
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      updateData.image_key = await fileUploadService.upload(
-        imageFile.name,
-        imageFile.type,
-        imageFile.size,
-        buffer,
-        { prefix: "shop-images" }
-      );
-
-      if (context.image_key) {
-        await fileUploadService.deleteFile(context.image_key);
+  return runAction(
+    log,
+    { label: "UPDATE SHOP ERROR:", fallback: "Failed to update shop." },
+    async () => {
+      const user_id = await authUtils.getUserId();
+      const context = await shopRepository.findByOwnerId(user_id, {
+        select: { id: true, image_key: true, qr_image_key: true },
+      });
+      if (!context || !context.id) {
+        throw new UnauthorizedError("User is not authorized to update a shop");
       }
-    }
 
-    if (qr_image) {
-      const qrImageFile = qr_image;
-      const buffer = Buffer.from(await qrImageFile.arrayBuffer());
-      updateData.qr_image_key = await fileUploadService.upload(
-        qrImageFile.name,
-        qrImageFile.type,
-        qrImageFile.size,
-        buffer,
-        { prefix: "shop-qr-images" }
-      );
-
-      if (context.qr_image_key) {
-        await fileUploadService.deleteFile(context.qr_image_key);
+      const parsedData = shopActionSchema.safeParse(formData);
+      if (!parsedData.success) {
+        throw new BadRequestError(parsedData.error.message);
       }
+
+      await categoryServices.cleanupEmptyCategories();
+
+      const { image, qr_image, batch_slots, ...rest } = parsedData.data;
+
+      const updateData: Omit<
+        ShopActionFormData,
+        "image" | "qr_image" | "batch_slots"
+      > & {
+        image_key?: string;
+        qr_image_key?: string;
+      } = {
+        ...rest,
+      };
+
+      if (image) {
+        updateData.image_key = await fileUploadService.upload(
+          ...(await uploadArgs(image)),
+          { prefix: "shop-images" }
+        );
+
+        if (context.image_key) {
+          await fileUploadService.deleteFile(context.image_key);
+        }
+      }
+
+      if (qr_image) {
+        updateData.qr_image_key = await fileUploadService.upload(
+          ...(await uploadArgs(qr_image)),
+          { prefix: "shop-qr-images" }
+        );
+
+        if (context.qr_image_key) {
+          await fileUploadService.deleteFile(context.qr_image_key);
+        }
+      }
+
+      const updatedShop = await shopRepository.update(context.id, {
+        ...updateData,
+        ...(batch_slots && batch_slots.length > 0
+          ? {
+              batch_slots: {
+                deleteMany: {},
+                create: toBatchSlotRows(batch_slots),
+              },
+            }
+          : {}),
+      });
+
+      await notificationService.publishNotification(user_id, {
+        title: "Shop Updated Successfully",
+        message: `Your shop ${updatedShop.name} has been updated.`,
+        action_url: `/owner-shops`,
+        type: "INFO",
+      });
+
+      return createSuccessResponse(
+        convertPrismaDecimals(updatedShop),
+        "Shop updated successfully!"
+      );
     }
-
-    const updatedShop = await shopRepository.update(shop_id, {
-      ...updateData,
-      ...(batch_slots && batch_slots.length > 0
-        ? {
-            batch_slots: {
-              deleteMany: {},
-              create: batch_slots.map((card, idx) => ({
-                cutoff_time_minutes: card.cutoff_time_minutes,
-                label: card.label?.trim() || null,
-                is_active: true,
-                sort_order: idx,
-              })),
-            },
-          }
-        : {}),
-    });
-
-    await notificationService.publishNotification(user_id, {
-      title: "Shop Updated Successfully",
-      message: `Your shop ${updatedShop.name} has been updated.`,
-      action_url: `/owner-shops`,
-      type: "INFO",
-    });
-
-    return createSuccessResponse(
-      convertPrismaDecimals(updatedShop),
-      "Shop updated successfully!"
-    );
-  } catch (error) {
-    log.error({ err: error }, "UPDATE SHOP ERROR:");
-    throw new InternalServerError("Failed to update shop.");
-  }
+  );
 }
 
 export async function deleteShopAction() {
-  try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: {
-        id: true,
-        image_key: true,
-        qr_image_key: true,
-      },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to delete a shop");
+  return runAction(
+    log,
+    { label: "DELETE SHOP ERROR:", fallback: "Failed to delete shop." },
+    async () => {
+      const user_id = await authUtils.getUserId();
+      const context = await shopRepository.findByOwnerId(user_id, {
+        select: {
+          id: true,
+          image_key: true,
+          qr_image_key: true,
+        },
+      });
+      if (!context || !context.id) {
+        throw new UnauthorizedError("User is not authorized to delete a shop");
+      }
+
+      const deleteQuietly = (key: string, what: string) =>
+        fileUploadService.deleteFile(key).catch((err) => {
+          log.error({ err }, `Failed to delete ${what} ${key}:`);
+        });
+
+      await Promise.all([
+        ...(context.image_key
+          ? [deleteQuietly(context.image_key, "shop image")]
+          : []),
+        ...(context.qr_image_key
+          ? [deleteQuietly(context.qr_image_key, "shop QR image")]
+          : []),
+      ]);
+
+      await shopRepository.delete(context.id);
+
+      await userRepository.update(user_id, {
+        owned_shop: { disconnect: true },
+      });
+
+      return createSuccessResponse(null, "Shop deleted successfully");
     }
-
-    const shop_id = context.id;
-
-    const fileDeletionPromises: Promise<void>[] = [];
-    if (context.image_key) {
-      fileDeletionPromises.push(
-        fileUploadService.deleteFile(context.image_key).catch((err) => {
-          log.error(`Failed to delete shop image ${context.image_key}:`, err);
-        })
-      );
-    }
-    if (context.qr_image_key) {
-      fileDeletionPromises.push(
-        fileUploadService.deleteFile(context.qr_image_key).catch((err) => {
-          log.error(
-            `Failed to delete shop QR image ${context.qr_image_key}:`,
-            err
-          );
-        })
-      );
-    }
-    await Promise.all(fileDeletionPromises);
-
-    await shopRepository.delete(shop_id);
-
-    await userRepository.update(user_id, { owned_shop: { disconnect: true } });
-
-    return createSuccessResponse(null, "Shop deleted successfully");
-  } catch (error) {
-    log.error({ err: error }, "DELETE SHOP ERROR:");
-    throw new InternalServerError("Failed to delete shop.");
-  }
+  );
 }
 
 export async function toggleAcceptingOrdersAction(acceptingOrders: boolean) {
-  try {
-    const user = await authUtils.getUserData();
-    const user_id = user.id;
-    if (!user_id) {
-      throw new UnauthorizedError("User is not authorized");
-    }
+  return runAction(
+    log,
+    {
+      label: "TOGGLE ACCEPTING ORDERS ERROR:",
+      fallback: "Failed to toggle order acceptance.",
+      passthrough: [UnauthorizedError, BadRequestError],
+    },
+    async () => {
+      const user = await authUtils.getUserData();
+      const user_id = user.id;
+      if (!user_id) {
+        throw new UnauthorizedError("User is not authorized");
+      }
 
-    const shop = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true, is_active: true },
-    });
+      const shop = await shopRepository.findByOwnerId(user_id, {
+        select: { id: true, is_active: true },
+      });
 
-    if (!shop) {
-      throw new BadRequestError("You don't have a shop to update");
-    }
+      if (!shop) {
+        throw new BadRequestError("You don't have a shop to update");
+      }
 
-    if (!shop.is_active) {
-      throw new BadRequestError(
-        "Cannot toggle orders - your shop is deactivated by admin"
+      if (!shop.is_active) {
+        throw new BadRequestError(
+          "Cannot toggle orders - your shop is deactivated by admin"
+        );
+      }
+
+      await shopRepository.update(shop.id, {
+        accepting_orders: acceptingOrders,
+      });
+
+      return createSuccessResponse(
+        { accepting_orders: acceptingOrders },
+        acceptingOrders
+          ? "Shop is now accepting orders"
+          : "Shop is now paused - no new orders will be accepted"
       );
     }
-
-    await shopRepository.update(shop.id, { accepting_orders: acceptingOrders });
-
-    return createSuccessResponse(
-      { accepting_orders: acceptingOrders },
-      acceptingOrders
-        ? "Shop is now accepting orders"
-        : "Shop is now paused - no new orders will be accepted"
-    );
-  } catch (error) {
-    log.error({ err: error }, "TOGGLE ACCEPTING ORDERS ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to toggle order acceptance.");
-  }
+  );
 }

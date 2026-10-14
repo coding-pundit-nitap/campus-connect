@@ -1,9 +1,9 @@
 "use server";
 
-import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
+import { ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
 const log = createLogger("announcement-actions");
 
@@ -113,10 +113,7 @@ export async function createAnnouncementAction({
   expires_at: Date;
   product_id?: string;
 }) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   if (!title || !title.trim()) {
     throw new ValidationError("Title is required");
@@ -157,10 +154,7 @@ export async function createAnnouncementAction({
 }
 
 export async function deleteAnnouncementAction(id: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   const announcement = await prisma.shopAnnouncement.findUnique({
     where: { id },
@@ -178,10 +172,7 @@ export async function deleteAnnouncementAction(id: string) {
 }
 
 export async function getShopAnnouncementsAction() {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   const announcements = await prisma.shopAnnouncement.findMany({
     where: {

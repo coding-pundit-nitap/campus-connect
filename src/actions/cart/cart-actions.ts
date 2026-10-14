@@ -1,40 +1,33 @@
 "use server";
-import { cartRepository } from "@/di/container";
 import {
-  InternalServerError,
-  UnauthenticatedError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+  AUTH_ERRORS,
+  requireUserId,
+  runAction,
+} from "@/actions/_shared/action-helpers";
+import { cartRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { serializeFullCart } from "@/lib/utils";
-import authUtils from "@/lib/utils/auth.utils.server";
 import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
 const log = createLogger("cart-actions");
 
-export const upsertCartItem = async (formData: UpsertItemData) => {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      throw new UnauthorizedError("User not authenticated");
-    }
-    const result = upsertItemSchema.parse(formData);
-    const validData = result;
+export const upsertCartItem = async (formData: UpsertItemData) =>
+  runAction(
+    log,
+    {
+      label: "Error updating cart item:",
+      fallback: "Failed to update cart item",
+      passthrough: AUTH_ERRORS,
+    },
+    async () => {
+      const user_id = await requireUserId("User not authenticated");
+      const validData = upsertItemSchema.parse(formData);
 
-    const updatedCart = await cartRepository.upsertItemForUser(
-      user_id,
-      validData.product_id,
-      validData.quantity
-    );
+      const updatedCart = await cartRepository.upsertItemForUser(
+        user_id,
+        validData.product_id,
+        validData.quantity
+      );
 
-    return serializeFullCart(updatedCart);
-  } catch (error) {
-    log.error({ err: error }, "Error updating cart item:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof UnauthenticatedError
-    ) {
-      throw error;
+      return serializeFullCart(updatedCart);
     }
-    throw new InternalServerError("Failed to update cart item");
-  }
-};
+  );

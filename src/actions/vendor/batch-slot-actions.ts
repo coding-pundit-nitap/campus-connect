@@ -1,8 +1,8 @@
 "use server";
 
-import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
+import { ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
 
 type BatchSlotDTO = {
@@ -19,6 +19,13 @@ function ensureMinutesFromMidnight(value: number) {
   }
 }
 
+/** Our own ValidationErrors pass through; database errors get a friendly one. */
+function toBatchSlotError(error: unknown): ValidationError {
+  return error instanceof ValidationError
+    ? error
+    : new ValidationError(mapPrismaErrorToMessage(error));
+}
+
 function mapPrismaErrorToMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : "";
   if (
@@ -32,10 +39,7 @@ function mapPrismaErrorToMessage(error: unknown): string {
 }
 
 export async function listBatchSlotsAction() {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   try {
     const slots: BatchSlotDTO[] = await prisma.batchSlot.findMany({
@@ -52,7 +56,7 @@ export async function listBatchSlotsAction() {
 
     return createSuccessResponse(slots);
   } catch (error) {
-    throw new ValidationError(mapPrismaErrorToMessage(error));
+    throw toBatchSlotError(error);
   }
 }
 
@@ -60,10 +64,7 @@ export async function createBatchSlotAction(input: {
   cutoff_time_minutes: number;
   label?: string | null;
 }) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   ensureMinutesFromMidnight(input.cutoff_time_minutes);
 
@@ -92,7 +93,7 @@ export async function createBatchSlotAction(input: {
 
     return createSuccessResponse(created, "Batch card created");
   } catch (error) {
-    throw new ValidationError(mapPrismaErrorToMessage(error));
+    throw toBatchSlotError(error);
   }
 }
 
@@ -102,10 +103,7 @@ export async function updateBatchSlotAction(input: {
   label?: string | null;
   is_active?: boolean;
 }) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
   ensureMinutesFromMidnight(input.cutoff_time_minutes);
 
   try {
@@ -137,15 +135,12 @@ export async function updateBatchSlotAction(input: {
 
     return createSuccessResponse(updated, "Batch card updated");
   } catch (error) {
-    throw new ValidationError(mapPrismaErrorToMessage(error));
+    throw toBatchSlotError(error);
   }
 }
 
 export async function deleteBatchSlotAction(id: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   try {
     const existing = await prisma.batchSlot.findUnique({
@@ -159,17 +154,14 @@ export async function deleteBatchSlotAction(id: string) {
     await prisma.batchSlot.delete({ where: { id } });
     return createSuccessResponse(null, "Batch card deleted");
   } catch (error) {
-    throw new ValidationError(mapPrismaErrorToMessage(error));
+    throw toBatchSlotError(error);
   }
 }
 
 export async function reorderBatchSlotsAction(input: {
   ordered_ids: string[];
 }) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   if (!Array.isArray(input.ordered_ids) || input.ordered_ids.length === 0) {
     throw new ValidationError("Invalid ordering payload.");
@@ -199,6 +191,6 @@ export async function reorderBatchSlotsAction(input: {
 
     return createSuccessResponse(null, "Batch cards reordered");
   } catch (error) {
-    throw new ValidationError(mapPrismaErrorToMessage(error));
+    throw toBatchSlotError(error);
   }
 }

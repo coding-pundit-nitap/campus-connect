@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { runAction } from "@/actions/_shared/action-helpers";
 import {
   brandRepository,
   cartRepository,
@@ -34,21 +35,76 @@ import {
 } from "@/validations/product";
 const log = createLogger("product-actions");
 
+const PRODUCT_INCLUDE = {
+  category: true,
+  brand: true,
+  shop: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
+/** Errors the product-editing actions rethrow untouched. */
+const EDIT_ERRORS = [
+  UnauthorizedError,
+  ForbiddenError,
+  ValidationError,
+  BadRequestError,
+];
+
+/** Errors the quick-edit (stock/price) actions rethrow untouched. */
+const QUICK_EDIT_ERRORS = [
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+  InternalServerError,
+];
+
+/** Id of the shop owned by the current user, or UnauthorizedError(message). */
+async function requireOwnerShopId(message: string): Promise<string> {
+  const user_id = await authUtils.getUserId();
+  const shop = await shopRepository.findByOwnerId(user_id, {
+    select: { id: true },
+  });
+  if (!shop || !shop.id) {
+    throw new UnauthorizedError(message);
+  }
+  return shop.id;
+}
+
+/** Product of `productId` when it belongs to `shopId`, else ForbiddenError. */
+async function requireOwnedProduct(productId: string, shopId: string) {
+  const product = await productRepository.findById(productId);
+  if (!product || product.shop_id !== shopId) {
+    throw new ForbiddenError(
+      "You do not have permission to modify this product"
+    );
+  }
+  return product;
+}
+
+async function uploadProductImage(image: File) {
+  const buffer = Buffer.from(await image.arrayBuffer());
+  return fileUploadService.uploadOptimizedImage(
+    image.name,
+    image.type,
+    image.size,
+    buffer,
+    { prefix: "product-images" }
+  );
+}
+
 export async function createProductAction(
   formData: ProductActionFormData
 ): Promise<ActionResponse<SerializedProduct>> {
   let uploadedImageKey: string | null = null;
 
   try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to create a product");
-    }
-
-    const shop_id = context.id;
+    const shop_id = await requireOwnerShopId(
+      "User is not authorized to create a product"
+    );
 
     const parsedData = productActionSchema.parse(formData);
 
@@ -59,16 +115,7 @@ export async function createProductAction(
       parsedData;
     let image_key = "";
     if (image) {
-      const imageFile = image as File;
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-
-      const uploadResult = await fileUploadService.uploadOptimizedImage(
-        imageFile.name,
-        imageFile.type,
-        imageFile.size,
-        buffer,
-        { prefix: "product-images" }
-      );
+      const uploadResult = await uploadProductImage(image as File);
 
       image_key = uploadResult.key;
       uploadedImageKey = image_key;
@@ -99,16 +146,7 @@ export async function createProductAction(
 
     const newProduct = await productRepository.create({
       data: productData,
-      include: {
-        category: true,
-        brand: true,
-        shop: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      include: PRODUCT_INCLUDE,
     });
 
     const serializedProduct = serializeProduct(newProduct);
@@ -140,227 +178,172 @@ export async function updateProductAction(
   product_id: string,
   formData: ProductUpdateActionFormData
 ): Promise<ActionResponse<SerializedProduct>> {
-  try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to update a product");
-    }
-    const shop_id = context.id;
-
-    const currentProduct = await productRepository.findById(product_id, {
-      select: {
-        category_id: true,
-        image_key: true,
-        stock_quantity: true,
-        brand_id: true,
-        shop_id: true,
-      },
-    });
-
-    if (!currentProduct || currentProduct.shop_id !== shop_id) {
-      throw new ForbiddenError(
-        "You do not have permission to modify this product"
+  return runAction(
+    log,
+    {
+      label: "UPDATE PRODUCT ERROR:",
+      fallback: "Failed to update product",
+      passthrough: EDIT_ERRORS,
+    },
+    async () => {
+      const shop_id = await requireOwnerShopId(
+        "User is not authorized to update a product"
       );
-    }
 
-    const parsedData = productUpdateActionSchema.parse(formData);
-    let brand: Brand | null = null;
-    let category: Category | null = null;
-
-    if (parsedData.brand) {
-      brand = await brandRepository.findOrCreate(parsedData.brand);
-    }
-    if (parsedData.category) {
-      category = await categoryRepository.findOrCreate(parsedData.category);
-    }
-
-    const { image, name, price, stock_quantity, description, discount } =
-      parsedData;
-
-    let image_key = parsedData.image_key || currentProduct?.image_key || "";
-    if (image instanceof File) {
-      const buffer = Buffer.from(await image.arrayBuffer());
-
-      const uploadResult = await fileUploadService.uploadOptimizedImage(
-        image.name,
-        image.type,
-        image.size,
-        buffer,
-        { prefix: "product-images" }
-      );
-      image_key = uploadResult.key;
-
-      if (currentProduct?.image_key && currentProduct.image_key !== image_key) {
-        await fileUploadService.deleteFile(currentProduct.image_key);
-      }
-    }
-
-    const productData = {
-      image_key,
-      name,
-      price,
-      stock_quantity,
-      description,
-      discount,
-    };
-
-    const updateData: {
-      data: Prisma.ProductUpdateInput;
-    } = {
-      data: {
-        ...productData,
-      },
-    };
-
-    if (category) {
-      updateData.data.category = {
-        connect: { id: category.id },
-      };
-    } else {
-      updateData.data.category = {
-        disconnect: true,
-      };
-    }
-    if (brand) {
-      updateData.data.brand = {
-        connect: { id: brand.id },
-      };
-    } else {
-      updateData.data.brand = {
-        disconnect: true,
-      };
-    }
-
-    const updatedProduct = await productRepository.update(
-      product_id,
-      updateData.data,
-      {
-        include: {
-          category: true,
-          brand: true,
-          shop: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+      const currentProduct = await productRepository.findById(product_id, {
+        select: {
+          category_id: true,
+          image_key: true,
+          stock_quantity: true,
+          brand_id: true,
+          shop_id: true,
         },
+      });
+
+      if (!currentProduct || currentProduct.shop_id !== shop_id) {
+        throw new ForbiddenError(
+          "You do not have permission to modify this product"
+        );
       }
-    );
 
-    const wasOutOfStock = (currentProduct?.stock_quantity ?? 0) <= 0;
-    const isNowInStock = updatedProduct.stock_quantity > 0;
+      const parsedData = productUpdateActionSchema.parse(formData);
+      const brand: Brand | null = parsedData.brand
+        ? await brandRepository.findOrCreate(parsedData.brand)
+        : null;
+      const category: Category | null = parsedData.category
+        ? await categoryRepository.findOrCreate(parsedData.category)
+        : null;
 
-    if (wasOutOfStock && isNowInStock) {
-      await notifyStockWatchers(
-        updatedProduct.id,
-        updatedProduct.name,
-        updatedProduct.shop.name
+      const { image, name, price, stock_quantity, description, discount } =
+        parsedData;
+
+      let image_key = parsedData.image_key || currentProduct.image_key || "";
+      if (image instanceof File) {
+        image_key = (await uploadProductImage(image)).key;
+
+        if (
+          currentProduct.image_key &&
+          currentProduct.image_key !== image_key
+        ) {
+          await fileUploadService.deleteFile(currentProduct.image_key);
+        }
+      }
+
+      const updateData: Prisma.ProductUpdateInput = {
+        image_key,
+        name,
+        price,
+        stock_quantity,
+        description,
+        discount,
+        category: category
+          ? { connect: { id: category.id } }
+          : { disconnect: true },
+        brand: brand ? { connect: { id: brand.id } } : { disconnect: true },
+      };
+
+      const updatedProduct = await productRepository.update(
+        product_id,
+        updateData,
+        { include: PRODUCT_INCLUDE }
+      );
+
+      const wasOutOfStock = (currentProduct.stock_quantity ?? 0) <= 0;
+      const isNowInStock = updatedProduct.stock_quantity > 0;
+
+      if (wasOutOfStock && isNowInStock) {
+        await notifyStockWatchers(
+          updatedProduct.id,
+          updatedProduct.name,
+          updatedProduct.shop.name
+        );
+      }
+
+      if (
+        currentProduct.category_id &&
+        currentProduct.category_id !== category?.id
+      ) {
+        await categoryRepository.deleteIfEmpty(currentProduct.category_id);
+      }
+
+      if (currentProduct.brand_id && currentProduct.brand_id !== brand?.id) {
+        await brandRepository.deleteIfEmpty(currentProduct.brand_id);
+      }
+
+      revalidatePath(`/shops/${updatedProduct.shop_id}`);
+
+      return createSuccessResponse(
+        serializeProduct(updatedProduct),
+        "Product updated successfully"
       );
     }
-
-    if (
-      currentProduct?.category_id &&
-      currentProduct.category_id !== category?.id
-    ) {
-      await categoryRepository.deleteIfEmpty(currentProduct.category_id);
-    }
-
-    if (currentProduct?.brand_id && currentProduct.brand_id !== brand?.id) {
-      await brandRepository.deleteIfEmpty(currentProduct.brand_id);
-    }
-
-    const serializedProduct = serializeProduct(updatedProduct);
-
-    revalidatePath(`/shops/${updatedProduct.shop_id}`);
-
-    return createSuccessResponse(
-      serializedProduct,
-      "Product updated successfully"
-    );
-  } catch (error) {
-    log.debug({ err: error }, "UPDATE PRODUCT ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof ValidationError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to update product");
-  }
+  );
 }
 
 export async function deleteProductAction(
   product_id: string
 ): Promise<ActionResponse<null>> {
-  try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to delete a product");
-    }
-
-    const productToDelete = await productRepository.findById(product_id, {
-      select: { category_id: true, shop_id: true, name: true, brand_id: true },
-    });
-
-    if (!productToDelete) {
-      throw new InternalServerError("Product not found");
-    }
-
-    if (productToDelete.shop_id !== context.id) {
-      throw new ForbiddenError(
-        "You do not have permission to delete this product"
+  return runAction(
+    log,
+    {
+      label: "DELETE PRODUCT ERROR:",
+      fallback: "Failed to delete product",
+      passthrough: EDIT_ERRORS,
+    },
+    async () => {
+      const shop_id = await requireOwnerShopId(
+        "User is not authorized to delete a product"
       );
+
+      const productToDelete = await productRepository.findById(product_id, {
+        select: {
+          category_id: true,
+          shop_id: true,
+          name: true,
+          brand_id: true,
+        },
+      });
+
+      if (!productToDelete) {
+        throw new InternalServerError("Product not found");
+      }
+
+      if (productToDelete.shop_id !== shop_id) {
+        throw new ForbiddenError(
+          "You do not have permission to delete this product"
+        );
+      }
+
+      const uniqueUserIds =
+        await cartRepository.getUserIdsByProductInCart(product_id);
+
+      await Promise.allSettled(
+        uniqueUserIds.map((userId) =>
+          notificationService
+            .publishNotification(userId, {
+              title: "Item Removed from Cart",
+              message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
+              type: "WARNING",
+            })
+            .catch((err) =>
+              log.error({ err: err }, `Failed to notify user ${userId}:`)
+            )
+        )
+      );
+
+      await productRepository.delete(product_id);
+
+      if (productToDelete.category_id) {
+        await categoryRepository.deleteIfEmpty(productToDelete.category_id);
+      }
+
+      if (productToDelete.brand_id) {
+        await brandRepository.deleteIfEmpty(productToDelete.brand_id);
+      }
+
+      return createSuccessResponse(null, "Product deleted successfully");
     }
-
-    const uniqueUserIds =
-      await cartRepository.getUserIdsByProductInCart(product_id);
-
-    await Promise.allSettled(
-      uniqueUserIds.map((userId) =>
-        notificationService
-          .publishNotification(userId, {
-            title: "Item Removed from Cart",
-            message: `${productToDelete.name} has been removed from your cart as it is no longer available.`,
-            type: "WARNING",
-          })
-          .catch((err) =>
-            log.error({ err: err }, `Failed to notify user ${userId}:`)
-          )
-      )
-    );
-
-    await productRepository.delete(product_id);
-
-    if (productToDelete?.category_id) {
-      await categoryRepository.deleteIfEmpty(productToDelete.category_id);
-    }
-
-    if (productToDelete?.brand_id) {
-      await brandRepository.deleteIfEmpty(productToDelete.brand_id);
-    }
-
-    return createSuccessResponse(null, "Product deleted successfully");
-  } catch (error) {
-    log.debug({ err: error }, "DELETE PRODUCT ERROR:");
-    if (
-      error instanceof UnauthorizedError ||
-      error instanceof ForbiddenError ||
-      error instanceof ValidationError ||
-      error instanceof BadRequestError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to delete product");
-  }
+  );
 }
 
 export interface BulkProductInput {
@@ -410,15 +393,9 @@ export async function bulkCreateProductsAction(
   products: BulkProductInput[]
 ): Promise<ActionResponse<BulkCreateResult>> {
   try {
-    const user_id = await authUtils.getUserId();
-    const context = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!context || !context.id) {
-      throw new UnauthorizedError("User is not authorized to create products");
-    }
-
-    const shop_id = context.id;
+    const shop_id = await requireOwnerShopId(
+      "User is not authorized to create products"
+    );
 
     if (products.length === 0) {
       throw new InternalServerError("No products provided");
@@ -497,126 +474,80 @@ export async function toggleProductStockAction(
   productId: string,
   inStock: boolean
 ): Promise<ActionResponse<SerializedProduct>> {
-  try {
-    if (!productId || typeof productId !== "string") {
-      throw new BadRequestError("Invalid product ID");
-    }
-    if (typeof inStock !== "boolean") {
-      throw new BadRequestError("Invalid availability state");
-    }
+  return runAction(
+    log,
+    {
+      label: "TOGGLE PRODUCT STOCK ERROR:",
+      fallback: "Failed to toggle stock.",
+      passthrough: QUICK_EDIT_ERRORS,
+    },
+    async () => {
+      if (!productId || typeof productId !== "string") {
+        throw new BadRequestError("Invalid product ID");
+      }
+      if (typeof inStock !== "boolean") {
+        throw new BadRequestError("Invalid availability state");
+      }
 
-    const user_id = await authUtils.getUserId();
-    const shop = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!shop || !shop.id) throw new UnauthorizedError("Unauthorized");
+      const shop_id = await requireOwnerShopId("Unauthorized");
+      const product = await requireOwnedProduct(productId, shop_id);
 
-    const product = await productRepository.findById(productId);
-    if (!product || product.shop_id !== shop.id) {
-      throw new ForbiddenError(
-        "You do not have permission to modify this product"
+      const updated = await productRepository.update(
+        productId,
+        { stock_quantity: inStock ? DEFAULT_IN_STOCK_QUANTITY : 0 },
+        { include: PRODUCT_INCLUDE }
+      );
+
+      const wasOutOfStock = product.stock_quantity <= 0;
+      const isNowInStock = updated.stock_quantity > 0;
+      if (wasOutOfStock && isNowInStock) {
+        await notifyStockWatchers(updated.id, updated.name, updated.shop.name);
+      }
+
+      revalidatePath(`/shops/${updated.shop_id}`);
+
+      return createSuccessResponse(
+        serializeProduct(updated),
+        "Stock toggled successfully."
       );
     }
-
-    const updated = await productRepository.update(
-      productId,
-      {
-        stock_quantity: inStock ? DEFAULT_IN_STOCK_QUANTITY : 0,
-      },
-      {
-        include: {
-          category: true,
-          brand: true,
-          shop: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      }
-    );
-
-    const wasOutOfStock = product.stock_quantity <= 0;
-    const isNowInStock = updated.stock_quantity > 0;
-    if (wasOutOfStock && isNowInStock) {
-      await notifyStockWatchers(updated.id, updated.name, updated.shop.name);
-    }
-
-    const serialized = serializeProduct(updated);
-    revalidatePath(`/shops/${updated.shop_id}`);
-
-    return createSuccessResponse(serialized, "Stock toggled successfully.");
-  } catch (error) {
-    log.error({ err: error }, "TOGGLE PRODUCT STOCK ERROR:");
-    if (
-      error instanceof BadRequestError ||
-      error instanceof ForbiddenError ||
-      error instanceof UnauthorizedError ||
-      error instanceof InternalServerError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to toggle stock.");
-  }
+  );
 }
 
 export async function updateProductPriceAction(
   productId: string,
   price: number
 ): Promise<ActionResponse<SerializedProduct>> {
-  try {
-    if (!productId || typeof productId !== "string") {
-      throw new BadRequestError("Invalid product ID");
-    }
-    if (typeof price !== "number" || Number.isNaN(price) || price < 0) {
-      throw new BadRequestError("Price must be a non-negative number");
-    }
+  return runAction(
+    log,
+    {
+      label: "UPDATE PRODUCT PRICE ERROR:",
+      fallback: "Failed to update price.",
+      passthrough: QUICK_EDIT_ERRORS,
+    },
+    async () => {
+      if (!productId || typeof productId !== "string") {
+        throw new BadRequestError("Invalid product ID");
+      }
+      if (typeof price !== "number" || Number.isNaN(price) || price < 0) {
+        throw new BadRequestError("Price must be a non-negative number");
+      }
 
-    const user_id = await authUtils.getUserId();
-    const shop = await shopRepository.findByOwnerId(user_id, {
-      select: { id: true },
-    });
-    if (!shop || !shop.id) throw new UnauthorizedError("Unauthorized");
+      const shop_id = await requireOwnerShopId("Unauthorized");
+      await requireOwnedProduct(productId, shop_id);
 
-    const product = await productRepository.findById(productId);
-    if (!product || product.shop_id !== shop.id) {
-      throw new ForbiddenError(
-        "You do not have permission to modify this product"
+      const updated = await productRepository.update(
+        productId,
+        { price },
+        { include: PRODUCT_INCLUDE }
+      );
+
+      revalidatePath(`/shops/${updated.shop_id}`);
+
+      return createSuccessResponse(
+        serializeProduct(updated),
+        "Price updated successfully."
       );
     }
-
-    const updated = await productRepository.update(
-      productId,
-      { price },
-      {
-        include: {
-          category: true,
-          brand: true,
-          shop: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      }
-    );
-
-    const serialized = serializeProduct(updated);
-    revalidatePath(`/shops/${updated.shop_id}`);
-
-    return createSuccessResponse(serialized, "Price updated successfully.");
-  } catch (error) {
-    log.error({ err: error }, "UPDATE PRODUCT PRICE ERROR:");
-    if (
-      error instanceof BadRequestError ||
-      error instanceof ForbiddenError ||
-      error instanceof UnauthorizedError ||
-      error instanceof InternalServerError
-    ) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to update price.");
-  }
+  );
 }

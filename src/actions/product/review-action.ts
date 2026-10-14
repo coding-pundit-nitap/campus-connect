@@ -2,8 +2,9 @@
 
 import { unauthorized } from "next/navigation";
 
+import { runAction } from "@/actions/_shared/action-helpers";
 import { reviewService } from "@/di/container";
-import { ForbiddenError, InternalServerError } from "@/lib/custom-error";
+import { ForbiddenError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
@@ -20,24 +21,27 @@ export const updateReviewAction = async ({
   rating: number;
   comment: string;
 }) => {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      return unauthorized();
-    }
-
-    const review = await reviewService.updateReview(
-      user_id,
-      { rating, comment },
-      product_id,
-      review_id
-    );
-
-    return createSuccessResponse(review);
-  } catch (error) {
-    log.debug(`Error updating review: ${error}`);
-    throw new InternalServerError("Failed to update review");
+  // Outside runAction: unauthorized() throws Next's 401 signal, which must
+  // not be wrapped into an InternalServerError.
+  const user_id = await authUtils.getUserId();
+  if (!user_id) {
+    return unauthorized();
   }
+
+  return runAction(
+    log,
+    { label: "Error updating review:", fallback: "Failed to update review" },
+    async () => {
+      const review = await reviewService.updateReview(
+        user_id,
+        { rating, comment },
+        product_id,
+        review_id
+      );
+
+      return createSuccessResponse(review);
+    }
+  );
 };
 
 export const createReviewAction = async ({
@@ -51,25 +55,27 @@ export const createReviewAction = async ({
   rating: number;
   comment: string;
 }) => {
-  try {
-    const user_id = await authUtils.getUserId();
-    if (!user_id) {
-      return unauthorized();
-    }
-
-    const review = await reviewService.createReview(
-      { rating, comment },
-      product_id,
-      order_item_id,
-      user_id
-    );
-
-    return createSuccessResponse(review);
-  } catch (error) {
-    log.debug(`Error creating review: ${error}`);
-    if (error instanceof ForbiddenError) {
-      throw error;
-    }
-    throw new InternalServerError("Failed to create review");
+  const user_id = await authUtils.getUserId();
+  if (!user_id) {
+    return unauthorized();
   }
+
+  return runAction(
+    log,
+    {
+      label: "Error creating review:",
+      fallback: "Failed to create review",
+      passthrough: [ForbiddenError],
+    },
+    async () => {
+      const review = await reviewService.createReview(
+        { rating, comment },
+        product_id,
+        order_item_id,
+        user_id
+      );
+
+      return createSuccessResponse(review);
+    }
+  );
 };

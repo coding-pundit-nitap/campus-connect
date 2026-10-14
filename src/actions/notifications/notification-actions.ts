@@ -1,9 +1,12 @@
 "use server";
 
+import {
+  AUTH_ERRORS,
+  requireUserId,
+  runAction,
+} from "@/actions/_shared/action-helpers";
 import { container } from "@/di/container";
-import { InternalServerError, UnauthorizedError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { NotificationCategory } from "@/types/prisma.types";
 import { ActionResponse, createSuccessResponse } from "@/types/response.types";
 const log = createLogger("notification-actions");
@@ -11,19 +14,20 @@ const log = createLogger("notification-actions");
 export async function markAllNotificationsAsReadAction(): Promise<
   ActionResponse<{ count: number }>
 > {
-  try {
-    const userId = await authUtils.getUserId();
-    if (!userId) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
+  return runAction(
+    log,
+    {
+      label: "MARK ALL NOTIFICATIONS READ ERROR:",
+      fallback: "Failed to mark notifications as read.",
+      passthrough: AUTH_ERRORS,
+    },
+    async () => {
+      const userId = await requireUserId();
+      const result =
+        await container.notificationRepository.markAllAsRead(userId);
+      return createSuccessResponse(result, "All notifications marked as read");
     }
-
-    const result = await container.notificationRepository.markAllAsRead(userId);
-
-    return createSuccessResponse(result, "All notifications marked as read");
-  } catch (error) {
-    log.error({ err: error }, "MARK ALL NOTIFICATIONS READ ERROR:");
-    throw new InternalServerError("Failed to mark notifications as read.");
-  }
+  );
 }
 
 export async function getNotificationsByCategoryAction(
@@ -41,25 +45,26 @@ export async function getNotificationsByCategoryAction(
     nextCursor?: string;
   }>
 > {
-  try {
-    const userId = await authUtils.getUserId();
-    if (!userId) {
-      throw new UnauthorizedError("Unauthorized: Please log in.");
-    }
+  return runAction(
+    log,
+    {
+      label: "GET NOTIFICATIONS BY CATEGORY ERROR:",
+      fallback: "Failed to retrieve notifications.",
+      passthrough: AUTH_ERRORS,
+    },
+    async () => {
+      const userId = await requireUserId();
+      const result =
+        await container.notificationRepository.getNotificationsByCategory(
+          userId,
+          category,
+          { limit: options.limit || 20, cursor: options.cursor }
+        );
 
-    const result =
-      await container.notificationRepository.getNotificationsByCategory(
-        userId,
-        category,
-        { limit: options.limit || 20, cursor: options.cursor }
+      return createSuccessResponse(
+        result,
+        "Notifications retrieved successfully"
       );
-
-    return createSuccessResponse(
-      result,
-      "Notifications retrieved successfully"
-    );
-  } catch (error) {
-    log.error({ err: error }, "GET NOTIFICATIONS BY CATEGORY ERROR:");
-    throw new InternalServerError("Failed to retrieve notifications.");
-  }
+    }
+  );
 }

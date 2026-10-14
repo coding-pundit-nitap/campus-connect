@@ -1,17 +1,25 @@
 "use server";
 
+import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
 import { batchService } from "@/di/container";
 import { BatchMilestone } from "@/generated/client";
-import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import { ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
 
-export async function lockBatchAction(batchId: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
+/** Throws ValidationError unless batch `batchId` belongs to `shopId`. */
+async function assertShopBatch(batchId: string, shopId: string) {
+  const batch = await prisma.batch.findUnique({
+    where: { id: batchId },
+    select: { shop_id: true },
+  });
+  if (!batch || batch.shop_id !== shopId) {
+    throw new ValidationError("Batch not found or unauthorized");
   }
+}
+
+export async function lockBatchAction(batchId: string) {
+  const shopId = await requireOwnedShopId();
 
   await batchService.lockBatch(batchId, shopId);
   return createSuccessResponse(
@@ -21,18 +29,9 @@ export async function lockBatchAction(batchId: string) {
 }
 
 export async function startBatchDeliveryAction(batchId: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    select: { shop_id: true },
-  });
-  if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
-  }
+  await assertShopBatch(batchId, shopId);
 
   await batchService.startDelivery(batchId);
   return createSuccessResponse(
@@ -42,18 +41,9 @@ export async function startBatchDeliveryAction(batchId: string) {
 }
 
 export async function unlockBatchAction(batchId: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    select: { shop_id: true },
-  });
-  if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
-  }
+  await assertShopBatch(batchId, shopId);
 
   await batchService.unlockBatch(batchId);
   return createSuccessResponse(
@@ -63,36 +53,18 @@ export async function unlockBatchAction(batchId: string) {
 }
 
 export async function completeBatchAction(batchId: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    select: { shop_id: true },
-  });
-  if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
-  }
+  await assertShopBatch(batchId, shopId);
 
   await batchService.completeBatch(batchId);
   return createSuccessResponse(null, "Batch completed.");
 }
 
 export async function cancelBatchAction(batchId: string, reason?: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    select: { shop_id: true },
-  });
-  if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
-  }
+  await assertShopBatch(batchId, shopId);
 
   const result = await batchService.cancelBatch(
     batchId,
@@ -105,10 +77,7 @@ export async function cancelBatchAction(batchId: string, reason?: string) {
 }
 
 export async function verifyOrderOtpAction(orderId: string, otp: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   if (!otp || typeof otp !== "string" || otp.length !== 4) {
     throw new ValidationError("Invalid OTP format. Must be 4 digits.");
@@ -135,18 +104,9 @@ export async function updateBatchMilestoneAction({
   riderPhone?: string;
   estimatedArrival?: Date;
 }) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
-  const batch = await prisma.batch.findUnique({
-    where: { id: batchId },
-    select: { shop_id: true },
-  });
-  if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
-  }
+  await assertShopBatch(batchId, shopId);
 
   await batchService.updateBatchMilestone(
     batchId,

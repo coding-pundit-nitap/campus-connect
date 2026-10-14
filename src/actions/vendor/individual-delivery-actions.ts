@@ -1,22 +1,19 @@
 "use server";
 
-import { batchService, notificationService } from "@/di/container";
-import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
+import {
+  generateDeliveryOtp,
+  requireOwnedShopId,
+} from "@/actions/_shared/action-helpers";
+import { verifyOrderOtpAction } from "@/actions/vendor/batch-actions";
+import { notificationService } from "@/di/container";
+import { ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
-import { authUtils } from "@/lib/utils/auth.utils.server";
 import { createSuccessResponse } from "@/types";
 const log = createLogger("individual-delivery-actions");
 
-function generateOtp(): string {
-  return Math.floor(1000 + Math.random() * 9000).toString();
-}
-
 export async function startIndividualDeliveryAction(orderId: string) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
+  const shopId = await requireOwnedShopId();
 
   const order = await prisma.order.findUnique({
     where: { id: orderId },
@@ -41,7 +38,7 @@ export async function startIndividualDeliveryAction(orderId: string) {
     throw new ValidationError("This order can’t be delivered.");
   }
 
-  const otp = order.delivery_otp || generateOtp();
+  const otp = order.delivery_otp || generateDeliveryOtp();
 
   await prisma.order.update({
     where: { id: orderId },
@@ -75,19 +72,5 @@ export async function verifyIndividualOrderOtpAction(
   orderId: string,
   otp: string
 ) {
-  const shopId = await authUtils.getOwnedShopId();
-  if (!shopId) {
-    throw new UnauthorizedError("Unauthorized: You do not own a shop.");
-  }
-
-  if (!otp || typeof otp !== "string" || otp.length !== 4) {
-    throw new ValidationError("Invalid OTP format. Must be 4 digits.");
-  }
-
-  const result = await batchService.verifyOrderOtp(orderId, otp, shopId);
-  if (!result.success) {
-    throw new ValidationError(result.message);
-  }
-
-  return createSuccessResponse(null, result.message);
+  return verifyOrderOtpAction(orderId, otp);
 }
