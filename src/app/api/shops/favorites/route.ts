@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
+import { UnauthenticatedError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -16,7 +18,16 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const shop_id = searchParams.get("shop_id");
 
-    const user_id = await authUtils.getUserId();
+    let user_id: string;
+    try {
+      user_id = await authUtils.getUserId();
+    } catch (err) {
+      // Signed out: a single-shop check is simply "not a favorite".
+      if (err instanceof UnauthenticatedError && shop_id) {
+        return jsonResponse(createSuccessResponse(false, "Not logged in"), 200);
+      }
+      throw err;
+    }
     if (!user_id) {
       if (shop_id) {
         return jsonResponse(createSuccessResponse(false, "Not logged in"), 200);
@@ -73,6 +84,8 @@ export async function GET(request: NextRequest) {
       200
     );
   } catch (error) {
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     log.error({ err: error }, "GET FAVORITE SHOPS ERROR:");
     return jsonResponse(createErrorResponse("Internal Server Error"), 500);
   }

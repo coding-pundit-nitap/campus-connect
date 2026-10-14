@@ -11,7 +11,8 @@ import {
 import {
   authErrorResponse,
   errorJson,
-  errorMessage,
+  INTERNAL_ERROR_MESSAGE,
+  internalErrorResponse,
   parseShopTypeParam,
   zodErrorResponse,
 } from "./route-helpers";
@@ -66,13 +67,10 @@ describe("authErrorResponse", () => {
   );
 });
 
-describe("errorMessage", () => {
-  it("uses the Error's message", () => {
-    expect(errorMessage(new Error("boom"), "fallback")).toBe("boom");
-  });
-
-  it("falls back for non-Error values", () => {
-    expect(errorMessage({ message: "x" }, "fallback")).toBe("fallback");
+describe("internalErrorResponse", () => {
+  it("is a generic 500 that reveals nothing about the cause", async () => {
+    await expectError(internalErrorResponse(), 500, INTERNAL_ERROR_MESSAGE);
+    expect(INTERNAL_ERROR_MESSAGE).toBe("An internal server error occurred.");
   });
 });
 

@@ -1,3 +1,4 @@
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { orderRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -17,6 +18,8 @@ export async function GET() {
     );
     return jsonResponse(successResponse, 200);
   } catch (error) {
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     log.error({ err: error }, "GET SELLER ORDERS ERROR:");
     const errorResponse = createErrorResponse("Failed to fetch orders");
     return jsonResponse(errorResponse, 500);

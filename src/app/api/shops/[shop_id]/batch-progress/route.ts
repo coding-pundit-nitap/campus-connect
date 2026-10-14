@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { errorMessage } from "@/app/api/_lib/route-helpers";
+import { internalErrorResponse } from "@/app/api/_lib/route-helpers";
 import { batchRepository, shopRepository } from "@/di/container";
 import { BatchStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -70,9 +70,6 @@ export async function GET(
     );
   } catch (error) {
     log.error({ err: error }, "GET batch progress error:");
-    return jsonResponse(
-      createErrorResponse(errorMessage(error, "Failed to get batch progress")),
-      500
-    );
+    return internalErrorResponse();
   }
 }

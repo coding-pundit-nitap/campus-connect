@@ -9,6 +9,7 @@ vi.mock("@/lib/utils/auth.utils.server", async () =>
   (await import("@tests/helpers")).authUtilsModule()
 );
 
+import { UnauthenticatedError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
 
@@ -63,6 +64,19 @@ describe("GET /api/shops/favorites", () => {
 
   it("returns 401 for the list with an empty user id", async () => {
     auth.getUserId.mockResolvedValue("");
+
+    await expectError(await get(), 401, "Unauthorized");
+  });
+
+  it("answers false (not an error) for a shop check when signed out", async () => {
+    auth.getUserId.mockRejectedValue(new UnauthenticatedError());
+
+    expect(await expectSuccess(await get("?shop_id=s1"))).toBe(false);
+    expect(db.favoriteShop.findUnique).not.toHaveBeenCalled();
+  });
+
+  it("returns 401 for the list when signed out", async () => {
+    auth.getUserId.mockRejectedValue(new UnauthenticatedError());
 
     await expectError(await get(), 401, "Unauthorized");
   });

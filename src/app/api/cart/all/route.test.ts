@@ -12,6 +12,7 @@ vi.mock("@/lib/utils/product.utils", () => ({
 }));
 
 import { cartService } from "@/di/container";
+import { UnauthenticatedError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 
 import { GET } from "./route";
@@ -33,6 +34,12 @@ describe("GET /api/cart/all", () => {
 
     expect(cartService.getAllUserCarts).toHaveBeenCalledWith("user-1");
     expect(data).toEqual([{ x: { id: "c1" } }]);
+  });
+
+  it("returns 401 when the user is not signed in", async () => {
+    auth.getUserId.mockRejectedValue(new UnauthenticatedError());
+
+    await expectError(await GET(), 401, "Unauthorized");
   });
 
   it("returns 500 when the service fails", async () => {

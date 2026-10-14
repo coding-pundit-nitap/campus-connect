@@ -13,6 +13,7 @@ vi.mock("@/lib/utils", () => ({
 }));
 
 import { cartRepository } from "@/di/container";
+import { UnauthenticatedError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 
 import { GET } from "./route";
@@ -46,8 +47,18 @@ describe("GET /api/cart", () => {
     expect(data).toEqual({ id: "c1", serialized: true });
   });
 
-  it("returns 500 when the user is not signed in", async () => {
-    auth.getUserId.mockRejectedValue(new Error("Unauthenticated"));
+  it("returns 401 when the user is not signed in", async () => {
+    auth.getUserId.mockRejectedValue(new UnauthenticatedError());
+
+    await expectError(
+      await GET(makeRequest("/api/cart?shop_id=s1")),
+      401,
+      "Unauthorized"
+    );
+  });
+
+  it("returns 500 on unexpected errors", async () => {
+    carts.findOrCreate.mockRejectedValue(new Error("db"));
 
     await expectError(
       await GET(makeRequest("/api/cart?shop_id=s1")),

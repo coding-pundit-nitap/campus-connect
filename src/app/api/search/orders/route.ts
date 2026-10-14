@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { env } from "@/config/env.config";
 import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -14,7 +15,10 @@ export async function GET(request: NextRequest) {
     const shop_id = await authUtils.getOwnedShopId();
     const { searchParams } = new URL(request.url);
     const parsedLimit = parseInt(searchParams.get("limit") || "10", 10);
-    const limit = Number.isNaN(parsedLimit) ? 10 : parsedLimit;
+    const limit = Math.min(
+      Math.max(1, Number.isNaN(parsedLimit) ? 10 : parsedLimit),
+      env.MAX_PAGE_SIZE
+    );
     const cursor = searchParams.get("cursor") || undefined;
     const searchTerm = searchParams.get("q") || undefined;
     const status = (searchParams.get("status") as OrderStatus) || undefined;

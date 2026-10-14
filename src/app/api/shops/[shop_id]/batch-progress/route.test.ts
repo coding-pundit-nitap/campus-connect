@@ -78,15 +78,12 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     await expectError(await get(), 404, "Shop not found");
   });
 
-  it("returns 500 with the error message on failure", async () => {
-    batches.findOpenBatchByShopId.mockRejectedValue(new Error("db down"));
+  it.each([[new Error("db down: host=10.0.0.5")], ["boom"]])(
+    "returns a generic 500 without leaking the cause (%s)",
+    async (error) => {
+      batches.findOpenBatchByShopId.mockRejectedValue(error);
 
-    await expectError(await get(), 500, "db down");
-  });
-
-  it("returns 500 with a fallback message for non-Error throws", async () => {
-    batches.findOpenBatchByShopId.mockRejectedValue("boom");
-
-    await expectError(await get(), 500, "Failed to get batch progress");
-  });
+      await expectError(await get(), 500, "An internal server error occurred.");
+    }
+  );
 });

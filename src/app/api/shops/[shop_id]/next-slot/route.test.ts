@@ -1,5 +1,5 @@
-import { makeRequest, readJson, routeParams } from "@tests/helpers";
-import { expectSuccess } from "@tests/helpers/api";
+import { makeRequest, routeParams } from "@tests/helpers";
+import { expectError, expectSuccess } from "@tests/helpers/api";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/di/container", async () =>
@@ -66,15 +66,12 @@ describe("GET /api/shops/[shop_id]/next-slot", () => {
     });
   });
 
-  it.each([
-    [new Error("db down"), "db down"],
-    ["boom", "Failed to get next slot"],
-  ])("returns 500 with an error body (%s)", async (error, message) => {
-    service.getNextSlot.mockRejectedValue(error);
+  it.each([[new Error("db down: host=10.0.0.5")], ["boom"]])(
+    "returns a generic 500 without leaking the cause (%s)",
+    async (error) => {
+      service.getNextSlot.mockRejectedValue(error);
 
-    expect(await readJson(await get())).toEqual({
-      status: 500,
-      body: { error: message },
-    });
-  });
+      await expectError(await get(), 500, "An internal server error occurred.");
+    }
+  );
 });

@@ -1,3 +1,4 @@
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { cartRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -29,6 +30,8 @@ export async function GET(request: Request) {
     );
     return jsonResponse(successResponse, 200);
   } catch (error) {
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     log.error({ err: error }, "GET CART ERROR:");
     const errorResponse = createErrorResponse(
       "An internal server error occurred."

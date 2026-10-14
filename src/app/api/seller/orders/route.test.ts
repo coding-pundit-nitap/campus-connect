@@ -9,6 +9,7 @@ vi.mock("@/lib/utils/auth.utils.server", async () =>
 );
 
 import { orderRepository } from "@/di/container";
+import { UnauthenticatedError, UnauthorizedError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 
 import { GET } from "./route";
@@ -29,8 +30,20 @@ describe("GET /api/seller/orders", () => {
     expect(orders.getOrdersByShopId).toHaveBeenCalledWith("shop-1");
   });
 
-  it("returns 500 when the caller owns no shop", async () => {
-    auth.getOwnedShopId.mockRejectedValue(new Error("no shop"));
+  it("returns 401 when the user is not signed in", async () => {
+    auth.getOwnedShopId.mockRejectedValue(new UnauthenticatedError());
+
+    await expectError(await GET(), 401, "Unauthorized");
+  });
+
+  it("returns 403 when the caller owns no shop", async () => {
+    auth.getOwnedShopId.mockRejectedValue(new UnauthorizedError());
+
+    await expectError(await GET(), 403, "Forbidden");
+  });
+
+  it("returns 500 on unexpected errors", async () => {
+    orders.getOrdersByShopId.mockRejectedValue(new Error("db"));
 
     await expectError(await GET(), 500, "Failed to fetch orders");
   });

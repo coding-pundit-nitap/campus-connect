@@ -40,9 +40,14 @@ export function authErrorResponse(
   return null;
 }
 
-/** The error's own message when it is an Error, otherwise the fallback. */
-export function errorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error ? error.message : fallback;
+export const INTERNAL_ERROR_MESSAGE = "An internal server error occurred.";
+
+/**
+ * Generic 500 response. Never echoes the underlying error text, which can
+ * carry internal details (SQL, hostnames, stack hints); log it instead.
+ */
+export function internalErrorResponse() {
+  return errorJson(INTERNAL_ERROR_MESSAGE, 500);
 }
 
 /** Reads the `type` query param as a ShopType filter ("ALL"/absent = none). */

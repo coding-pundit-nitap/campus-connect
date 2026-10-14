@@ -40,12 +40,12 @@ describe("GET /api/vendor/batch/delivery-run", () => {
     await expectError(await GET(), 401, "Not authorized");
   });
 
-  it.each([
-    [new Error("db down"), "db down"],
-    ["boom", "Failed to get delivery run data"],
-  ])("returns 500 on failure (%s)", async (error, message) => {
-    db.order.findMany.mockRejectedValue(error);
+  it.each([[new Error("db down: host=10.0.0.5")], ["boom"]])(
+    "returns a generic 500 without leaking the cause (%s)",
+    async (error) => {
+      db.order.findMany.mockRejectedValue(error);
 
-    await expectError(await GET(), 500, message);
-  });
+      await expectError(await GET(), 500, "An internal server error occurred.");
+    }
+  );
 });

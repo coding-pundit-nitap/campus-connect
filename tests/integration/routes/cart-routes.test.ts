@@ -8,13 +8,13 @@ import { asAnonymous, asUser } from "../../setup/auth";
 import { testPrisma } from "../../setup/integration-setup";
 
 describe("GET /api/cart", () => {
-  it("returns 500 when signed out (authUtils throws UnauthenticatedError; the handler's catch has no special case for it)", async () => {
+  it("returns 401 when signed out (authUtils throws UnauthenticatedError, mapped by authErrorResponse)", async () => {
     asAnonymous();
     const shop = await createShop();
     const res = await GET_CART(
       new NextRequest(`http://localhost/api/cart?shop_id=${shop.id}`)
     );
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(401);
     const body = await res.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe(true);
@@ -72,10 +72,10 @@ describe("GET /api/cart", () => {
 });
 
 describe("GET /api/cart/all", () => {
-  it("returns 500 when signed out (same generic catch as /api/cart - no UnauthenticatedError special case)", async () => {
+  it("returns 401 when signed out (same UnauthenticatedError mapping as /api/cart)", async () => {
     asAnonymous();
     const res = await GET_ALL_CARTS();
-    expect(res.status).toBe(500);
+    expect(res.status).toBe(401);
     const body = await res.json();
     expect(body.success).toBe(false);
     expect(body.error).toBe(true);

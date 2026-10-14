@@ -90,12 +90,12 @@ describe("GET /api/vendor/orders/console", () => {
     await expectError(await GET(), 400, "Shop not found");
   });
 
-  it.each([
-    [new Error("db down"), "db down"],
-    ["boom", "Failed to get vendor order console"],
-  ])("returns 500 on failure (%s)", async (error, message) => {
-    batches.findOpenBatchByShopId.mockRejectedValue(error);
+  it.each([[new Error("db down: host=10.0.0.5")], ["boom"]])(
+    "returns a generic 500 without leaking the cause (%s)",
+    async (error) => {
+      batches.findOpenBatchByShopId.mockRejectedValue(error);
 
-    await expectError(await GET(), 500, message);
-  });
+      await expectError(await GET(), 500, "An internal server error occurred.");
+    }
+  );
 });

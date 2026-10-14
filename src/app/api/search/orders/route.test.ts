@@ -12,6 +12,7 @@ vi.mock("@/lib/utils/order.utils", async () =>
   (await import("@tests/helpers/api")).orderUtilsModule()
 );
 
+import { env } from "@/config/env.config";
 import { orderRepository } from "@/di/container";
 import authUtils from "@/lib/utils/auth.utils.server";
 
@@ -73,6 +74,18 @@ describe("GET /api/search/orders", () => {
 
     expect(orders.getPaginatedShopOrders).toHaveBeenCalledWith(
       expect.objectContaining({ limit: 10 })
+    );
+  });
+
+  it.each([
+    ["0", 1],
+    ["-5", 1],
+    ["100000", env.MAX_PAGE_SIZE],
+  ])("clamps limit=%s to %d", async (limit, expected) => {
+    await GET(makeRequest(`/api/search/orders?limit=${limit}`));
+
+    expect(orders.getPaginatedShopOrders).toHaveBeenCalledWith(
+      expect.objectContaining({ limit: expected })
     );
   });
 

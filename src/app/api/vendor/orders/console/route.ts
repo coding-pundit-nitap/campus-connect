@@ -1,4 +1,4 @@
-import { errorMessage } from "@/app/api/_lib/route-helpers";
+import { internalErrorResponse } from "@/app/api/_lib/route-helpers";
 import { resolveVendorShop } from "@/app/api/_lib/vendor-shop";
 import { batchRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
@@ -8,10 +8,7 @@ import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
 } from "@/lib/utils/order.utils";
-import {
-  createErrorResponse,
-  createSuccessResponse,
-} from "@/types/response.types";
+import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("route");
 
 export async function GET() {
@@ -89,11 +86,6 @@ export async function GET() {
     );
   } catch (error) {
     log.error({ err: error }, "GET vendor order console error:");
-    return jsonResponse(
-      createErrorResponse(
-        errorMessage(error, "Failed to get vendor order console")
-      ),
-      500
-    );
+    return internalErrorResponse();
   }
 }
