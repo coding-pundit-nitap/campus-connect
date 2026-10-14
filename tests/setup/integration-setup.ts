@@ -30,9 +30,7 @@ loadEnv({ path: ".env.test" });
 process.env.DATABASE_URL = workerDatabaseUrl(process.env.VITEST_POOL_ID);
 process.env.REDIS_URL = `redis://localhost:${
   process.env.TEST_REDIS_PORT ?? 6380
-}/${
-  process.env.VITEST_POOL_ID ?? "1"
-}`;
+}/${process.env.VITEST_POOL_ID ?? "1"}`;
 
 const { prisma } = await import("../../src/lib/prisma");
 const { resetDatabase } = await import("./reset");
