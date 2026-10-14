@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { errorMessage } from "@/app/api/_lib/route-helpers";
 import { batchService } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -44,10 +45,7 @@ export async function GET(
   } catch (error) {
     log.error({ err: error }, "GET next-slot error:");
     return jsonResponse(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to get next slot",
-      },
+      { error: errorMessage(error, "Failed to get next slot") },
       500
     );
   }

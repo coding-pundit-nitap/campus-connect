@@ -1,8 +1,7 @@
-import { shopRepository } from "@/di/container";
+import { resolveVendorShop } from "@/app/api/_lib/vendor-shop";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import authUtils from "@/lib/utils/auth.utils.server";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -11,21 +10,12 @@ const log = createLogger("route");
 
 export async function GET() {
   try {
-    const user = await authUtils.getUserData();
-    if (!user.id) {
-      return jsonResponse(createErrorResponse("Not authorized"), 401);
-    }
-
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) {
-      return jsonResponse(createErrorResponse("Shop not found"), 400);
-    }
+    const { shopId, error } = await resolveVendorShop();
+    if (error) return error;
 
     const deliveryBuildings = await prisma.shopDeliveryBuilding.findMany({
       where: {
-        shop_id: shop.id,
+        shop_id: shopId,
         is_active: true,
         building: { is_active: true },
       },

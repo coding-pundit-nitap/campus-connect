@@ -1,8 +1,9 @@
-import { batchRepository, shopRepository } from "@/di/container";
+import { errorMessage } from "@/app/api/_lib/route-helpers";
+import { resolveVendorShop } from "@/app/api/_lib/vendor-shop";
+import { batchRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import authUtils from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -15,26 +16,17 @@ const log = createLogger("route");
 
 export async function GET() {
   try {
-    const user = await authUtils.getUserData();
-    if (!user.id) {
-      return jsonResponse(createErrorResponse("Not authorized"), 401);
-    }
-
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) {
-      return jsonResponse(createErrorResponse("Shop not found"), 400);
-    }
+    const { shopId, error } = await resolveVendorShop();
+    if (error) return error;
 
     // NOTE: uses `include` (not `select`) so new Batch scalar columns
     // (e.g. collective_total, min_order_value_snapshot) pass through
     // automatically — switching to `select` requires listing them explicitly.
     const [openBatch, activeBatches] = await Promise.all([
-      batchRepository.findOpenBatchByShopId(shop.id, {
+      batchRepository.findOpenBatchByShopId(shopId, {
         include: { delivery_status: true },
       }),
-      batchRepository.findActiveBatches(shop.id, {
+      batchRepository.findActiveBatches(shopId, {
         include: { delivery_status: true },
       }),
     ]);
@@ -53,7 +45,7 @@ export async function GET() {
         : Promise.resolve([]),
       prisma.order.findMany({
         where: {
-          shop_id: shop.id,
+          shop_id: shopId,
           is_direct_delivery: true,
           order_status: { in: ["NEW", "BATCHED", "OUT_FOR_DELIVERY"] },
         },
@@ -62,7 +54,7 @@ export async function GET() {
       }),
       prisma.order.findMany({
         where: {
-          shop_id: shop.id,
+          shop_id: shopId,
           OR: [
             {
               batch: {
@@ -99,9 +91,7 @@ export async function GET() {
     log.error({ err: error }, "GET vendor order console error:");
     return jsonResponse(
       createErrorResponse(
-        error instanceof Error
-          ? error.message
-          : "Failed to get vendor order console"
+        errorMessage(error, "Failed to get vendor order console")
       ),
       500
     );

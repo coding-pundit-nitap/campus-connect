@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { ShopType } from "@/generated/client";
+import { parseShopTypeParam } from "@/app/api/_lib/route-helpers";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -14,9 +14,7 @@ const log = createLogger("search-brands-api");
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const typeParam = searchParams.get("type");
-    const shopType =
-      typeParam && typeParam !== "ALL" ? (typeParam as ShopType) : undefined;
+    const shopType = parseShopTypeParam(searchParams);
 
     const rawBrands = await prisma.brand.findMany({
       where: {

@@ -154,7 +154,8 @@ export async function GET(req: NextRequest) {
 
   const channels = [`user:${user_id}:notifications`, `broadcast:notifications`];
 
-  let heartbeatInterval: NodeJS.Timeout | undefined;
+  // Assigned synchronously in start(), before cleanup can ever run.
+  let heartbeatInterval: NodeJS.Timeout;
   const listeners: { channel: string; handler: (message: string) => void }[] =
     [];
 
@@ -163,17 +164,14 @@ export async function GET(req: NextRequest) {
     if (isCleanedUp) return;
     isCleanedUp = true;
 
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-    }
+    clearInterval(heartbeatInterval);
 
     listeners.forEach(({ channel, handler }) => {
       notificationEmitter.unsubscribe(channel, handler);
     });
 
-    untrackConnection(user_id, connectionId).catch((error) => {
-      log.error({ err: error }, "Failed to untrack connection during cleanup:");
-    });
+    // untrackConnection logs and swallows its own errors, so it never rejects.
+    void untrackConnection(user_id, connectionId);
   };
 
   let missedNotifications: (Notification | BroadcastNotification)[] = [];

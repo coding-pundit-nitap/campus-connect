@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
   try {
     const shop_id = await authUtils.getOwnedShopId();
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "10", 10);
+    const parsedLimit = parseInt(searchParams.get("limit") || "10", 10);
+    const limit = Number.isNaN(parsedLimit) ? 10 : parsedLimit;
     const cursor = searchParams.get("cursor") || undefined;
     const searchTerm = searchParams.get("q") || undefined;
     const status = (searchParams.get("status") as OrderStatus) || undefined;

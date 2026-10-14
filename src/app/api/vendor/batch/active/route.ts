@@ -1,8 +1,9 @@
-import { batchRepository, shopRepository } from "@/di/container";
+import { errorMessage } from "@/app/api/_lib/route-helpers";
+import { resolveVendorShop } from "@/app/api/_lib/vendor-shop";
+import { batchRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import authUtils from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -15,16 +16,10 @@ const log = createLogger("route");
 
 export async function GET() {
   try {
-    const user = await authUtils.getUserData();
-    if (!user.id)
-      return jsonResponse(createErrorResponse("Not authorized"), 401);
+    const { shopId, error } = await resolveVendorShop();
+    if (error) return error;
 
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) return jsonResponse(createErrorResponse("Shop not found"), 400);
-
-    const activeBatch = await batchRepository.findOpenBatchByShopId(shop.id);
+    const activeBatch = await batchRepository.findOpenBatchByShopId(shopId);
     if (!activeBatch) {
       return jsonResponse(
         createSuccessResponse(
@@ -55,9 +50,7 @@ export async function GET() {
     log.error({ err: error }, "GET active batch data error:");
     return jsonResponse(
       createErrorResponse(
-        error instanceof Error
-          ? error.message
-          : "Failed to get active batch data"
+        errorMessage(error, "Failed to get active batch data")
       ),
       500
     );

@@ -15,14 +15,14 @@ import {
 
 import { env } from "./config/env.config";
 
-let httpRequestDuration: Histogram | null = null;
-let httpRequestTotal: Counter | null = null;
+// Keep the module namespace, not copies of its exports: the metrics are
+// created lazily (on the first /api/metrics scrape), so the exported `let`
+// bindings are still null at import time and must be read live.
+let metricsModule: typeof import("./app/api/metrics/route") | null = null;
 
 if (env.NODE_ENV === "production") {
   try {
-    const metricsModule = await import("./app/api/metrics/route");
-    httpRequestDuration = metricsModule.httpRequestDuration;
-    httpRequestTotal = metricsModule.httpRequestTotal;
+    metricsModule = await import("./app/api/metrics/route");
   } catch {
     console.warn(
       "[Proxy] Metrics module not available, skipping metrics tracking"
@@ -120,14 +120,10 @@ export async function proxy(req: NextRequest) {
     /**
      * Metrics Tracking (Production Only)
      */
-    if (
-      env.NODE_ENV === "production" &&
-      httpRequestDuration &&
-      httpRequestTotal
-    ) {
-      trackMetrics(req, response, startTime).catch((err) => {
-        console.error("[Proxy] Metrics error:", err);
-      });
+    const requestDuration = metricsModule?.httpRequestDuration;
+    const requestTotal = metricsModule?.httpRequestTotal;
+    if (env.NODE_ENV === "production" && requestDuration && requestTotal) {
+      trackMetrics(req, response, startTime, requestDuration, requestTotal);
     }
 
     response.headers.set(
@@ -142,10 +138,12 @@ export async function proxy(req: NextRequest) {
   }
 }
 
-async function trackMetrics(
+function trackMetrics(
   request: NextRequest,
   response: NextResponse,
-  startTime: number
+  startTime: number,
+  requestDuration: Histogram,
+  requestTotal: Counter
 ) {
   try {
     const duration = (Date.now() - startTime) / 1000;
@@ -153,12 +151,12 @@ async function trackMetrics(
     const method = request.method;
     const statusCode = response.status.toString();
 
-    httpRequestDuration?.observe(
+    requestDuration.observe(
       { method, route, status_code: statusCode },
       duration
     );
 
-    httpRequestTotal?.inc({
+    requestTotal.inc({
       method,
       route,
       status_code: statusCode,

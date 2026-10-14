@@ -1,8 +1,8 @@
-import { shopRepository } from "@/di/container";
+import { errorMessage } from "@/app/api/_lib/route-helpers";
+import { resolveVendorShop } from "@/app/api/_lib/vendor-shop";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import authUtils from "@/lib/utils/auth.utils.server";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -15,18 +15,12 @@ const log = createLogger("route");
 
 export async function GET() {
   try {
-    const user = await authUtils.getUserData();
-    if (!user.id)
-      return jsonResponse(createErrorResponse("Not authorized"), 401);
-
-    const shop = await shopRepository.findByOwnerId(user.id, {
-      select: { id: true },
-    });
-    if (!shop) return jsonResponse(createErrorResponse("Shop not found"), 400);
+    const { shopId, error } = await resolveVendorShop();
+    if (error) return error;
 
     const orders = await prisma.order.findMany({
       where: {
-        shop_id: shop.id,
+        shop_id: shopId,
         OR: [
           {
             batch: {
@@ -55,9 +49,7 @@ export async function GET() {
     log.error({ err: error }, "GET delivery run data error:");
     return jsonResponse(
       createErrorResponse(
-        error instanceof Error
-          ? error.message
-          : "Failed to get delivery run data"
+        errorMessage(error, "Failed to get delivery run data")
       ),
       500
     );

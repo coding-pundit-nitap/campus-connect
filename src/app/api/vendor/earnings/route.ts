@@ -1,10 +1,6 @@
 import { NextRequest } from "next/server";
 
-import {
-  ForbiddenError,
-  UnauthenticatedError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -68,12 +64,8 @@ export async function GET(request: NextRequest) {
       200
     );
   } catch (error) {
-    if (error instanceof UnauthenticatedError) {
-      return jsonResponse(createErrorResponse("Unauthorized"), 401);
-    }
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      return jsonResponse(createErrorResponse("Forbidden"), 403);
-    }
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     log.error({ err: error }, "GET vendor earnings error:");
     return jsonResponse(createErrorResponse("Failed to load earnings"), 500);
   }

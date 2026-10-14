@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
+import { zodErrorResponse } from "@/app/api/_lib/route-helpers";
 import { reviewRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -56,10 +57,7 @@ export async function GET(
     return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return jsonResponse(
-        createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        400
-      );
+      return zodErrorResponse(error);
     }
     log.error({ err: error }, "Error fetching paginated reviews:");
     return jsonResponse(createErrorResponse("Failed to fetch reviews"), 500);

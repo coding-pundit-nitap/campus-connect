@@ -20,9 +20,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const cursor = searchParams.get("cursor") || undefined;
-    const requestedLimit = searchParams.get("limit")
-      ? parseInt(searchParams.get("limit")!, 10)
-      : 20;
+    const parsedLimit = parseInt(searchParams.get("limit") ?? "", 10);
+    const requestedLimit = Number.isNaN(parsedLimit) ? 20 : parsedLimit;
     const limit = Math.min(Math.max(1, requestedLimit), env.MAX_PAGE_SIZE);
 
     const paginatedNotifications: CursorPaginatedResponse<Notification> =

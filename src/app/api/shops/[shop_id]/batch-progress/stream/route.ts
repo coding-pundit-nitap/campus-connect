@@ -17,15 +17,17 @@ export async function GET(
   const { shop_id } = await params;
   const channel = batchProgressChannel(shop_id);
 
-  let heartbeatInterval: NodeJS.Timeout | undefined;
-  let handler: ((message: string) => void) | undefined;
+  // Both are assigned synchronously in start(), which runs inside the
+  // ReadableStream constructor, so they are always set before cleanup runs.
+  let heartbeatInterval: NodeJS.Timeout;
+  let handler: (message: string) => void;
   let isCleanedUp = false;
 
   const cleanup = () => {
     if (isCleanedUp) return;
     isCleanedUp = true;
-    if (heartbeatInterval) clearInterval(heartbeatInterval);
-    if (handler) notificationEmitter.unsubscribe(channel, handler);
+    clearInterval(heartbeatInterval);
+    notificationEmitter.unsubscribe(channel, handler);
   };
 
   const stream = new ReadableStream({

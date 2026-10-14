@@ -1,11 +1,7 @@
 import { NextRequest } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { orderRepository } from "@/di/container";
-import {
-  ForbiddenError,
-  UnauthenticatedError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -54,15 +50,11 @@ export async function GET(
       200
     );
   } catch (error) {
-    if (error instanceof UnauthenticatedError) {
-      return jsonResponse(createErrorResponse("Unauthorized"), 401);
-    }
-    if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
-      return jsonResponse(
-        createErrorResponse("Unauthorized to view this order"),
-        403
-      );
-    }
+    const authError = authErrorResponse(
+      error,
+      "Unauthorized to view this order"
+    );
+    if (authError) return authError;
     log.error({ err: error }, "GET ORDER DETAIL API ERROR:");
     return jsonResponse(createErrorResponse("Failed to retrieve order"), 500);
   }

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import z from "zod";
 
+import { zodErrorResponse } from "@/app/api/_lib/route-helpers";
 import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -35,6 +36,9 @@ export async function GET(request: NextRequest) {
     const params = Object.fromEntries(new URL(request.url).searchParams);
 
     const parsed = orderQuerySchema.parse(params);
+    // `.extend(dateRangeSchema.shape)` drops dateRangeSchema's refine, so
+    // validate the from <= to ordering explicitly.
+    dateRangeSchema.parse(parsed);
 
     const dateFrom = parseDate(parsed.date_from);
     const dateTo = parseDate(parsed.date_to);
@@ -66,10 +70,7 @@ export async function GET(request: NextRequest) {
     return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return jsonResponse(
-        createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        400
-      );
+      return zodErrorResponse(error);
     }
     log.error({ err: error }, "GET ORDERS ERROR:");
     const errorResponse = createErrorResponse("Failed to fetch orders");

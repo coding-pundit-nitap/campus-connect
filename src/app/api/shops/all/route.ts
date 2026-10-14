@@ -1,5 +1,6 @@
 import z from "zod";
 
+import { zodErrorResponse } from "@/app/api/_lib/route-helpers";
 import { shopRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -46,10 +47,7 @@ export async function GET(request: Request) {
     return jsonResponse(successResponse, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return jsonResponse(
-        createErrorResponse(error.issues.map((e) => e.message).join(", ")),
-        400
-      );
+      return zodErrorResponse(error);
     }
     log.error({ err: error }, "GET SHOPS ERROR:");
     const errorResponse = createErrorResponse(
