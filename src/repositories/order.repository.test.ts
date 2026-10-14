@@ -322,10 +322,9 @@ describe("OrderRepository (Unit)", () => {
       });
 
       expect(res.orders).toEqual([{ id: "o1" }, { id: "o2" }]);
-      // Only presence is asserted: the value is the popped look-ahead row,
-      // which with `skip: 1` makes the next page skip that row (reported as
-      // a bug; see the repositories coverage report).
-      expect(res.nextCursor).toBeDefined();
+      // The cursor is the last row returned: the next query uses `skip: 1`,
+      // so pointing at the trimmed look-ahead row would skip it.
+      expect(res.nextCursor).toBe("o2");
       expect(spies.findMany).toHaveBeenCalledTimes(1);
 
       const args = spies.findMany.mock.calls[0][0];

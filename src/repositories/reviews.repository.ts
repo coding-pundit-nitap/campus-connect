@@ -24,7 +24,7 @@ export class ReviewRepository extends BaseRepository<
     data: CreateReviewDto,
     options?: Omit<Prisma.ReviewCreateArgs, "data">
   ) {
-    const product_id = data.product.connect!.id;
+    const product_id = data.product?.connect?.id;
     if (!product_id) {
       throw new BadRequestError("Product ID required for review");
     }

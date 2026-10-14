@@ -340,7 +340,7 @@ export class BatchRepository extends BaseRepository<
         ...rest,
         where: { ...where, shop_id, is_active: true },
       };
-      return this.prismaClient.batchSlot.findMany(query);
+      return await this.prismaClient.batchSlot.findMany(query);
     } catch {
       return [];
     }

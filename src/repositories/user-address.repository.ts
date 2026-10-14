@@ -94,7 +94,8 @@ export class UserAddressRepository extends BaseRepository<
       return null;
     }
 
-    return this.delete(id);
+    // Scope the write by owner too, so it can't race past the check above.
+    return this.delegate.delete({ where: { id, user_id } });
   }
 
   async setDefault(
@@ -169,7 +170,7 @@ export class UserAddressRepository extends BaseRepository<
     const setAsDefault = data.is_default === true;
 
     if (!setAsDefault) {
-      return this.update(id, data);
+      return this.delegate.update({ where: { id, user_id }, data });
     }
 
     return this.prismaClient.$transaction(async (tx) => {
@@ -183,7 +184,7 @@ export class UserAddressRepository extends BaseRepository<
       });
 
       return tx.userAddress.update({
-        where: { id },
+        where: { id, user_id },
         data,
       });
     });

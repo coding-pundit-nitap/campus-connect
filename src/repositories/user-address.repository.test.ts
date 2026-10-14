@@ -150,8 +150,9 @@ describe("UserAddressRepository", () => {
       await expect(repo.deleteByIdAndUserId("addr-1", "user-1")).resolves.toBe(
         own
       );
+      // Owner-scoped write: closes the check-then-delete race.
       expect(prisma.userAddress.delete).toHaveBeenCalledWith({
-        where: { id: "addr-1" },
+        where: { id: "addr-1", user_id: "user-1" },
       });
     });
   });
@@ -230,7 +231,7 @@ describe("UserAddressRepository", () => {
         repo.updateWithDefault("addr-1", "user-1", { label: "x" })
       ).resolves.toBe(own);
       expect(prisma.userAddress.update).toHaveBeenCalledWith({
-        where: { id: "addr-1" },
+        where: { id: "addr-1", user_id: "user-1" },
         data: { label: "x" },
       });
       expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -247,7 +248,7 @@ describe("UserAddressRepository", () => {
         data: { is_default: false },
       });
       expect(tx.userAddress.update).toHaveBeenCalledWith({
-        where: { id: "addr-1" },
+        where: { id: "addr-1", user_id: "user-1" },
         data: { is_default: true },
       });
     });

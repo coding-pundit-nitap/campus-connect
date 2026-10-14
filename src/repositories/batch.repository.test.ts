@@ -274,6 +274,11 @@ describe("BatchRepository", () => {
       });
       await expect(repo.findActiveSlots("s1")).resolves.toEqual([]);
     });
+
+    it("returns [] when the database query rejects", async () => {
+      prisma.batchSlot.findMany.mockRejectedValueOnce(new Error("db down"));
+      await expect(repo.findActiveSlots("s1")).resolves.toEqual([]);
+    });
   });
 
   it("getOrderItemSummary sums quantity per product for the batch", async () => {

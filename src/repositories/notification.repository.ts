@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { CursorPaginatedResponse } from "@/types";
 
 import { BaseRepository } from "./base.repository";
+import { toCursorPage } from "./cursor-page";
 
 export class NotificationRepository extends BaseRepository<
   Notification,
@@ -55,16 +56,12 @@ export class NotificationRepository extends BaseRepository<
       skip: cursor ? 1 : 0,
     });
 
-    let nextCursor: string | null = null;
-    if (notifications.length > limit) {
-      const nextItem = notifications.pop();
-      nextCursor = nextItem!.id;
-    }
+    const { items, nextCursor } = toCursorPage(notifications, limit);
 
     return {
-      data: notifications,
-      nextCursor,
-      hasMore: nextCursor !== null,
+      data: items,
+      nextCursor: nextCursor ?? null,
+      hasMore: nextCursor !== undefined,
     };
   }
 
@@ -179,13 +176,9 @@ export class NotificationRepository extends BaseRepository<
       skip: cursor ? 1 : 0,
     });
 
-    let nextCursor: string | undefined = undefined;
-    if (notifications.length > limit) {
-      const nextItem = notifications.pop();
-      nextCursor = nextItem!.id;
-    }
+    const { items, nextCursor } = toCursorPage(notifications, limit);
 
-    return { notifications, nextCursor };
+    return { notifications: items, nextCursor };
   }
 
   async count(args?: Prisma.NotificationCountArgs): Promise<number> {

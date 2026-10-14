@@ -33,6 +33,21 @@ describe("ReviewRepository", () => {
       expect(prisma.$transaction).not.toHaveBeenCalled();
     });
 
+    it.each([
+      ["product.connect is absent", { create: { name: "x" } }],
+      ["product is absent", undefined],
+    ])(
+      "throws BadRequestError (not TypeError) when %s",
+      async (_label, product) => {
+        const data = {
+          rating: 5,
+          product,
+        } as unknown as Prisma.ReviewCreateInput;
+        await expect(repo.createReview(data)).rejects.toThrow(BadRequestError);
+        expect(prisma.$transaction).not.toHaveBeenCalled();
+      }
+    );
+
     it("creates review and increments product rating/count in transaction", async () => {
       const data = {
         rating: 4,

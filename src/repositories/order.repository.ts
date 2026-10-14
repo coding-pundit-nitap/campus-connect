@@ -4,6 +4,7 @@ import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
 
 import { BaseRepository } from "./base.repository";
+import { toCursorPage } from "./cursor-page";
 
 type GetPaginatedOrdersOptions = {
   shop_id: string;
@@ -357,14 +358,9 @@ export class OrderRepository extends BaseRepository<
       include: orderWithDetailsInclude,
     });
 
-    let nextCursor: string | undefined = undefined;
+    const { items, nextCursor } = toCursorPage(orders, limit);
 
-    if (orders.length > limit) {
-      const nextItem = orders.pop();
-      nextCursor = nextItem?.id;
-    }
-
-    return { orders, nextCursor };
+    return { orders: items, nextCursor };
   }
 
   async findById(orderId: string): Promise<Order | null>;

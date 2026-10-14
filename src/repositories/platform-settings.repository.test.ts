@@ -14,26 +14,19 @@ describe("PlatformSettingsRepository", () => {
   });
 
   describe("getSettings", () => {
-    it("returns the default row when it exists", async () => {
+    it("gets-or-creates the default row atomically with one upsert", async () => {
       const row = { id: "default", platform_fee: 5 };
-      prisma.platformSettings.findUnique.mockResolvedValueOnce(row);
+      prisma.platformSettings.upsert.mockResolvedValueOnce(row);
 
       await expect(repo.getSettings()).resolves.toBe(row);
-      expect(prisma.platformSettings.findUnique).toHaveBeenCalledWith({
+      expect(prisma.platformSettings.upsert).toHaveBeenCalledWith({
         where: { id: "default" },
+        update: {},
+        create: { id: "default", platform_fee: 0 },
       });
+      // No separate find-then-create: that pair races on first use.
+      expect(prisma.platformSettings.findUnique).not.toHaveBeenCalled();
       expect(prisma.platformSettings.create).not.toHaveBeenCalled();
-    });
-
-    it("creates the default row with a zero fee when missing", async () => {
-      const row = { id: "default", platform_fee: 0 };
-      prisma.platformSettings.findUnique.mockResolvedValueOnce(null);
-      prisma.platformSettings.create.mockResolvedValueOnce(row);
-
-      await expect(repo.getSettings()).resolves.toBe(row);
-      expect(prisma.platformSettings.create).toHaveBeenCalledWith({
-        data: { id: "default", platform_fee: 0 },
-      });
     });
   });
 
@@ -50,7 +43,7 @@ describe("PlatformSettingsRepository", () => {
   });
 
   it("getPlatformFee converts the stored Decimal-like fee to a number", async () => {
-    prisma.platformSettings.findUnique.mockResolvedValueOnce({
+    prisma.platformSettings.upsert.mockResolvedValueOnce({
       id: "default",
       platform_fee: { toString: () => "12.5", valueOf: () => 12.5 },
     });

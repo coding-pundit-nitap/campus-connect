@@ -70,9 +70,9 @@ describe("NotificationRepository", () => {
       );
       expect(res.data).toEqual(rows("a", "b"));
       expect(res.hasMore).toBe(true);
-      // Value intentionally not asserted: it is the popped look-ahead row,
-      // which `skip: 1` then skips on the next page (reported as a bug).
-      expect(res.nextCursor).not.toBeNull();
+      // The cursor is the last row returned: the next query uses `skip: 1`,
+      // so pointing at the trimmed look-ahead row would skip it.
+      expect(res.nextCursor).toBe("b");
     });
   });
 
@@ -219,7 +219,9 @@ describe("NotificationRepository", () => {
         expect.objectContaining({ take: 2, cursor: { id: "z" }, skip: 1 })
       );
       expect(res.notifications).toEqual(rows("a"));
-      expect(res.nextCursor).toBeDefined();
+      // The cursor is the last row returned: the next query uses `skip: 1`,
+      // so pointing at the trimmed look-ahead row would skip it.
+      expect(res.nextCursor).toBe("a");
     });
   });
 

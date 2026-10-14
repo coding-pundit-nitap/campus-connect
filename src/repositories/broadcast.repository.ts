@@ -2,6 +2,7 @@ import { BroadcastNotification, Prisma } from "@/generated/client";
 import { prisma } from "@/lib/prisma";
 
 import { BaseRepository } from "./base.repository";
+import { toCursorPage } from "./cursor-page";
 
 export class BroadcastNotificationRepository extends BaseRepository<
   BroadcastNotification,
@@ -60,13 +61,9 @@ export class BroadcastNotificationRepository extends BaseRepository<
       skip: cursor ? 1 : 0,
     });
 
-    let nextCursor: string | undefined = undefined;
-    if (broadcasts.length > limit) {
-      const nextItem = broadcasts.pop();
-      nextCursor = nextItem!.id;
-    }
+    const { items, nextCursor } = toCursorPage(broadcasts, limit);
 
-    return { broadcasts, nextCursor };
+    return { broadcasts: items, nextCursor };
   }
 
   async getAllForUser(
@@ -90,13 +87,9 @@ export class BroadcastNotificationRepository extends BaseRepository<
       },
     });
 
-    let nextCursor: string | undefined = undefined;
-    if (broadcasts.length > limit) {
-      broadcasts.pop();
-      nextCursor = broadcasts[broadcasts.length - 1]?.id;
-    }
+    const { items, nextCursor } = toCursorPage(broadcasts, limit);
 
-    const broadcastsWithReadStatus = broadcasts.map((b) => ({
+    const broadcastsWithReadStatus = items.map((b) => ({
       ...b,
       isRead: b.read_statuses.length > 0,
       read_statuses: undefined,

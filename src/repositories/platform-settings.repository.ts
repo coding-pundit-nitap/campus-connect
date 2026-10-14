@@ -16,17 +16,12 @@ export class PlatformSettingsRepository extends BaseRepository<
   }
 
   async getSettings(): Promise<PlatformSettings> {
-    let settings = await this.prismaClient.platformSettings.findUnique({
+    // Atomic get-or-create: two concurrent first calls can't both insert.
+    return this.prismaClient.platformSettings.upsert({
       where: { id: "default" },
+      update: {},
+      create: { id: "default", platform_fee: 0 },
     });
-
-    if (!settings) {
-      settings = await this.prismaClient.platformSettings.create({
-        data: { id: "default", platform_fee: 0 },
-      });
-    }
-
-    return settings;
   }
 
   async updatePlatformFee(fee: number): Promise<PlatformSettings> {

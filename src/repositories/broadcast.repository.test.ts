@@ -80,9 +80,9 @@ describe("BroadcastNotificationRepository", () => {
         expect.objectContaining({ take: 3, cursor: { id: "z" }, skip: 1 })
       );
       expect(res.broadcasts).toEqual(rows("a", "b"));
-      // Value intentionally not asserted: it is the popped look-ahead row,
-      // which `skip: 1` then skips on the next page (reported as a bug).
-      expect(res.nextCursor).toBeDefined();
+      // The cursor is the last row returned: the next query uses `skip: 1`,
+      // so pointing at the trimmed look-ahead row would skip it.
+      expect(res.nextCursor).toBe("b");
     });
   });
 
