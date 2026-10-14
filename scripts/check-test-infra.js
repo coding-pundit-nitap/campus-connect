@@ -2,7 +2,11 @@ import net from "node:net";
 
 const targets = [
   { name: "Postgres", host: "127.0.0.1", port: 5433 },
-  { name: "Redis", host: "127.0.0.1", port: 6380 },
+  {
+    name: "Redis",
+    host: "127.0.0.1",
+    port: Number(process.env.TEST_REDIS_PORT ?? 6380),
+  },
 ];
 
 function probe({ host, port }) {

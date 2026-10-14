@@ -21,7 +21,7 @@ services:
     image: redis:8.2.1-alpine
     container_name: campus_connect_test_redis
     ports:
-      - "6380:6379"
+      - "${TEST_REDIS_PORT:-6380}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 2s

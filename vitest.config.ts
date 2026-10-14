@@ -3,6 +3,28 @@ import { defineConfig } from "vitest/config";
 
 import { TEST_WORKERS } from "./tests/setup/worker-count";
 
+/**
+ * Coverage scope = the logic layers. Presentational UI (components,
+ * page-components, app pages/layouts, client hooks) is intentionally out of
+ * scope for the coverage gate.
+ */
+const COVERAGE_INCLUDE = [
+  "src/actions/**/*.ts",
+  "src/services/**/*.ts",
+  "src/repositories/**/*.ts",
+  "src/lib/**/*.ts",
+  "src/validations/**/*.ts",
+  "src/di/**/*.ts",
+  "src/config/**/*.ts",
+  "src/app/api/**/*.ts",
+  "src/app/robots.ts",
+  "src/app/sitemap.ts",
+  "src/rbac.ts",
+  "src/proxy.ts",
+  "src/auth.ts",
+  "workers/**/*.ts",
+];
+
 export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
@@ -13,7 +35,8 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "node",
-          include: ["src/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "workers/**/*.test.ts"],
+          setupFiles: ["./tests/setup/unit-setup.ts"],
         },
       },
       {
@@ -33,73 +56,23 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      reporter: ["text", "html", "lcov"],
+      reporter: ["text", "html", "lcov", "json-summary"],
       reportsDirectory: "./coverage",
+      include: COVERAGE_INCLUDE,
       exclude: [
         "**/generated/**",
         "**/*.d.ts",
-
+        "**/*.test.ts",
         // Type-only / barrel files
         "src/types/**",
-        "src/**/index.ts",
-
-        // Tests and test infrastructure
-        "tests/**",
+        "**/index.ts",
+        "workers/**/types.ts",
       ],
-
       thresholds: {
-        statements: 45,
-        branches: 35,
-        functions: 40,
-        lines: 60,
-        "src/rbac.ts": {
-          statements: 95,
-          branches: 90,
-          functions: 100,
-          lines: 95,
-        },
-        "src/services/order/order.service.ts": {
-          statements: 75,
-          branches: 75,
-          functions: 82,
-          lines: 75,
-        },
-        "src/services/cart/cart.service.ts": {
-          statements: 95,
-          branches: 75,
-          functions: 95,
-          lines: 95,
-        },
-        "src/services/product/product.service.ts": {
-          statements: 95,
-          branches: 95,
-          functions: 95,
-          lines: 95,
-        },
-        "src/repositories/order.repository.ts": {
-          statements: 90,
-          branches: 65,
-          functions: 90,
-          lines: 90,
-        },
-        "src/repositories/product.repository.ts": {
-          statements: 95,
-          branches: 80,
-          functions: 95,
-          lines: 95,
-        },
-        "src/repositories/user.repository.ts": {
-          statements: 95,
-          branches: 80,
-          functions: 95,
-          lines: 95,
-        },
-        "src/services/file-upload/file-upload.service.ts": {
-          statements: 90,
-          branches: 90,
-          functions: 95,
-          lines: 90,
-        },
+        statements: 95,
+        branches: 95,
+        functions: 95,
+        lines: 95,
       },
     },
   },

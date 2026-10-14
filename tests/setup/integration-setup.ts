@@ -4,33 +4,11 @@ import { afterAll, beforeEach, vi } from "vitest";
 
 import { workerDatabaseUrl } from "./worker-db";
 
-vi.mock("next/headers", () => ({
-  headers: async () => new Headers(),
-  cookies: async () => ({ get: () => undefined, getAll: () => [] }),
-}));
-
-vi.mock("next/navigation", () => ({
-  notFound: () => {
-    throw new Error("NEXT_NOT_FOUND");
-  },
-  redirect: (url: string) => {
-    throw new Error(`NEXT_REDIRECT:${url}`);
-  },
-  permanentRedirect: (url: string) => {
-    throw new Error(`NEXT_REDIRECT:${url}`);
-  },
-  unauthorized: () => {
-    throw new Error("NEXT_UNAUTHORIZED");
-  },
-  forbidden: () => {
-    throw new Error("NEXT_FORBIDDEN");
-  },
-}));
-
-vi.mock("next/cache", () => ({
-  revalidatePath: vi.fn(),
-  revalidateTag: vi.fn(),
-}));
+vi.mock("next/headers", async () => (await import("../helpers")).nextHeaders());
+vi.mock("next/navigation", async () =>
+  (await import("../helpers")).nextNavigation()
+);
+vi.mock("next/cache", async () => (await import("../helpers")).nextCache());
 
 vi.mock("../../src/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../src/auth")>();
@@ -50,7 +28,9 @@ vi.mock("../../src/auth", async (importOriginal) => {
 loadEnv({ path: ".env.test" });
 
 process.env.DATABASE_URL = workerDatabaseUrl(process.env.VITEST_POOL_ID);
-process.env.REDIS_URL = `redis://localhost:6380/${
+process.env.REDIS_URL = `redis://localhost:${
+  process.env.TEST_REDIS_PORT ?? 6380
+}/${
   process.env.VITEST_POOL_ID ?? "1"
 }`;
 
