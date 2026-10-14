@@ -352,7 +352,11 @@ export class OrderRepository extends BaseRepository<
     const orders = await this.prismaClient.order.findMany({
       take: limit + 1,
       where,
-      orderBy: { created_at: Prisma.SortOrder.desc },
+      // id breaks created_at ties so the cursor order is stable.
+      orderBy: [
+        { created_at: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.desc },
+      ],
       cursor: cursor ? { id: cursor } : undefined,
       skip: cursor ? 1 : 0,
       include: orderWithDetailsInclude,

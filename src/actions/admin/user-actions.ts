@@ -70,7 +70,7 @@ export async function getAllUsersAction(
       const users = await userRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { createdAt: "desc" },
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         select: {
           id: true,
           name: true,

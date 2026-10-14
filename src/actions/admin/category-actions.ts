@@ -51,7 +51,7 @@ export async function getAllCategoriesAction(
       const categories = await container.categoryRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { name: "asc" },
+        orderBy: [{ name: "asc" }, { id: "asc" }],
         select: {
           id: true,
           name: true,

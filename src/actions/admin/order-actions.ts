@@ -80,7 +80,7 @@ export async function getAllOrdersAction(
       const orders = await orderRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         include: orderWithDetailsInclude,
       });
 

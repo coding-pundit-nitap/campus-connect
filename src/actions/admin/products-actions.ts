@@ -72,7 +72,7 @@ export async function getAllProductsAction(
       const products = await productRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         select: {
           id: true,
           name: true,

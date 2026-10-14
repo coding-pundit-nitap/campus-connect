@@ -154,7 +154,7 @@ export async function getAuditLogsAction(
       const auditLogs = await container.adminAuditRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         select: auditLogSelect,
       });
 

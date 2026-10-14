@@ -85,7 +85,7 @@ export async function getAllPayoutsAction(
       const payouts = await container.payoutRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         select: {
           id: true,
           amount: true,

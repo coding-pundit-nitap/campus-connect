@@ -99,7 +99,10 @@ describe("ProductService", () => {
           shop: { is_active: true, deleted_at: null },
           deleted_at: null,
         },
-        orderBy: { orderItems: { _count: Prisma.SortOrder.desc } },
+        orderBy: [
+          { orderItems: { _count: Prisma.SortOrder.desc } },
+          { id: Prisma.SortOrder.desc },
+        ],
         include: {
           shop: { select: { id: true, name: true } },
           category: true,
@@ -229,7 +232,10 @@ describe("ProductService", () => {
         "shop-1",
         {
           take: 11,
-          orderBy: { created_at: Prisma.SortOrder.desc },
+          orderBy: [
+            { created_at: Prisma.SortOrder.desc },
+            { id: Prisma.SortOrder.desc },
+          ],
           include: {
             shop: { select: { id: true, name: true } },
             category: true,

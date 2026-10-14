@@ -84,7 +84,7 @@ export async function getAllShopsAction(
       const shops = await container.shopRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         include: {
           user: {
             select: {

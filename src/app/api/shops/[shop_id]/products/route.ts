@@ -76,7 +76,11 @@ export async function GET(
           take,
           cursor: cursor ? { id: cursor } : undefined,
           skip: cursor ? 1 : 0,
-          orderBy: { [effectiveSortBy]: parsed.sortOrder },
+          // id breaks ties (equal price/name/...) so the cursor order is stable.
+          orderBy: [
+            { [effectiveSortBy]: parsed.sortOrder },
+            { id: parsed.sortOrder },
+          ],
           include: {
             category: true,
             brand: true,

@@ -39,7 +39,7 @@ describe("GET /api/shops/[shop_id]/products", () => {
     });
     expect(findArgs()).toMatchObject({
       where: { shop_id: "s1", deleted_at: null },
-      orderBy: { created_at: "desc" },
+      orderBy: [{ created_at: "desc" }, { id: "desc" }],
       take: 21,
       skip: 0,
       cursor: undefined,
@@ -55,7 +55,7 @@ describe("GET /api/shops/[shop_id]/products", () => {
     expect(args.where.OR).toHaveLength(3);
     expect(args.where.category_id).toBe("c1");
     expect(args.where.stock_quantity).toEqual({ gt: 0 });
-    expect(args.orderBy).toEqual({ price: "asc" });
+    expect(args.orderBy).toEqual([{ price: "asc" }, { id: "asc" }]);
     expect(args).toMatchObject({ cursor: { id: "p9" }, skip: 1 });
   });
 

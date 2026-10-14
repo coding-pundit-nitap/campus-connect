@@ -77,11 +77,11 @@ export class ProductService {
             }
           : {}),
       },
-      orderBy: {
-        orderItems: {
-          _count: Prisma.SortOrder.desc,
-        },
-      },
+      // id breaks popularity ties so the cursor order is stable.
+      orderBy: [
+        { orderItems: { _count: Prisma.SortOrder.desc } },
+        { id: Prisma.SortOrder.desc },
+      ],
       include: {
         shop: {
           select: {
@@ -176,11 +176,14 @@ export class ProductService {
 
   async fetchShopProducts(shop_id: string): Promise<ServerProductData> {
     try {
+      // id breaks created_at ties so the cursor order is stable.
+      const newestFirst: Prisma.ProductOrderByWithRelationInput[] = [
+        { created_at: Prisma.SortOrder.desc },
+        { id: Prisma.SortOrder.desc },
+      ];
       const queryOptions = {
         take: 11,
-        orderBy: {
-          created_at: Prisma.SortOrder.desc,
-        },
+        orderBy: newestFirst,
         include: {
           shop: {
             select: {

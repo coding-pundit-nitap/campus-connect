@@ -90,7 +90,7 @@ export async function getAllReviewsAction(
       const reviews = await container.reviewRepository.findMany({
         where,
         ...cursorArgs(limit, cursor),
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         select: {
           id: true,
           rating: true,

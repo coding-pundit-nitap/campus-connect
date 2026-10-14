@@ -70,7 +70,7 @@ describe("admin user actions", () => {
           where: {},
           take: 11,
           skip: 0,
-          orderBy: { createdAt: "desc" },
+          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         })
       );
       expect(res.data).toEqual({

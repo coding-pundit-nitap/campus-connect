@@ -27,9 +27,11 @@ export async function GET(request: Request) {
           take,
           cursor: cursor ? { id: cursor } : undefined,
           skip: cursor ? 1 : 0,
-          orderBy: {
-            created_at: Prisma.SortOrder.desc,
-          },
+          // id breaks created_at ties so the cursor order is stable.
+          orderBy: [
+            { created_at: Prisma.SortOrder.desc },
+            { id: Prisma.SortOrder.desc },
+          ],
         }),
       parsed.limit,
       parsed.cursor

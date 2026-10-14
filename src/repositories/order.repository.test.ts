@@ -352,7 +352,7 @@ describe("OrderRepository (Unit)", () => {
         },
         { user: { email: { contains: "query", mode: "insensitive" } } },
       ]);
-      expect(args.orderBy).toEqual({ created_at: "desc" });
+      expect(args.orderBy).toEqual([{ created_at: "desc" }, { id: "desc" }]);
     });
 
     it("uses only the shop scope, default limit and no cursor when no filters are given", async () => {
@@ -365,7 +365,7 @@ describe("OrderRepository (Unit)", () => {
       expect(spies.findMany).toHaveBeenCalledWith({
         take: 11,
         where: { shop_id: "shop-1" },
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         cursor: undefined,
         skip: 0,
         include: { testInclude: true },

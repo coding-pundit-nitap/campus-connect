@@ -81,7 +81,7 @@ describe("admin order actions", () => {
         take: 11,
         skip: 0,
         cursor: undefined,
-        orderBy: { created_at: "desc" },
+        orderBy: [{ created_at: "desc" }, { id: "desc" }],
         include: { include: "details" },
       });
       expect(res.data).toEqual({
