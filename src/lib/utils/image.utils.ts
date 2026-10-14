@@ -14,9 +14,7 @@ class ImageUtils {
     if (objectKey.startsWith("http://") || objectKey.startsWith("https://")) {
       return objectKey;
     }
-    return objectKey
-      ? `${minioBaseUrl}/${objectKey}`
-      : "/placeholders/placeholder.png";
+    return `${minioBaseUrl}/${objectKey}`;
   }
 
   static processImageKeyForSubmission(

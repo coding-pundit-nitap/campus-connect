@@ -1,14 +1,26 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Order, OrderItem, Prisma } from "@/generated/client";
 
 const { Decimal } = Prisma;
-import { DeliveryAddressSnapshot, OrderWithDetails } from "@/types";
+import { makeProduct, makeShop } from "@tests/helpers/lib/builders";
 
 import {
+  DeliveryAddressSnapshot,
+  OrderWithDetails,
+  SearchResult,
+} from "@/types";
+
+import {
+  createSearchNavigationHandler,
+  getOrderStatusInfo,
+  getPaymentStatusInfo,
+  mapSearchResultsToSuggestions,
   serializeOrder,
   serializeOrderItem,
   serializeOrderWithDetails,
+  serializeShop,
+  transformDateToLocaleString,
 } from "./order.utils";
 
 const baseSnapshot: DeliveryAddressSnapshot = {
@@ -285,5 +297,143 @@ describe("serializeOrderWithDetails", () => {
     const result = serializeOrderWithDetails(order);
 
     expect(result.batch?.delivery_status?.estimated_arrival).toBeNull();
+  });
+});
+
+describe("serializeOrderWithDetails items", () => {
+  it("serializes each item together with its product", () => {
+    const order = makeOrderWithDetails({
+      items: [
+        {
+          id: "item_1",
+          quantity: 2,
+          price: new Decimal("40.00"),
+          order_id: "order_1",
+          product_id: "product-1",
+          product: {
+            ...makeProduct({ price: new Decimal("40.00") }),
+            category: null,
+            shop: { id: "shop-1", name: "Canteen" },
+          },
+        },
+      ] as unknown as OrderWithDetails["items"],
+    });
+
+    const [item] = serializeOrderWithDetails(order).items;
+
+    expect(item).toMatchObject({
+      id: "item_1",
+      price: 40,
+      quantity: 2,
+      product: { id: "product-1", price: 40, rating: 0 },
+    });
+  });
+});
+
+describe("transformDateToLocaleString / serializeShop", () => {
+  it("formats a date as an ISO string", () => {
+    expect(transformDateToLocaleString(new Date(0))).toBe(
+      "1970-01-01T00:00:00.000Z"
+    );
+  });
+
+  it("serializes shop timestamps", () => {
+    const result = serializeShop(makeShop());
+
+    expect(result.created_at).toBe("2026-01-01T00:00:00.000Z");
+    expect(result.updated_at).toBe("2026-01-01T00:00:00.000Z");
+    expect(result.id).toBe("shop-1");
+  });
+});
+
+const searchResult = (overrides: Partial<SearchResult>): SearchResult => ({
+  id: "r1",
+  title: "Title",
+  subtitle: "Subtitle",
+  type: "shop",
+  image_key: null,
+  ...overrides,
+});
+
+describe("createSearchNavigationHandler", () => {
+  const setup = () => {
+    const onNavigateToShop = vi.fn();
+    const onNavigateToProduct = vi.fn();
+    const handle = createSearchNavigationHandler({
+      onNavigateToShop,
+      onNavigateToProduct,
+    });
+    return { handle, onNavigateToShop, onNavigateToProduct };
+  };
+
+  it("navigates to a shop result", () => {
+    const { handle, onNavigateToShop, onNavigateToProduct } = setup();
+
+    handle(searchResult({ id: "s1", type: "shop" }));
+
+    expect(onNavigateToShop).toHaveBeenCalledWith("s1");
+    expect(onNavigateToProduct).not.toHaveBeenCalled();
+  });
+
+  it("navigates to a product result with its shop", () => {
+    const { handle, onNavigateToProduct } = setup();
+
+    handle(searchResult({ id: "p1", type: "product", shop_id: "s1" }));
+
+    expect(onNavigateToProduct).toHaveBeenCalledWith("p1", "s1");
+  });
+
+  it.each(["category", "brand"] as const)("ignores %s results", (type) => {
+    const { handle, onNavigateToShop, onNavigateToProduct } = setup();
+
+    handle(searchResult({ type }));
+
+    expect(onNavigateToShop).not.toHaveBeenCalled();
+    expect(onNavigateToProduct).not.toHaveBeenCalled();
+  });
+});
+
+describe("mapSearchResultsToSuggestions", () => {
+  it("keeps only id, title, subtitle and type", () => {
+    expect(
+      mapSearchResultsToSuggestions([
+        searchResult({ image_key: "x.png", shop_id: "s1" }),
+      ])
+    ).toEqual([
+      { id: "r1", title: "Title", subtitle: "Subtitle", type: "shop" },
+    ]);
+  });
+});
+
+describe("getOrderStatusInfo", () => {
+  it.each([
+    ["NEW", "New", "text-blue-500"],
+    ["BATCHED", "Batched", "text-orange-500"],
+    ["OUT_FOR_DELIVERY", "Out for Delivery", "text-purple-500"],
+    ["COMPLETED", "Completed", "text-green-500"],
+    ["CANCELLED", "Cancelled", "text-red-500"],
+    ["DELIVERY_FAILED", "Delivery Failed", "text-red-600"],
+    ["RESCHEDULED", "Rescheduled", "text-yellow-500"],
+  ] as const)("describes %s", (status, label, colorClassName) => {
+    const info = getOrderStatusInfo(status);
+
+    expect(info).toMatchObject({ label, colorClassName });
+    expect(info.Icon).toBeDefined();
+  });
+});
+
+describe("getPaymentStatusInfo", () => {
+  it.each([
+    ["PENDING", "Pending", "text-yellow-500"],
+    ["PROCESSING", "Processing", "text-blue-500"],
+    ["COMPLETED", "Paid", "text-green-500"],
+    ["FAILED", "Failed", "text-red-500"],
+    ["REFUNDED", "Refunded", "text-blue-500"],
+    ["CANCELLED", "Cancelled", "text-gray-500"],
+  ] as const)("describes %s", (status, label, colorClassName) => {
+    const info = getPaymentStatusInfo(status);
+
+    expect(info).toMatchObject({ label, colorClassName });
+    expect(info.Icon).toBeDefined();
   });
 });

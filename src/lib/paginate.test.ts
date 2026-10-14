@@ -20,7 +20,7 @@ describe("paginateCursor", () => {
     expect(result).toEqual({ data: rows, nextCursor: null, hasMore: false });
   });
 
-  it("pops the extra row and reports the next cursor when there are more pages", async () => {
+  it("drops the look-ahead row and uses the last returned row as the next cursor", async () => {
     const rows = [{ id: "1" }, { id: "2" }, { id: "3" }];
     const fetcher = vi.fn().mockResolvedValue(rows);
 
@@ -28,8 +28,33 @@ describe("paginateCursor", () => {
 
     expect(result).toEqual({
       data: [{ id: "1" }, { id: "2" }],
-      nextCursor: "3",
+      nextCursor: "2",
       hasMore: true,
     });
+  });
+
+  it("never skips a row when pages are fetched with cursor + skip: 1", async () => {
+    const table = ["1", "2", "3", "4", "5"].map((id) => ({ id }));
+    // Mirrors the Prisma callers: `cursor: { id }, skip: cursor ? 1 : 0`.
+    const fetcher = async ({
+      take,
+      cursor,
+    }: {
+      take: number;
+      cursor?: string;
+    }) => {
+      const start = cursor ? table.findIndex((r) => r.id === cursor) + 1 : 0;
+      return table.slice(start, start + take);
+    };
+
+    const seen: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await paginateCursor(fetcher, 2, cursor);
+      seen.push(...page.data.map((r) => r.id));
+      cursor = page.nextCursor ?? undefined;
+    } while (cursor);
+
+    expect(seen).toEqual(["1", "2", "3", "4", "5"]);
   });
 });

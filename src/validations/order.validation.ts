@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { parseTimeString } from "@/lib/utils/shop-hours";
 import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
 
 export const deliveryTimeSchema = z
@@ -28,16 +29,10 @@ export const deliveryTimeSchema = z
     }
   );
 
-export function parseTimeString(
-  timeStr: string
-): { hours: number; minutes: number } | null {
-  const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) return null;
-  const hours = parseInt(match[1], 10);
-  const minutes = parseInt(match[2], 10);
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
-  return { hours, minutes };
-}
+// Single source of truth for "HH:MM" parsing lives next to the other
+// shop-hours helpers; re-exported here so existing importers keep working.
+export { parseTimeString };
+
 export function isWithinShopHours(
   deliveryTime: Date,
   opening: string,

@@ -13,6 +13,10 @@ export function getSiteUrl(): string {
   return env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 }
 
+function applyPercentDiscount(price: number, discountPercent: number): number {
+  return price - (price * discountPercent) / 100;
+}
+
 export function formatPriceForMetadata(
   price: string,
   discount?: string | null
@@ -21,8 +25,9 @@ export function formatPriceForMetadata(
   const discountNum = discount ? parseFloat(discount) : 0;
 
   if (discountNum > 0) {
-    const finalPrice = priceNum - discountNum;
-    return `₹${finalPrice.toFixed(2)} (${Math.round((discountNum / priceNum) * 100)}% off)`;
+    // `discount` is a percentage (see checkout in order.service.ts).
+    const finalPrice = applyPercentDiscount(priceNum, discountNum);
+    return `₹${finalPrice.toFixed(2)} (${Math.round(discountNum)}% off)`;
   }
 
   return `₹${priceNum.toFixed(2)}`;
@@ -175,7 +180,7 @@ export function generateProductJsonLd(product: {
     typeof product.discount === "string"
       ? parseFloat(product.discount)
       : product.discount || 0;
-  const finalPrice = priceNum - discountNum;
+  const finalPrice = applyPercentDiscount(priceNum, discountNum);
 
   const averageRating =
     product.review_count > 0

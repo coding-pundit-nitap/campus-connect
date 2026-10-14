@@ -13,8 +13,12 @@ export async function paginateCursor<T extends { id: string }>(
   let nextCursor: string | null = null;
 
   if (rows.length > limit) {
-    const last = rows.pop()!;
-    nextCursor = last.id;
+    // Drop the look-ahead row, then point the cursor at the last row we
+    // actually return. Callers query with `cursor: { id }, skip: 1`, so the
+    // next page starts right after it; using the dropped row's id would make
+    // that row disappear from every page.
+    rows.pop();
+    nextCursor = rows[rows.length - 1].id;
   }
 
   return {

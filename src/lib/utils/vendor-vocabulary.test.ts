@@ -40,4 +40,10 @@ describe("getVendorVocabulary", () => {
       }
     }
   });
+
+  it("falls back to canteen vocabulary for an unknown shop type", () => {
+    const unknown = "BAKERY" as Parameters<typeof getVendorVocabulary>[0];
+
+    expect(getVendorVocabulary(unknown)).toBe(getVendorVocabulary("CANTEEN"));
+  });
 });
