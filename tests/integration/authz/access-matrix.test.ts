@@ -7,95 +7,95 @@ import {
   addShopDeliveryBuildingAction,
   createBuildingAction,
   removeShopDeliveryBuildingAction,
-} from "../../../../src/actions/building/building-actions";
+} from "../../../src/actions/building/building-actions";
 import {
   getNotificationsByCategoryAction,
   markAllNotificationsAsReadAction,
-} from "../../../../src/actions/notifications/notification-actions";
+} from "../../../src/actions/notifications/notification-actions";
 import {
   bulkCreateProductsAction,
   deleteProductAction,
   toggleProductStockAction,
   updateProductAction,
   updateProductPriceAction,
-} from "../../../../src/actions/product/product-actions";
+} from "../../../src/actions/product/product-actions";
 import {
   createReviewAction,
   updateReviewAction,
-} from "../../../../src/actions/product/review-action";
-import { toggleStockWatchAction } from "../../../../src/actions/products/stock-watch-actions";
+} from "../../../src/actions/product/review-action";
+import { toggleStockWatchAction } from "../../../src/actions/products/stock-watch-actions";
 import {
   createShopAction,
   deleteShopAction,
   toggleAcceptingOrdersAction,
   updateShopAction,
-} from "../../../../src/actions/shop/shop-actions";
-import { toggleFavoriteShopAction } from "../../../../src/actions/shops/favorite-shops-actions";
+} from "../../../src/actions/shop/shop-actions";
+import { toggleFavoriteShopAction } from "../../../src/actions/shops/favorite-shops-actions";
 import {
   addUserAddress,
   deleteUserAddress,
   updateUser,
   updateUserAddress,
-} from "../../../../src/actions/user";
-import { updateProfileImageAction } from "../../../../src/actions/user/profile-image-action";
+} from "../../../src/actions/user";
+import { updateProfileImageAction } from "../../../src/actions/user/profile-image-action";
 import {
   createAddressAction,
   deleteAddressAction,
   setDefaultAddressAction,
   updateAddressAction,
-} from "../../../../src/actions/user-addresses/user-address-actions";
+} from "../../../src/actions/user-addresses/user-address-actions";
 import {
   createAnnouncementAction,
   deleteAnnouncementAction,
   getShopAnnouncementsAction,
-} from "../../../../src/actions/vendor/announcement-actions";
+} from "../../../src/actions/vendor/announcement-actions";
 import {
   createBatchSlotAction,
   deleteBatchSlotAction,
   listBatchSlotsAction,
   updateBatchSlotAction,
-} from "../../../../src/actions/vendor/batch-slot-actions";
-import { GET as GET_ALL_CARTS } from "../../../../src/app/api/cart/all/route";
-import { GET as GET_NOTIF_HISTORY } from "../../../../src/app/api/notifications/history/route";
-import { PATCH as PATCH_MARK_READ } from "../../../../src/app/api/notifications/mark-as-read/route";
+} from "../../../src/actions/vendor/batch-slot-actions";
+import { GET as GET_ALL_CARTS } from "../../../src/app/api/cart/all/route";
+import { GET as GET_NOTIF_HISTORY } from "../../../src/app/api/notifications/history/route";
+import { PATCH as PATCH_MARK_READ } from "../../../src/app/api/notifications/mark-as-read/route";
 import {
   DELETE as DELETE_PUSH,
   POST as POST_PUSH,
-} from "../../../../src/app/api/notifications/push-subscribe/route";
+} from "../../../src/app/api/notifications/push-subscribe/route";
 import {
   GET as GET_NOTIFS,
   PATCH as PATCH_NOTIFS,
-} from "../../../../src/app/api/notifications/route";
-import { GET as GET_NOTIF_STREAM } from "../../../../src/app/api/notifications/stream/route";
-import { GET as GET_NOTIF_SUMMARY } from "../../../../src/app/api/notifications/summary/route";
-import { GET as GET_PRODUCT } from "../../../../src/app/api/products/[product_id]/route";
-import { GET as GET_PRODUCTS } from "../../../../src/app/api/products/route";
-import { GET as GET_STOCK_WATCH } from "../../../../src/app/api/products/stock-watch/route";
-import { GET as GET_REVIEWS } from "../../../../src/app/api/reviews/[product_id]/route";
-import { GET as GET_REVIEW_FOR_ITEM } from "../../../../src/app/api/reviews/order-item/[order_item_id]/route";
-import { GET as GET_SEARCH_ORDERS } from "../../../../src/app/api/search/orders/route";
-import { GET as GET_SELLER_ORDERS } from "../../../../src/app/api/seller/orders/route";
-import { GET as GET_SHOP_PRODUCTS } from "../../../../src/app/api/shops/[shop_id]/products/route";
-import { GET as GET_SHOP } from "../../../../src/app/api/shops/[shop_id]/route";
-import { GET as GET_ALL_SHOPS } from "../../../../src/app/api/shops/all/route";
-import { GET as GET_FAVORITES } from "../../../../src/app/api/shops/favorites/route";
-import { GET as GET_MY_SHOP } from "../../../../src/app/api/shops/route";
-import { POST as POST_UPLOAD } from "../../../../src/app/api/upload/route";
-import { GET as GET_ADDRESSES } from "../../../../src/app/api/users/addresses/route";
+} from "../../../src/app/api/notifications/route";
+import { GET as GET_NOTIF_STREAM } from "../../../src/app/api/notifications/stream/route";
+import { GET as GET_NOTIF_SUMMARY } from "../../../src/app/api/notifications/summary/route";
+import { GET as GET_PRODUCT } from "../../../src/app/api/products/[product_id]/route";
+import { GET as GET_PRODUCTS } from "../../../src/app/api/products/route";
+import { GET as GET_STOCK_WATCH } from "../../../src/app/api/products/stock-watch/route";
+import { GET as GET_REVIEWS } from "../../../src/app/api/reviews/[product_id]/route";
+import { GET as GET_REVIEW_FOR_ITEM } from "../../../src/app/api/reviews/order-item/[order_item_id]/route";
+import { GET as GET_SEARCH_ORDERS } from "../../../src/app/api/search/orders/route";
+import { GET as GET_SELLER_ORDERS } from "../../../src/app/api/seller/orders/route";
+import { GET as GET_SHOP_PRODUCTS } from "../../../src/app/api/shops/[shop_id]/products/route";
+import { GET as GET_SHOP } from "../../../src/app/api/shops/[shop_id]/route";
+import { GET as GET_ALL_SHOPS } from "../../../src/app/api/shops/all/route";
+import { GET as GET_FAVORITES } from "../../../src/app/api/shops/favorites/route";
+import { GET as GET_MY_SHOP } from "../../../src/app/api/shops/route";
+import { POST as POST_UPLOAD } from "../../../src/app/api/upload/route";
+import { GET as GET_ADDRESSES } from "../../../src/app/api/users/addresses/route";
 import {
   GET as GET_ME,
   PUT as PUT_ME,
-} from "../../../../src/app/api/users/me/route";
-import { GET as GET_USER_ORDERS } from "../../../../src/app/api/users/orders/route";
-import { GET as GET_VENDOR_ANNOUNCEMENTS } from "../../../../src/app/api/vendor/announcements/route";
-import { GET as GET_VENDOR_ACTIVE_BATCH } from "../../../../src/app/api/vendor/batch/active/route";
-import { GET as GET_VENDOR_DELIVERY_RUN } from "../../../../src/app/api/vendor/batch/delivery-run/route";
-import { GET as GET_VENDOR_DIRECT } from "../../../../src/app/api/vendor/batch/direct-deliveries/route";
-import { GET as GET_VENDOR_BUILDINGS } from "../../../../src/app/api/vendor/delivery-buildings/route";
-import { GET as GET_VENDOR_EARNINGS } from "../../../../src/app/api/vendor/earnings/route";
-import { GET as GET_VENDOR_CONSOLE } from "../../../../src/app/api/vendor/orders/console/route";
-import { GET as GET_VENDOR_HISTORY } from "../../../../src/app/api/vendor/orders/history/route";
-import { createUser, seedShopWithProducts } from "../../../factories";
+} from "../../../src/app/api/users/me/route";
+import { GET as GET_USER_ORDERS } from "../../../src/app/api/users/orders/route";
+import { GET as GET_VENDOR_ANNOUNCEMENTS } from "../../../src/app/api/vendor/announcements/route";
+import { GET as GET_VENDOR_ACTIVE_BATCH } from "../../../src/app/api/vendor/batch/active/route";
+import { GET as GET_VENDOR_DELIVERY_RUN } from "../../../src/app/api/vendor/batch/delivery-run/route";
+import { GET as GET_VENDOR_DIRECT } from "../../../src/app/api/vendor/batch/direct-deliveries/route";
+import { GET as GET_VENDOR_BUILDINGS } from "../../../src/app/api/vendor/delivery-buildings/route";
+import { GET as GET_VENDOR_EARNINGS } from "../../../src/app/api/vendor/earnings/route";
+import { GET as GET_VENDOR_CONSOLE } from "../../../src/app/api/vendor/orders/console/route";
+import { GET as GET_VENDOR_HISTORY } from "../../../src/app/api/vendor/orders/history/route";
+import { createUser, seedShopWithProducts } from "../../factories";
 import {
   expectRejectedWith,
   FORBIDDEN_ERRORS,
@@ -103,9 +103,9 @@ import {
   params,
   req,
   SIGNED_OUT_ERRORS,
-} from "../../../helpers/spec-authz";
-import { asAnonymous, asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/authz";
+import { asAnonymous, asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 /** Status of a route call; a handler that throws counts as a 500. */
 async function statusOf(run: () => Promise<Response>): Promise<number> {

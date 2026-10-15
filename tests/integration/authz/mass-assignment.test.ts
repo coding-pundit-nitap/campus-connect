@@ -4,28 +4,28 @@
 // (`as never` smuggles fields the action's TypeScript type does not allow.)
 import { describe, expect, it } from "vitest";
 
-import { updateProductAction } from "../../../../src/actions/product/product-actions";
+import { updateProductAction } from "../../../src/actions/product/product-actions";
 import {
   createShopAction,
   updateShopAction,
-} from "../../../../src/actions/shop/shop-actions";
-import { updateUser } from "../../../../src/actions/user";
+} from "../../../src/actions/shop/shop-actions";
+import { updateUser } from "../../../src/actions/user";
 import {
   createAddressAction,
   updateAddressAction,
-} from "../../../../src/actions/user-addresses/user-address-actions";
-import { createAnnouncementAction } from "../../../../src/actions/vendor/announcement-actions";
-import { createBatchSlotAction } from "../../../../src/actions/vendor/batch-slot-actions";
-import { PUT as PUT_ME } from "../../../../src/app/api/users/me/route";
+} from "../../../src/actions/user-addresses/user-address-actions";
+import { createAnnouncementAction } from "../../../src/actions/vendor/announcement-actions";
+import { createBatchSlotAction } from "../../../src/actions/vendor/batch-slot-actions";
+import { PUT as PUT_ME } from "../../../src/app/api/users/me/route";
 import {
   createShop,
   createUser,
   createUserAddress,
   seedShopWithProducts,
-} from "../../../factories";
-import { jsonReq } from "../../../helpers/spec-authz";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../factories";
+import { jsonReq } from "../../helpers/authz";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 const shopForm = {
   name: "Honest Shop",

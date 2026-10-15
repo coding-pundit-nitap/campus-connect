@@ -5,16 +5,16 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
-import { GET as getNextSlot } from "../../../../src/app/api/shops/[shop_id]/next-slot/route";
-import { BatchService as WorkerBatchService } from "../../../../workers/services/batch.service";
-import type { NotificationService as WorkerNotificationService } from "../../../../workers/services/notification.service";
+import { GET as getNextSlot } from "../../../src/app/api/shops/[shop_id]/next-slot/route";
+import { BatchService as WorkerBatchService } from "../../../workers/services/batch.service";
+import type { NotificationService as WorkerNotificationService } from "../../../workers/services/notification.service";
 import {
   batchOf,
   expireBatch,
   placeOrder,
   seedBatchShop,
-} from "../../../helpers/spec-batch";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/batch";
+import { testPrisma } from "../../setup/integration-setup";
 
 interface Sent {
   userId: string;

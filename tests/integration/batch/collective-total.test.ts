@@ -8,16 +8,16 @@ import { describe, expect, it } from "vitest";
 import {
   updateOrderStatusAdminAction,
   updatePaymentStatusAction,
-} from "../../../../src/actions/admin/order-actions";
+} from "../../../src/actions/admin/order-actions";
 import {
   batchUpdateOrderStatusAction,
   cancelOrderAction,
   updateOrderStatusAction,
-} from "../../../../src/actions/orders/order-actions";
-import { cancelBatchAction } from "../../../../src/actions/shop/batch-actions";
-import { rejectOrderAction } from "../../../../src/actions/shop/order-management-actions";
-import { createContainer } from "../../../../src/di/container";
-import { createUser } from "../../../factories";
+} from "../../../src/actions/orders/order-actions";
+import { cancelBatchAction } from "../../../src/actions/shop/batch-actions";
+import { rejectOrderAction } from "../../../src/actions/shop/order-management-actions";
+import { createContainer } from "../../../src/di/container";
+import { createUser } from "../../factories";
 import {
   batchOf,
   captureProgress,
@@ -26,9 +26,9 @@ import {
   seedBatchShop,
   seedCustomerCart,
   totalOf,
-} from "../../../helpers/spec-batch";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/batch";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 describe("collective_total increments on placement", () => {
   it("a batch created by the first order snapshots the shop threshold and starts its total from that order only", async () => {

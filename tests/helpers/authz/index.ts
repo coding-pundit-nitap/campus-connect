@@ -1,5 +1,5 @@
-// Shared assertions for the rule-based authorization suite
-// (tests/integration/spec/authz). Convention under test:
+// Shared assertions for the authorization suite
+// (tests/integration/authz). Convention under test:
 //   - route handlers: signed-out -> 401, signed-in but not allowed -> 403
 //     (src/app/api/_lib/route-helpers.ts:authErrorResponse)
 //   - server actions: signed-out -> UnauthenticatedError / UnauthorizedError,

@@ -1,12 +1,12 @@
 // Account status: suspended / banned users lose access.
 import { describe, expect, it } from "vitest";
 
-import { suspendUserAction } from "../../../../src/actions/admin/user-actions";
-import { deleteAddressAction } from "../../../../src/actions/user-addresses/user-address-actions";
-import { auth } from "../../../../src/auth";
-import { createUser } from "../../../factories";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+import { suspendUserAction } from "../../../src/actions/admin/user-actions";
+import { deleteAddressAction } from "../../../src/actions/user-addresses/user-address-actions";
+import { auth } from "../../../src/auth";
+import { createUser } from "../../factories";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 type BeforeSessionCreate = (session: {
   userId: string;

@@ -4,16 +4,16 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
-import { GET as getProgress } from "../../../../src/app/api/shops/[shop_id]/batch-progress/route";
-import { BatchService as WorkerBatchService } from "../../../../workers/services/batch.service";
-import { createShop } from "../../../factories";
+import { GET as getProgress } from "../../../src/app/api/shops/[shop_id]/batch-progress/route";
+import { BatchService as WorkerBatchService } from "../../../workers/services/batch.service";
+import { createShop } from "../../factories";
 import {
   batchOf,
   expireBatch,
   placeOrder,
   seedBatchShop,
-} from "../../../helpers/spec-batch";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/batch";
+import { testPrisma } from "../../setup/integration-setup";
 
 async function progress(shopId: string) {
   const res = await getProgress(
@@ -66,7 +66,7 @@ describe("threshold snapshot immutability", () => {
     // A second slot later in the day opens a new batch.
     const later = new Date(first.at.getTime() + 60 * 60_000);
     const { getZonedParts, APP_TIME_ZONE } =
-      await import("../../../../src/lib/utils/timezone");
+      await import("../../../src/lib/utils/timezone");
     const z = getZonedParts(later, APP_TIME_ZONE);
     await testPrisma.batchSlot.create({
       data: {

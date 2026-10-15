@@ -6,15 +6,15 @@ import { describe, expect, it } from "vitest";
 import {
   cancelOrderAction,
   createOrderAction,
-} from "../../../../src/actions/orders/order-actions";
+} from "../../../src/actions/orders/order-actions";
 import {
   cancelBatchAction,
   forceLockBatchAction,
-} from "../../../../src/actions/shop/batch-actions";
+} from "../../../src/actions/shop/batch-actions";
 import {
   startBatchDeliveryAction,
   unlockBatchAction,
-} from "../../../../src/actions/vendor/batch-actions";
+} from "../../../src/actions/vendor/batch-actions";
 import {
   batchOf,
   liveItemSum,
@@ -22,9 +22,9 @@ import {
   seedBatchShop,
   seedCustomerCart,
   totalOf,
-} from "../../../helpers/spec-batch";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/batch";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 async function pendingReviewBatch() {
   const ctx = await seedBatchShop({ min: 1000 });

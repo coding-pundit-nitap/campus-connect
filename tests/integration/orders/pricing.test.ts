@@ -2,21 +2,21 @@
 // the checkout / cart UI and money invariants - not from order.service.ts.
 import { describe, expect, it } from "vitest";
 
-import { createOrderAction } from "../../../../src/actions/orders/order-actions";
+import { createOrderAction } from "../../../src/actions/orders/order-actions";
 import {
   createBatchSlot,
   futureSlotTime,
   seedOpenBatch,
-} from "../../../factories";
+} from "../../factories";
 import {
   paise,
   placeBatchOrder,
   placeDirectOrder,
   seedCheckout,
   services,
-} from "../../../helpers/spec-orders";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/orders";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 const SHOP_FEES = { default_delivery_fee: 10, direct_delivery_fee: 30 };
 

@@ -1,35 +1,35 @@
 // Order status lifecycle tests.
 import { describe, expect, it, vi } from "vitest";
 
-import { updateOrderStatusAdminAction } from "../../../../src/actions/admin/order-actions";
+import { updateOrderStatusAdminAction } from "../../../src/actions/admin/order-actions";
 import {
   cancelOrderAction,
   updateOrderStatusAction,
-} from "../../../../src/actions/orders/order-actions";
-import { reorderAction } from "../../../../src/actions/orders/reorder-action";
+} from "../../../src/actions/orders/order-actions";
+import { reorderAction } from "../../../src/actions/orders/reorder-action";
 import {
   acceptOrderAction,
   markDeliveryFailedAction,
   rejectOrderAction,
   startDirectDeliveryAction,
   verifyDeliveryOtpAction,
-} from "../../../../src/actions/shop/order-management-actions";
-import { startIndividualDeliveryAction } from "../../../../src/actions/vendor/individual-delivery-actions";
-import type { OrderStatus } from "../../../../src/generated/client";
-import { AuditService } from "../../../../src/services/audit/audit.service";
+} from "../../../src/actions/shop/order-management-actions";
+import { startIndividualDeliveryAction } from "../../../src/actions/vendor/individual-delivery-actions";
+import type { OrderStatus } from "../../../src/generated/client";
+import { AuditService } from "../../../src/services/audit/audit.service";
 import {
   createProduct,
   createShop,
   createUser,
   seedOpenBatch,
-} from "../../../factories";
+} from "../../factories";
 import {
   createOrderRow,
   placeDirectOrder,
   seedCheckout,
-} from "../../../helpers/spec-orders";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/orders";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 const STATUSES: OrderStatus[] = [
   "NEW",

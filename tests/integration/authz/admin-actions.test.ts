@@ -4,7 +4,7 @@
 // or shop owner) gets ForbiddenError, and nothing is changed either way.
 import { describe, expect, it } from "vitest";
 
-import * as admin from "../../../../src/actions/admin";
+import * as admin from "../../../src/actions/admin";
 import {
   getCleanupStatsAction,
   getPlatformOverviewAction,
@@ -12,18 +12,15 @@ import {
   getSystemHealthAction,
   runCleanupAction,
   updatePlatformFeeAction,
-} from "../../../../src/actions/admin/settings-actions";
+} from "../../../src/actions/admin/settings-actions";
 import {
   createOrderAtStatus,
   createUser,
   seedShopWithProducts,
-} from "../../../factories";
-import {
-  expectRejectedWith,
-  SIGNED_OUT_ERRORS,
-} from "../../../helpers/spec-authz";
-import { asAnonymous, asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../factories";
+import { expectRejectedWith, SIGNED_OUT_ERRORS } from "../../helpers/authz";
+import { asAnonymous, asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 async function seedTargets() {
   const { shop, owner, products } = await seedShopWithProducts({

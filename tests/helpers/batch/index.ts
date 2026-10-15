@@ -1,5 +1,5 @@
-// Shared scenario builders for the rule-based batch tests in
-// tests/integration/spec/batch. Relative imports only (see
+// Shared scenario builders for the batch tests in
+// tests/integration/batch. Relative imports only (see
 // tests/factories/index.ts for why the "@/" alias is not used here).
 import Redis from "ioredis";
 

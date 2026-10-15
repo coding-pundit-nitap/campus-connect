@@ -5,18 +5,18 @@ import {
   acceptOrderAction,
   startDirectDeliveryAction,
   verifyDeliveryOtpAction,
-} from "../../../../src/actions/shop/order-management-actions";
-import { GET } from "../../../../src/app/api/vendor/earnings/route";
-import { createShop, createUser } from "../../../factories";
-import { makeRequest, readJson } from "../../../helpers/http";
+} from "../../../src/actions/shop/order-management-actions";
+import { GET } from "../../../src/app/api/vendor/earnings/route";
+import { createShop, createUser } from "../../factories";
+import { makeRequest, readJson } from "../../helpers/http";
 import {
   createOrderRow,
   paise,
   placeDirectOrder,
   seedCheckout,
-} from "../../../helpers/spec-orders";
-import { asAnonymous, asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/orders";
+import { asAnonymous, asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 type Earnings = {
   customersPaid: number;

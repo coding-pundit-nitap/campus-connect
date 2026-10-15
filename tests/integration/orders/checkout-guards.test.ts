@@ -1,12 +1,12 @@
 // Checkout guard tests.
 import { describe, expect, it } from "vitest";
 
-import { upsertCartItem } from "../../../../src/actions/cart/cart-actions";
-import { createOrderAction } from "../../../../src/actions/orders/order-actions";
-import { createProduct, createShop, futureSlotTime } from "../../../factories";
-import { placeDirectOrder, seedCheckout } from "../../../helpers/spec-orders";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+import { upsertCartItem } from "../../../src/actions/cart/cart-actions";
+import { createOrderAction } from "../../../src/actions/orders/order-actions";
+import { createProduct, createShop, futureSlotTime } from "../../factories";
+import { placeDirectOrder, seedCheckout } from "../../helpers/orders";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 async function expectNothingChanged(
   s: Awaited<ReturnType<typeof seedCheckout>>

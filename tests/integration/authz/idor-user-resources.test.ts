@@ -6,40 +6,35 @@ import { describe, expect, it } from "vitest";
 import {
   getNotificationsByCategoryAction,
   markAllNotificationsAsReadAction,
-} from "../../../../src/actions/notifications/notification-actions";
-import { updateReviewAction } from "../../../../src/actions/product/review-action";
-import { toggleStockWatchAction } from "../../../../src/actions/products/stock-watch-actions";
-import { toggleFavoriteShopAction } from "../../../../src/actions/shops/favorite-shops-actions";
+} from "../../../src/actions/notifications/notification-actions";
+import { updateReviewAction } from "../../../src/actions/product/review-action";
+import { toggleStockWatchAction } from "../../../src/actions/products/stock-watch-actions";
+import { toggleFavoriteShopAction } from "../../../src/actions/shops/favorite-shops-actions";
 import {
   deleteAddressAction,
   updateAddressAction,
-} from "../../../../src/actions/user-addresses/user-address-actions";
-import { PATCH as PATCH_MARK_READ } from "../../../../src/app/api/notifications/mark-as-read/route";
-import { POST as POST_PUSH } from "../../../../src/app/api/notifications/push-subscribe/route";
+} from "../../../src/actions/user-addresses/user-address-actions";
+import { PATCH as PATCH_MARK_READ } from "../../../src/app/api/notifications/mark-as-read/route";
+import { POST as POST_PUSH } from "../../../src/app/api/notifications/push-subscribe/route";
 import {
   GET as GET_NOTIFS,
   PATCH as PATCH_NOTIFS,
-} from "../../../../src/app/api/notifications/route";
-import { GET as GET_STOCK_WATCH } from "../../../../src/app/api/products/stock-watch/route";
-import { GET as GET_REVIEW_FOR_ITEM } from "../../../../src/app/api/reviews/order-item/[order_item_id]/route";
-import { GET as GET_FAVORITES } from "../../../../src/app/api/shops/favorites/route";
-import { GET as GET_ADDRESSES } from "../../../../src/app/api/users/addresses/route";
-import { GET as GET_ME } from "../../../../src/app/api/users/me/route";
-import { NotificationCategory } from "../../../../src/types/prisma.types";
+} from "../../../src/app/api/notifications/route";
+import { GET as GET_STOCK_WATCH } from "../../../src/app/api/products/stock-watch/route";
+import { GET as GET_REVIEW_FOR_ITEM } from "../../../src/app/api/reviews/order-item/[order_item_id]/route";
+import { GET as GET_FAVORITES } from "../../../src/app/api/shops/favorites/route";
+import { GET as GET_ADDRESSES } from "../../../src/app/api/users/addresses/route";
+import { GET as GET_ME } from "../../../src/app/api/users/me/route";
+import { NotificationCategory } from "../../../src/types/prisma.types";
 import {
   createOrderAtStatus,
   createUser,
   createUserAddress,
   seedShopWithProducts,
-} from "../../../factories";
-import {
-  expectDenied,
-  jsonReq,
-  params,
-  req,
-} from "../../../helpers/spec-authz";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../factories";
+import { expectDenied, jsonReq, params, req } from "../../helpers/authz";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 // The mark-as-read route validates ids as cuids.
 const cuidLike = (n: number) => `c${String(n).padStart(24, "0")}`;

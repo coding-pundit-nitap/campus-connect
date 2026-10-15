@@ -2,15 +2,11 @@
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { GET } from "../../../../src/app/api/orders/[order_id]/pdf/route";
-import { makeRequest, routeParams } from "../../../helpers/http";
-import {
-  paise,
-  placeDirectOrder,
-  seedCheckout,
-} from "../../../helpers/spec-orders";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+import { GET } from "../../../src/app/api/orders/[order_id]/pdf/route";
+import { makeRequest, routeParams } from "../../helpers/http";
+import { paise, placeDirectOrder, seedCheckout } from "../../helpers/orders";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 const rendered = vi.hoisted(() => ({ data: null as unknown }));
 

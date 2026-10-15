@@ -1,4 +1,4 @@
-// Shared scenario builders for the rule-based ("spec") order tests.
+// Shared scenario builders for the ("spec") order tests.
 // Relative imports, not the "@/" alias (see tests/factories/index.ts).
 import { createContainer } from "../../../src/di/container";
 import type { PaymentMethod } from "../../../src/generated/client";

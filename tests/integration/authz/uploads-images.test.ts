@@ -4,11 +4,11 @@
 import { S3Client } from "@aws-sdk/client-s3";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { GET as GET_IMAGE } from "../../../../src/app/api/images/[...path]/route";
-import { POST as POST_UPLOAD } from "../../../../src/app/api/upload/route";
-import { createUser } from "../../../factories";
-import { jsonReq, params, req } from "../../../helpers/spec-authz";
-import { asAnonymous, asUser } from "../../../setup/auth";
+import { GET as GET_IMAGE } from "../../../src/app/api/images/[...path]/route";
+import { POST as POST_UPLOAD } from "../../../src/app/api/upload/route";
+import { createUser } from "../../factories";
+import { jsonReq, params, req } from "../../helpers/authz";
+import { asAnonymous, asUser } from "../../setup/auth";
 
 const upload = (body: Record<string, unknown>) =>
   POST_UPLOAD(jsonReq("/api/upload", "POST", body));

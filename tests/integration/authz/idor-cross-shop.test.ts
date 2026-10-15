@@ -3,45 +3,45 @@
 // and product update/delete; this covers the rest.
 import { describe, expect, it } from "vitest";
 
-import { removeShopDeliveryBuildingAction } from "../../../../src/actions/building/building-actions";
+import { removeShopDeliveryBuildingAction } from "../../../src/actions/building/building-actions";
 import {
   toggleProductStockAction,
   updateProductPriceAction,
-} from "../../../../src/actions/product/product-actions";
-import * as shopBatch from "../../../../src/actions/shop/batch-actions";
-import { rejectOrderAction } from "../../../../src/actions/shop/order-management-actions";
+} from "../../../src/actions/product/product-actions";
+import * as shopBatch from "../../../src/actions/shop/batch-actions";
+import { rejectOrderAction } from "../../../src/actions/shop/order-management-actions";
 import {
   createAnnouncementAction,
   deleteAnnouncementAction,
-} from "../../../../src/actions/vendor/announcement-actions";
-import * as vendorBatch from "../../../../src/actions/vendor/batch-actions";
+} from "../../../src/actions/vendor/announcement-actions";
+import * as vendorBatch from "../../../src/actions/vendor/batch-actions";
 import {
   deleteBatchSlotAction,
   listBatchSlotsAction,
   reorderBatchSlotsAction,
   updateBatchSlotAction,
-} from "../../../../src/actions/vendor/batch-slot-actions";
-import { startIndividualDeliveryAction } from "../../../../src/actions/vendor/individual-delivery-actions";
-import { GET as GET_SEARCH_ORDERS } from "../../../../src/app/api/search/orders/route";
-import { GET as GET_VENDOR_ANNOUNCEMENTS } from "../../../../src/app/api/vendor/announcements/route";
-import { GET as GET_VENDOR_BUILDINGS } from "../../../../src/app/api/vendor/delivery-buildings/route";
-import { GET as GET_VENDOR_EARNINGS } from "../../../../src/app/api/vendor/earnings/route";
-import { GET as GET_VENDOR_CONSOLE } from "../../../../src/app/api/vendor/orders/console/route";
-import { GET as GET_VENDOR_HISTORY } from "../../../../src/app/api/vendor/orders/history/route";
-import type { BatchStatus } from "../../../../src/generated/client";
+} from "../../../src/actions/vendor/batch-slot-actions";
+import { startIndividualDeliveryAction } from "../../../src/actions/vendor/individual-delivery-actions";
+import { GET as GET_SEARCH_ORDERS } from "../../../src/app/api/search/orders/route";
+import { GET as GET_VENDOR_ANNOUNCEMENTS } from "../../../src/app/api/vendor/announcements/route";
+import { GET as GET_VENDOR_BUILDINGS } from "../../../src/app/api/vendor/delivery-buildings/route";
+import { GET as GET_VENDOR_EARNINGS } from "../../../src/app/api/vendor/earnings/route";
+import { GET as GET_VENDOR_CONSOLE } from "../../../src/app/api/vendor/orders/console/route";
+import { GET as GET_VENDOR_HISTORY } from "../../../src/app/api/vendor/orders/history/route";
+import type { BatchStatus } from "../../../src/generated/client";
 import {
   createBatchSlot,
   createOrderAtStatus,
   seedShopWithProducts,
-} from "../../../factories";
+} from "../../factories";
 import {
   expectDenied,
   expectRejectedWith,
   FORBIDDEN_ERRORS,
   req,
-} from "../../../helpers/spec-authz";
-import { asUser } from "../../../setup/auth";
-import { testPrisma } from "../../../setup/integration-setup";
+} from "../../helpers/authz";
+import { asUser } from "../../setup/auth";
+import { testPrisma } from "../../setup/integration-setup";
 
 async function twoShops() {
   const a = await seedShopWithProducts({ productCount: 1 });
