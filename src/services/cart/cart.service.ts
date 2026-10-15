@@ -41,7 +41,8 @@ export class CartService {
     const delivery_fee = Number(shopData?.default_delivery_fee ?? 0);
     const direct_delivery_fee = Number(shopData?.direct_delivery_fee ?? 0);
     const platform_fee = await this.platformSettingsRepository.getPlatformFee();
-    const total = item_total + delivery_fee + platform_fee;
+    const total =
+      Math.round((item_total + delivery_fee + platform_fee) * 100) / 100;
 
     return {
       cart,

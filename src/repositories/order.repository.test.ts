@@ -230,51 +230,6 @@ describe("OrderRepository (Unit)", () => {
     });
   });
 
-  describe("updateStatus", () => {
-    it("uses tx when provided", async () => {
-      const tx = createPrismaMock();
-      tx.order.update.mockResolvedValue({ id: "order-1" });
-
-      const result = await repo.updateStatus(
-        "order-1",
-        OrderStatus.CANCELLED,
-        undefined,
-        undefined,
-        tx as unknown as Prisma.TransactionClient
-      );
-
-      expect(tx.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: {
-          order_status: OrderStatus.CANCELLED,
-          assigned_to: undefined,
-          actual_delivery_time: undefined,
-        },
-      });
-      expect(spies.update).not.toHaveBeenCalled();
-      expect(result).toEqual({ id: "order-1" });
-    });
-
-    it("updates order status and fields", async () => {
-      const date = new Date();
-      await repo.updateStatus(
-        "order-1",
-        OrderStatus.COMPLETED,
-        "driver-1",
-        date
-      );
-      expect(spies.update).toHaveBeenCalledTimes(1);
-      expect(spies.update.mock.calls[0][0]).toEqual({
-        where: { id: "order-1" },
-        data: {
-          order_status: OrderStatus.COMPLETED,
-          assigned_to: "driver-1",
-          actual_delivery_time: date,
-        },
-      });
-    });
-  });
-
   describe("batchUpdateStatus", () => {
     it("updates status for multiple ids", async () => {
       await repo.batchUpdateStatus(
@@ -303,6 +258,15 @@ describe("OrderRepository (Unit)", () => {
   });
 
   describe("getPaginatedShopOrdersFromDB", () => {
+    it("omits order_status from the where clause when no status filter is given", async () => {
+      spies.findMany.mockResolvedValueOnce([]);
+
+      await repo.getPaginatedShopOrdersFromDB({ shop_id: "shop-1" });
+
+      const args = spies.findMany.mock.calls[0][0];
+      expect(args.where).not.toHaveProperty("order_status");
+    });
+
     it("builds query and calculates next cursor", async () => {
       spies.findMany.mockResolvedValueOnce([
         { id: "o1" },

@@ -77,6 +77,54 @@ describe("reorderAction", () => {
     });
   });
 
+  it("queries the order, shop and cart with exact args", async () => {
+    await reorderAction("order-1");
+
+    expect(db.order.findUnique).toHaveBeenCalledWith({
+      where: { id: "order-1" },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                stock_quantity: true,
+                deleted_at: true,
+                shop_id: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    expect(db.shop.findUnique).toHaveBeenCalledWith({
+      where: { id: "shop-1" },
+      select: { is_active: true, deleted_at: true },
+    });
+    expect(db.cart.findUnique).toHaveBeenCalledWith({
+      where: { user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" } },
+    });
+  });
+
+  it.each([
+    ["caps at stock when stock is lower", 5, 3, 3],
+    ["keeps the quantity when stock is exactly equal", 4, 4, 4],
+    ["keeps the quantity when stock is higher", 2, 9, 2],
+  ])("%s", async (_n, wanted, stock, expected) => {
+    db.order.findUnique.mockResolvedValue(
+      pastOrder({ items: [item("p1", wanted, { stock_quantity: stock })] })
+    );
+
+    await reorderAction("order-1");
+
+    expect(db.cartItem.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: { quantity: { increment: expected } },
+        create: { cart_id: "cart-1", product_id: "p1", quantity: expected },
+      })
+    );
+  });
+
   it("creates a cart when the user has none for the shop", async () => {
     db.cart.findUnique.mockResolvedValue(null);
     db.cart.create.mockResolvedValue({ id: "new-cart" });

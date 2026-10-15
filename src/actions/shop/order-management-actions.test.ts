@@ -78,17 +78,18 @@ describe("order-management-actions", () => {
         where: { id: "order-1" },
         data: { order_status: "BATCHED" },
       });
-      expect(notify).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({
-          title: "✅ Order Accepted",
-          action_url: "/orders/order-1",
-        })
-      );
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "✅ Order Accepted",
+        message:
+          "Your order ORD-1 has been accepted by the shop and is being prepared.",
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
       expect(res.details).toBe("Order accepted successfully.");
     });
 
-    it.each([[[{ id: "batch-1", status: "OPEN" }]], [[]]])(
+    it.each([[[{ id: "batch-1", status: "OPEN" }]], [[]], [undefined]])(
       "keeps the order in its batch when the batch is still open (%o)",
       async (rows) => {
         givenOrder({ batch_id: "batch-1" });
@@ -100,6 +101,15 @@ describe("order-management-actions", () => {
           where: { id: "order-1" },
           data: { order_status: "BATCHED" },
         });
+        const [strings, ...values] = db.$queryRaw.mock.calls[0] as [
+          string[],
+          ...unknown[],
+        ];
+        expect(strings.join("?")).toContain(
+          'SELECT id, status FROM "Batch" WHERE id = ?'
+        );
+        expect(strings.join("?")).toContain("FOR UPDATE");
+        expect(values).toEqual(["batch-1"]);
       }
     );
 
@@ -118,13 +128,14 @@ describe("order-management-actions", () => {
             "Ring bell\n[Moved to next batch due to missed cutoff]",
         },
       });
-      expect(notify).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({
-          title: "🕒 Order Rescheduled",
-          message: expect.stringContaining("moved to the next available batch"),
-        })
-      );
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "🕒 Order Rescheduled",
+        message:
+          "Your order ORD-1 missed the batch cutoff and has been moved to the next available batch.",
+        type: "WARNING",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
       expect(res.details).toBe(
         "Order accepted and rescheduled (missed cutoff)."
       );
@@ -152,7 +163,10 @@ describe("order-management-actions", () => {
       expect(notify).toHaveBeenCalledWith(
         "user-1",
         expect.objectContaining({
-          message: expect.stringContaining("upgraded to Direct Delivery"),
+          title: "🕒 Order Rescheduled",
+          message:
+            "Your order ORD-1 missed the batch cutoff and has been upgraded to Direct Delivery for free!",
+          type: "WARNING",
         })
       );
     });
@@ -211,12 +225,13 @@ describe("order-management-actions", () => {
         order_status: "OUT_FOR_DELIVERY",
         delivery_otp: expect.stringMatching(/^\d{4}$/),
       });
-      expect(notify).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({
-          message: expect.stringContaining(`Share OTP ${data.delivery_otp}`),
-        })
-      );
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "🚀 Order Out for Delivery!",
+        message: `Your order ORD-1 is out for delivery. Share OTP ${data.delivery_otp} to complete delivery.`,
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
       expect(res.details).toBe("Direct delivery started.");
     });
 
@@ -271,10 +286,14 @@ describe("order-management-actions", () => {
       );
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
       expect(publishBatchProgress).not.toHaveBeenCalled();
-      expect(notify).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({ title: "❌ Order Rejected by Vendor" })
-      );
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "❌ Order Rejected by Vendor",
+        message:
+          "Your order ORD-1 was rejected by the shop. A refund has been initiated if you paid online.",
+        type: "ERROR",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
       expect(res.details).toBe("Order rejected successfully.");
     });
 
@@ -304,6 +323,19 @@ describe("order-management-actions", () => {
       expect(publishBatchProgress).toHaveBeenCalledTimes(1);
     });
 
+    it("RULE O30: refunds a cash order whose payment was already collected", async () => {
+      givenOrder({ payment_method: "CASH", payment_status: "COMPLETED" });
+
+      await rejectOrderAction("order-1");
+
+      expect(orders.update).toHaveBeenCalledWith(
+        "order-1",
+        expect.objectContaining({ payment_status: "REFUNDED" }),
+        undefined,
+        db
+      );
+    });
+
     it.each(["COMPLETED", "CANCELLED"])(
       "refuses a %s order",
       async (status) => {
@@ -328,10 +360,13 @@ describe("order-management-actions", () => {
         delivery_otp: null,
         payment_status: "COMPLETED",
       });
-      expect(notify).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({ title: "🎉 Order Delivered!" })
-      );
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "🎉 Order Delivered!",
+        message: "Your order ORD-1 was successfully delivered. Thank you!",
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
       expect(res.details).toBe("OTP verified and order completed.");
     });
 
@@ -340,14 +375,14 @@ describe("order-management-actions", () => {
         order_status: "OUT_FOR_DELIVERY",
         delivery_otp: "1234",
         payment_method: "ONLINE",
-        payment_status: "COMPLETED",
+        payment_status: "PENDING",
       });
 
       await verifyDeliveryOtpAction("order-1", "1234");
 
       expect(orders.update).toHaveBeenCalledWith(
         "order-1",
-        expect.objectContaining({ payment_status: "COMPLETED" })
+        expect.objectContaining({ payment_status: "PENDING" })
       );
     });
 
@@ -389,10 +424,14 @@ describe("order-management-actions", () => {
           order_status: "DELIVERY_FAILED",
           customer_notes: expected,
         });
-        expect(notify).toHaveBeenCalledWith(
-          "user-1",
-          expect.objectContaining({ title: "⚠️ Delivery Failed" })
-        );
+        expect(notify).toHaveBeenCalledWith("user-1", {
+          title: "⚠️ Delivery Failed",
+          message:
+            "The runner was unable to deliver your order ORD-1. Please contact the shop immediately.",
+          type: "ERROR",
+          category: "ORDER",
+          action_url: "/orders/order-1",
+        });
         expect(res.details).toBe("Order marked as delivery failed.");
       }
     );

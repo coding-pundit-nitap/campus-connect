@@ -32,7 +32,6 @@ export async function GET(
             product: {
               select: {
                 name: true,
-                discount: true,
               },
             },
           },
@@ -70,17 +69,17 @@ export async function GET(
       return jsonResponse(errorResponse, 403);
     }
 
+    // OrderItem.price is the discounted unit price snapshotted at checkout,
+    // so it must not be discounted again (and the product's current discount
+    // may differ from the one the customer got).
     const items = order.items.map((item) => ({
       name: item.product.name,
       quantity: item.quantity,
       price: Number(item.price),
-      discount: Number(item.product.discount) || 0,
+      discount: 0,
     }));
 
-    const subtotal = items.reduce((acc, item) => {
-      const discountedPrice = item.price - (item.price * item.discount) / 100;
-      return acc + discountedPrice * item.quantity;
-    }, 0);
+    const subtotal = Number(order.item_total);
 
     const deliveryAddress: DeliveryAddressSnapshot =
       order.delivery_address_snapshot as DeliveryAddressSnapshot;

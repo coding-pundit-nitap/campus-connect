@@ -45,4 +45,11 @@ describe("toCursorPage", () => {
     } while (cursor);
     expect(seen).toEqual(["1", "2", "3", "4", "5"]);
   });
+
+  it("returns an empty page with an undefined cursor when limit is 0", () => {
+    expect(toCursorPage(rows("a"), 0)).toEqual({
+      items: [],
+      nextCursor: undefined,
+    });
+  });
 });

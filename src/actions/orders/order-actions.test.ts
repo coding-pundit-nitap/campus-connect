@@ -50,7 +50,8 @@ vi.mock("@/lib/utils/order.utils", () => ({
     detailed: o.id,
   })),
 }));
-vi.mock("@/validations/order.validation", () => ({
+vi.mock("@/validations/order.validation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/validations/order.validation")>()),
   validateDeliveryTime: vi.fn(() => null),
 }));
 
@@ -82,6 +83,7 @@ describe("order-actions", () => {
         limit: 10,
         userId: "user-1",
       });
+      expect(res.details).toBe("Orders retrieved successfully");
       expect(res.data).toEqual({
         data: [{ detailed: "order-1" }],
         total_pages: 3,
@@ -164,11 +166,43 @@ describe("order-actions", () => {
       expect(args[4]).toMatch(/^offline_\d+_[0-9a-f-]{8}$/);
     });
 
+    it.each([undefined, "", "short", "has spaces 12345", "x".repeat(36)])(
+      "RULE O18: rejects an ONLINE order with UPI id %j",
+      async (upi_transaction_id) => {
+        const res = await createOrderAction({
+          ...input,
+          payment_method: "ONLINE",
+          upi_transaction_id,
+        });
+        expect(res).toMatchObject({
+          success: false,
+          details: expect.stringMatching(/UPI transaction ID/),
+        });
+        expect(orderService.createOrderFromCart).not.toHaveBeenCalled();
+      }
+    );
+
+    it.each(["A".repeat(10), "a1".repeat(17) + "b"])(
+      "RULE O18: accepts an ONLINE order with UPI id %s (10-35 alphanumerics)",
+      async (upi_transaction_id) => {
+        await createOrderAction({
+          ...input,
+          payment_method: "ONLINE",
+          upi_transaction_id,
+        });
+        expect(orderService.createOrderFromCart).toHaveBeenCalled();
+      }
+    );
+
     it("uses a txn_ payment id for online payments", async () => {
-      await createOrderAction({ ...input, payment_method: "ONLINE" });
+      await createOrderAction({
+        ...input,
+        payment_method: "ONLINE",
+        upi_transaction_id: "UPI1234567890",
+      });
 
       const args = vi.mocked(orderService.createOrderFromCart).mock.calls[0];
-      expect(args[4]).toMatch(/^txn_/);
+      expect(args[4]).toMatch(/^txn_\d+_[0-9a-f-]{8}$/);
     });
 
     it("validates and forwards the requested delivery time", async () => {
@@ -270,13 +304,25 @@ describe("order-actions", () => {
       new NotFoundError("no cart"),
       new UnauthorizedError("no"),
       new UnauthenticatedError("login"),
-      new Error("generic"),
     ])("returns the message of a thrown %s", async (error) => {
       vi.mocked(orderService.createOrderFromCart).mockRejectedValue(error);
 
       const res = await createOrderAction(input);
 
       expect(res).toMatchObject({ success: false, details: error.message });
+    });
+
+    it("hides the message of an unexpected internal error", async () => {
+      vi.mocked(orderService.createOrderFromCart).mockRejectedValue(
+        new Error("connection refused at 10.0.0.5")
+      );
+
+      const res = await createOrderAction(input);
+
+      expect(res).toMatchObject({
+        success: false,
+        details: "Failed to create order.",
+      });
     });
 
     it("returns a generic message for non-Error throws", async () => {
@@ -306,6 +352,18 @@ describe("order-actions", () => {
         status: "OUT_FOR_DELIVERY",
       });
 
+      expect(orders.getOrderById).toHaveBeenCalledWith("order-1", {
+        select: {
+          shop_id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_method: true,
+          payment_status: true,
+          batch_id: true,
+          item_total: true,
+        },
+      });
       expect(db.order.update).toHaveBeenCalledWith({
         where: { id: "order-1" },
         data: {
@@ -372,6 +430,20 @@ describe("order-actions", () => {
       );
     });
 
+    it("does not touch the batch on a non-cancel transition of a batched order", async () => {
+      orders.getOrderById.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED", batch_id: "batch-1" }) as never
+      );
+
+      await updateOrderStatusAction({
+        order_id: "order-1",
+        status: "OUT_FOR_DELIVERY",
+      });
+
+      expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+      expect(publishBatchProgress).not.toHaveBeenCalled();
+    });
+
     it("does not adjust any batch when cancelling an unbatched order", async () => {
       orders.getOrderById.mockResolvedValue(buildOrder() as never);
 
@@ -431,6 +503,8 @@ describe("order-actions", () => {
     it.each([
       ["NEW", "COMPLETED"],
       ["UNKNOWN_STATUS", "BATCHED"],
+      ["BOGUS", "CANCELLED"],
+      ["CANCELLED", "CANCELLED"],
     ])("rejects the transition %s -> %s", async (from, to) => {
       orders.getOrderById.mockResolvedValue(
         buildOrder({ order_status: from }) as never
@@ -467,6 +541,7 @@ describe("order-actions", () => {
         include: { items: true },
       });
       expect(res.data).toEqual({ detailed: "order-1" });
+      expect(res.details).toBe("Order details retrieved successfully");
     });
 
     it("throws NotFoundError for a missing order", async () => {
@@ -523,10 +598,21 @@ describe("order-actions", () => {
 
       const res = await cancelOrderAction("order-1");
 
-      expect(orders.updateStatus).toHaveBeenCalledWith(
+      expect(orders.getOrderById).toHaveBeenCalledWith("order-1", {
+        select: {
+          id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_status: true,
+          payment_method: true,
+          batch_id: true,
+          item_total: true,
+        },
+      });
+      expect(orders.update).toHaveBeenCalledWith(
         "order-1",
-        "CANCELLED",
-        undefined,
+        { order_status: "CANCELLED", payment_status: "CANCELLED" },
         undefined,
         db
       );
@@ -623,7 +709,23 @@ describe("order-actions", () => {
       await expect(cancelOrderAction("order-1")).rejects.toBeInstanceOf(
         ErrorType
       );
-      expect(orders.updateStatus).not.toHaveBeenCalled();
+      expect(orders.update).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [{ user_id: "other" }, "Unauthorized: This order doesn't belong to you."],
+      [
+        { order_status: "BATCHED" },
+        "Only orders with status NEW can be cancelled.",
+      ],
+      [
+        { payment_status: "COMPLETED" },
+        "Cannot cancel an order with completed payment. Please contact support.",
+      ],
+    ])("rejects %o with message %j", async (overrides, message) => {
+      orders.getOrderById.mockResolvedValue(buildOrder(overrides) as never);
+
+      await expect(cancelOrderAction("order-1")).rejects.toThrow(message);
     });
   });
 
@@ -648,6 +750,19 @@ describe("order-actions", () => {
 
       const res = await run("OUT_FOR_DELIVERY");
 
+      expect(orders.getOrdersByIds).toHaveBeenCalledWith(["o1", "o2"], {
+        select: {
+          id: true,
+          shop_id: true,
+          user_id: true,
+          display_id: true,
+          order_status: true,
+          payment_method: true,
+          payment_status: true,
+          batch_id: true,
+          item_total: true,
+        },
+      });
       expect(db.order.update).toHaveBeenCalledTimes(1);
       expect(db.order.update).toHaveBeenCalledWith({
         where: { id: "o1" },
@@ -703,11 +818,39 @@ describe("order-actions", () => {
         where: { id: "b1" },
         data: { collective_total: { decrement: 20 } },
       });
-      expect(db.batch.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { id: { in: ["b1"] } } })
-      );
+      expect(db.batch.findMany).toHaveBeenCalledWith({
+        where: { id: { in: ["b1"] } },
+        select: {
+          id: true,
+          shop_id: true,
+          status: true,
+          collective_total: true,
+          min_order_value_snapshot: true,
+        },
+      });
       expect(publishBatchProgress).toHaveBeenCalledTimes(1);
     });
+
+    it.each(["OUT_FOR_DELIVERY", "COMPLETED"])(
+      "moving batched orders to %s never decrements batch totals",
+      async (status) => {
+        orders.getOrdersByIds.mockResolvedValue([
+          buildOrder({
+            id: "o1",
+            batch_id: "b1",
+            order_status:
+              status === "COMPLETED" ? "OUT_FOR_DELIVERY" : "BATCHED",
+          }),
+        ] as never);
+
+        await run(status);
+
+        expect(db.order.update).toHaveBeenCalledTimes(1);
+        expect(db.batch.update).not.toHaveBeenCalled();
+        expect(db.batch.findMany).not.toHaveBeenCalled();
+        expect(publishBatchProgress).not.toHaveBeenCalled();
+      }
+    );
 
     it("does not query batches when no cancelled order was batched", async () => {
       orders.getOrdersByIds.mockResolvedValue([buildOrder()] as never);
@@ -732,12 +875,12 @@ describe("order-actions", () => {
     it("lists every invalid transition", async () => {
       orders.getOrdersByIds.mockResolvedValue([
         buildOrder({ display_id: "D1", order_status: "COMPLETED" }),
-        buildOrder({ display_id: "D2", order_status: "WEIRD" }),
+        buildOrder({ display_id: "D2", order_status: "BOGUS" }),
       ] as never);
 
       await expect(run("BATCHED")).rejects.toThrow(
         new ValidationError(
-          "Invalid status transitions: D1: COMPLETED → BATCHED, D2: WEIRD → BATCHED"
+          "Invalid status transitions: D1: COMPLETED → BATCHED, D2: BOGUS → BATCHED"
         )
       );
       expect(db.$transaction).not.toHaveBeenCalled();

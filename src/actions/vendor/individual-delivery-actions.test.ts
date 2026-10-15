@@ -34,6 +34,14 @@ describe("individual-delivery-actions", () => {
   });
 
   describe("startIndividualDeliveryAction", () => {
+    it("starts a RESCHEDULED order (allowed RESCHEDULED -> OUT_FOR_DELIVERY)", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "RESCHEDULED" })
+      );
+      await startIndividualDeliveryAction("order-1");
+      expect(db.order.update).toHaveBeenCalled();
+    });
+
     it("marks the order out for delivery with a fresh OTP and notifies", async () => {
       db.order.findUnique.mockResolvedValue(
         buildOrder({ order_status: "BATCHED" })
@@ -58,9 +66,56 @@ describe("individual-delivery-actions", () => {
       expect(res.details).toBe("Order marked as OUT_FOR_DELIVERY.");
     });
 
+    it("loads the order with exactly the needed fields", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED" })
+      );
+
+      await startIndividualDeliveryAction("order-1");
+
+      expect(db.order.findUnique).toHaveBeenCalledWith({
+        where: { id: "order-1" },
+        select: {
+          id: true,
+          shop_id: true,
+          order_status: true,
+          delivery_otp: true,
+          user_id: true,
+          display_id: true,
+        },
+      });
+    });
+
+    it("sends the out-for-delivery notification payload", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED", delivery_otp: "4321" })
+      );
+
+      await startIndividualDeliveryAction("order-1");
+
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "🚀 Order Out for Delivery!",
+        message: expect.stringContaining("Share OTP 4321"),
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
+    });
+
+    it("rejects a status unknown to the transition table", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "GHOST" })
+      );
+
+      await expect(startIndividualDeliveryAction("order-1")).rejects.toThrow(
+        new ValidationError("This order can’t be delivered.")
+      );
+      expect(db.order.update).not.toHaveBeenCalled();
+    });
+
     it("reuses an existing OTP", async () => {
       db.order.findUnique.mockResolvedValue(
-        buildOrder({ delivery_otp: "4321" })
+        buildOrder({ order_status: "BATCHED", delivery_otp: "4321" })
       );
 
       await startIndividualDeliveryAction("order-1");
@@ -72,11 +127,15 @@ describe("individual-delivery-actions", () => {
     });
 
     it("succeeds without notifying a guest or when notifying fails", async () => {
-      db.order.findUnique.mockResolvedValue(buildOrder({ user_id: null }));
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED", user_id: null })
+      );
       await startIndividualDeliveryAction("order-1");
       expect(notify).not.toHaveBeenCalled();
 
-      db.order.findUnique.mockResolvedValue(buildOrder());
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED" })
+      );
       notify.mockRejectedValue(new Error("queue"));
       await expect(
         startIndividualDeliveryAction("order-1")
@@ -96,8 +155,14 @@ describe("individual-delivery-actions", () => {
       }
     );
 
-    it.each(["CANCELLED", "COMPLETED"])(
-      "rejects a %s order",
+    it.each([
+      "CANCELLED",
+      "COMPLETED",
+      "NEW",
+      "DELIVERY_FAILED",
+      "OUT_FOR_DELIVERY",
+    ])(
+      "rejects a %s order (RULE O26: only statuses that may go OUT_FOR_DELIVERY)",
       async (status) => {
         db.order.findUnique.mockResolvedValue(
           buildOrder({ order_status: status })

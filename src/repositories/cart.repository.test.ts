@@ -3,6 +3,52 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CartRepository, fullCartInclude } from "./cart.repository";
 
+describe("fullCartInclude", () => {
+  it("has the exact shape needed by cart consumers", () => {
+    expect(fullCartInclude).toStrictEqual({
+      items: {
+        include: {
+          product: {
+            include: {
+              category: true,
+              brand: true,
+              shop: {
+                select: {
+                  id: true,
+                  name: true,
+                  qr_image_key: true,
+                  upi_id: true,
+                  opening: true,
+                  closing: true,
+                  accepting_orders: true,
+                  default_delivery_fee: true,
+                  direct_delivery_fee: true,
+                  min_order_value: true,
+                  batch_slots: {
+                    where: { is_active: true },
+                    select: {
+                      id: true,
+                      cutoff_time_minutes: true,
+                      label: true,
+                      sort_order: true,
+                      is_active: true,
+                    },
+                    orderBy: [
+                      { sort_order: "asc" },
+                      { cutoff_time_minutes: "asc" },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: { id: "asc" },
+      },
+    });
+  });
+});
+
 describe("CartRepository", () => {
   let prisma: PrismaMock;
   let repository: CartRepository;

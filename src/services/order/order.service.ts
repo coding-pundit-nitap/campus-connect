@@ -8,6 +8,7 @@ import {
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { discountedUnitPricePaise } from "@/lib/utils/cart.utils";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { APP_TIME_ZONE, getZonedParts } from "@/lib/utils/timezone";
 import { getShopOrderUrl } from "@/lib/utils/url.utils";
@@ -396,22 +397,19 @@ export class OrderService {
             );
           }
 
-          const pricePaise = Math.round(Number(product.price) * 100);
-          const discountPercent = Number(product.discount) || 0;
-          const discountPaise = Math.round(
-            (pricePaise * discountPercent) / 100
+          const unitPaise = discountedUnitPricePaise(
+            Number(product.price),
+            Number(product.discount)
           );
-          const discountedPrice = (pricePaise - discountPaise) / 100;
 
           productDetailsMap.set(item.product_id, {
-            price: discountedPrice,
+            price: unitPaise / 100,
             name: product.name,
           });
 
-          const discountedPricePaise = pricePaise - discountPaise;
-          itemTotalPaise += discountedPricePaise * item.quantity;
+          itemTotalPaise += unitPaise * item.quantity;
         }
-        const itemTotal = Math.round(itemTotalPaise) / 100;
+        const itemTotal = itemTotalPaise / 100;
         const minOrderValue = Number(shop.min_order_value);
         if (itemTotal < minOrderValue) {
           throw new ValidationError(
@@ -497,11 +495,12 @@ export class OrderService {
             is_direct_delivery: is_direct_delivery ?? false,
             items: {
               create: cart.items.map((item) => {
-                const prod = productDetailsMap.get(item.product_id);
+                // Every cart item was priced (or rejected) in the loop above.
+                const prod = productDetailsMap.get(item.product_id)!;
                 return {
                   product_id: item.product_id,
                   quantity: item.quantity,
-                  price: prod ? prod.price : item.product.price,
+                  price: prod.price,
                 };
               }),
             },

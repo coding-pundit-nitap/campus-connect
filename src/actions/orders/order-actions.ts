@@ -41,7 +41,10 @@ import {
   createSuccessResponse,
   PaginatedResponse,
 } from "@/types/response.types";
-import { validateDeliveryTime } from "@/validations/order.validation";
+import {
+  upiTransactionIdSchema,
+  validateDeliveryTime,
+} from "@/validations/order.validation";
 const log = createLogger("order-actions");
 
 const STATUS_ERRORS = [ValidationError, ...AUTH_ERRORS];
@@ -124,6 +127,16 @@ export async function createOrderAction({
       );
     }
 
+    if (
+      payment_method === "ONLINE" &&
+      (!upi_transaction_id ||
+        !upiTransactionIdSchema.safeParse(upi_transaction_id).success)
+    ) {
+      return createErrorResponse(
+        "A valid UPI transaction ID (10-35 letters or digits) is required for online payment."
+      );
+    }
+
     let deliveryTime: Date | undefined = undefined;
 
     if (!is_direct_delivery && requested_delivery_time) {
@@ -174,9 +187,8 @@ export async function createOrderAction({
     ) {
       return createErrorResponse(error.message);
     }
-    return createErrorResponse(
-      error instanceof Error ? error.message : "Failed to create order."
-    );
+    // Like runAction: unexpected failures never leak internal messages.
+    return createErrorResponse("Failed to create order.");
   }
 }
 
@@ -204,6 +216,7 @@ export async function updateOrderStatusAction({
           display_id: true,
           order_status: true,
           payment_method: true,
+          payment_status: true,
           batch_id: true,
           item_total: true,
         },
@@ -222,9 +235,9 @@ export async function updateOrderStatusAction({
 
       const paymentStatus = paymentStatusForTransition(
         status,
-        order.payment_method
+        order.payment_method,
+        order.payment_status
       );
-      const wasAlreadyCancelled = order.order_status === "CANCELLED";
 
       const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
         async (tx) => {
@@ -238,7 +251,9 @@ export async function updateOrderStatusAction({
             },
           });
           const updatedBatch =
-            status === "CANCELLED" && !wasAlreadyCancelled && order.batch_id
+            // A CANCELLED order has no allowed transitions, so this always
+            // removes a still-counted order from its batch total.
+            status === "CANCELLED" && order.batch_id
               ? await batchRepository.adjustCollectiveTotal(
                   order.batch_id,
                   -Number(order.item_total),
@@ -323,6 +338,7 @@ export async function cancelOrderAction(
           display_id: true,
           order_status: true,
           payment_status: true,
+          payment_method: true,
           batch_id: true,
           item_total: true,
         },
@@ -352,10 +368,16 @@ export async function cancelOrderAction(
       }
 
       const updatedBatch = await prisma.$transaction(async (tx) => {
-        await orderRepository.updateStatus(
+        await orderRepository.update(
           order_id,
-          OrderStatus.CANCELLED,
-          undefined,
+          {
+            order_status: OrderStatus.CANCELLED,
+            payment_status: paymentStatusForTransition(
+              OrderStatus.CANCELLED,
+              order.payment_method,
+              order.payment_status
+            ),
+          },
           undefined,
           tx
         );
@@ -446,6 +468,7 @@ export async function batchUpdateOrderStatusAction({
           display_id: true,
           order_status: true,
           payment_method: true,
+          payment_status: true,
           batch_id: true,
           item_total: true,
         },
@@ -489,7 +512,8 @@ export async function batchUpdateOrderStatusAction({
                 order_status: status,
                 payment_status: paymentStatusForTransition(
                   status,
-                  o.payment_method
+                  o.payment_method,
+                  o.payment_status
                 ),
                 actual_delivery_time:
                   status === "COMPLETED" ? new Date() : undefined,

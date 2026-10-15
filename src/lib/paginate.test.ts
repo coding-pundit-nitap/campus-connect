@@ -20,6 +20,15 @@ describe("paginateCursor", () => {
     expect(result).toEqual({ data: rows, nextCursor: null, hasMore: false });
   });
 
+  it("reports no more pages when exactly limit rows are returned", async () => {
+    const rows = [{ id: "1" }, { id: "2" }];
+    const fetcher = vi.fn().mockResolvedValue(rows);
+
+    const result = await paginateCursor(fetcher, 2);
+
+    expect(result).toEqual({ data: rows, nextCursor: null, hasMore: false });
+  });
+
   it("drops the look-ahead row and uses the last returned row as the next cursor", async () => {
     const rows = [{ id: "1" }, { id: "2" }, { id: "3" }];
     const fetcher = vi.fn().mockResolvedValue(rows);

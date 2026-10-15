@@ -8,13 +8,30 @@ import {
 
 import { ImageUtils } from "./image.utils";
 
+/**
+ * Discounted unit price in integer paise: `price` minus a PERCENT `discount`,
+ * with the discount clamped to 0..100 so a price can never go negative.
+ * The single pricing rule shared by the checkout page and order creation, so
+ * what the customer is shown is exactly what they are charged.
+ */
+export function discountedUnitPricePaise(
+  price: number,
+  discount: number | null | undefined
+): number {
+  const pricePaise = Math.round(Number(price) * 100);
+  const percent = Math.min(Math.max(Number(discount) || 0, 0), 100);
+  return pricePaise - Math.round((pricePaise * percent) / 100);
+}
+
 class CartDrawerServices {
   calculateCartItemsPrice = (items: CartItemData[]): number => {
-    return items.reduce(
+    const totalPaise = items.reduce(
       (total, item) =>
-        total + ((item.price * (100 - item.discount)) / 100) * item.quantity,
+        total +
+        discountedUnitPricePaise(item.price, item.discount) * item.quantity,
       0
     );
+    return totalPaise / 100;
   };
 
   calculateCartItemsCount = (items: CartItemData[]): number => {

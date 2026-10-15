@@ -16,6 +16,7 @@ import {
   getOrderStatusInfo,
   getPaymentStatusInfo,
   mapSearchResultsToSuggestions,
+  orderWithDetailsInclude,
   serializeOrder,
   serializeOrderItem,
   serializeOrderWithDetails,
@@ -435,5 +436,32 @@ describe("getPaymentStatusInfo", () => {
 
     expect(info).toMatchObject({ label, colorClassName });
     expect(info.Icon).toBeDefined();
+  });
+});
+
+describe("orderWithDetailsInclude", () => {
+  it("has the exact include shape", () => {
+    expect(orderWithDetailsInclude).toStrictEqual({
+      items: {
+        include: {
+          product: {
+            include: {
+              category: true,
+              shop: {
+                select: {
+                  id: true,
+                  name: true,
+                  qr_image_key: true,
+                  upi_id: true,
+                  shop_type: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      batch: { include: { delivery_status: true } },
+      user: { select: { id: true, name: true, email: true, phone: true } },
+    });
   });
 });

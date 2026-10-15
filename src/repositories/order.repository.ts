@@ -235,26 +235,6 @@ export class OrderRepository extends BaseRepository<
     return client.order.update(idOrArgs);
   }
 
-  async updateStatus(
-    order_id: string,
-    order_status: OrderStatus,
-    assigned_to?: string,
-    actual_delivery_time?: Date,
-    tx?: Prisma.TransactionClient
-  ): Promise<Order> {
-    const client = tx ?? this.prismaClient;
-    const order = await client.order.update({
-      where: { id: order_id },
-      data: {
-        order_status,
-        assigned_to,
-        actual_delivery_time,
-      },
-    });
-
-    return order;
-  }
-
   async batchUpdateStatus(
     order_ids: string[],
     order_status: OrderStatus

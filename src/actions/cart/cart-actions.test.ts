@@ -1,11 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { cartRepository } from "@/di/container";
-import {
-  InternalServerError,
-  UnauthenticatedError,
-  UnauthorizedError,
-} from "@/lib/custom-error";
+import { UnauthenticatedError, UnauthorizedError } from "@/lib/custom-error";
 import { serializeFullCart } from "@/lib/utils";
 import authUtils from "@/lib/utils/auth.utils.server";
 
@@ -62,10 +58,12 @@ describe("upsertCartItem", () => {
     ).rejects.toBeInstanceOf(UnauthenticatedError);
   });
 
-  it("wraps invalid input in an InternalServerError", async () => {
-    await expect(
-      upsertCartItem({ product_id: "", quantity: -1 } as never)
-    ).rejects.toThrow(new InternalServerError("Failed to update cart item"));
+  it("rejects invalid input with a ValidationError (RULE O16)", async () => {
+    for (const quantity of [-1, 2.5]) {
+      await expect(
+        upsertCartItem({ product_id: "p1", quantity })
+      ).rejects.toMatchObject({ name: "ValidationError" });
+    }
     expect(cartRepository.upsertItemForUser).not.toHaveBeenCalled();
   });
 });

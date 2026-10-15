@@ -52,6 +52,29 @@ describe("aggregateEarnings", () => {
     expect(r.online.orderCount).toBe(1);
   });
 
+  it("routes each payment method to its own bucket with distinct amounts", () => {
+    const r = aggregateEarnings([
+      order({
+        payment_method: "CASH",
+        item_total: 200,
+        delivery_fee: 20,
+        platform_fee: 7,
+      }),
+      order({
+        payment_method: "ONLINE",
+        item_total: 50,
+        delivery_fee: 5,
+        platform_fee: 3,
+      }),
+    ]);
+    expect(r.cash).toEqual({
+      earnings: 220,
+      platformFeeOwed: 7,
+      orderCount: 1,
+    });
+    expect(r.online).toEqual({ earnings: 55, orderCount: 1 });
+  });
+
   it("keeps the cash and online split summing to total earnings", () => {
     const r = aggregateEarnings([
       order({ payment_method: "CASH" }),

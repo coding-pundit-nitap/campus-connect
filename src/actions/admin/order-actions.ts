@@ -2,6 +2,7 @@
 
 import z from "zod";
 
+import { paymentStatusForTransition } from "@/actions/orders/order-status";
 import {
   batchRepository,
   notificationService,
@@ -12,6 +13,7 @@ import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import { BadRequestError, NotFoundError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { getPeriodRange } from "@/lib/utils/earnings";
 import {
   orderWithDetailsInclude,
   serializeOrderWithDetails,
@@ -141,11 +143,23 @@ export async function updateOrderStatusAdminAction(
 
       const updateData: {
         order_status: OrderStatus;
+        payment_status?: PaymentStatus;
         estimated_delivery_time?: Date;
         actual_delivery_time?: Date;
       } = {
         order_status,
       };
+
+      // Payment follows the order: a cancelled paid order is refunded, a
+      // completed cash order has been paid.
+      if (order_status !== order.order_status) {
+        const payment_status = paymentStatusForTransition(
+          order_status,
+          order.payment_method,
+          order.payment_status
+        );
+        if (payment_status) updateData.payment_status = payment_status;
+      }
 
       if (
         order_status === OrderStatus.OUT_FOR_DELIVERY &&
@@ -326,8 +340,8 @@ export async function getOrderStatsAction(): Promise<
       fallback: "Failed to retrieve order statistics.",
     },
     async () => {
-      const startOfDay = new Date();
-      startOfDay.setHours(0, 0, 0, 0);
+      // "Today" is the IST calendar day, whatever the server's timezone.
+      const { start: startOfDay } = getPeriodRange("today");
 
       const [
         totalOrders,

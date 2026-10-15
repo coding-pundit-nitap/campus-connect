@@ -174,7 +174,7 @@ describe("CartService", () => {
 
       await expect(
         service.upsertCartItem("user-1", "prod-x", 1)
-      ).rejects.toBeInstanceOf(NotFoundError);
+      ).rejects.toThrow(new NotFoundError("Product not found."));
       expect(cartRepository.findOrCreate).not.toHaveBeenCalled();
     });
 

@@ -114,7 +114,48 @@ describe("isWithinShopHours", () => {
   });
 });
 
+describe("isWithinShopHours minute arithmetic and boundaries", () => {
+  // IST = UTC+5:30, so HH:MM IST on 2026-08-15 is (HH-5):(MM-30) UTC.
+  const ist = (hh: number, mm: number) =>
+    new Date(Date.UTC(2026, 7, 15, hh, mm) - (5 * 60 + 30) * MINUTE);
+
+  it.each([
+    [8, 45, false],
+    [9, 29, false],
+    [9, 30, true],
+    [17, 30, true],
+    [17, 45, true],
+    [17, 46, false],
+  ])("same-day 09:30-17:45 at %i:%i IST -> %s", (h, m, expected) => {
+    expect(isWithinShopHours(ist(h, m), "09:30", "17:45")).toBe(expected);
+  });
+
+  it.each([
+    [21, 59, false],
+    [22, 15, true],
+    [23, 0, true],
+    [1, 0, true],
+    [2, 15, true],
+    [2, 16, false],
+    [12, 0, false],
+  ])("overnight 22:15-02:15 at %i:%i IST -> %s", (h, m, expected) => {
+    expect(isWithinShopHours(ist(h, m), "22:15", "02:15")).toBe(expected);
+  });
+});
+
 describe("validateDeliveryTime", () => {
+  it("skips shop-hours validation when opening or closing is missing", () => {
+    // 23:00 IST is outside 09:00-21:00 but no complete hours are given
+    const outside = new Date("2026-08-14T17:30:00Z");
+    expect(validateDeliveryTime(outside, "09:00", undefined)).toBeNull();
+    expect(validateDeliveryTime(outside, undefined, "21:00")).toBeNull();
+    expect(validateDeliveryTime(outside, undefined, undefined)).toBeNull();
+  });
+
+  it("returns null for a missing delivery time even when shop hours are given", () => {
+    expect(validateDeliveryTime(undefined, "09:00", "21:00")).toBeNull();
+  });
+
   it("returns null when no delivery time is given", () => {
     expect(validateDeliveryTime(undefined)).toBeNull();
   });
@@ -198,7 +239,40 @@ describe("deliveryTimeSchema", () => {
   });
 });
 
+describe("deliveryTimeSchema boundaries", () => {
+  it("accepts exactly 15 minutes ahead and exactly 7 days ahead", () => {
+    expect(
+      deliveryTimeSchema.safeParse(new Date(NOW.getTime() + 15 * MINUTE))
+        .success
+    ).toBe(true);
+    expect(
+      deliveryTimeSchema.safeParse(new Date(NOW.getTime() + 7 * DAY)).success
+    ).toBe(true);
+  });
+
+  it("rejects one millisecond before 15 minutes and after 7 days", () => {
+    expect(
+      deliveryTimeSchema.safeParse(new Date(NOW.getTime() + 15 * MINUTE - 1))
+        .success
+    ).toBe(false);
+    expect(
+      deliveryTimeSchema.safeParse(new Date(NOW.getTime() + 7 * DAY + 1))
+        .success
+    ).toBe(false);
+  });
+});
+
 describe("upiTransactionIdSchema", () => {
+  it("reports the format error message", () => {
+    const result = upiTransactionIdSchema.safeParse("short");
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe(
+        "Invalid UPI transaction ID format"
+      );
+    }
+  });
+
   it("accepts undefined (optional)", () => {
     expect(upiTransactionIdSchema.safeParse(undefined).success).toBe(true);
   });

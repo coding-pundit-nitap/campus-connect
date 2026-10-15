@@ -5,6 +5,7 @@ import {
   requireOwnedShopId,
 } from "@/actions/_shared/action-helpers";
 import { verifyOrderOtpAction } from "@/actions/vendor/batch-actions";
+import { VALID_ORDER_TRANSITIONS } from "@/config/constants";
 import { notificationService } from "@/di/container";
 import { ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
@@ -31,10 +32,11 @@ export async function startIndividualDeliveryAction(orderId: string) {
     throw new ValidationError("Order not found or unauthorized");
   }
 
-  if (
-    order.order_status === "CANCELLED" ||
-    order.order_status === "COMPLETED"
-  ) {
+  // Only statuses whose allowed transitions include OUT_FOR_DELIVERY
+  // (an accepted or rescheduled order) can be sent out for delivery.
+  const next: readonly string[] =
+    VALID_ORDER_TRANSITIONS[order.order_status] ?? [];
+  if (!next.includes("OUT_FOR_DELIVERY")) {
     throw new ValidationError("This order can’t be delivered.");
   }
 

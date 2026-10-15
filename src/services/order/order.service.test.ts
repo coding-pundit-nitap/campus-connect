@@ -393,6 +393,74 @@ describe("OrderService", () => {
       );
     });
 
+    it("RULE O12: accepts stock exactly equal to the requested quantity", async () => {
+      prisma.product.findUnique.mockResolvedValue(
+        buildProduct({ stock_quantity: 2 })
+      );
+
+      await expect(direct()).resolves.toMatchObject({ id: "order-1" });
+    });
+
+    it("RULE O10: accepts a cart total equal to the shop minimum", async () => {
+      prisma.shop.findFirst.mockResolvedValue(
+        buildShop({ min_order_value: 200 })
+      );
+
+      await expect(direct()).resolves.toMatchObject({ id: "order-1" });
+    });
+
+    it("RULE O10: rejects a cart total one paisa below the shop minimum", async () => {
+      prisma.shop.findFirst.mockResolvedValue(
+        buildShop({ min_order_value: 200.01 })
+      );
+
+      await expect(direct()).rejects.toThrow(
+        "Minimum order value is ₹200.01. Your cart total is ₹200."
+      );
+    });
+
+    it("reads the cart, shop, address, delivery buildings and products with exact queries", async () => {
+      await direct();
+
+      expect(prisma.cart.findUnique).toHaveBeenCalledWith({
+        where: { user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" } },
+        include: {
+          items: { include: { product: true } },
+          user: { select: { name: true, phone: true } },
+        },
+      });
+      expect(prisma.shop.findFirst).toHaveBeenCalledWith({
+        where: { id: "shop-1", deleted_at: null },
+        select: {
+          id: true,
+          name: true,
+          is_active: true,
+          accepting_orders: true,
+          min_order_value: true,
+          batch_min_order_value: true,
+          default_delivery_fee: true,
+          direct_delivery_fee: true,
+          user: { select: { id: true } },
+        },
+      });
+      expect(prisma.userAddress.findUnique).toHaveBeenCalledWith({
+        where: { id: "addr-1" },
+      });
+      expect(prisma.shopDeliveryBuilding.count).toHaveBeenCalledWith({
+        where: { shop_id: "shop-1", is_active: true },
+      });
+      expect(prisma.product.findUnique).toHaveBeenCalledWith({
+        where: { id: "prod-1" },
+        select: {
+          stock_quantity: true,
+          name: true,
+          price: true,
+          discount: true,
+          deleted_at: true,
+        },
+      });
+    });
+
     it("rejects when the conditional stock decrement loses a race", async () => {
       prisma.product.updateMany.mockResolvedValue({ count: 0 });
 
@@ -562,6 +630,34 @@ describe("OrderService", () => {
 
       expect(createdOrder().display_id).toMatch(/^NITAP-\d{6}$/);
     });
+
+    it.each([
+      [0, "NITAP-100000"],
+      [0.5, "NITAP-550000"],
+      [0.999999, "NITAP-999999"],
+    ])(
+      "RULE O20: random fallback id spans 100000..999999 (random=%s)",
+      async (random, expected) => {
+        const spy = vi.spyOn(Math, "random").mockReturnValue(random);
+        const fail = () => {
+          throw new Error("nope");
+        };
+        nextval = [fail, fail];
+
+        await direct();
+
+        spy.mockRestore();
+        expect(createdOrder().display_id).toBe(expected);
+      }
+    );
+
+    it("wraps the sequence read in a savepoint that is released on success", async () => {
+      await direct();
+
+      const calls = prisma.$executeRawUnsafe.mock.calls.map((c) => c[0]);
+      expect(calls).toContain("SAVEPOINT get_display_id");
+      expect(calls).toContain("RELEASE SAVEPOINT get_display_id");
+    });
   });
 
   describe("createOrderFromCart with an explicit batch id", () => {
@@ -587,12 +683,17 @@ describe("OrderService", () => {
         delivery_fee: 10,
         is_direct_delivery: false,
       });
-      expect(prisma.batch.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: "batch-9" },
-          data: { collective_total: { increment: 200 } },
-        })
-      );
+      expect(prisma.batch.update).toHaveBeenCalledWith({
+        where: { id: "batch-9" },
+        data: { collective_total: { increment: 200 } },
+        select: {
+          id: true,
+          shop_id: true,
+          status: true,
+          collective_total: true,
+          min_order_value_snapshot: true,
+        },
+      });
       expect(publishBatchProgress).toHaveBeenCalledWith({
         batchId: "batch-9",
         shopId: "shop-1",
@@ -667,6 +768,76 @@ describe("OrderService", () => {
       });
       expect(publishBatchProgress).toHaveBeenCalled();
     });
+
+    it("RULE: batch orders store is_direct_delivery false even when the flag is omitted", async () => {
+      await service.createOrderFromCart(
+        "user-1",
+        "shop-1",
+        "CASH",
+        "addr-1",
+        undefined,
+        SLOT_TIME
+      );
+
+      expect(createdOrder().is_direct_delivery).toBe(false);
+    });
+
+    it("RULE: looks up active slots and an existing batch with exact queries", async () => {
+      await byTime();
+
+      expect(prisma.batchSlot.findMany).toHaveBeenCalledWith({
+        where: { shop_id: "shop-1", is_active: true },
+        select: { id: true, cutoff_time_minutes: true, sort_order: true },
+        orderBy: [{ sort_order: "asc" }, { cutoff_time_minutes: "asc" }],
+      });
+      expect(prisma.batch.findFirst).toHaveBeenCalledWith({
+        where: { shop_id: "shop-1", cutoff_time: SLOT_TIME },
+        select: { id: true, status: true },
+      });
+      expect(prisma.$executeRawUnsafe).toHaveBeenCalledWith(
+        "SAVEPOINT batch_insert"
+      );
+    });
+
+    it("RULE: matches slots on hour*60+minute (14:30 IST)", async () => {
+      const slot1430 = new Date("2030-01-01T09:00:00Z");
+      prisma.batchSlot.findMany.mockResolvedValue([
+        { id: "slot-1430", cutoff_time_minutes: 14 * 60 + 30, sort_order: 0 },
+      ]);
+
+      await byTime(slot1430);
+
+      expect(callArg<{ data: object }>(prisma.batch.create).data).toMatchObject(
+        { slot_id: "slot-1430", cutoff_time: slot1430 }
+      );
+    });
+
+    it("RULE: without a created or found batch the order has no batch and keeps the requested time", async () => {
+      prisma.batch.create.mockResolvedValue(undefined);
+
+      await byTime();
+
+      expect(createdOrder()).not.toHaveProperty("batch_id");
+      expect(createdOrder().requested_delivery_time).toEqual(SLOT_TIME);
+      expect(prisma.batch.update).not.toHaveBeenCalled();
+      expect(publishBatchProgress).not.toHaveBeenCalled();
+    });
+
+    it.each([undefined, null])(
+      "RULE: snapshots null when batch_min_order_value is %s",
+      async (value) => {
+        prisma.shop.findFirst.mockResolvedValue(
+          buildShop({ batch_min_order_value: value })
+        );
+
+        await byTime();
+
+        expect(
+          callArg<{ data: Record<string, unknown> }>(prisma.batch.create).data
+            .min_order_value_snapshot
+        ).toBeNull();
+      }
+    );
 
     it("snapshots a null batch minimum when the shop has none", async () => {
       await byTime();
@@ -805,6 +976,8 @@ describe("OrderService", () => {
     it.each([
       ["a non-unique error", new Error("connection reset")],
       ["a non-object error", "boom"],
+      ["a null error", null],
+      ["an object with another code", { code: "P2003" }],
     ])("rethrows %s from the batch insert", async (_label, err) => {
       prisma.batch.create.mockRejectedValue(err);
 

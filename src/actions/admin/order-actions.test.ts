@@ -76,6 +76,8 @@ describe("admin order actions", () => {
 
       const res = await getAllOrdersAction({ limit: 10 });
 
+      const arg = orders.findMany.mock.calls[0][0] as { where: object };
+      expect(arg.where).toStrictEqual({});
       expect(orders.findMany).toHaveBeenCalledWith({
         where: {},
         take: 11,
@@ -356,6 +358,181 @@ describe("admin order actions", () => {
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
     });
 
+    it("loads the order with its user and shop", async () => {
+      orders.findById.mockResolvedValue(order());
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "BATCHED",
+      });
+
+      expect(orders.findById).toHaveBeenCalledWith("order-1", {
+        include: { user: true, shop: true },
+      });
+    });
+
+    it.each([
+      [
+        "cancelling an online order refunds it",
+        "CANCELLED",
+        { payment_method: "ONLINE" },
+        "REFUNDED",
+      ],
+      [
+        "cancelling a paid cash order refunds it",
+        "CANCELLED",
+        { payment_method: "CASH", payment_status: "COMPLETED" },
+        "REFUNDED",
+      ],
+      [
+        "cancelling an unpaid cash order cancels the payment",
+        "CANCELLED",
+        { payment_method: "CASH" },
+        "CANCELLED",
+      ],
+      [
+        "completing a cash order marks it paid",
+        "COMPLETED",
+        { payment_method: "CASH" },
+        "COMPLETED",
+      ],
+    ] as const)(
+      "payment follows the order: %s",
+      async (_n, status, overrides, expected) => {
+        orders.findById.mockResolvedValue(order(overrides));
+
+        await updateOrderStatusAdminAction({
+          order_id: "order-1",
+          order_status: status,
+        });
+
+        expect(tx.order.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({ payment_status: expected }),
+          })
+        );
+      }
+    );
+
+    it.each([
+      [
+        "completing an online order",
+        "COMPLETED",
+        { payment_method: "ONLINE", order_status: "NEW" },
+      ],
+      [
+        "a non-terminal transition",
+        "BATCHED",
+        { payment_method: "CASH", order_status: "NEW" },
+      ],
+      [
+        "re-saving COMPLETED",
+        "COMPLETED",
+        {
+          payment_method: "CASH",
+          order_status: "COMPLETED",
+          payment_status: "PENDING",
+        },
+      ],
+      [
+        "re-saving CANCELLED",
+        "CANCELLED",
+        {
+          payment_method: "ONLINE",
+          order_status: "CANCELLED",
+          payment_status: "COMPLETED",
+        },
+      ],
+    ] as const)(
+      "does not write payment_status for %s",
+      async (_n, status, overrides) => {
+        orders.findById.mockResolvedValue(order(overrides));
+
+        await updateOrderStatusAdminAction({
+          order_id: "order-1",
+          order_status: status,
+        });
+
+        const { data } = tx.order.update.mock.calls[0][0] as { data: object };
+        expect(data).not.toHaveProperty("payment_status");
+      }
+    );
+
+    it("does not store an ETA for a status other than OUT_FOR_DELIVERY", async () => {
+      orders.findById.mockResolvedValue(order());
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "BATCHED",
+        estimated_delivery_time: new Date("2026-05-01T10:00:00Z"),
+      });
+
+      const { data } = tx.order.update.mock.calls[0][0] as { data: object };
+      expect(data).not.toHaveProperty("estimated_delivery_time");
+    });
+
+    it("reports the new status in the success message", async () => {
+      orders.findById.mockResolvedValue(order());
+
+      const res = await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "BATCHED",
+      });
+
+      expect(res.details).toBe(
+        "Successfully updated order #D-1 status to BATCHED"
+      );
+    });
+
+    it.each([
+      ["NEW", "has been received"],
+      ["BATCHED", "is being prepared"],
+      ["OUT_FOR_DELIVERY", "is out for delivery"],
+      ["DELIVERY_FAILED", "failed to be delivered"],
+      ["COMPLETED", "has been completed"],
+      ["CANCELLED", "has been cancelled"],
+      ["RESCHEDULED", "has been rescheduled"],
+    ] as const)(
+      "notifies with the %s status wording",
+      async (status, wording) => {
+        orders.findById.mockResolvedValue(order({ order_status: "BATCHED" }));
+
+        await updateOrderStatusAdminAction({
+          order_id: "order-1",
+          order_status: status,
+        });
+
+        expect(notify).toHaveBeenCalledWith(
+          "user-1",
+          expect.objectContaining({ message: `Your order #D-1 ${wording}.` })
+        );
+      }
+    );
+
+    it("updates the order with the exact values on payment status", async () => {
+      orders.findById.mockResolvedValue(order());
+      orders.update.mockResolvedValue(order());
+
+      const res = await updatePaymentStatusAction({
+        order_id: "order-1",
+        payment_status: "COMPLETED",
+      });
+
+      expect(orders.findById).toHaveBeenCalledWith("order-1", {
+        include: { user: true },
+      });
+      expect(notify).toHaveBeenCalledWith("user-1", {
+        title: "Payment Status Updated",
+        message: "Payment status for order #D-1 has been updated to COMPLETED.",
+        type: "SUCCESS",
+        category: "ORDER",
+        action_url: "/orders/order-1",
+      });
+      expect(res.details).toBe(
+        "Successfully updated payment status for order #D-1"
+      );
+    });
+
     it("skips the notification for guest orders", async () => {
       orders.findById.mockResolvedValue(order({ user_id: null }));
 
@@ -477,8 +654,33 @@ describe("admin order actions", () => {
         { total_price: 49.5 },
       ] as never);
 
+      vi.useFakeTimers({
+        toFake: ["Date"],
+        now: new Date("2026-08-12T20:00:00Z"),
+      });
       const res = await getOrderStatsAction();
+      vi.useRealTimers();
 
+      const counts = orders.count.mock.calls.map((c) => c[0]);
+      expect(counts).toStrictEqual([
+        undefined,
+        { where: { order_status: "NEW" } },
+        { where: { order_status: "BATCHED" } },
+        { where: { order_status: "COMPLETED" } },
+        { where: { order_status: "CANCELLED" } },
+        { where: { payment_status: "PENDING" } },
+        {
+          where: { created_at: { gte: new Date("2026-08-05T20:00:00.000Z") } },
+        },
+      ]);
+      expect(orders.findMany).toHaveBeenCalledWith({
+        where: {
+          created_at: { gte: new Date("2026-08-12T18:30:00.000Z") },
+          order_status: "COMPLETED",
+        },
+        select: { total_price: true },
+      });
+      expect(res.details).toBe("Order statistics retrieved successfully");
       expect(res.data).toEqual({
         totalOrders: 20,
         newOrders: 3,

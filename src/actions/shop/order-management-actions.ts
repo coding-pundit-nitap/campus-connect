@@ -7,6 +7,7 @@ import {
   requireVendorShopId,
   runAction,
 } from "@/actions/_shared/action-helpers";
+import { paymentStatusForTransition } from "@/actions/orders/order-status";
 import { batchRepository, batchService, orderRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { BadRequestError, UnauthorizedError } from "@/lib/custom-error";
@@ -210,8 +211,11 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
         ? `[Vendor Rejected: ${reason}]`
         : "[Vendor Rejected]";
 
-      const paymentStatus =
-        order.payment_method === "ONLINE" ? "REFUNDED" : "CANCELLED";
+      const paymentStatus = paymentStatusForTransition(
+        "CANCELLED",
+        order.payment_method,
+        order.payment_status
+      );
 
       const updatedBatch = await prisma.$transaction(async (tx) => {
         await orderRepository.update(
