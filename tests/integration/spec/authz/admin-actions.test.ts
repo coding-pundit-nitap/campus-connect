@@ -1,4 +1,4 @@
-// RULE A7: every admin server action is ADMIN-only (src/lib/verify-admin.ts
+// every admin server action is ADMIN-only (src/lib/verify-admin.ts
 // docstring; rbac.ts "Admin-only routes that require ADMIN role").
 // A signed-out caller gets an auth error, a signed-in non-admin (plain user
 // or shop owner) gets ForbiddenError, and nothing is changed either way.
@@ -187,8 +187,8 @@ async function snapshot(t: Targets) {
   };
 }
 
-describe("RULE A7: every admin action is ADMIN-only", () => {
-  it("RULE A7: a signed-in plain user gets ForbiddenError from every admin action and nothing changes", async () => {
+describe("every admin action is ADMIN-only", () => {
+  it("a signed-in plain user gets ForbiddenError from every admin action and nothing changes", async () => {
     const t = await seedTargets();
     const before = await snapshot(t);
     asUser(await createUser({ role: "USER" }));
@@ -199,7 +199,7 @@ describe("RULE A7: every admin action is ADMIN-only", () => {
     expect(await snapshot(t)).toEqual(before);
   });
 
-  it("RULE A7: a shop owner (non-admin) gets ForbiddenError from every admin action, including on their own shop", async () => {
+  it("a shop owner (non-admin) gets ForbiddenError from every admin action, including on their own shop", async () => {
     const t = await seedTargets();
     const before = await snapshot(t);
     asUser(t.owner);
@@ -210,7 +210,7 @@ describe("RULE A7: every admin action is ADMIN-only", () => {
     expect(await snapshot(t)).toEqual(before);
   });
 
-  it("RULE A7/A6: a signed-out caller gets an auth error (never an InternalServerError) from every admin action and nothing changes", async () => {
+  it("a signed-out caller gets an auth error (never an InternalServerError) from every admin action and nothing changes", async () => {
     const t = await seedTargets();
     const before = await snapshot(t);
     asAnonymous();
@@ -221,7 +221,7 @@ describe("RULE A7: every admin action is ADMIN-only", () => {
     expect(await snapshot(t)).toEqual(before);
   });
 
-  it("RULE A7: an ADMIN is let through (the guard is the only thing in the way)", async () => {
+  it("an ADMIN is let through (the guard is the only thing in the way)", async () => {
     const t = await seedTargets();
     asUser(await createUser({ role: "ADMIN" }));
 

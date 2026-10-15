@@ -1,7 +1,7 @@
-// Rule-based tests for the route access matrix enforced by the proxy
+// Tests for the route access matrix enforced by the proxy
 // (src/proxy.ts + src/rbac.ts). Each case drives the proxy with a request
 // and asserts what the visitor gets: through, redirected to sign in, or
-// redirected with error=unauthorized. Rules A2, A3, A4, A38.
+// redirected with error=unauthorized.
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -56,6 +56,11 @@ const sentToSignIn = (res: Response, path: string) =>
   !passesThrough(res) &&
   target(res)?.pathname === "/" &&
   target(res)?.searchParams.get("callbackUrl") === path;
+// Pages are redirected to sign in; API callers get a 401 instead.
+const toldToSignIn = (res: Response, path: string) =>
+  path.startsWith("/api/")
+    ? res.status === 401 && !res.headers.get("location")
+    : sentToSignIn(res, path);
 const refusedAsNonAdmin = (res: Response) =>
   !passesThrough(res) &&
   target(res)?.pathname === "/" &&
@@ -137,9 +142,9 @@ describe("proxy access matrix", () => {
     vi.restoreAllMocks();
   });
 
-  describe("RULE A2: public pages and public APIs are reachable signed out", () => {
+  describe("public pages and public APIs are reachable signed out", () => {
     it.each([...PUBLIC_PAGES, ...PUBLIC_APIS])(
-      "RULE A2: %s is reachable signed out",
+      "%s is reachable signed out",
       async (path) => {
         as(null);
         expect(passesThrough(await visit(proxy, path))).toBe(true);
@@ -147,59 +152,50 @@ describe("proxy access matrix", () => {
     );
   });
 
-  describe("RULE A2: every other page and API requires a session", () => {
+  describe("every other page and API requires a session", () => {
     it.each(PROTECTED)(
-      "RULE A2: %s sends a signed-out visitor to sign in with a callbackUrl",
+      "%s sends a signed-out visitor to sign in (pages: redirect with callbackUrl, APIs: 401)",
       async (path) => {
         as(null);
-        expect(sentToSignIn(await visit(proxy, path), path)).toBe(true);
+        expect(toldToSignIn(await visit(proxy, path), path)).toBe(true);
       }
     );
 
-    it.each(PROTECTED)(
-      "RULE A2: %s is reachable for a signed-in user",
-      async (path) => {
-        as("USER");
-        expect(passesThrough(await visit(proxy, path))).toBe(true);
-      }
-    );
+    it.each(PROTECTED)("%s is reachable for a signed-in user", async (path) => {
+      as("USER");
+      expect(passesThrough(await visit(proxy, path))).toBe(true);
+    });
 
-    it("RULE A2: the session is read from the incoming request (a signed-in user is recognised)", async () => {
+    it("the session is read from the incoming request (a signed-in user is recognised)", async () => {
       as("ADMIN");
       expect(passesThrough(await visit(proxy, "/admin"))).toBe(true);
     });
   });
 
-  describe("RULE A3: everything under /admin is ADMIN-only, at any depth", () => {
-    it.each(ADMIN)(
-      "RULE A3: %s sends a signed-out visitor to sign in",
-      async (path) => {
-        as(null);
-        expect(sentToSignIn(await visit(proxy, path), path)).toBe(true);
-      }
-    );
+  describe("everything under /admin is ADMIN-only, at any depth", () => {
+    it.each(ADMIN)("%s sends a signed-out visitor to sign in", async (path) => {
+      as(null);
+      expect(sentToSignIn(await visit(proxy, path), path)).toBe(true);
+    });
 
-    it.each(ADMIN)(
-      "RULE A3: %s refuses a signed-in non-admin",
-      async (path) => {
-        as("USER");
-        expect(refusedAsNonAdmin(await visit(proxy, path))).toBe(true);
-      }
-    );
+    it.each(ADMIN)("%s refuses a signed-in non-admin", async (path) => {
+      as("USER");
+      expect(refusedAsNonAdmin(await visit(proxy, path))).toBe(true);
+    });
 
-    it.each(ADMIN)("RULE A3: %s lets an admin through", async (path) => {
+    it.each(ADMIN)("%s lets an admin through", async (path) => {
       as("ADMIN");
       expect(passesThrough(await visit(proxy, path))).toBe(true);
     });
 
-    it("RULE A3: a look-alike path (/administrator) is not treated as admin", async () => {
+    it("a look-alike path (/administrator) is not treated as admin", async () => {
       as("USER");
       expect(passesThrough(await visit(proxy, "/administrator"))).toBe(true);
     });
   });
 
-  describe("RULE A2: auth pages", () => {
-    it("RULE A2: a signed-in user visiting /error is sent to DEFAULT_LOGIN_REDIRECT (/)", async () => {
+  describe("auth pages", () => {
+    it("a signed-in user visiting /error is sent to DEFAULT_LOGIN_REDIRECT (/)", async () => {
       as("USER");
       const res = await visit(proxy, "/error");
       expect(passesThrough(res)).toBe(false);
@@ -207,36 +203,36 @@ describe("proxy access matrix", () => {
       expect(target(res)?.search).toBe("");
     });
 
-    it("RULE A2: a signed-out visitor sees /error only after signing in (it is not a public page)", async () => {
+    it("a signed-out visitor sees /error only after signing in (it is not a public page)", async () => {
       as(null);
       expect(sentToSignIn(await visit(proxy, "/error"), "/error")).toBe(true);
     });
 
     it.each(["/api/auth/session", "/api/auth/callback/google"])(
-      "RULE A2: auth API %s is always reachable, even if the auth store is down",
+      "auth API %s is always reachable, even if the auth store is down",
       async (path) => {
         state.throws = true;
         expect(passesThrough(await visit(proxy, path))).toBe(true);
       }
     );
 
-    it("RULE A2: /api/metrics passes the proxy without a session (the route enforces its own Prometheus bearer token)", async () => {
+    it("/api/metrics passes the proxy without a session (the route enforces its own Prometheus bearer token)", async () => {
       state.throws = true;
       expect(passesThrough(await visit(proxy, "/api/metrics"))).toBe(true);
     });
   });
 
-  describe("RULE A4: the proxy fails closed when the session lookup fails", () => {
+  describe("the proxy fails closed when the session lookup fails", () => {
     it.each([...PROTECTED, ...ADMIN])(
-      "RULE A4: %s is not passed through when the auth store is down",
+      "%s is not passed through when the auth store is down",
       async (path) => {
         state.throws = true;
-        expect(sentToSignIn(await visit(proxy, path), path)).toBe(true);
+        expect(toldToSignIn(await visit(proxy, path), path)).toBe(true);
       }
     );
 
     it.each(["/", "/shops/shop-1", "/api/products"])(
-      "RULE A4: public %s stays reachable when the auth store is down",
+      "public %s stays reachable when the auth store is down",
       async (path) => {
         state.throws = true;
         expect(passesThrough(await visit(proxy, path))).toBe(true);
@@ -244,7 +240,7 @@ describe("proxy access matrix", () => {
     );
   });
 
-  it("RULE A2: the request duration header reports elapsed milliseconds", async () => {
+  it("the request duration header reports elapsed milliseconds", async () => {
     let now = 1_000_000;
     vi.spyOn(Date, "now").mockImplementation(() => {
       const t = now;
@@ -277,9 +273,17 @@ describe("proxy access matrix", () => {
     expect(matches("/logo.png")).toBe(false);
   });
 
-  it.todo(
-    "RULE A38: signed-out calls to protected /api/* get a 401 JSON response from the proxy rather than a 307 redirect to the home page — code currently redirects; needs product decision"
-  );
+  it("signed-out calls to protected /api/* get a 401 JSON error, not a redirect", async () => {
+    as(null);
+    const res = await visit(proxy, "/api/orders");
+
+    expect(res.status).toBe(401);
+    expect(res.headers.get("location")).toBeNull();
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      details: "Unauthorized",
+    });
+  });
 });
 
 describe("proxy metrics", () => {

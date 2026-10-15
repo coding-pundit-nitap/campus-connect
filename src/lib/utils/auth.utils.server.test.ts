@@ -9,7 +9,9 @@ import { UnauthenticatedError, UnauthorizedError } from "@/lib/custom-error";
 import authUtils, { authUtils as namedAuthUtils } from "./auth.utils.server";
 
 const sessionFor = (user: Record<string, unknown> | null) =>
-  getSession.mockResolvedValue(user === null ? null : { user });
+  getSession.mockResolvedValue(
+    user === null ? null : { user: { status: "ACTIVE", ...user } }
+  );
 
 describe("authUtils", () => {
   beforeEach(() => {
@@ -24,9 +26,26 @@ describe("authUtils", () => {
     it("returns the session user, forwarding request headers", async () => {
       sessionFor({ id: "u-1" });
 
-      await expect(authUtils.getUserData()).resolves.toEqual({ id: "u-1" });
-      expect(getSession).toHaveBeenCalledWith({ headers: expect.any(Headers) });
+      await expect(authUtils.getUserData()).resolves.toEqual({
+        id: "u-1",
+        status: "ACTIVE",
+      });
+      expect(getSession).toHaveBeenCalledWith({
+        headers: expect.any(Headers),
+        query: { disableCookieCache: true },
+      });
     });
+
+    it.each(["SUSPENDED", "BANNED"])(
+      "rejects a %s user even with a live session",
+      async (status) => {
+        sessionFor({ id: "u-1", status });
+
+        await expect(authUtils.getUserData()).rejects.toThrow(
+          new UnauthenticatedError("Your account is not active.")
+        );
+      }
+    );
 
     it.each([
       ["no session", null],

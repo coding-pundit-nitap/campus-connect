@@ -371,7 +371,7 @@ describe("shop-actions", () => {
       [
         "the user has no shop",
         () => shops.findByOwnerId.mockResolvedValue(null),
-        new BadRequestError("You don't have a shop to update"),
+        new UnauthorizedError("You don't have a shop to update"),
       ],
       [
         "the shop is deactivated",

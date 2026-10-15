@@ -1,7 +1,6 @@
 // IDOR on user-owned resources that tests/integration/authz/idor.test.ts
 // does not cover: notifications, addresses (update/delete action + list),
 // favorites, stock watches, reviews, push subscriptions.
-// Rules A11-A15, A36.
 import { describe, expect, it } from "vitest";
 
 import {
@@ -57,8 +56,8 @@ async function notificationFor(user_id: string, n: number) {
   });
 }
 
-describe("RULE A11: a user can neither read nor mark another user's notifications", () => {
-  it("RULE A11: GET /api/notifications lists only the caller's own notifications", async () => {
+describe("a user can neither read nor mark another user's notifications", () => {
+  it("GET /api/notifications lists only the caller's own notifications", async () => {
     const victim = await createUser();
     const attacker = await createUser();
     await notificationFor(victim.id, 1);
@@ -72,7 +71,7 @@ describe("RULE A11: a user can neither read nor mark another user's notification
     expect(text).toContain(`secret title ${attacker.id}`);
   });
 
-  it("RULE A11: PATCH /api/notifications and /api/notifications/mark-as-read with a victim's notification id leave it unread", async () => {
+  it("PATCH /api/notifications and /api/notifications/mark-as-read with a victim's notification id leave it unread", async () => {
     const victim = await createUser();
     const attacker = await createUser();
     const victimNote = await notificationFor(victim.id, 3);
@@ -95,7 +94,7 @@ describe("RULE A11: a user can neither read nor mark another user's notification
     expect(after.read).toBe(false);
   });
 
-  it("RULE A11: markAllNotificationsAsReadAction and getNotificationsByCategoryAction only touch the caller's rows", async () => {
+  it("markAllNotificationsAsReadAction and getNotificationsByCategoryAction only touch the caller's rows", async () => {
     const victim = await createUser();
     const attacker = await createUser();
     const victimNote = await notificationFor(victim.id, 4);
@@ -115,8 +114,8 @@ describe("RULE A11: a user can neither read nor mark another user's notification
   });
 });
 
-describe("RULE A12: a user can neither read nor change another user's addresses", () => {
-  it("RULE A12: updateAddressAction on a victim's address is rejected and the row is unchanged", async () => {
+describe("a user can neither read nor change another user's addresses", () => {
+  it("updateAddressAction on a victim's address is rejected and the row is unchanged", async () => {
     const victim = await createUser();
     const address = await createUserAddress({
       user_id: victim.id,
@@ -147,7 +146,7 @@ describe("RULE A12: a user can neither read nor change another user's addresses"
     expect(after.user_id).toBe(victim.id);
   });
 
-  it("RULE A12: deleteAddressAction on a victim's address is rejected and the row still exists", async () => {
+  it("deleteAddressAction on a victim's address is rejected and the row still exists", async () => {
     const victim = await createUser();
     const address = await createUserAddress({ user_id: victim.id });
     asUser(await createUser());
@@ -159,7 +158,7 @@ describe("RULE A12: a user can neither read nor change another user's addresses"
     ).not.toBeNull();
   });
 
-  it("RULE A12: GET /api/users/addresses and GET /api/users/me return only the caller's addresses", async () => {
+  it("GET /api/users/addresses and GET /api/users/me return only the caller's addresses", async () => {
     const victim = await createUser();
     const victimAddress = await createUserAddress({ user_id: victim.id });
     const attacker = await createUser();
@@ -176,8 +175,8 @@ describe("RULE A12: a user can neither read nor change another user's addresses"
   });
 });
 
-describe("RULE A13: favorites and stock watches are private to their owner", () => {
-  it("RULE A13: toggling a shop the victim favorited only creates the caller's own favorite, and the victim's survives", async () => {
+describe("favorites and stock watches are private to their owner", () => {
+  it("toggling a shop the victim favorited only creates the caller's own favorite, and the victim's survives", async () => {
     const { shop } = await seedShopWithProducts({ productCount: 1 });
     const victim = await createUser();
     await testPrisma.favoriteShop.create({
@@ -200,7 +199,7 @@ describe("RULE A13: favorites and stock watches are private to their owner", () 
     expect(body.data).toHaveLength(1);
   });
 
-  it("RULE A13: toggling a product the victim watches leaves the victim's watch in place; GET /api/products/stock-watch lists only the caller's", async () => {
+  it("toggling a product the victim watches leaves the victim's watch in place; GET /api/products/stock-watch lists only the caller's", async () => {
     const { products } = await seedShopWithProducts({ productCount: 1 });
     const victim = await createUser();
     const victimWatch = await testPrisma.stockWatch.create({
@@ -254,8 +253,8 @@ async function seedReview() {
   return { author, product, other, orderItem, review };
 }
 
-describe("RULE A14: a user can neither read nor edit another user's review by id", () => {
-  it("RULE A14: updateReviewAction on someone else's review is rejected and the review and ratings are unchanged", async () => {
+describe("a user can neither read nor edit another user's review by id", () => {
+  it("updateReviewAction on someone else's review is rejected and the review and ratings are unchanged", async () => {
     const { author, product, review } = await seedReview();
     asUser(await createUser());
 
@@ -281,7 +280,7 @@ describe("RULE A14: a user can neither read nor edit another user's review by id
     expect(p.rating_sum).toBe(4);
   });
 
-  it("RULE A14: GET /api/reviews/order-item/[id] for someone else's order item is a 404 with no review data", async () => {
+  it("GET /api/reviews/order-item/[id] for someone else's order item is a 404 with no review data", async () => {
     const { orderItem } = await seedReview();
     asUser(await createUser());
 
@@ -294,8 +293,8 @@ describe("RULE A14: a user can neither read nor edit another user's review by id
   });
 });
 
-describe("RULE A15: editing a review cannot move rating totals of a product the review is not about", () => {
-  it("RULE A15: the author passing another product_id still only changes the reviewed product's rating_sum", async () => {
+describe("editing a review cannot move rating totals of a product the review is not about", () => {
+  it("the author passing another product_id still only changes the reviewed product's rating_sum", async () => {
     const { author, product, other, review } = await seedReview();
     const otherBefore = await testPrisma.product.findUniqueOrThrow({
       where: { id: other.id },
@@ -320,8 +319,8 @@ describe("RULE A15: editing a review cannot move rating totals of a product the 
   });
 });
 
-describe("RULE A36: push subscriptions", () => {
-  it("RULE A36: subscribing stores the endpoint for the caller", async () => {
+describe("push subscriptions", () => {
+  it("subscribing stores the endpoint for the caller", async () => {
     const user = await createUser();
     asUser(user);
     const res = await POST_PUSH(
@@ -337,7 +336,21 @@ describe("RULE A36: push subscriptions", () => {
     expect(row.user_id).toBe(user.id);
   });
 
-  it.todo(
-    "RULE A36: POST /api/notifications/push-subscribe with an endpoint already registered to another user must not reassign it — code currently upserts on endpoint and moves the row (and the victim's device) to the caller; legitimate for a shared browser switching accounts, so needs product decision"
-  );
+  it("an endpoint moves to whoever subscribes with it last (one browser switching accounts), so the previous user no longer gets pushes there", async () => {
+    const previous = await createUser();
+    const current = await createUser();
+    const body = {
+      endpoint: "https://push.example/shared-browser",
+      keys: { p256dh: "k", auth: "a" },
+    };
+    asUser(previous);
+    await POST_PUSH(jsonReq("/api/notifications/push-subscribe", "POST", body));
+    asUser(current);
+    await POST_PUSH(jsonReq("/api/notifications/push-subscribe", "POST", body));
+
+    const rows = await testPrisma.pushSubscription.findMany({
+      where: { endpoint: body.endpoint },
+    });
+    expect(rows.map((r) => r.user_id)).toEqual([current.id]);
+  });
 });

@@ -217,7 +217,7 @@ describe("announcement-actions", () => {
         db.shopAnnouncement.findUnique.mockResolvedValue(found);
 
         await expect(deleteAnnouncementAction("a1")).rejects.toThrow(
-          new ValidationError("Announcement not found or unauthorized")
+          new UnauthorizedError("Announcement not found or unauthorized")
         );
         expect(db.shopAnnouncement.delete).not.toHaveBeenCalled();
       }

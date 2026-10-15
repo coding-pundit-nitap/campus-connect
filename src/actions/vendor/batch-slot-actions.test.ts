@@ -167,7 +167,7 @@ describe("batch-slot-actions", () => {
         await expect(
           updateBatchSlotAction({ id: "s1", cutoff_time_minutes: 700 })
         ).rejects.toThrow(
-          new ValidationError("Batch card not found or unauthorized")
+          new UnauthorizedError("Batch card not found or unauthorized")
         );
         expect(db.batchSlot.update).not.toHaveBeenCalled();
       }

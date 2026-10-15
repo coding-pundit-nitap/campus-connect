@@ -45,7 +45,7 @@ export function useLinkShop() {
       try {
         const result = await linkShop(data);
         if (result.success) {
-          await authClient.updateUser({ shop_id: result.data.id });
+          // The server linked the shop; refresh the cached session to see it.
           await authClient.getSession({ query: { disableCookieCache: true } });
           if (typeof window !== "undefined") {
             window.sessionStorage?.removeItem("cc_create_shop_draft");

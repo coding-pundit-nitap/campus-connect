@@ -3,18 +3,18 @@
 import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
 import { batchService } from "@/di/container";
 import { BatchMilestone } from "@/generated/client";
-import { ValidationError } from "@/lib/custom-error";
+import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { createSuccessResponse } from "@/types";
 
-/** Throws ValidationError unless batch `batchId` belongs to `shopId`. */
+/** Throws UnauthorizedError unless batch `batchId` belongs to `shopId`. */
 async function assertShopBatch(batchId: string, shopId: string) {
   const batch = await prisma.batch.findUnique({
     where: { id: batchId },
     select: { shop_id: true },
   });
   if (!batch || batch.shop_id !== shopId) {
-    throw new ValidationError("Batch not found or unauthorized");
+    throw new UnauthorizedError("Batch not found or unauthorized");
   }
 }
 

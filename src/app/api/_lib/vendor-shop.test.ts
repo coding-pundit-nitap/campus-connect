@@ -40,12 +40,12 @@ describe("resolveVendorShop", () => {
     expect(shops.findByOwnerId).not.toHaveBeenCalled();
   });
 
-  it("returns a 400 response when the user owns no shop", async () => {
+  it("returns a 403 response when the user owns no shop (not a vendor)", async () => {
     shops.findByOwnerId.mockResolvedValue(null as never);
 
     const { error } = await resolveVendorShop();
 
-    await expectError(error!, 400, "Shop not found");
+    await expectError(error!, 403, "Forbidden: you don't own a shop");
   });
 
   it("propagates auth failures", async () => {

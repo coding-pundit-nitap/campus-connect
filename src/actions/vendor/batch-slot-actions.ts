@@ -1,7 +1,7 @@
 "use server";
 
 import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
-import { ValidationError } from "@/lib/custom-error";
+import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { createSuccessResponse } from "@/types";
 
@@ -20,8 +20,8 @@ function ensureMinutesFromMidnight(value: number) {
 }
 
 /** Our own ValidationErrors pass through; database errors get a friendly one. */
-function toBatchSlotError(error: unknown): ValidationError {
-  return error instanceof ValidationError
+function toBatchSlotError(error: unknown): ValidationError | UnauthorizedError {
+  return error instanceof ValidationError || error instanceof UnauthorizedError
     ? error
     : new ValidationError(mapPrismaErrorToMessage(error));
 }
@@ -112,7 +112,7 @@ export async function updateBatchSlotAction(input: {
       select: { id: true, shop_id: true },
     });
     if (!existing || existing.shop_id !== shopId) {
-      throw new ValidationError("Batch card not found or unauthorized");
+      throw new UnauthorizedError("Batch card not found or unauthorized");
     }
 
     const updated = await prisma.batchSlot.update({
@@ -148,7 +148,7 @@ export async function deleteBatchSlotAction(id: string) {
       select: { id: true, shop_id: true },
     });
     if (!existing || existing.shop_id !== shopId) {
-      throw new ValidationError("Batch card not found or unauthorized");
+      throw new UnauthorizedError("Batch card not found or unauthorized");
     }
 
     await prisma.batchSlot.delete({ where: { id } });

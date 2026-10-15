@@ -128,7 +128,7 @@ describe("IDOR: vendor mutations on another shop's order", () => {
 
     asUser(seededA.owner);
     await expect(acceptOrderAction(foreignOrder.id)).rejects.toMatchObject({
-      name: "BadRequestError",
+      name: "UnauthorizedError",
     });
 
     const after = await testPrisma.order.findUniqueOrThrow({
@@ -149,7 +149,7 @@ describe("IDOR: vendor mutations on another shop's order", () => {
     asUser(seededA.owner);
     await expect(
       rejectOrderAction(foreignOrder.id, "not yours")
-    ).rejects.toMatchObject({ name: "BadRequestError" });
+    ).rejects.toMatchObject({ name: "UnauthorizedError" });
 
     const after = await testPrisma.order.findUniqueOrThrow({
       where: { id: foreignOrder.id },

@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 
 import { auth, User } from "@/auth";
-import { Role } from "@/generated/client";
+import { Role, UserStatus } from "@/generated/client";
 import { UnauthenticatedError, UnauthorizedError } from "@/lib/custom-error";
 
 export interface IAuthUtils {
@@ -12,10 +12,22 @@ export interface IAuthUtils {
 }
 
 class AuthUtils implements IAuthUtils {
+  /**
+   * The signed-in user, read fresh from the database (not the 5-minute session
+   * cookie cache) so a suspension, ban, forced sign-out or role change takes
+   * effect on the very next request.
+   * @throws UnauthenticatedError when signed out or the account is not active.
+   */
   async getUserData() {
-    const session = await auth.api.getSession({ headers: await headers() });
+    const session = await auth.api.getSession({
+      headers: await headers(),
+      query: { disableCookieCache: true },
+    });
     if (!session || !session.user || !session.user.id) {
       this.unAuthenticated();
+    }
+    if (session.user.status !== UserStatus.ACTIVE) {
+      throw new UnauthenticatedError("Your account is not active.");
     }
     return session.user;
   }

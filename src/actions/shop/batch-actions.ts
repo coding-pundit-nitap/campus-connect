@@ -19,11 +19,11 @@ const VENDOR_ERRORS = [UnauthorizedError, BadRequestError];
 const MAX_CUTOFF_ADJUSTMENT_HOURS = 3;
 const CANCELLABLE_STATUSES = ["LOCKED", "IN_TRANSIT", "PENDING_REVIEW"];
 
-/** Batch `batchId` when it belongs to `shopId`, else BadRequestError. */
+/** Batch `batchId` when it belongs to `shopId`, else UnauthorizedError. */
 async function requireShopBatch(batchId: string, shopId: string) {
   const batch = await batchRepository.findById(batchId);
   if (!batch || batch.shop_id !== shopId) {
-    throw new BadRequestError("Batch not found or unauthorized");
+    throw new UnauthorizedError("Batch not found or unauthorized");
   }
   return batch;
 }

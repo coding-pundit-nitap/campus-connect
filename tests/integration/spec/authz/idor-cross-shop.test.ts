@@ -1,6 +1,6 @@
 // Cross-shop IDOR: the owner of shop A acting on shop B's resources.
 // tests/integration/authz/idor.test.ts already covers accept/reject order
-// and product update/delete; this covers the rest. Rules A16-A21, A37.
+// and product update/delete; this covers the rest.
 import { describe, expect, it } from "vitest";
 
 import { removeShopDeliveryBuildingAction } from "../../../../src/actions/building/building-actions";
@@ -9,6 +9,7 @@ import {
   updateProductPriceAction,
 } from "../../../../src/actions/product/product-actions";
 import * as shopBatch from "../../../../src/actions/shop/batch-actions";
+import { rejectOrderAction } from "../../../../src/actions/shop/order-management-actions";
 import {
   createAnnouncementAction,
   deleteAnnouncementAction,
@@ -36,6 +37,7 @@ import {
 import {
   expectDenied,
   expectRejectedWith,
+  FORBIDDEN_ERRORS,
   req,
 } from "../../../helpers/spec-authz";
 import { asUser } from "../../../setup/auth";
@@ -47,8 +49,8 @@ async function twoShops() {
   return { a, b };
 }
 
-describe("RULE A16: a vendor cannot change another shop's product stock or price", () => {
-  it("RULE A16: toggleProductStockAction and updateProductPriceAction on shop B's product are rejected and the row is unchanged", async () => {
+describe("a vendor cannot change another shop's product stock or price", () => {
+  it("toggleProductStockAction and updateProductPriceAction on shop B's product are rejected and the row is unchanged", async () => {
     const { a, b } = await twoShops();
     const foreign = b.products[0];
     asUser(a.owner);
@@ -70,8 +72,8 @@ describe("RULE A16: a vendor cannot change another shop's product stock or price
   });
 });
 
-describe("RULE A17: announcements are scoped to the owner's shop", () => {
-  it("RULE A17: deleting shop B's announcement is rejected and the row survives", async () => {
+describe("announcements are scoped to the owner's shop", () => {
+  it("deleting shop B's announcement is rejected and the row survives", async () => {
     const { a, b } = await twoShops();
     const ann = await testPrisma.shopAnnouncement.create({
       data: {
@@ -89,7 +91,7 @@ describe("RULE A17: announcements are scoped to the owner's shop", () => {
     ).not.toBeNull();
   });
 
-  it("RULE A17: an announcement cannot feature another shop's product", async () => {
+  it("an announcement cannot feature another shop's product", async () => {
     const { a, b } = await twoShops();
     asUser(a.owner);
 
@@ -104,7 +106,7 @@ describe("RULE A17: announcements are scoped to the owner's shop", () => {
     expect(await testPrisma.shopAnnouncement.count()).toBe(0);
   });
 
-  it("RULE A17: GET /api/vendor/announcements lists only the caller's shop", async () => {
+  it("GET /api/vendor/announcements lists only the caller's shop", async () => {
     const { a, b } = await twoShops();
     for (const shop of [a.shop, b.shop]) {
       await testPrisma.shopAnnouncement.create({
@@ -123,14 +125,10 @@ describe("RULE A17: announcements are scoped to the owner's shop", () => {
     expect(text).toContain(`title of ${a.shop.id}`);
     expect(text).not.toContain(`title of ${b.shop.id}`);
   });
-
-  it.todo(
-    "RULE A37: cross-owner by-id denials use a 403/404-class error — code currently throws ValidationError / BadRequestError (announcement-actions.ts deleteAnnouncementAction, vendor/batch-slot-actions.ts update/delete, vendor/batch-actions.ts assertShopBatch, shop/batch-actions.ts requireShopBatch, individual-delivery-actions.ts, shop/order-management-actions.ts); needs product decision"
-  );
 });
 
-describe("RULE A18: batch slots are scoped to the owner's shop", () => {
-  it("RULE A18: updating, deleting or reordering shop B's slot is rejected and the slot is unchanged; the list shows only A's slots", async () => {
+describe("batch slots are scoped to the owner's shop", () => {
+  it("updating, deleting or reordering shop B's slot is rejected and the slot is unchanged; the list shows only A's slots", async () => {
     const { a, b } = await twoShops();
     const own = await createBatchSlot({
       shop_id: a.shop.id,
@@ -181,7 +179,7 @@ async function foreignBatch(shop_id: string, status: BatchStatus) {
   });
 }
 
-describe("RULE A19: a vendor cannot drive another shop's batch", () => {
+describe("a vendor cannot drive another shop's batch", () => {
   const cases: Array<[string, BatchStatus, (id: string) => Promise<unknown>]> =
     [
       [
@@ -241,7 +239,7 @@ describe("RULE A19: a vendor cannot drive another shop's batch", () => {
     ];
 
   for (const [name, status, run] of cases) {
-    it(`RULE A19: ${name} on shop B's ${status} batch is rejected and the batch is unchanged`, async () => {
+    it(`${name} on shop B's ${status} batch is rejected and the batch is unchanged`, async () => {
       const { a, b } = await twoShops();
       const batch = await foreignBatch(b.shop.id, status);
       asUser(a.owner);
@@ -259,8 +257,8 @@ describe("RULE A19: a vendor cannot drive another shop's batch", () => {
   }
 });
 
-describe("RULE A20: a vendor cannot deliver or read another shop's orders", () => {
-  it("RULE A20: startIndividualDeliveryAction and verifyOrderOtpAction on shop B's order are rejected and the order is unchanged", async () => {
+describe("a vendor cannot deliver or read another shop's orders", () => {
+  it("startIndividualDeliveryAction and verifyOrderOtpAction on shop B's order are rejected and the order is unchanged", async () => {
     const { a, b } = await twoShops();
     const order = await createOrderAtStatus({
       shop_id: b.shop.id,
@@ -298,7 +296,7 @@ describe("RULE A20: a vendor cannot deliver or read another shop's orders", () =
     ).toBe("OUT_FOR_DELIVERY");
   });
 
-  it("RULE A20: vendor order history, console, order search and earnings contain only the caller's shop", async () => {
+  it("vendor order history, console, order search and earnings contain only the caller's shop", async () => {
     const { a, b } = await twoShops();
     const own = await createOrderAtStatus({
       shop_id: a.shop.id,
@@ -333,8 +331,8 @@ describe("RULE A20: a vendor cannot deliver or read another shop's orders", () =
   });
 });
 
-describe("RULE A21: delivery-building links are scoped to the owner's shop", () => {
-  it("RULE A21: removing a building only deactivates the caller's own link, never shop B's", async () => {
+describe("delivery-building links are scoped to the owner's shop", () => {
+  it("removing a building only deactivates the caller's own link, never shop B's", async () => {
     const { a, b } = await twoShops();
     const foreignLink = await testPrisma.shopDeliveryBuilding.create({
       data: { shop_id: b.shop.id, building_id: "bld-test-1", is_active: true },
@@ -350,5 +348,55 @@ describe("RULE A21: delivery-building links are scoped to the owner's shop", () 
 
     const res = await GET_VENDOR_BUILDINGS();
     expect(await res.text()).not.toContain(foreignLink.id);
+  });
+});
+
+describe("cross-owner by-id denials are forbidden-class errors", () => {
+  it("every by-id vendor action on shop B's resource rejects shop A's owner with a 403-class error", async () => {
+    const { a, b } = await twoShops();
+    const announcement = await testPrisma.shopAnnouncement.create({
+      data: {
+        shop_id: b.shop.id,
+        title: "t",
+        message: "m",
+        expires_at: new Date(Date.now() + 3_600_000),
+      },
+    });
+    const slot = await createBatchSlot({
+      shop_id: b.shop.id,
+      cutoff_time_minutes: 600,
+    });
+    const lockedBatch = await foreignBatch(b.shop.id, "LOCKED");
+    const openBatch = await foreignBatch(b.shop.id, "OPEN");
+    const order = await createOrderAtStatus({
+      shop_id: b.shop.id,
+      order_status: "BATCHED",
+    });
+    asUser(a.owner);
+
+    const calls: Array<[string, () => Promise<unknown>]> = [
+      [
+        "deleteAnnouncementAction",
+        () => deleteAnnouncementAction(announcement.id),
+      ],
+      [
+        "updateBatchSlotAction",
+        () => updateBatchSlotAction({ id: slot.id, cutoff_time_minutes: 700 }),
+      ],
+      ["deleteBatchSlotAction", () => deleteBatchSlotAction(slot.id)],
+      [
+        "vendor startBatchDeliveryAction",
+        () => vendorBatch.startBatchDeliveryAction(lockedBatch.id),
+      ],
+      ["shop closeBatchAction", () => shopBatch.closeBatchAction(openBatch.id)],
+      [
+        "startIndividualDeliveryAction",
+        () => startIndividualDeliveryAction(order.id),
+      ],
+      ["rejectOrderAction", () => rejectOrderAction(order.id)],
+    ];
+    for (const [label, run] of calls) {
+      await expectRejectedWith(run, FORBIDDEN_ERRORS, label);
+    }
   });
 });

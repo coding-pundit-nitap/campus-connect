@@ -59,9 +59,12 @@ export const auth = betterAuth({
         input: false,
         fieldName: "role",
       },
+      // Server-managed: createShopAction links the owner. Clients must not
+      // set it via update-user (that would claim another shop's id).
       shop_id: {
         type: "string",
         required: false,
+        input: false,
         fieldName: "shop_id",
       },
       phone: {

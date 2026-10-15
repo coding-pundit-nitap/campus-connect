@@ -186,7 +186,7 @@ describe("vendor batch-actions", () => {
         db.batch.findUnique.mockResolvedValue(found);
 
         await expect(act()).rejects.toThrow(
-          new ValidationError("Batch not found or unauthorized")
+          new UnauthorizedError("Batch not found or unauthorized")
         );
       }
     );

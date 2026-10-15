@@ -1,7 +1,7 @@
 "use server";
 
 import { requireOwnedShopId } from "@/actions/_shared/action-helpers";
-import { ValidationError } from "@/lib/custom-error";
+import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { createSuccessResponse } from "@/types";
@@ -161,7 +161,7 @@ export async function deleteAnnouncementAction(id: string) {
   });
 
   if (!announcement || announcement.shop_id !== shopId) {
-    throw new ValidationError("Announcement not found or unauthorized");
+    throw new UnauthorizedError("Announcement not found or unauthorized");
   }
 
   await prisma.shopAnnouncement.delete({

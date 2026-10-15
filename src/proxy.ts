@@ -12,8 +12,31 @@ import {
   publicApiRoutes,
   publicRoutes,
 } from "@/rbac";
+import { createErrorResponse } from "@/types/response.types";
 
 import { env } from "./config/env.config";
+
+/**
+ * Turns a visitor away: API callers get JSON (401 to sign in, 403 when signed
+ * in without the right role), pages are redirected home with `callbackUrl`
+ * (sign in) or `error=unauthorized`.
+ */
+function deny(req: NextRequest, reason: "signin" | "unauthorized") {
+  const path = req.nextUrl.pathname;
+  if (path.startsWith("/api/")) {
+    return reason === "signin"
+      ? NextResponse.json(createErrorResponse("Unauthorized"), { status: 401 })
+      : NextResponse.json(createErrorResponse("Forbidden"), { status: 403 });
+  }
+  const redirectUrl = req.nextUrl.clone();
+  redirectUrl.pathname = "/";
+  if (reason === "signin") {
+    redirectUrl.searchParams.set("callbackUrl", path);
+  } else {
+    redirectUrl.searchParams.set("error", "unauthorized");
+  }
+  return NextResponse.redirect(redirectUrl);
+}
 
 // Keep the module namespace, not copies of its exports: the metrics are
 // created lazily (on the first /api/metrics scrape), so the exported `let`
@@ -90,15 +113,9 @@ export async function proxy(req: NextRequest) {
        * Admin routes protection
        */
       if (!isLoggedIn) {
-        const redirectUrl = nextUrl.clone();
-        redirectUrl.pathname = "/";
-        redirectUrl.searchParams.set("callbackUrl", path);
-        response = NextResponse.redirect(redirectUrl);
+        response = deny(req, "signin");
       } else if (userRole !== "ADMIN") {
-        const redirectUrl = nextUrl.clone();
-        redirectUrl.pathname = "/";
-        redirectUrl.searchParams.set("error", "unauthorized");
-        response = NextResponse.redirect(redirectUrl);
+        response = deny(req, "unauthorized");
       } else {
         response = NextResponse.next();
       }
@@ -106,10 +123,7 @@ export async function proxy(req: NextRequest) {
       /**
        * All other routes require authentication
        */
-      const redirectUrl = nextUrl.clone();
-      redirectUrl.pathname = "/";
-      redirectUrl.searchParams.set("callbackUrl", path);
-      response = NextResponse.redirect(redirectUrl);
+      response = deny(req, "signin");
     } else {
       /**
        * Default allow
@@ -142,10 +156,7 @@ export async function proxy(req: NextRequest) {
       matchRoute(path, route)
     );
     if (isPublic) return NextResponse.next();
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = "/";
-    redirectUrl.searchParams.set("callbackUrl", path);
-    return NextResponse.redirect(redirectUrl);
+    return deny(req, "signin");
   }
 }
 

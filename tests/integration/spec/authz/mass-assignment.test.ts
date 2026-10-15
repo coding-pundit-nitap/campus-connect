@@ -1,6 +1,6 @@
 // Mass assignment: server actions and routes receive arbitrary JSON from the
 // client, so every field that decides ownership, trust or money must come
-// from the server, never from the payload. Rules A22-A27.
+// from the server, never from the payload.
 // (`as never` smuggles fields the action's TypeScript type does not allow.)
 import { describe, expect, it } from "vitest";
 
@@ -60,24 +60,24 @@ async function expectProfileUntouched(user: { id: string; email: string }) {
   expect(after.name).toBe("Renamed User");
   expect(after).toMatchObject({
     role: "USER",
-    status: "SUSPENDED",
+    status: "ACTIVE",
     shop_id: null,
     email: user.email,
   });
 }
 
-describe("RULE A22: a user cannot set their own role, status, shop or e-mail", () => {
+describe("a user cannot set their own role, status, shop or e-mail", () => {
   const privileged = (shop_id: string) => ({
     name: "Renamed User",
     role: "ADMIN",
-    status: "ACTIVE",
+    status: "BANNED",
     shop_id,
     email: "admin@takeover.test",
   });
 
-  it("RULE A22: PUT /api/users/me changes the name but ignores role, status, shop_id and email", async () => {
+  it("PUT /api/users/me changes the name but ignores role, status, shop_id and email", async () => {
     const shop = await createShop();
-    const user = await createUser({ status: "SUSPENDED" });
+    const user = await createUser();
     asUser(user);
 
     const res = await PUT_ME(
@@ -88,9 +88,9 @@ describe("RULE A22: a user cannot set their own role, status, shop or e-mail", (
     await expectProfileUntouched(user);
   });
 
-  it("RULE A22: updateUser ignores role, status, shop_id and email", async () => {
+  it("updateUser ignores role, status, shop_id and email", async () => {
     const shop = await createShop();
-    const user = await createUser({ status: "SUSPENDED" });
+    const user = await createUser();
     asUser(user);
 
     await updateUser(privileged(shop.id) as never);
@@ -99,8 +99,8 @@ describe("RULE A22: a user cannot set their own role, status, shop or e-mail", (
   });
 });
 
-describe("RULE A23: shop trust fields and image keys never come from the payload", () => {
-  it("RULE A23: createShopAction ignores is_active, verification_status, pg_seller_id and a foreign owner", async () => {
+describe("shop trust fields and image keys never come from the payload", () => {
+  it("createShopAction ignores is_active, verification_status, pg_seller_id and a foreign owner", async () => {
     const victim = await createUser();
     const user = await createUser();
     asUser(user);
@@ -124,7 +124,7 @@ describe("RULE A23: shop trust fields and image keys never come from the payload
     expect(shop.user?.id).toBe(user.id);
   });
 
-  it("RULE A23: updateShopAction ignores trust fields and cannot repoint image_key / qr_image_key at another shop's objects", async () => {
+  it("updateShopAction ignores trust fields and cannot repoint image_key / qr_image_key at another shop's objects", async () => {
     const { shop: own, owner } = await seedShopWithProducts({
       productCount: 0,
       shopOverrides: { is_active: false },
@@ -153,8 +153,8 @@ describe("RULE A23: shop trust fields and image keys never come from the payload
   });
 });
 
-describe("RULE A24: a product's shop, ratings and image key never come from the payload", () => {
-  it("RULE A24: updateProductAction ignores shop_id, rating_sum, review_count and a foreign image_key", async () => {
+describe("a product's shop, ratings and image key never come from the payload", () => {
+  it("updateProductAction ignores shop_id, rating_sum, review_count and a foreign image_key", async () => {
     const { owner, products } = await seedShopWithProducts({ productCount: 1 });
     const other = await seedShopWithProducts({ productCount: 1 });
     const product = products[0];
@@ -185,8 +185,8 @@ describe("RULE A24: a product's shop, ratings and image key never come from the 
   });
 });
 
-describe("RULE A25: an address always belongs to the caller", () => {
-  it("RULE A25: createAddressAction ignores user / user_id from the payload", async () => {
+describe("an address always belongs to the caller", () => {
+  it("createAddressAction ignores user / user_id from the payload", async () => {
     const victim = await createUser();
     const user = await createUser();
     asUser(user);
@@ -206,7 +206,7 @@ describe("RULE A25: an address always belongs to the caller", () => {
     ).toBe(2);
   });
 
-  it("RULE A25: updateAddressAction cannot move the caller's address to another user", async () => {
+  it("updateAddressAction cannot move the caller's address to another user", async () => {
     const victim = await createUser();
     const user = await createUser();
     const address = await createUserAddress({ user_id: user.id });
@@ -225,7 +225,7 @@ describe("RULE A25: an address always belongs to the caller", () => {
   });
 });
 
-describe("RULE A26/A27: announcements and batch slots are created on the caller's shop", () => {
+describe("announcements and batch slots are created on the caller's shop", () => {
   async function ownAndOtherShop() {
     const { shop: own, owner } = await seedShopWithProducts({
       productCount: 0,
@@ -235,7 +235,7 @@ describe("RULE A26/A27: announcements and batch slots are created on the caller'
     return { own, other };
   }
 
-  it("RULE A26: createAnnouncementAction ignores shop_id from the payload", async () => {
+  it("createAnnouncementAction ignores shop_id from the payload", async () => {
     const { own, other } = await ownAndOtherShop();
 
     await createAnnouncementAction({
@@ -250,7 +250,7 @@ describe("RULE A26/A27: announcements and batch slots are created on the caller'
     expect(await testPrisma.shopAnnouncement.count(where(own.id))).toBe(1);
   });
 
-  it("RULE A27: createBatchSlotAction ignores shop_id from the payload", async () => {
+  it("createBatchSlotAction ignores shop_id from the payload", async () => {
     const { own, other } = await ownAndOtherShop();
 
     await createBatchSlotAction({

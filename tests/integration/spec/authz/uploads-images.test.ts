@@ -1,7 +1,6 @@
 // Uploads (POST /api/upload) and the image proxy (GET /api/images/...).
-// Rules A28 (upload: raster images only, no traversal, server-chosen key),
-// A29 (proxy: no traversal, only raster images rendered inline),
-// A30 (proxy is public).
+// Upload: raster images only, no traversal, server-chosen key.
+// Proxy: public, no traversal, only raster images rendered inline.
 import { S3Client } from "@aws-sdk/client-s3";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -16,8 +15,8 @@ const upload = (body: Record<string, unknown>) =>
 
 const PNG = { fileName: "photo.png", fileType: "image/png", fileSize: 2048 };
 
-describe("RULE A28: uploads accept only raster images under a server-chosen key", () => {
-  it("RULE A28: a signed-in user gets a presigned URL for a PNG, under the requested folder, with a random name", async () => {
+describe("uploads accept only raster images under a server-chosen key", () => {
+  it("a signed-in user gets a presigned URL for a PNG, under the requested folder, with a random name", async () => {
     asUser(await createUser());
     const first = await upload({ ...PNG, prefix: "profile-images" });
     const second = await upload({ ...PNG, prefix: "profile-images" });
@@ -37,7 +36,7 @@ describe("RULE A28: uploads accept only raster images under a server-chosen key"
     ["PDF", "doc.pdf", "application/pdf"],
     ["image type with a script extension", "x.php", "image/png"],
   ])(
-    "RULE A28: %s is rejected with 400 and no URL is issued",
+    "%s is rejected with 400 and no URL is issued",
     async (_label, fileName, fileType) => {
       asUser(await createUser());
       const res = await upload({ fileName, fileType, fileSize: 100 });
@@ -47,7 +46,7 @@ describe("RULE A28: uploads accept only raster images under a server-chosen key"
   );
 
   it.each(["../photo.png", "a/../../photo.png", "dir/photo.png"])(
-    "RULE A28: file name %s (path syntax) is rejected with 400",
+    "file name %s (path syntax) is rejected with 400",
     async (fileName) => {
       asUser(await createUser());
       const res = await upload({ ...PNG, fileName });
@@ -62,17 +61,14 @@ describe("RULE A28: uploads accept only raster images under a server-chosen key"
     "a\\b",
     "/abs",
     "",
-  ])(
-    "RULE A28: upload folder %j (path syntax) is rejected with 400",
-    async (prefix) => {
-      asUser(await createUser());
-      const res = await upload({ ...PNG, prefix });
-      expect(res.status).toBe(400);
-      expect(await res.text()).not.toContain("presignedUrl");
-    }
-  );
+  ])("upload folder %j (path syntax) is rejected with 400", async (prefix) => {
+    asUser(await createUser());
+    const res = await upload({ ...PNG, prefix });
+    expect(res.status).toBe(400);
+    expect(await res.text()).not.toContain("presignedUrl");
+  });
 
-  it("RULE A28: files over the size limit are rejected with 400", async () => {
+  it("files over the size limit are rejected with 400", async () => {
     asUser(await createUser());
     const res = await upload({ ...PNG, fileSize: 6 * 1024 * 1024 });
     expect(res.status).toBe(400);
@@ -91,10 +87,10 @@ function stubS3(contentType: string | undefined) {
 const getImage = (path: string[]) =>
   GET_IMAGE(req(`/api/images/${path.join("/")}`), params({ path }));
 
-describe("RULE A29/A30: the image proxy", () => {
+describe("the image proxy", () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it("RULE A30: serves a stored PNG to an anonymous visitor with its image type", async () => {
+  it("serves a stored PNG to an anonymous visitor with its image type", async () => {
     const send = stubS3("image/png");
     asAnonymous();
 
@@ -113,7 +109,7 @@ describe("RULE A29/A30: the image proxy", () => {
     [["test-bucket", "a\\..\\b.png"]],
     [["test-bucket"]],
   ])(
-    "RULE A29: traversal path %j is rejected with 400 before storage is touched",
+    "traversal path %j is rejected with 400 before storage is touched",
     async (path) => {
       const send = stubS3("image/png");
       const res = await getImage(path);
@@ -123,7 +119,7 @@ describe("RULE A29/A30: the image proxy", () => {
   );
 
   it.each(["text/html", "image/svg+xml", "application/javascript", undefined])(
-    "RULE A29: an object stored as %s is never rendered inline (served as an attachment)",
+    "an object stored as %s is never rendered inline (served as an attachment)",
     async (contentType) => {
       stubS3(contentType);
       const res = await getImage(["test-bucket", "general", "x.png"]);

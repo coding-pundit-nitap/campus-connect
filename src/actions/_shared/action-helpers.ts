@@ -7,7 +7,6 @@ import { randomInt } from "node:crypto";
 import { notificationService, shopRepository } from "@/di/container";
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
-  BadRequestError,
   InternalServerError,
   UnauthenticatedError,
   UnauthorizedError,
@@ -80,8 +79,8 @@ export async function requireOwnedShopId(
 
 /**
  * Shop id of the current vendor looked up by owner:
- * UnauthorizedError("Not authorized") without a user,
- * BadRequestError("Shop not found") when the user owns no shop.
+ * UnauthorizedError("Not authorized") without a user and
+ * UnauthorizedError("You don't own a shop.") when the user owns none.
  */
 export async function requireVendorShopId(): Promise<string> {
   const user = await authUtils.getUserData();
@@ -90,7 +89,7 @@ export async function requireVendorShopId(): Promise<string> {
   const shop = await shopRepository.findByOwnerId(user.id, {
     select: { id: true },
   });
-  if (!shop) throw new BadRequestError("Shop not found");
+  if (!shop) throw new UnauthorizedError("You don't own a shop.");
   return shop.id;
 }
 

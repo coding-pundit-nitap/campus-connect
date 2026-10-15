@@ -9,11 +9,13 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
+  let isAdmin = false;
   try {
-    await authUtils.isAdmin();
+    isAdmin = await authUtils.isAdmin();
   } catch {
-    unauthorized();
+    // Signed out or session lookup failed: treated as not an admin.
   }
+  if (!isAdmin) unauthorized();
 
   return <ProLayoutContainer>{children}</ProLayoutContainer>;
 }

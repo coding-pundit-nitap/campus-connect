@@ -13,8 +13,8 @@ export type VendorShopResult =
 
 /**
  * Resolves the signed-in vendor's shop id, or the response to return instead:
- * 401 when signed out (or without a user id), 400 "Shop not found" without
- * a shop. Other errors thrown by authUtils / the repository propagate.
+ * 401 when signed out (or without a user id), 403 when the user owns no
+ * shop (not a vendor). Other errors thrown by authUtils / the repository propagate.
  */
 export async function resolveVendorShop(): Promise<VendorShopResult> {
   let user;
@@ -31,7 +31,8 @@ export async function resolveVendorShop(): Promise<VendorShopResult> {
   const shop = await shopRepository.findByOwnerId(user.id, {
     select: { id: true },
   });
-  if (!shop) return { error: errorJson("Shop not found", 400) };
+  if (!shop)
+    return { error: errorJson("Forbidden: you don't own a shop", 403) };
 
   return { shopId: shop.id };
 }

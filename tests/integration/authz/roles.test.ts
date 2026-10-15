@@ -66,7 +66,7 @@ describe("roles: getOwnedShopId() rejects a seller with no shop_id", () => {
     expect(body).not.toMatch(/"order/i);
   });
 
-  it("acceptOrderAction denies a plain user (no shop_id) with BadRequestError, and leaves the order untouched", async () => {
+  it("acceptOrderAction denies a plain user (no shop_id) with UnauthorizedError, and leaves the order untouched", async () => {
     const { shop } = await seedShopWithProducts();
     const order = await createOrderAtStatus({
       shop_id: shop.id,
@@ -77,7 +77,7 @@ describe("roles: getOwnedShopId() rejects a seller with no shop_id", () => {
     asUser(plainUser);
 
     await expect(acceptOrderAction(order.id)).rejects.toMatchObject({
-      name: "BadRequestError",
+      name: "UnauthorizedError",
     });
 
     const after = await testPrisma.order.findUniqueOrThrow({

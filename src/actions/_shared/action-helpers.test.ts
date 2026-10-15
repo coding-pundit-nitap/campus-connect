@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { notificationService, shopRepository } from "@/di/container";
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
-  BadRequestError,
   InternalServerError,
   NotFoundError,
   UnauthenticatedError,
@@ -137,7 +136,7 @@ describe("action-helpers", () => {
       vi.mocked(shopRepository.findByOwnerId).mockResolvedValue(null);
 
       await expect(requireVendorShopId()).rejects.toThrow(
-        new BadRequestError("Shop not found")
+        new UnauthorizedError("You don't own a shop.")
       );
     });
   });

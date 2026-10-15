@@ -224,7 +224,7 @@ describe("shop batch-actions", () => {
       vi.mocked(shopRepository.findByOwnerId).mockResolvedValue(null);
 
       await expect(act()).rejects.toThrow(
-        new BadRequestError("Shop not found")
+        new UnauthorizedError("You don't own a shop.")
       );
     });
   });
@@ -243,7 +243,7 @@ describe("shop batch-actions", () => {
         batches.findById.mockResolvedValue(found as never);
 
         await expect(act()).rejects.toThrow(
-          new BadRequestError("Batch not found or unauthorized")
+          new UnauthorizedError("Batch not found or unauthorized")
         );
       }
     );

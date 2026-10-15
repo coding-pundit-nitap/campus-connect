@@ -1,5 +1,4 @@
-// Rule-based access matrix: who may call which route / action at all.
-// Rules A1, A5, A6, A9, A10, A35 (see the rule table in the authz report).
+// Access matrix: who may call which route / action at all.
 import { describe, expect, it } from "vitest";
 
 import { NotificationCategory } from "@/types/prisma.types";
@@ -87,6 +86,7 @@ import {
   GET as GET_ME,
   PUT as PUT_ME,
 } from "../../../../src/app/api/users/me/route";
+import { GET as GET_USER_ORDERS } from "../../../../src/app/api/users/orders/route";
 import { GET as GET_VENDOR_ANNOUNCEMENTS } from "../../../../src/app/api/vendor/announcements/route";
 import { GET as GET_VENDOR_ACTIVE_BATCH } from "../../../../src/app/api/vendor/batch/active/route";
 import { GET as GET_VENDOR_DELIVERY_RUN } from "../../../../src/app/api/vendor/batch/delivery-run/route";
@@ -216,14 +216,12 @@ const protectedRoutes: Array<[string, () => Promise<Response>]> = [
   ["GET /api/vendor/batch/active", () => GET_VENDOR_ACTIVE_BATCH()],
   ["GET /api/vendor/batch/delivery-run", () => GET_VENDOR_DELIVERY_RUN()],
   ["GET /api/vendor/batch/direct-deliveries", () => GET_VENDOR_DIRECT()],
+  ["GET /api/users/orders", () => GET_USER_ORDERS()],
 ];
 
-describe("RULE A5: protected route handlers answer a signed-out caller with 401", () => {
-  it.todo(
-    "RULE A5: GET /api/users/orders -> 401 when signed out — code currently returns 500 (src/app/api/users/orders/route.ts:13 getUserId throws UnauthenticatedError into the generic catch); CROSS-SCOPE"
-  );
+describe("protected route handlers answer a signed-out caller with 401", () => {
   for (const [name, run] of protectedRoutes) {
-    it(`RULE A5: ${name} -> 401 when signed out`, async () => {
+    it(`${name} -> 401 when signed out`, async () => {
       asAnonymous();
       expect(await statusOf(run)).toBe(401);
     });
@@ -335,15 +333,15 @@ const vendorActions: Array<[string, () => Promise<unknown>]> = [
   ["deleteBatchSlotAction", () => deleteBatchSlotAction("s")],
 ];
 
-describe("RULE A6: protected server actions reject a signed-out caller with an auth error and no side effect", () => {
+describe("protected server actions reject a signed-out caller with an auth error and no side effect", () => {
   for (const [name, run] of [...userActions, ...vendorActions]) {
-    it(`RULE A6: ${name} rejects a signed-out caller with an auth error`, async () => {
+    it(`${name} rejects a signed-out caller with an auth error`, async () => {
       asAnonymous();
       await expectRejectedWith(run, SIGNED_OUT_ERRORS, name);
     });
   }
 
-  it("RULE A6: signed-out calls create no rows (addresses, buildings, favorites, watches, slots, announcements)", async () => {
+  it("signed-out calls create no rows (addresses, buildings, favorites, watches, slots, announcements)", async () => {
     const { shop, products } = await seedShopWithProducts({ productCount: 1 });
     asAnonymous();
     for (const [, run] of [...userActions, ...vendorActions]) {
@@ -361,7 +359,7 @@ describe("RULE A6: protected server actions reject a signed-out caller with an a
   });
 });
 
-describe("RULE A9: vendor-only routes answer a signed-in non-vendor with 403", () => {
+describe("vendor-only routes answer a signed-in non-vendor with 403", () => {
   const vendorRoutes: Array<[string, () => Promise<Response>]> = [
     [
       "GET /api/search/orders",
@@ -379,21 +377,22 @@ describe("RULE A9: vendor-only routes answer a signed-in non-vendor with 403", (
       "GET /api/vendor/orders/history",
       () => GET_VENDOR_HISTORY(req("/api/vendor/orders/history")),
     ],
+    ["GET /api/vendor/delivery-buildings", () => GET_VENDOR_BUILDINGS()],
+    ["GET /api/vendor/orders/console", () => GET_VENDOR_CONSOLE()],
+    ["GET /api/vendor/batch/active", () => GET_VENDOR_ACTIVE_BATCH()],
+    ["GET /api/vendor/batch/delivery-run", () => GET_VENDOR_DELIVERY_RUN()],
+    ["GET /api/vendor/batch/direct-deliveries", () => GET_VENDOR_DIRECT()],
   ];
   for (const [name, run] of vendorRoutes) {
-    it(`RULE A9: ${name} -> 403 for a plain user`, async () => {
+    it(`${name} -> 403 for a plain user`, async () => {
       asUser(await createUser());
       expect(await statusOf(run)).toBe(403);
     });
   }
-
-  it.todo(
-    "RULE A9b: GET /api/vendor/{delivery-buildings,orders/console,batch/*} answer a non-vendor with 403 — code currently returns 400 'Shop not found' (src/app/api/_lib/vendor-shop.ts resolveVendorShop); needs product decision"
-  );
 });
 
-describe("RULE A10: vendor-only actions reject a signed-in non-vendor and change nothing", () => {
-  it("RULE A10: product, announcement, delivery-building, slot and shop-settings actions reject a plain user with a 403-class error", async () => {
+describe("vendor-only actions reject a signed-in non-vendor and change nothing", () => {
+  it("product, announcement, delivery-building, slot and shop-settings actions reject a plain user with a 403-class error", async () => {
     const { shop, products } = await seedShopWithProducts({ productCount: 1 });
     const product = products[0];
     asUser(await createUser());
@@ -446,6 +445,7 @@ describe("RULE A10: vendor-only actions reject a signed-in non-vendor and change
         () => updateShopAction({} as Parameters<typeof updateShopAction>[0]),
       ],
       ["deleteShopAction", () => deleteShopAction()],
+      ["toggleAcceptingOrdersAction", () => toggleAcceptingOrdersAction(true)],
       [
         "bulkCreateProductsAction",
         () =>
@@ -470,14 +470,10 @@ describe("RULE A10: vendor-only actions reject a signed-in non-vendor and change
       await testPrisma.product.count({ where: { shop_id: shop.id } })
     ).toBe(1);
   });
-
-  it.todo(
-    'RULE A10b: toggleAcceptingOrdersAction rejects a non-vendor with a 403-class error — code currently throws BadRequestError("You don\'t have a shop to update"); needs product decision'
-  );
 });
 
-describe("RULE A1: public catalogue routes are readable without a session", () => {
-  it("RULE A1: shops, shop detail, shop products, products, product detail and reviews return 200 to an anonymous caller", async () => {
+describe("public catalogue routes are readable without a session", () => {
+  it("shops, shop detail, shop products, products, product detail and reviews return 200 to an anonymous caller", async () => {
     const { shop, products } = await seedShopWithProducts({ productCount: 1 });
     asAnonymous();
 
@@ -523,8 +519,8 @@ describe("RULE A1: public catalogue routes are readable without a session", () =
   });
 });
 
-describe("RULE A35: public shop endpoints never expose the owner's e-mail address", () => {
-  it("RULE A35: GET /api/shops/all and GET /api/shops/[id] carry no owner e-mail for an anonymous caller", async () => {
+describe("public shop endpoints never expose the owner's e-mail address", () => {
+  it("GET /api/shops/all and GET /api/shops/[id] carry no owner e-mail for an anonymous caller", async () => {
     const { shop, owner } = await seedShopWithProducts({ productCount: 1 });
     asAnonymous();
 
@@ -542,7 +538,7 @@ describe("RULE A35: public shop endpoints never expose the owner's e-mail addres
     expect(await detail.text()).not.toContain(owner.email);
   });
 
-  it("RULE A35: the owner still sees their own e-mail on GET /api/shops (my shop)", async () => {
+  it("the owner still sees their own e-mail on GET /api/shops (my shop)", async () => {
     const { owner } = await seedShopWithProducts({ productCount: 1 });
     asUser(owner);
     const res = await GET_MY_SHOP();

@@ -333,7 +333,7 @@ export async function toggleAcceptingOrdersAction(acceptingOrders: boolean) {
       });
 
       if (!shop) {
-        throw new BadRequestError("You don't have a shop to update");
+        throw new UnauthorizedError("You don't have a shop to update");
       }
 
       if (!shop.is_active) {
