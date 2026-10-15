@@ -104,19 +104,11 @@ function OrderDetailsItem({
             {item.product.name}
           </h4>
           <p className="text-sm text-muted-foreground">
-            {item.quantity} x ₹
-            {(
-              item.price -
-              (item.price * (item.product.discount || 0)) / 100
-            ).toFixed(2)}
+            {item.quantity} x ₹{Number(item.price).toFixed(2)}
           </p>
         </div>
         <p className="font-semibold">
-          ₹
-          {(
-            (item.price - (item.price * (item.product.discount || 0)) / 100) *
-            item.quantity
-          ).toFixed(2)}
+          ₹{(Number(item.price) * item.quantity).toFixed(2)}
         </p>
       </div>
       {isCompleted && (

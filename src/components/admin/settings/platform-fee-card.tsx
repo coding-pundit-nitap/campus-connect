@@ -94,7 +94,8 @@ export function PlatformFeeCard({ initialFee }: PlatformFeeCardProps) {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            This fee will be deducted from vendor earnings on each order.
+            This fee is added to the customer's bill on each order; vendor
+            earnings are not reduced.
           </p>
         </div>
 

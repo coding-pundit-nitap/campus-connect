@@ -14,13 +14,8 @@ export default function OrderDetailsHeader({ order }: Props) {
   const orderStatusInfo = getOrderStatusInfo(order.order_status);
   const paymentStatusInfo = getPaymentStatusInfo(order.payment_status);
 
-  const subtotal = order.items.reduce((acc, item) => {
-    return (
-      acc +
-      (item.price - (item.price * (item.product.discount || 0)) / 100) *
-        item.quantity
-    );
-  }, 0);
+  // item_total is the charged sum of the discounted line prices.
+  const subtotal = order.item_total;
 
   return (
     <div>

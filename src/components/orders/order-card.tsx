@@ -12,12 +12,8 @@ type Props = {
 
 export default function OrderCard({ order }: Props) {
   const statusInfo = getOrderStatusInfo(order.order_status);
-  const subtotal = order.items.reduce((acc, item) => {
-    const price = Number(item.price);
-    const discount = Number(item.product.discount || 0);
-    const discountedPrice = price - (price * discount) / 100;
-    return acc + discountedPrice * item.quantity;
-  }, 0);
+  // item_total is the charged sum of the discounted line prices.
+  const subtotal = order.item_total;
 
   const shopName =
     order.items.length > 0 ? order.items[0].product.shop?.name : null;

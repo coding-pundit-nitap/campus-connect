@@ -176,19 +176,10 @@ export default async function ShopOrderDetailPage({ params }: Props) {
                         x{item.quantity}
                       </TableCell>
                       <TableCell className="text-right">
-                        ₹
-                        {(
-                          item.price -
-                          (item.price * (item.product.discount || 0)) / 100
-                        ).toFixed(2)}
+                        ₹{Number(item.price).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
-                        ₹
-                        {(
-                          (item.price -
-                            (item.price * (item.product.discount || 0)) / 100) *
-                          item.quantity
-                        ).toFixed(2)}
+                        ₹{(Number(item.price) * item.quantity).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         <Button variant="ghost" size="icon" asChild>

@@ -3,6 +3,7 @@ import { ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { BatchCountdownBanner } from "@/components/shops/batch/batch-countdown-banner";
+import { cartUIService } from "@/lib/utils";
 import { CartItemData } from "@/types";
 
 import { CartFooter } from "./cart-footer";
@@ -24,11 +25,8 @@ export function CartItems({
   shop_accepting_orders,
 }: CartItemsProps) {
   const router = useRouter();
-  const total_price = items.reduce(
-    (acc, item) =>
-      acc + ((item.price * (100 - item.discount)) / 100) * item.quantity,
-    0
-  );
+  // Same paise rounding as checkout, so the drawer shows what is charged.
+  const total_price = cartUIService.calculateCartItemsPrice(items);
   const handlePlaceOrder = () => {
     router.push(`/checkout/${cart_id}`);
   };
