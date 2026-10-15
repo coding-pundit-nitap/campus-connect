@@ -18,6 +18,7 @@ import {
   BadRequestError,
   ForbiddenError,
   InternalServerError,
+  UnauthenticatedError,
   UnauthorizedError,
   ValidationError,
 } from "@/lib/custom-error";
@@ -170,6 +171,12 @@ export async function createProductAction(
     }
 
     log.error({ err: error }, "CREATE PRODUCT ERROR:");
+    if (
+      error instanceof UnauthenticatedError ||
+      error instanceof UnauthorizedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to create product.");
   }
 }
@@ -217,7 +224,9 @@ export async function updateProductAction(
       const { image, name, price, stock_quantity, description, discount } =
         parsedData;
 
-      let image_key = parsedData.image_key || currentProduct.image_key || "";
+      // The key only changes through an upload: a client-supplied key could
+      // point at another shop's object, which the next upload would delete.
+      let image_key = currentProduct.image_key || "";
       if (image instanceof File) {
         image_key = (await uploadProductImage(image)).key;
 
@@ -464,6 +473,12 @@ export async function bulkCreateProductsAction(
       throw new ValidationError(messages);
     }
     log.error({ err: error }, "BULK CREATE PRODUCTS ERROR:");
+    if (
+      error instanceof UnauthenticatedError ||
+      error instanceof UnauthorizedError
+    ) {
+      throw error;
+    }
     throw new InternalServerError("Failed to create products");
   }
 }

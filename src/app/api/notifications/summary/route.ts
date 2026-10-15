@@ -1,3 +1,4 @@
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { notificationService } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -12,6 +13,8 @@ export async function GET() {
     return jsonResponse(createSuccessResponse(summary), 200);
   } catch (error) {
     log.error({ err: error }, "Error fetching unread notifications:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     return jsonResponse(
       createErrorResponse("Failed to fetch unread notifications"),
       500

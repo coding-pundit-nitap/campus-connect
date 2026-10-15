@@ -21,7 +21,6 @@ export const publicRoutes: string[] = [
   "/robots.txt",
   "/sitemap.xml",
   "/favicon.ico",
-  "/api/images/:path*",
 ];
 
 // Public API routes that don't require authentication
@@ -30,8 +29,7 @@ export const publicApiRoutes: string[] = [
   "/api/health/database",
   "/api/metrics",
   "/api/images/:path*",
-  "/api/shops/all",
-  "/api/shops/:shop_id",
+  "/api/shops/:shop_id", // also covers /api/shops/all
   "/api/shops/:shop_id/products",
   "/api/shops/:shop_id/next-slot",
   "/api/shops/:shop_id/batch-slots",
@@ -49,12 +47,8 @@ export const authRoutes = ["/error"];
 // API routes that handle authentication processes. These are always accessible.
 export const apiAuthPrefix = ["/api/auth"];
 
-// Admin-only routes that require ADMIN role
-export const adminRoutes: string[] = [
-  "/admin",
-  "/admin/:path",
-  "/admin/:path/:subpath",
-];
+// Admin-only routes that require ADMIN role: /admin and everything under it.
+export const adminRoutes: string[] = ["/admin", "/admin/:path*"];
 
 // Default page to redirect to after successful login.
 export const DEFAULT_LOGIN_REDIRECT = "/";

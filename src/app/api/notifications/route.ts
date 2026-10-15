@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { env } from "@/config/env.config";
 import { notificationService } from "@/di/container";
 import { Notification } from "@/generated/client";
@@ -30,6 +31,8 @@ export async function GET(request: NextRequest) {
     return jsonResponse(createSuccessResponse(paginatedNotifications), 200);
   } catch (error) {
     log.error({ err: error }, "Error fetching notifications:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     const errorResponse = createErrorResponse("Failed to fetch notifications");
     return jsonResponse(errorResponse, 500);
   }
@@ -61,6 +64,8 @@ export async function PATCH(request: NextRequest) {
     );
   } catch (error) {
     log.error({ err: error }, "Error marking notifications as read:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     return jsonResponse(
       createErrorResponse("Failed to mark notifications as read"),
       500

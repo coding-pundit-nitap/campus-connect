@@ -129,11 +129,19 @@ describe("proxy", () => {
     });
   });
 
-  it("fails open when the session lookup throws", async () => {
+  it("fails closed on protected pages when the session lookup throws", async () => {
     state.getSession.mockRejectedValue(new Error("db down"));
 
-    expect(isPassThrough(await proxy(request("/orders")))).toBe(true);
+    const res = await proxy(request("/orders"));
+    expect(isPassThrough(res)).toBe(false);
+    expect(location(res)?.searchParams.get("callbackUrl")).toBe("/orders");
     expect(consoleError).toHaveBeenCalled();
+  });
+
+  it("keeps public pages reachable when the session lookup throws", async () => {
+    state.getSession.mockRejectedValue(new Error("db down"));
+
+    expect(isPassThrough(await proxy(request("/shops/s1")))).toBe(true);
   });
 
   it("exports a matcher config", async () => {

@@ -8,6 +8,8 @@ import {
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
+import { formatShopData } from "@/lib/shop-utils";
+import type { ShopWithOwner } from "@/types";
 import { ActionResponse, createErrorResponse } from "@/types/response.types";
 
 /** `jsonResponse(createErrorResponse(details), status)` in one call. */
@@ -56,4 +58,13 @@ export function parseShopTypeParam(
 ): ShopType | undefined {
   const typeParam = searchParams.get("type");
   return typeParam && typeParam !== "ALL" ? (typeParam as ShopType) : undefined;
+}
+
+/**
+ * Shop data for public (signed-out) endpoints: the owner's e-mail address is
+ * personal data shown only to the owner and to admins, so it is dropped.
+ */
+export function formatPublicShopData(shop: ShopWithOwner) {
+  const { user, ...rest } = formatShopData(shop);
+  return { ...rest, user: { name: user?.name ?? "Unknown Owner" } };
 }

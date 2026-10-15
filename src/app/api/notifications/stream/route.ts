@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { env } from "@/config/env.config";
 import { BroadcastNotification, Notification } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
@@ -117,7 +118,14 @@ async function untrackConnection(
 }
 
 export async function GET(req: NextRequest) {
-  const user_id = await authUtils.getUserId();
+  let user_id: string;
+  try {
+    user_id = await authUtils.getUserId();
+  } catch (error) {
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
+    throw error;
+  }
   const lastEventId =
     req.headers.get("last-event-id") ??
     req.nextUrl.searchParams.get("lastEventId");

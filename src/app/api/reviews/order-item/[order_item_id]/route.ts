@@ -1,3 +1,4 @@
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { reviewRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -36,6 +37,8 @@ export async function GET(
     return jsonResponse(createSuccessResponse(review), 200);
   } catch (error) {
     log.error({ err: error }, "Error fetching review:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     return jsonResponse(createErrorResponse("Failed to fetch review"), 500);
   }
 }

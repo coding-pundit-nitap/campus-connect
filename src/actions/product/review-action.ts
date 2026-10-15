@@ -3,7 +3,7 @@
 import { unauthorized } from "next/navigation";
 
 import { runAction } from "@/actions/_shared/action-helpers";
-import { reviewService } from "@/di/container";
+import { reviewRepository, reviewService } from "@/di/container";
 import { ForbiddenError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { authUtils } from "@/lib/utils/auth.utils.server";
@@ -32,10 +32,15 @@ export const updateReviewAction = async ({
     log,
     { label: "Error updating review:", fallback: "Failed to update review" },
     async () => {
+      // The rating aggregate moves on the product the review is actually
+      // about, never on a caller-supplied product_id.
+      const existing = await reviewRepository.findById(review_id, {
+        select: { product_id: true },
+      });
       const review = await reviewService.updateReview(
         user_id,
         { rating, comment },
-        product_id,
+        existing?.product_id ?? product_id,
         review_id
       );
 

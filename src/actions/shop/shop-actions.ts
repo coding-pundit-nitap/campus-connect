@@ -12,6 +12,7 @@ import {
 import {
   BadRequestError,
   InternalServerError,
+  UnauthenticatedError,
   UnauthorizedError,
 } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
@@ -160,6 +161,7 @@ export async function createShopAction(formData: ShopActionFormData) {
     log.error(`CREATE SHOP ERROR: ${error}`);
     if (
       error instanceof BadRequestError ||
+      error instanceof UnauthenticatedError ||
       error instanceof UnauthorizedError
     ) {
       throw error;
@@ -171,7 +173,11 @@ export async function createShopAction(formData: ShopActionFormData) {
 export async function updateShopAction(formData: ShopActionFormData) {
   return runAction(
     log,
-    { label: "UPDATE SHOP ERROR:", fallback: "Failed to update shop." },
+    {
+      label: "UPDATE SHOP ERROR:",
+      fallback: "Failed to update shop.",
+      passthrough: [UnauthorizedError, BadRequestError],
+    },
     async () => {
       const user_id = await authUtils.getUserId();
       const context = await shopRepository.findByOwnerId(user_id, {
@@ -188,7 +194,19 @@ export async function updateShopAction(formData: ShopActionFormData) {
 
       await categoryServices.cleanupEmptyCategories();
 
-      const { image, qr_image, batch_slots, ...rest } = parsedData.data;
+      // image_key / qr_image_key only ever change through an upload below: a
+      // client-supplied key could point at another shop's object, which the
+      // next image change would then delete.
+      const {
+        image,
+        qr_image,
+        batch_slots,
+        image_key: _clientImageKey,
+        qr_image_key: _clientQrImageKey,
+        ...rest
+      } = parsedData.data;
+      void _clientImageKey;
+      void _clientQrImageKey;
 
       const updateData: Omit<
         ShopActionFormData,
@@ -252,7 +270,11 @@ export async function updateShopAction(formData: ShopActionFormData) {
 export async function deleteShopAction() {
   return runAction(
     log,
-    { label: "DELETE SHOP ERROR:", fallback: "Failed to delete shop." },
+    {
+      label: "DELETE SHOP ERROR:",
+      fallback: "Failed to delete shop.",
+      passthrough: [UnauthorizedError],
+    },
     async () => {
       const user_id = await authUtils.getUserId();
       const context = await shopRepository.findByOwnerId(user_id, {

@@ -20,12 +20,16 @@ const get = () =>
 describe("GET /api/shops/[shop_id]", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("returns the formatted shop", async () => {
-    shops.findById.mockResolvedValue({ id: "s1" } as never);
+  it("returns the formatted shop without the owner's e-mail", async () => {
+    shops.findById.mockResolvedValue({
+      id: "s1",
+      user: { name: "Owner", email: "owner@example.com" },
+    } as never);
 
     expect(await expectSuccess(await get())).toEqual({
       id: "s1",
       serialized: true,
+      user: { name: "Owner" },
     });
     expect(shops.findById).toHaveBeenCalledWith("s1", expect.any(Object));
   });

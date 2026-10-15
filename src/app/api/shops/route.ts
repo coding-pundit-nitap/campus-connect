@@ -1,3 +1,4 @@
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { shopRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -32,6 +33,8 @@ export async function GET() {
     return jsonResponse(successResponse, 200);
   } catch (error) {
     log.error({ err: error }, "GET SHOPS ERROR:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     const errorResponse = createErrorResponse("Internal Server Error");
     return jsonResponse(errorResponse, 500);
   }

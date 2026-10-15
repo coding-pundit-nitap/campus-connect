@@ -17,11 +17,31 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = env.NEXT_PUBLIC_MINIO_BUCKET || "campus-connect";
 
+const SAFE_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/avif",
+];
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const objectKey = (await params).path.slice(1).join("/");
+  const segments = (await params).path.slice(1);
+  // Keys are plain "folder/name.ext": refuse anything that could walk out of
+  // the bucket ("..", ".", empty segments, backslashes).
+  if (
+    segments.length === 0 ||
+    segments.some(
+      (s) => s === "" || s === "." || s === ".." || s.includes("\\")
+    )
+  ) {
+    return new NextResponse("Invalid image path", { status: 400 });
+  }
+  const objectKey = segments.join("/");
 
   try {
     const command = new GetObjectCommand({
@@ -35,7 +55,11 @@ export async function GET(
       throw new Error("S3 response body is empty.");
     }
 
-    const contentType = s3Response.ContentType ?? "application/octet-stream";
+    // Only raster images are rendered inline; anything else (SVG, HTML, ...)
+    // could run script on our origin, so it is served as a download.
+    const storedType = s3Response.ContentType ?? "";
+    const isRasterImage = SAFE_IMAGE_TYPES.includes(storedType);
+    const contentType = isRasterImage ? storedType : "application/octet-stream";
 
     const arrayBuffer = await s3Response.Body.transformToByteArray();
     const buffer = Buffer.from(arrayBuffer);
@@ -44,6 +68,8 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": contentType,
+        "Content-Security-Policy": "default-src 'none'; sandbox",
+        ...(isRasterImage ? {} : { "Content-Disposition": "attachment" }),
         "Cache-Control": "public, max-age=31536000, immutable",
         "X-Content-Type-Options": "nosniff",
         "Access-Control-Allow-Origin": "*",

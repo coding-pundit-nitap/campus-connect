@@ -10,6 +10,7 @@ vi.mock("@/lib/utils/auth.utils.server", async () =>
 );
 
 import { fileUploadService } from "@/di/container";
+import { BadRequestError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 
 import * as uploadRoute from "./route";
@@ -45,7 +46,10 @@ describe("POST /api/upload", () => {
       "a.png",
       "image/png",
       1024,
-      { prefix: "shops" }
+      {
+        prefix: "shops",
+        allowedTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+      }
     );
   });
 
@@ -60,8 +64,18 @@ describe("POST /api/upload", () => {
     [{ ...valid, fileName: "" }, "Invalid input: File name is required"],
     [{ ...valid, fileSize: 0 }, "Invalid input: File size must be positive"],
     [{ ...valid, fileSize: 11 * 1024 * 1024 }, "Invalid input: File too large"],
+    [{ ...valid, prefix: "../shops" }, "Invalid input: Invalid upload folder"],
+    [{ ...valid, prefix: "a/b" }, "Invalid input: Invalid upload folder"],
   ])("returns 400 for invalid input (%o)", async (body, message) => {
     await expectError(await post(body), 400, message);
+  });
+
+  it("returns 400 when the upload service rejects the file", async () => {
+    uploads.createPresignedUploadUrl.mockRejectedValue(
+      new BadRequestError("File type not allowed")
+    );
+
+    await expectError(await post(valid), 400, "File type not allowed");
   });
 
   it("returns 500 when presigning fails", async () => {

@@ -21,13 +21,17 @@ describe("GET /api/shops/all", () => {
     shops.getShops.mockResolvedValue([] as never);
   });
 
-  it("returns a formatted page of active shops", async () => {
-    shops.getShops.mockResolvedValue([{ id: "s1" }, { id: "s2" }] as never);
+  it("returns a formatted page of active shops without owner e-mails", async () => {
+    const user = { name: "Owner", email: "owner@example.com" };
+    shops.getShops.mockResolvedValue([
+      { id: "s1", user },
+      { id: "s2", user },
+    ] as never);
 
     expect(
       await expectSuccess(await GET(makeRequest("/api/shops/all?limit=1")))
     ).toEqual({
-      data: [{ id: "s1", serialized: true }],
+      data: [{ id: "s1", serialized: true, user: { name: "Owner" } }],
       nextCursor: "s1",
       hasMore: true,
     });

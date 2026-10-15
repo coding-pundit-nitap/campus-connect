@@ -144,11 +144,11 @@ describe("product-actions", () => {
       ).rejects.toThrow("Failed to create product.");
     });
 
-    it("wraps a missing shop without trying any cleanup", async () => {
+    it("rejects a user without a shop as unauthorized, without any cleanup", async () => {
       vi.mocked(shopRepository.findByOwnerId).mockResolvedValue(null);
 
       await expect(createProductAction(formData())).rejects.toBeInstanceOf(
-        InternalServerError
+        UnauthorizedError
       );
       expect(uploads.deleteFile).not.toHaveBeenCalled();
     });
@@ -222,12 +222,12 @@ describe("product-actions", () => {
       expect(brands.deleteIfEmpty).not.toHaveBeenCalled();
     });
 
-    it("prefers an explicit image_key from the form", async () => {
+    it("ignores a client-supplied image_key and keeps the stored one", async () => {
       await updateProductAction("product-1", formData({ image_key: "given" }));
 
       expect(products.update).toHaveBeenCalledWith(
         "product-1",
-        expect.objectContaining({ image_key: "given" }),
+        expect.objectContaining({ image_key: "old-key" }),
         expect.anything()
       );
     });
@@ -469,7 +469,7 @@ describe("product-actions", () => {
       vi.mocked(shopRepository.findByOwnerId).mockResolvedValue(null);
 
       await expect(bulkCreateProductsAction([])).rejects.toBeInstanceOf(
-        InternalServerError
+        UnauthorizedError
       );
     });
   });

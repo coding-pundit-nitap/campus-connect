@@ -1,12 +1,14 @@
 import z from "zod";
 
-import { zodErrorResponse } from "@/app/api/_lib/route-helpers";
+import {
+  formatPublicShopData,
+  zodErrorResponse,
+} from "@/app/api/_lib/route-helpers";
 import { shopRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
 import { createLogger } from "@/lib/logger";
 import { paginateCursor } from "@/lib/paginate";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { formatShopData } from "@/lib/shop-utils";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -39,7 +41,7 @@ export async function GET(request: Request) {
 
     const formattedResult = {
       ...result,
-      data: result.data.map(formatShopData),
+      data: result.data.map(formatPublicShopData),
     };
 
     const successResponse = createSuccessResponse(

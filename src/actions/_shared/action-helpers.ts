@@ -36,9 +36,10 @@ export interface ActionErrorPolicy {
 }
 
 /**
- * Runs `fn` and maps failures: every error is logged, errors that are an
- * instance of a `passthrough` class are rethrown, anything else is replaced
- * by an InternalServerError(`fallback`).
+ * Runs `fn` and maps failures: every error is logged, an
+ * UnauthenticatedError (no session: the caller must sign in, never an
+ * internal failure) and errors that are an instance of a `passthrough` class
+ * are rethrown, anything else is replaced by an InternalServerError(`fallback`).
  */
 export async function runAction<T>(
   log: Logger,
@@ -49,7 +50,10 @@ export async function runAction<T>(
     return await fn();
   } catch (error) {
     log.error({ err: error }, label);
-    if (passthrough.some((E) => error instanceof E)) {
+    if (
+      error instanceof UnauthenticatedError ||
+      passthrough.some((E) => error instanceof E)
+    ) {
       throw error;
     }
     throw new InternalServerError(fallback);

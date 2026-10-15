@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { shopRepository } from "@/di/container";
+import { UnauthenticatedError } from "@/lib/custom-error";
 import authUtils from "@/lib/utils/auth.utils.server";
 import { ActionResponse } from "@/types/response.types";
 
@@ -12,11 +13,19 @@ export type VendorShopResult =
 
 /**
  * Resolves the signed-in vendor's shop id, or the response to return instead:
- * 401 "Not authorized" without a user id, 400 "Shop not found" without a shop.
- * Errors thrown by authUtils / the repository propagate to the caller.
+ * 401 when signed out (or without a user id), 400 "Shop not found" without
+ * a shop. Other errors thrown by authUtils / the repository propagate.
  */
 export async function resolveVendorShop(): Promise<VendorShopResult> {
-  const user = await authUtils.getUserData();
+  let user;
+  try {
+    user = await authUtils.getUserData();
+  } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      return { error: errorJson("Unauthorized", 401) };
+    }
+    throw error;
+  }
   if (!user.id) return { error: errorJson("Not authorized", 401) };
 
   const shop = await shopRepository.findByOwnerId(user.id, {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { fileUploadService } from "@/di/container";
+import { BadRequestError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
 import { authUtils } from "@/lib/utils/auth.utils.server";
@@ -20,8 +21,15 @@ const uploadSchema = z.object({
     .number()
     .positive("File size must be positive")
     .max(10 * 1024 * 1024, "File too large"),
-  prefix: z.string().optional(),
+  // A single folder name: no "/", "..", or other path syntax.
+  prefix: z
+    .string()
+    .regex(/^[a-z0-9][a-z0-9-]{0,63}$/, "Invalid upload folder")
+    .optional(),
 });
+
+/** Raster image types only: SVG/HTML could carry script. */
+const UPLOAD_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(request: Request) {
   try {
@@ -48,9 +56,7 @@ export async function POST(request: Request) {
       fileName,
       fileType,
       fileSize,
-      {
-        prefix,
-      }
+      { prefix, allowedTypes: UPLOAD_TYPES }
     );
 
     return jsonResponse(
@@ -58,6 +64,9 @@ export async function POST(request: Request) {
       200
     );
   } catch (error) {
+    if (error instanceof BadRequestError) {
+      return jsonResponse(createErrorResponse(error.message), 400);
+    }
     log.error({ err: error }, "Upload API Error:");
     return jsonResponse(createErrorResponse("Upload preparation failed."), 500);
   }

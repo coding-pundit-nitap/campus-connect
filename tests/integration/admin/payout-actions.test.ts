@@ -7,8 +7,8 @@ import {
 } from "@/actions/admin/payout-actions";
 import {
   ForbiddenError,
-  InternalServerError,
   NotFoundError,
+  UnauthenticatedError,
 } from "@/lib/custom-error";
 
 import { createShop, createUser } from "../../factories";
@@ -30,7 +30,7 @@ describe("Admin Payout Actions Integration", () => {
     it("should reject anonymous users", async () => {
       asAnonymous();
       await expect(getAllPayoutsAction({ limit: 10 })).rejects.toThrow(
-        InternalServerError
+        UnauthenticatedError
       );
     });
 
@@ -139,7 +139,7 @@ describe("Admin Payout Actions Integration", () => {
       asAnonymous();
       await expect(
         updatePayoutStatusAction({ payout_id: "some_id", status: "PAID" })
-      ).rejects.toThrow(InternalServerError);
+      ).rejects.toThrow(UnauthenticatedError);
     });
 
     it("should reject non-admin users", async () => {
@@ -216,7 +216,9 @@ describe("Admin Payout Actions Integration", () => {
   describe("getPayoutStatsAction", () => {
     it("should reject anonymous users", async () => {
       asAnonymous();
-      await expect(getPayoutStatsAction()).rejects.toThrow(InternalServerError);
+      await expect(getPayoutStatsAction()).rejects.toThrow(
+        UnauthenticatedError
+      );
     });
 
     it("should reject non-admin users", async () => {

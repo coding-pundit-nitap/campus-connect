@@ -22,11 +22,19 @@ export type CreateAddressFormData = {
  * Resolves the address' building (selected by id, or found/created by name)
  * into a `building_ref` relation. `building_id` is dropped from the result:
  * Prisma rejects a relation input mixed with its raw foreign key.
+ * Only the form's own fields are kept: the payload is client-controlled, so
+ * anything else (`user`, `user_id`, `id`, ...) must never reach Prisma.
  */
-async function normalizeAddressData({
-  building_id,
-  ...data
-}: CreateAddressFormData) {
+async function normalizeAddressData(form: CreateAddressFormData) {
+  const { building_id } = form;
+  const data = {
+    label: form.label,
+    hostel_block: form.hostel_block,
+    building: form.building,
+    room_number: form.room_number,
+    notes: form.notes,
+    is_default: form.is_default,
+  };
   if (building_id) {
     const building = await prisma.building.findFirst({
       where: { id: building_id, is_active: true },

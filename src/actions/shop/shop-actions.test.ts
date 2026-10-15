@@ -265,25 +265,37 @@ describe("shop-actions", () => {
       expect(uploads.deleteFile).not.toHaveBeenCalled();
     });
 
-    it.each([
-      [
-        "the user owns no shop",
-        () => shops.findByOwnerId.mockResolvedValue(null),
-      ],
-      [
-        "the form is invalid",
-        () =>
-          vi.mocked(shopActionSchema.safeParse).mockReturnValue({
-            success: false,
-            error: { message: "bad" },
-          } as never),
-      ],
-    ])("throws an InternalServerError when %s", async (_case, arrange) => {
-      arrange();
+    it("rejects a user who owns no shop as unauthorized", async () => {
+      shops.findByOwnerId.mockResolvedValue(null);
+
+      await expect(updateShopAction(form())).rejects.toBeInstanceOf(
+        UnauthorizedError
+      );
+      expect(shops.update).not.toHaveBeenCalled();
+    });
+
+    it("surfaces an invalid form as a BadRequestError", async () => {
+      vi.mocked(shopActionSchema.safeParse).mockReturnValue({
+        success: false,
+        error: { message: "bad" },
+      } as never);
 
       await expect(updateShopAction(form())).rejects.toThrow(
-        new InternalServerError("Failed to update shop.")
+        new BadRequestError("bad")
       );
+    });
+
+    it("never takes image keys from the client", async () => {
+      await updateShopAction(
+        form({ image_key: "other-shop-img", qr_image_key: "other-shop-qr" })
+      );
+
+      const data = vi.mocked(shops.update).mock.calls[0]?.[1] as Record<
+        string,
+        unknown
+      >;
+      expect(data.image_key).not.toBe("other-shop-img");
+      expect(data.qr_image_key).not.toBe("other-shop-qr");
     });
   });
 
@@ -316,11 +328,11 @@ describe("shop-actions", () => {
       expect(shops.delete).toHaveBeenCalledWith("shop-1");
     });
 
-    it("throws an InternalServerError when the user owns no shop", async () => {
+    it("rejects a user who owns no shop as unauthorized", async () => {
       shops.findByOwnerId.mockResolvedValue(null);
 
-      await expect(deleteShopAction()).rejects.toThrow(
-        new InternalServerError("Failed to delete shop.")
+      await expect(deleteShopAction()).rejects.toBeInstanceOf(
+        UnauthorizedError
       );
       expect(shops.delete).not.toHaveBeenCalled();
     });

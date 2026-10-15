@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { userRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
@@ -18,6 +19,8 @@ export async function GET() {
     return jsonResponse(userWithAddress, 200);
   } catch (error) {
     log.error({ err: error }, "[USER_GET]");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     return jsonResponse({ error: "Internal error" }, 500);
   }
 }
@@ -42,6 +45,8 @@ export async function PUT(req: Request) {
     return jsonResponse(updatedUser, 200);
   } catch (error) {
     log.error({ err: error }, "[USER_UPDATE]");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     return jsonResponse({ error: "Internal error" }, 500);
   }
 }

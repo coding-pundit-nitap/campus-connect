@@ -1,9 +1,9 @@
 import { NextRequest } from "next/server";
 
+import { formatPublicShopData } from "@/app/api/_lib/route-helpers";
 import { shopRepository } from "@/di/container";
 import { createLogger } from "@/lib/logger";
 import { jsonResponse } from "@/lib/serializers/response-serializer";
-import { formatShopData } from "@/lib/shop-utils";
 import {
   createErrorResponse,
   createSuccessResponse,
@@ -25,7 +25,7 @@ export async function GET(
       return jsonResponse(errorResponse, 404);
     }
 
-    const shop = formatShopData(shopData);
+    const shop = formatPublicShopData(shopData);
     const successResponse = createSuccessResponse(
       shop,
       "Shop retrieved successfully"

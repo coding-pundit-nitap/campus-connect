@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { authErrorResponse } from "@/app/api/_lib/route-helpers";
 import { env } from "@/config/env.config";
 import { orderRepository } from "@/di/container";
 import { OrderStatus } from "@/generated/client";
@@ -51,6 +52,8 @@ export async function GET(request: NextRequest) {
     return jsonResponse(successResponse, 200);
   } catch (error) {
     log.error({ err: error }, "Error fetching orders:");
+    const authError = authErrorResponse(error);
+    if (authError) return authError;
     const errorResponse = createErrorResponse("Internal Server Error");
     return jsonResponse(errorResponse, 500);
   }

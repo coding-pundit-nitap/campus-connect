@@ -120,9 +120,10 @@ export async function proxy(req: NextRequest) {
     /**
      * Metrics Tracking (Production Only)
      */
+    // metricsModule is only ever loaded in production (see top of file).
     const requestDuration = metricsModule?.httpRequestDuration;
     const requestTotal = metricsModule?.httpRequestTotal;
-    if (env.NODE_ENV === "production" && requestDuration && requestTotal) {
+    if (requestDuration && requestTotal) {
       trackMetrics(req, response, startTime, requestDuration, requestTotal);
     }
 
@@ -133,8 +134,18 @@ export async function proxy(req: NextRequest) {
 
     return response;
   } catch (error) {
+    // Fail closed: an auth lookup failure must never grant access. Public
+    // pages and APIs stay reachable; everything else is sent to sign in.
     console.error("[PROXY ERROR]:", error);
-    return NextResponse.next();
+    const path = req.nextUrl.pathname;
+    const isPublic = [...publicRoutes, ...publicApiRoutes].some((route) =>
+      matchRoute(path, route)
+    );
+    if (isPublic) return NextResponse.next();
+    const redirectUrl = req.nextUrl.clone();
+    redirectUrl.pathname = "/";
+    redirectUrl.searchParams.set("callbackUrl", path);
+    return NextResponse.redirect(redirectUrl);
   }
 }
 
