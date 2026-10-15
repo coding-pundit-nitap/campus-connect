@@ -23,6 +23,10 @@ scrape_configs:
     static_configs:
       - targets: ["app-prod:3000"]
     metrics_path: "/api/metrics"
+    # /api/metrics only answers Prometheus: token from the compose secret.
+    authorization:
+      type: Bearer
+      credentials_file: /run/secrets/metrics_token
     scrape_interval: 30s
     scrape_timeout: 10s
 

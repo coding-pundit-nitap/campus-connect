@@ -68,3 +68,6 @@ docs/superpowers/
 # mutation testing
 .stryker-tmp*
 reports/mutation
+
+# deployment secrets (e.g. secrets/metrics_token)
+/secrets/

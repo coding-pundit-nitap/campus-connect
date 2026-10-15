@@ -1,3 +1,7 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { makeRequest, readJson } from "@tests/helpers";
 import { overrideEnv } from "@tests/helpers/api";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -30,18 +34,35 @@ vi.mock("prom-client", () => ({
 
 type RouteModule = typeof import("./route");
 
-/** Fresh module per test: the route keeps one-time init state. */
-async function load(nodeEnv: string): Promise<RouteModule> {
+const TOKEN = "t".repeat(40);
+
+/** Fresh module per test: the route keeps one-time init and token state. */
+async function load(
+  nodeEnv: string,
+  auth: { METRICS_TOKEN?: string; METRICS_TOKEN_FILE?: string } = {
+    METRICS_TOKEN: TOKEN,
+  }
+): Promise<RouteModule> {
   vi.resetModules();
   const { env } = await import("@/config/env.config");
-  restore = overrideEnv(env, { NODE_ENV: nodeEnv });
+  restore = overrideEnv(env, {
+    NODE_ENV: nodeEnv,
+    METRICS_TOKEN: undefined,
+    METRICS_TOKEN_FILE: undefined,
+    ...auth,
+  });
   return import("./route");
 }
 
 let restore: () => void = () => {};
 const realRegister = prom.register;
-const req = () =>
-  makeRequest("/api/metrics", { headers: { "x-forwarded-for": "1.2.3.4" } });
+const req = (authorization: string | null = `Bearer ${TOKEN}`) =>
+  makeRequest("/api/metrics", {
+    headers: {
+      "x-forwarded-for": "1.2.3.4",
+      ...(authorization === null ? {} : { authorization }),
+    },
+  });
 
 describe("GET /api/metrics", () => {
   beforeEach(() => {
@@ -56,6 +77,66 @@ describe("GET /api/metrics", () => {
     expect(await readJson(await GET(req()))).toEqual({
       status: 404,
       body: { error: "Metrics endpoint only available in production" },
+    });
+  });
+
+  describe("only Prometheus may scrape (bearer token)", () => {
+    const unauthorized = { status: 401, body: { error: "Unauthorized" } };
+
+    it.each([
+      ["no Authorization header", null],
+      ["a wrong token", "Bearer wrong-token"],
+      ["the token with a wrong scheme", `Basic ${TOKEN}`],
+      ["an empty bearer", "Bearer "],
+      ["a token prefix", `Bearer ${TOKEN.slice(0, 20)}`],
+    ])("rejects a request with %s", async (_label, authorization) => {
+      const { GET } = await load("production");
+
+      expect(await readJson(await GET(req(authorization)))).toEqual(
+        unauthorized
+      );
+      expect(prom.collectDefaultMetrics).not.toHaveBeenCalled();
+    });
+
+    it("stays closed when no token is configured, even with a header", async () => {
+      const { GET } = await load("production", {});
+
+      expect(await readJson(await GET(req()))).toEqual(unauthorized);
+    });
+
+    it("accepts the token read from METRICS_TOKEN_FILE (Docker secret)", async () => {
+      const file = join(mkdtempSync(join(tmpdir(), "metrics-")), "token");
+      writeFileSync(file, "file-token-0123456789-0123456789-abc\n");
+      const { GET } = await load("production", { METRICS_TOKEN_FILE: file });
+
+      const res = await GET(req("Bearer file-token-0123456789-0123456789-abc"));
+      expect(res.status).toBe(200);
+    });
+
+    it("the file takes precedence over METRICS_TOKEN", async () => {
+      const file = join(mkdtempSync(join(tmpdir(), "metrics-")), "token");
+      writeFileSync(file, "from-file-token-0123456789-0123456789");
+      const { GET } = await load("production", {
+        METRICS_TOKEN: TOKEN,
+        METRICS_TOKEN_FILE: file,
+      });
+
+      expect((await GET(req())).status).toBe(401);
+    });
+
+    it.each([
+      ["missing", "/nonexistent/metrics_token"],
+      ["empty", "EMPTY"],
+    ])("stays closed when the token file is %s", async (_label, path) => {
+      let file = path;
+      if (path === "EMPTY") {
+        file = join(mkdtempSync(join(tmpdir(), "metrics-")), "token");
+        writeFileSync(file, "  \n");
+      }
+      const { GET } = await load("production", { METRICS_TOKEN_FILE: file });
+
+      expect((await GET(req())).status).toBe(401);
+      expect((await GET(req("Bearer "))).status).toBe(401);
     });
   });
 

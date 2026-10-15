@@ -48,6 +48,11 @@ const serverSchema = z.object({
   SMTP_PASS: z.string().min(1),
   ALERT_EMAIL_FROM: z.email(),
   ALERT_EMAIL_TO: z.email(),
+  // Shared secret Prometheus sends to scrape /api/metrics. Prefer
+  // METRICS_TOKEN_FILE (a mounted Docker secret) so the token lives in one
+  // place. With neither set, the endpoint stays closed.
+  METRICS_TOKEN: z.string().min(32).optional(),
+  METRICS_TOKEN_FILE: z.string().min(1).optional(),
   MAX_SSE_CONNECTIONS_PER_USER: z
     .string()
     .transform((val) => parseInt(val, 10))

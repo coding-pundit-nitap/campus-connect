@@ -99,9 +99,12 @@ services:
         condition: service_completed_successfully
       migrator-prod:
         condition: service_completed_successfully
+    secrets:
+      - metrics_token
     expose:
       - "3000"
     environment:
+      - METRICS_TOKEN_FILE=/run/secrets/metrics_token
       - TZ=UTC
       - HOSTNAME=0.0.0.0
       - NODE_ENV=production
@@ -178,6 +181,8 @@ services:
       - "--web.enable-lifecycle"
       - "--web.external-url=http://localhost/prometheus"
       - "--web.route-prefix=/"
+    secrets:
+      - metrics_token
     volumes:
       - prometheus_data:/prometheus
     expose:
@@ -445,6 +450,12 @@ services:
     mem_limit: 256m
     cpus: "0.25"
     logging: *default-logging
+
+# Shared /api/metrics scrape token (app verifies, Prometheus sends).
+# Create once on the host:  openssl rand -hex 32 > secrets/metrics_token
+secrets:
+  metrics_token:
+    file: ${METRICS_TOKEN_SECRET_FILE:-./secrets/metrics_token}
 
 volumes:
   prometheus_data:

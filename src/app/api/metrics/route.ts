@@ -1,3 +1,6 @@
+import { createHash, timingSafeEqual } from "node:crypto";
+import { readFileSync } from "node:fs";
+
 import { NextRequest, NextResponse } from "next/server";
 import type { Counter, Histogram, Registry } from "prom-client";
 
@@ -14,6 +17,41 @@ export let activeUsers: Counter | null = null;
 export let databaseQueryDuration: Histogram | null = null;
 
 let initialized = false;
+
+let cachedToken: string | null | undefined;
+
+/** The scrape token from METRICS_TOKEN_FILE or METRICS_TOKEN (read once). */
+function expectedToken(): string | null {
+  if (cachedToken !== undefined) return cachedToken;
+  let token = env.METRICS_TOKEN ?? null;
+  if (env.METRICS_TOKEN_FILE) {
+    try {
+      token = readFileSync(env.METRICS_TOKEN_FILE, "utf8").trim() || null;
+    } catch (error) {
+      log.error({ err: error }, "[Metrics] Cannot read METRICS_TOKEN_FILE");
+      token = null;
+    }
+  }
+  cachedToken = token;
+  return token;
+}
+
+const digest = (value: string) => createHash("sha256").update(value).digest();
+
+/**
+ * Only Prometheus may scrape: it must send `Authorization: Bearer <token>`.
+ * Fails closed when no token is configured. Compares digests so the check
+ * is constant-time regardless of input length.
+ */
+function isAuthorizedScrape(request: NextRequest): boolean {
+  const expected = expectedToken();
+  if (!expected) return false;
+  const match = /^Bearer (.+)$/.exec(
+    request.headers.get("authorization") ?? ""
+  );
+  if (!match) return false;
+  return timingSafeEqual(digest(match[1]), digest(expected));
+}
 
 async function initializeMetrics() {
   if (initialized || env.NODE_ENV !== "production") return;
@@ -75,10 +113,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  const realIp = request.headers.get("x-real-ip");
-
-  log.debug(`[Metrics] Request from: ${forwardedFor}, ${realIp}`);
+  if (!isAuthorizedScrape(request)) {
+    log.warn(
+      {
+        forwardedFor: request.headers.get("x-forwarded-for"),
+        realIp: request.headers.get("x-real-ip"),
+      },
+      "[Metrics] Rejected unauthorized scrape"
+    );
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
 
   try {
     await initializeMetrics();
