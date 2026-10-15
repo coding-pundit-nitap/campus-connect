@@ -1,7 +1,7 @@
 // Mutation testing: plants small bugs ("mutants") in the critical business
 // modules and reports any the unit tests fail to catch. Run: pnpm test:mutation
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */
-export default {
+const stryker = {
   testRunner: "vitest",
   // Explicit: pnpm's strict node_modules hides plugins from auto-discovery.
   plugins: ["@stryker-mutator/vitest-runner"],
@@ -45,3 +45,5 @@ export default {
   timeoutMS: 20000,
   tempDirName: ".stryker-tmp",
 };
+
+export default stryker;

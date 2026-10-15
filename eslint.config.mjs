@@ -20,6 +20,7 @@ const eslintConfig = defineConfig([
     "dist/**",
     ".agent/**",
     "**/.agent/**",
+    ".stryker*/**",
   ]),
   {
     plugins: {
