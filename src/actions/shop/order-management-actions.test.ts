@@ -254,7 +254,7 @@ describe("order-management-actions", () => {
       givenOrder({ order_status: "BATCHED" });
 
       await expect(startDirectDeliveryAction("order-1")).rejects.toThrow(
-        new BadRequestError("Order not found or unauthorized")
+        new BadRequestError("This order is not a direct delivery.")
       );
     });
 
@@ -273,15 +273,15 @@ describe("order-management-actions", () => {
 
       const res = await rejectOrderAction("order-1", "Out of stock");
 
-      expect(orders.update).toHaveBeenCalledWith(
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
         "order-1",
+        "NEW",
         {
           order_status: "CANCELLED",
           payment_status: "REFUNDED",
           cancellation_reason: "Out of stock",
           customer_notes: "Hi\n[Vendor Rejected: Out of stock]",
         },
-        undefined,
         db
       );
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
@@ -305,14 +305,14 @@ describe("order-management-actions", () => {
 
       await rejectOrderAction("order-1");
 
-      expect(orders.update).toHaveBeenCalledWith(
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
         "order-1",
+        "NEW",
         expect.objectContaining({
           payment_status: "CANCELLED",
           cancellation_reason: null,
           customer_notes: "[Vendor Rejected]",
         }),
-        undefined,
         db
       );
       expect(batchRepository.adjustCollectiveTotal).toHaveBeenCalledWith(
@@ -320,18 +320,19 @@ describe("order-management-actions", () => {
         -200,
         db
       );
+      expect(orders.restoreStock).toHaveBeenCalledWith(["order-1"], db);
       expect(publishBatchProgress).toHaveBeenCalledTimes(1);
     });
 
-    it("RULE O30: refunds a cash order whose payment was already collected", async () => {
+    it("refunds a cash order whose payment was already collected", async () => {
       givenOrder({ payment_method: "CASH", payment_status: "COMPLETED" });
 
       await rejectOrderAction("order-1");
 
-      expect(orders.update).toHaveBeenCalledWith(
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
         "order-1",
+        "NEW",
         expect.objectContaining({ payment_status: "REFUNDED" }),
-        undefined,
         db
       );
     });
@@ -482,7 +483,7 @@ describe("order-management-actions", () => {
       vi.mocked(shopRepository.findByOwnerId).mockResolvedValue(null);
 
       await expect(act()).rejects.toThrow(
-        new BadRequestError("Shop not found")
+        new UnauthorizedError("You don't own a shop.")
       );
     });
 
@@ -492,7 +493,7 @@ describe("order-management-actions", () => {
         orders.getOrderById.mockResolvedValue(found as never);
 
         await expect(act()).rejects.toThrow(
-          new BadRequestError("Order not found or unauthorized")
+          new UnauthorizedError("Order not found or unauthorized")
         );
       }
     );

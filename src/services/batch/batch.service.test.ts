@@ -857,7 +857,7 @@ describe("BatchService", () => {
     });
 
     it.each(["LOCKED", "IN_TRANSIT", "PENDING_REVIEW"])(
-      "cancels a %s batch, refunds online orders, removes them from the total and notifies customers",
+      "cancels a %s batch, refunds online orders, restores stock, removes them from the total and notifies customers",
       async (status) => {
         batchRepository.findById.mockResolvedValue({
           status,
@@ -866,6 +866,7 @@ describe("BatchService", () => {
             order("o2", "CASH", null),
             order("o3", "CASH", "u3"),
             order("o4", "CASH", "u4", "CANCELLED", "999"),
+            order("o5", "ONLINE", "u5", "COMPLETED", "50"),
           ],
         } as never);
         notificationService.publishNotification
@@ -909,10 +910,17 @@ describe("BatchService", () => {
           undefined,
           expect.anything()
         );
-        expect(orderRepository.update).not.toHaveBeenCalledWith(
-          "o4",
-          expect.anything(),
-          undefined,
+        // Already cancelled (o4) and already delivered (o5) orders are kept.
+        for (const kept of ["o4", "o5"]) {
+          expect(orderRepository.update).not.toHaveBeenCalledWith(
+            kept,
+            expect.anything(),
+            undefined,
+            expect.anything()
+          );
+        }
+        expect(orderRepository.restoreStock).toHaveBeenCalledWith(
+          ["o1", "o2", "o3"],
           expect.anything()
         );
         expect(notificationService.publishNotification).toHaveBeenCalledTimes(
@@ -992,9 +1000,12 @@ describe("BatchService", () => {
     });
   });
 
-  describe("cancelled orders are never revived by lifecycle transitions", () => {
+  describe("cancelled and delivered orders are never revived by lifecycle transitions", () => {
     const notCancelled = {
-      where: { batch_id: "b1", order_status: { not: "CANCELLED" } },
+      where: {
+        batch_id: "b1",
+        order_status: { notIn: ["CANCELLED", "COMPLETED"] },
+      },
       select: { id: true },
     };
 
@@ -1035,7 +1046,7 @@ describe("BatchService", () => {
       expect(batchRepository.findById).toHaveBeenCalledWith("b1", {
         include: {
           orders: {
-            where: { order_status: { not: "CANCELLED" } },
+            where: { order_status: { notIn: ["CANCELLED", "COMPLETED"] } },
             select: {
               id: true,
               user_id: true,

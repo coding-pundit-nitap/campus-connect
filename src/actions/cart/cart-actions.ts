@@ -5,7 +5,7 @@ import {
   runAction,
 } from "@/actions/_shared/action-helpers";
 import { cartRepository } from "@/di/container";
-import { ValidationError } from "@/lib/custom-error";
+import { NotFoundError, ValidationError } from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { serializeFullCart } from "@/lib/utils";
 import { UpsertItemData, upsertItemSchema } from "@/validations/cart";
@@ -17,7 +17,7 @@ export const upsertCartItem = async (formData: UpsertItemData) =>
     {
       label: "Error updating cart item:",
       fallback: "Failed to update cart item",
-      passthrough: [ValidationError, ...AUTH_ERRORS],
+      passthrough: [ValidationError, NotFoundError, ...AUTH_ERRORS],
     },
     async () => {
       const user_id = await requireUserId("User not authenticated");

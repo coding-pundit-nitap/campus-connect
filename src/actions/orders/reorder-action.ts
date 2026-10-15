@@ -73,13 +73,27 @@ export async function reorderAction(
         });
       }
 
+      const inCart = new Map(
+        (
+          await prisma.cartItem.findMany({
+            where: { cart_id: cart.id },
+            select: { product_id: true, quantity: true },
+          })
+        ).map((line) => [line.product_id, line.quantity])
+      );
+
       let itemsAdded = 0;
       for (const item of order.items) {
         if (item.product.deleted_at) continue;
 
-        if (item.product.stock_quantity <= 0) continue;
-
-        const quantity = Math.min(item.quantity, item.product.stock_quantity);
+        // A cart line never exceeds stock: reorder tops it up to at most
+        // the available quantity and skips products already at that cap.
+        const current = inCart.get(item.product_id) ?? 0;
+        const quantity = Math.min(
+          current + item.quantity,
+          item.product.stock_quantity
+        );
+        if (quantity <= current) continue;
 
         await prisma.cartItem.upsert({
           where: {
@@ -88,9 +102,7 @@ export async function reorderAction(
               product_id: item.product_id,
             },
           },
-          update: {
-            quantity: { increment: quantity },
-          },
+          update: { quantity },
           create: {
             cart_id: cart.id,
             product_id: item.product_id,

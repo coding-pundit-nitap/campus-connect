@@ -2,6 +2,7 @@ import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OrderStatus, Prisma } from "@/generated/client";
+import { ConflictError, ValidationError } from "@/lib/custom-error";
 import { OrderRepository } from "@/repositories/order.repository";
 
 vi.mock("@/lib/utils/order.utils", () => ({
@@ -397,6 +398,95 @@ describe("OrderRepository (Unit)", () => {
       expect(spies.count.mock.calls[0][0]).toEqual({
         where: { shop_id: "shop-1" },
       });
+    });
+  });
+
+  describe("updateIfStatus", () => {
+    it("writes only while the order still has the validated status", async () => {
+      await repo.updateIfStatus(
+        "order-1",
+        "NEW",
+        { order_status: "CANCELLED" },
+        asPrisma(prisma)
+      );
+
+      expect(spies.updateMany).toHaveBeenCalledWith({
+        where: { id: "order-1", order_status: "NEW" },
+        data: { order_status: "CANCELLED" },
+      });
+    });
+
+    it("throws ConflictError when another request changed the order first", async () => {
+      spies.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        repo.updateIfStatus("order-1", "NEW", {}, asPrisma(prisma))
+      ).rejects.toBeInstanceOf(ConflictError);
+    });
+  });
+
+  describe("restoreStock", () => {
+    it("adds each product's ordered quantity back to its stock", async () => {
+      prisma.orderItem.groupBy.mockResolvedValue([
+        { product_id: "p1", _sum: { quantity: 3 } },
+        { product_id: "p2", _sum: { quantity: null } },
+      ]);
+
+      await repo.restoreStock(["o1", "o2"], asPrisma(prisma));
+
+      expect(prisma.orderItem.groupBy).toHaveBeenCalledWith({
+        by: ["product_id"],
+        where: { order_id: { in: ["o1", "o2"] } },
+        _sum: { quantity: true },
+      });
+      expect(prisma.product.update).toHaveBeenCalledTimes(2);
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: "p1" },
+        data: { stock_quantity: { increment: 3 } },
+      });
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: "p2" },
+        data: { stock_quantity: { increment: 0 } },
+      });
+    });
+
+    it("does nothing for no orders", async () => {
+      await repo.restoreStock([], asPrisma(prisma));
+
+      expect(prisma.orderItem.groupBy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("reserveStock", () => {
+    beforeEach(() => {
+      prisma.orderItem.findMany.mockResolvedValue([
+        { product_id: "p1", quantity: 2 },
+      ]);
+    });
+
+    it("takes each item out of stock only if enough is left", async () => {
+      prisma.product.updateMany.mockResolvedValue({ count: 1 });
+
+      await repo.reserveStock("order-1", asPrisma(prisma));
+
+      expect(prisma.orderItem.findMany).toHaveBeenCalledWith({
+        where: { order_id: "order-1" },
+        select: { product_id: true, quantity: true },
+      });
+      expect(prisma.product.updateMany).toHaveBeenCalledWith({
+        where: { id: "p1", stock_quantity: { gte: 2 } },
+        data: { stock_quantity: { decrement: 2 } },
+      });
+    });
+
+    it("throws ValidationError when stock ran out", async () => {
+      prisma.product.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        repo.reserveStock("order-1", asPrisma(prisma))
+      ).rejects.toThrow(
+        new ValidationError("Not enough stock left to reinstate this order.")
+      );
     });
   });
 });

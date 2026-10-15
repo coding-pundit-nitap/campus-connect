@@ -31,6 +31,24 @@ type GetOrdersOptions = {
   userId: string;
 };
 
+/** Rejects checkout into a batch slot that no longer accepts orders. */
+function assertBatchOpen(status: string): void {
+  if (status === "OPEN") return;
+  if (status === "CANCELLED") {
+    throw new ValidationError(
+      "This batch slot is no longer available (Cancelled)."
+    );
+  }
+  if (status === "PENDING_REVIEW") {
+    throw new ValidationError(
+      "This batch is awaiting the shop's decision. Please pick another slot or use direct delivery."
+    );
+  }
+  throw new ValidationError(
+    "This batch has already been locked. Please pick another slot or use direct delivery."
+  );
+}
+
 export class OrderService {
   constructor(
     private readonly orderRepository: OrderRepository,
@@ -130,16 +148,7 @@ export class OrderService {
     });
 
     if (existingBatch) {
-      if (existingBatch.status === "CANCELLED") {
-        throw new ValidationError(
-          "This batch slot is no longer available (Cancelled)."
-        );
-      }
-      if (existingBatch.status !== "OPEN") {
-        throw new ValidationError(
-          "This batch has already been locked. Please pick another slot or use direct delivery."
-        );
-      }
+      assertBatchOpen(existingBatch.status);
 
       const lockedBatch = await tx.$queryRaw<BatchQueryRow[]>`
         SELECT id, status, cutoff_time FROM "Batch" WHERE id = ${existingBatch.id} FOR UPDATE
@@ -147,16 +156,7 @@ export class OrderService {
       if (!lockedBatch || lockedBatch.length === 0) {
         throw new ValidationError("The selected batch does not exist.");
       }
-      if (lockedBatch[0].status === "CANCELLED") {
-        throw new ValidationError(
-          "This batch slot is no longer available (Cancelled)."
-        );
-      }
-      if (lockedBatch[0].status !== "OPEN") {
-        throw new ValidationError(
-          "This batch has already been locked. Please pick another slot or use direct delivery."
-        );
-      }
+      assertBatchOpen(lockedBatch[0].status);
       return {
         id: lockedBatch[0].id,
         cutoff_time: new Date(lockedBatch[0].cutoff_time),

@@ -239,7 +239,10 @@ export class BatchService {
     });
 
     const orders = await this.orderRepository.findMany({
-      where: { batch_id: batchId, order_status: { not: "CANCELLED" } },
+      where: {
+        batch_id: batchId,
+        order_status: { notIn: ["CANCELLED", "COMPLETED"] },
+      },
       select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
@@ -576,7 +579,10 @@ export class BatchService {
     await this.batchRepository.updateStatus(batchId, "OPEN");
 
     const orders = await this.orderRepository.findMany({
-      where: { batch_id: batchId, order_status: { not: "CANCELLED" } },
+      where: {
+        batch_id: batchId,
+        order_status: { notIn: ["CANCELLED", "COMPLETED"] },
+      },
       select: { id: true },
     });
     const orderIds = orders.map((o) => o.id);
@@ -593,7 +599,7 @@ export class BatchService {
     const batch = await this.batchRepository.findById(batchId, {
       include: {
         orders: {
-          where: { order_status: { not: "CANCELLED" } },
+          where: { order_status: { notIn: ["CANCELLED", "COMPLETED"] } },
           select: {
             id: true,
             user_id: true,
@@ -681,7 +687,10 @@ export class BatchService {
 
   async generateOtpForBatch(batchId: string): Promise<void> {
     const orders = await this.orderRepository.findMany({
-      where: { batch_id: batchId, order_status: { not: "CANCELLED" } },
+      where: {
+        batch_id: batchId,
+        order_status: { notIn: ["CANCELLED", "COMPLETED"] },
+      },
       select: { id: true },
     });
 
@@ -792,8 +801,11 @@ export class BatchService {
 
     // Orders already CANCELLED were removed from collective_total when they
     // were cancelled; only the still-counted ones are decremented here, in
-    // the same transaction as their status change.
-    const toCancel = batch.orders.filter((o) => o.order_status !== "CANCELLED");
+    // the same transaction as their status change. Orders already delivered
+    // (COMPLETED) in an IN_TRANSIT batch stay delivered and are not refunded.
+    const toCancel = batch.orders.filter(
+      (o) => o.order_status !== "CANCELLED" && o.order_status !== "COMPLETED"
+    );
     const countedTotal = toCancel.reduce(
       (sum, o) => sum + Number(o.item_total),
       0
@@ -818,6 +830,11 @@ export class BatchService {
           tx
         );
       }
+
+      await this.orderRepository.restoreStock(
+        toCancel.map((o) => o.id),
+        tx
+      );
 
       if (countedTotal === 0) {
         return cancelledRow;

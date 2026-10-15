@@ -58,7 +58,7 @@ describe("upsertCartItem", () => {
     ).rejects.toBeInstanceOf(UnauthenticatedError);
   });
 
-  it("rejects invalid input with a ValidationError (RULE O16)", async () => {
+  it("rejects invalid input with a ValidationError", async () => {
     for (const quantity of [-1, 2.5]) {
       await expect(
         upsertCartItem({ product_id: "p1", quantity })

@@ -10,14 +10,18 @@ import {
 import { paymentStatusForTransition } from "@/actions/orders/order-status";
 import { batchRepository, batchService, orderRepository } from "@/di/container";
 import { Prisma } from "@/generated/client";
-import { BadRequestError, UnauthorizedError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  ConflictError,
+  UnauthorizedError,
+} from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getOrderUrl } from "@/lib/utils/url.utils";
 import { createSuccessResponse } from "@/types/response.types";
 const log = createLogger("order-management-actions");
 
-const VENDOR_ERRORS = [UnauthorizedError, BadRequestError];
+const VENDOR_ERRORS = [UnauthorizedError, BadRequestError, ConflictError];
 
 /** Appends `note` on its own line to the existing customer notes. */
 function appendNote(notes: string | null, note: string): string {
@@ -28,7 +32,7 @@ function appendNote(notes: string | null, note: string): string {
 async function requireShopOrder(orderId: string, shopId: string) {
   const order = await orderRepository.getOrderById(orderId);
   if (!order || order.shop_id !== shopId) {
-    throw new BadRequestError("Order not found or unauthorized");
+    throw new UnauthorizedError("Order not found or unauthorized");
   }
   return order;
 }
@@ -152,7 +156,7 @@ export async function startDirectDeliveryAction(orderId: string) {
       const shopId = await requireVendorShopId();
       const order = await requireShopOrder(orderId, shopId);
       if (!order.is_direct_delivery) {
-        throw new BadRequestError("Order not found or unauthorized");
+        throw new BadRequestError("This order is not a direct delivery.");
       }
 
       if (order.order_status !== "BATCHED") {
@@ -218,17 +222,18 @@ export async function rejectOrderAction(orderId: string, reason?: string) {
       );
 
       const updatedBatch = await prisma.$transaction(async (tx) => {
-        await orderRepository.update(
+        await orderRepository.updateIfStatus(
           orderId,
+          order.order_status,
           {
             order_status: "CANCELLED",
             payment_status: paymentStatus,
             cancellation_reason: reason || null,
             customer_notes: appendNote(order.customer_notes, rejectionNote),
           },
-          undefined,
           tx
         );
+        await orderRepository.restoreStock([orderId], tx);
         if (order.batch_id) {
           return batchRepository.adjustCollectiveTotal(
             order.batch_id,

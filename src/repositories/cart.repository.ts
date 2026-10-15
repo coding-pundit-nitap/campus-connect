@@ -1,4 +1,5 @@
 import { Cart, Prisma } from "@/generated/client";
+import { NotFoundError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { FullCart } from "@/types/cart.types";
 
@@ -90,15 +91,26 @@ export class CartRepository extends BaseRepository<
   ): Promise<FullCart> {
     const product = await this.prismaClient.product.findUnique({
       where: { id: product_id },
-      select: { shop_id: true },
+      select: { shop_id: true, stock_quantity: true, deleted_at: true },
     });
 
     if (!product) {
-      throw new Error("Product not found.");
+      throw new NotFoundError("Product not found.");
     }
 
     const { shop_id } = product;
     if (quantity > 0) {
+      // Removing (quantity 0) always works; adding must be orderable now.
+      if (product.deleted_at) {
+        throw new ValidationError("This product is no longer available.");
+      }
+      if (quantity > product.stock_quantity) {
+        throw new ValidationError(
+          product.stock_quantity > 0
+            ? `Only ${product.stock_quantity} left in stock.`
+            : "This product is out of stock."
+        );
+      }
       await this.prismaClient.cartItem.upsert({
         where: {
           cart_id_product_id: {

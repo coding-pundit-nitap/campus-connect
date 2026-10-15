@@ -1,4 +1,5 @@
 import { Order, OrderStatus, Prisma } from "@/generated/client";
+import { ConflictError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import { orderWithDetailsInclude } from "@/lib/utils/order.utils";
 import { OrderWithDetails } from "@/types";
@@ -233,6 +234,80 @@ export class OrderRepository extends BaseRepository<
       });
     }
     return client.order.update(idOrArgs);
+  }
+
+  /**
+   * Applies a status change only while the order still has the status `from`
+   * it was validated against, so a concurrent change can't make two requests
+   * both apply their side effects (batch total, stock) for the same move.
+   * @throws ConflictError when another request changed the order first.
+   */
+  async updateIfStatus(
+    order_id: string,
+    from: OrderStatus,
+    data: Prisma.OrderUpdateManyMutationInput,
+    tx: Prisma.TransactionClient
+  ): Promise<void> {
+    const { count } = await tx.order.updateMany({
+      where: { id: order_id, order_status: from },
+      data,
+    });
+    if (count === 0) {
+      throw new ConflictError(
+        "This order was updated by someone else. Refresh and try again."
+      );
+    }
+  }
+
+  /**
+   * Returns the items of orders being cancelled to product stock (checkout
+   * decremented it). Call it in the transaction that cancels the orders, and
+   * only for orders that were not already CANCELLED.
+   */
+  async restoreStock(
+    order_ids: string[],
+    tx: Prisma.TransactionClient
+  ): Promise<void> {
+    if (order_ids.length === 0) return;
+    const lines = await tx.orderItem.groupBy({
+      by: ["product_id"],
+      where: { order_id: { in: order_ids } },
+      _sum: { quantity: true },
+    });
+    for (const line of lines) {
+      await tx.product.update({
+        where: { id: line.product_id },
+        data: { stock_quantity: { increment: line._sum.quantity ?? 0 } },
+      });
+    }
+  }
+
+  /**
+   * Takes a reinstated (previously cancelled) order's items out of stock again.
+   * @throws ValidationError when a product no longer has enough stock.
+   */
+  async reserveStock(
+    order_id: string,
+    tx: Prisma.TransactionClient
+  ): Promise<void> {
+    const items = await tx.orderItem.findMany({
+      where: { order_id },
+      select: { product_id: true, quantity: true },
+    });
+    for (const item of items) {
+      const { count } = await tx.product.updateMany({
+        where: {
+          id: item.product_id,
+          stock_quantity: { gte: item.quantity },
+        },
+        data: { stock_quantity: { decrement: item.quantity } },
+      });
+      if (count === 0) {
+        throw new ValidationError(
+          "Not enough stock left to reinstate this order."
+        );
+      }
+    }
   }
 
   async batchUpdateStatus(

@@ -1,7 +1,16 @@
 import { asPrisma, createPrismaMock, type PrismaMock } from "@tests/helpers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { NotFoundError, ValidationError } from "@/lib/custom-error";
+
 import { CartRepository, fullCartInclude } from "./cart.repository";
+
+const product = (overrides: Record<string, unknown> = {}) => ({
+  shop_id: "shop-1",
+  stock_quantity: 10,
+  deleted_at: null,
+  ...overrides,
+});
 
 describe("fullCartInclude", () => {
   it("has the exact shape needed by cart consumers", () => {
@@ -106,7 +115,7 @@ describe("CartRepository", () => {
     });
 
     it("upserts item if quantity > 0", async () => {
-      prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
+      prisma.product.findUnique.mockResolvedValueOnce(product());
 
       prisma.cart.findUnique.mockResolvedValue({ id: "cart-1" });
 
@@ -134,8 +143,10 @@ describe("CartRepository", () => {
       });
     });
 
-    it("deletes item if quantity is 0", async () => {
-      prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
+    it("deletes item if quantity is 0, even for a deleted or sold-out product", async () => {
+      prisma.product.findUnique.mockResolvedValueOnce(
+        product({ stock_quantity: 0, deleted_at: new Date() })
+      );
       prisma.cart.findUnique.mockResolvedValue({ id: "cart-1" });
 
       await repository.upsertItemForUser("user-1", "prod-1", 0);
@@ -144,6 +155,55 @@ describe("CartRepository", () => {
         where: { cart_id: "cart-1", product_id: "prod-1" },
       });
       expect(prisma.cartItem.upsert).not.toHaveBeenCalled();
+    });
+
+    it("throws NotFoundError for an unknown product", async () => {
+      prisma.product.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        repository.upsertItemForUser("user-1", "prod-1", 1)
+      ).rejects.toBeInstanceOf(NotFoundError);
+    });
+
+    it.each([
+      [
+        "a deleted product",
+        { deleted_at: new Date() },
+        1,
+        "This product is no longer available.",
+      ],
+      [
+        "more than the stock",
+        { stock_quantity: 3 },
+        4,
+        "Only 3 left in stock.",
+      ],
+      [
+        "a sold-out product",
+        { stock_quantity: 0 },
+        1,
+        "This product is out of stock.",
+      ],
+    ])("rejects adding %s", async (_n, overrides, quantity, message) => {
+      prisma.product.findUnique.mockResolvedValueOnce(product(overrides));
+
+      await expect(
+        repository.upsertItemForUser("user-1", "prod-1", quantity)
+      ).rejects.toThrow(new ValidationError(message));
+      expect(prisma.cartItem.upsert).not.toHaveBeenCalled();
+    });
+
+    it("accepts exactly the stock", async () => {
+      prisma.product.findUnique.mockResolvedValueOnce(
+        product({ stock_quantity: 3 })
+      );
+      prisma.cart.findUnique.mockResolvedValue({ id: "cart-1" });
+
+      await repository.upsertItemForUser("user-1", "prod-1", 3);
+
+      expect(prisma.cartItem.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ update: { quantity: 3 } })
+      );
     });
   });
 
@@ -270,14 +330,14 @@ describe("CartRepository", () => {
   describe("upsertItemForUser result", () => {
     it("returns the refreshed full cart after the write", async () => {
       const fresh = { id: "cart-1", items: [{ id: "item-1" }] };
-      prisma.product.findUnique.mockResolvedValueOnce({ shop_id: "shop-1" });
+      prisma.product.findUnique.mockResolvedValueOnce(product());
       prisma.cart.findUnique.mockResolvedValue(fresh);
 
       const result = await repository.upsertItemForUser("user-1", "prod-1", 1);
 
       expect(prisma.product.findUnique).toHaveBeenCalledWith({
         where: { id: "prod-1" },
-        select: { shop_id: true },
+        select: { shop_id: true, stock_quantity: true, deleted_at: true },
       });
       expect(result).toBe(fresh);
     });

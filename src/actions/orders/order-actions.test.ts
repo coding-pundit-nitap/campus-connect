@@ -11,6 +11,7 @@ import {
 } from "@/di/container";
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import {
+  ConflictError,
   InternalServerError,
   NotFoundError,
   UnauthenticatedError,
@@ -167,7 +168,7 @@ describe("order-actions", () => {
     });
 
     it.each([undefined, "", "short", "has spaces 12345", "x".repeat(36)])(
-      "RULE O18: rejects an ONLINE order with UPI id %j",
+      "rejects an ONLINE order with UPI id %j",
       async (upi_transaction_id) => {
         const res = await createOrderAction({
           ...input,
@@ -183,7 +184,7 @@ describe("order-actions", () => {
     );
 
     it.each(["A".repeat(10), "a1".repeat(17) + "b"])(
-      "RULE O18: accepts an ONLINE order with UPI id %s (10-35 alphanumerics)",
+      "accepts an ONLINE order with UPI id %s (10-35 alphanumerics)",
       async (upi_transaction_id) => {
         await createOrderAction({
           ...input,
@@ -339,7 +340,10 @@ describe("order-actions", () => {
 
   describe("updateOrderStatusAction", () => {
     beforeEach(() => {
-      db.order.update.mockResolvedValue({ id: "order-1", total_price: "99.5" });
+      db.order.findUniqueOrThrow.mockResolvedValue({
+        id: "order-1",
+        total_price: "99.5",
+      });
     });
 
     it("updates the status and notifies the customer", async () => {
@@ -364,15 +368,18 @@ describe("order-actions", () => {
           item_total: true,
         },
       });
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: {
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "BATCHED",
+        {
           order_status: "OUT_FOR_DELIVERY",
           payment_status: undefined,
           actual_delivery_time: undefined,
         },
-      });
+        db
+      );
       expect(res.data).toEqual({ id: "order-1", total_price: 99.5 });
+      expect(orders.restoreStock).not.toHaveBeenCalled();
       expect(res.details).toBe("Order status updated to OUT_FOR_DELIVERY");
       expect(notify).toHaveBeenCalledWith("user-1", {
         title: "🚀 Order Out for Delivery!",
@@ -382,6 +389,16 @@ describe("order-actions", () => {
         category: "ORDER",
       });
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+    });
+
+    it("surfaces a concurrent status change as a ConflictError", async () => {
+      orders.getOrderById.mockResolvedValue(buildOrder() as never);
+      orders.updateIfStatus.mockRejectedValueOnce(new ConflictError("changed"));
+
+      await expect(
+        updateOrderStatusAction({ order_id: "order-1", status: "CANCELLED" })
+      ).rejects.toBeInstanceOf(ConflictError);
+      expect(notify).not.toHaveBeenCalled();
     });
 
     it("completes a cash order with a delivery time and completed payment", async () => {
@@ -394,13 +411,15 @@ describe("order-actions", () => {
         status: "COMPLETED",
       });
 
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: expect.objectContaining({
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "OUT_FOR_DELIVERY",
+        expect.objectContaining({
           payment_status: "COMPLETED",
           actual_delivery_time: expect.any(Date),
         }),
-      });
+        db
+      );
     });
 
     it("cancels a batched order, decrements the batch and publishes progress", async () => {
@@ -416,15 +435,18 @@ describe("order-actions", () => {
         status: "CANCELLED",
       });
 
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: expect.objectContaining({ payment_status: "REFUNDED" }),
-      });
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "NEW",
+        expect.objectContaining({ payment_status: "REFUNDED" }),
+        db
+      );
       expect(batchRepository.adjustCollectiveTotal).toHaveBeenCalledWith(
         "batch-1",
         -200,
         db
       );
+      expect(orders.restoreStock).toHaveBeenCalledWith(["order-1"], db);
       expect(publishBatchProgress).toHaveBeenCalledWith(
         expect.objectContaining({ batchId: "batch-1", collectiveTotal: 100 })
       );
@@ -610,12 +632,13 @@ describe("order-actions", () => {
           item_total: true,
         },
       });
-      expect(orders.update).toHaveBeenCalledWith(
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
         "order-1",
+        "NEW",
         { order_status: "CANCELLED", payment_status: "CANCELLED" },
-        undefined,
         db
       );
+      expect(orders.restoreStock).toHaveBeenCalledWith(["order-1"], db);
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
       expect(publishBatchProgress).not.toHaveBeenCalled();
       expect(notify).toHaveBeenCalledWith("user-1", {
@@ -709,7 +732,7 @@ describe("order-actions", () => {
       await expect(cancelOrderAction("order-1")).rejects.toBeInstanceOf(
         ErrorType
       );
-      expect(orders.update).not.toHaveBeenCalled();
+      expect(orders.updateIfStatus).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -763,15 +786,17 @@ describe("order-actions", () => {
           item_total: true,
         },
       });
-      expect(db.order.update).toHaveBeenCalledTimes(1);
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "o1" },
-        data: {
+      expect(orders.updateIfStatus).toHaveBeenCalledTimes(1);
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "o1",
+        "BATCHED",
+        {
           order_status: "OUT_FOR_DELIVERY",
           payment_status: undefined,
           actual_delivery_time: undefined,
         },
-      });
+        db
+      );
       expect(db.batch.update).not.toHaveBeenCalled();
       expect(notify).toHaveBeenCalledTimes(1);
       expect(notify).toHaveBeenCalledWith(
@@ -790,13 +815,15 @@ describe("order-actions", () => {
 
       await run("COMPLETED");
 
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "o1" },
-        data: expect.objectContaining({
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "o1",
+        "OUT_FOR_DELIVERY",
+        expect.objectContaining({
           payment_status: "COMPLETED",
           actual_delivery_time: expect.any(Date),
         }),
-      });
+        db
+      );
     });
 
     it("cancels orders, decrements their batches and publishes each batch once", async () => {
@@ -809,7 +836,8 @@ describe("order-actions", () => {
 
       await run("CANCELLED");
 
-      expect(db.order.update).toHaveBeenCalledTimes(3);
+      expect(orders.updateIfStatus).toHaveBeenCalledTimes(3);
+      expect(orders.restoreStock).toHaveBeenCalledWith(["o1", "o2", "o3"], db);
       expect(db.batch.update).toHaveBeenCalledWith({
         where: { id: "b1" },
         data: { collective_total: { decrement: 30 } },
@@ -845,7 +873,8 @@ describe("order-actions", () => {
 
         await run(status);
 
-        expect(db.order.update).toHaveBeenCalledTimes(1);
+        expect(orders.updateIfStatus).toHaveBeenCalledTimes(1);
+        expect(orders.restoreStock).not.toHaveBeenCalled();
         expect(db.batch.update).not.toHaveBeenCalled();
         expect(db.batch.findMany).not.toHaveBeenCalled();
         expect(publishBatchProgress).not.toHaveBeenCalled();

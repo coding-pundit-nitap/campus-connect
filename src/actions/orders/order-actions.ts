@@ -20,6 +20,7 @@ import {
 } from "@/di/container";
 import { OrderStatus, PaymentMethod } from "@/generated/client";
 import {
+  ConflictError,
   NotFoundError,
   UnauthenticatedError,
   UnauthorizedError,
@@ -47,7 +48,7 @@ import {
 } from "@/validations/order.validation";
 const log = createLogger("order-actions");
 
-const STATUS_ERRORS = [ValidationError, ...AUTH_ERRORS];
+const STATUS_ERRORS = [ValidationError, ConflictError, ...AUTH_ERRORS];
 const LOOKUP_ERRORS = [NotFoundError, ...AUTH_ERRORS];
 
 function allowedTransitions(from: string): readonly string[] {
@@ -241,15 +242,23 @@ export async function updateOrderStatusAction({
 
       const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
         async (tx) => {
-          const result = await tx.order.update({
-            where: { id: order_id },
-            data: {
+          await orderRepository.updateIfStatus(
+            order_id,
+            order.order_status,
+            {
               order_status: status,
               payment_status: paymentStatus,
               actual_delivery_time:
                 status === "COMPLETED" ? new Date() : undefined,
             },
+            tx
+          );
+          const result = await tx.order.findUniqueOrThrow({
+            where: { id: order_id },
           });
+          if (status === "CANCELLED") {
+            await orderRepository.restoreStock([order_id], tx);
+          }
           const updatedBatch =
             // A CANCELLED order has no allowed transitions, so this always
             // removes a still-counted order from its batch total.
@@ -368,8 +377,9 @@ export async function cancelOrderAction(
       }
 
       const updatedBatch = await prisma.$transaction(async (tx) => {
-        await orderRepository.update(
+        await orderRepository.updateIfStatus(
           order_id,
+          OrderStatus.NEW,
           {
             order_status: OrderStatus.CANCELLED,
             payment_status: paymentStatusForTransition(
@@ -378,9 +388,9 @@ export async function cancelOrderAction(
               order.payment_status
             ),
           },
-          undefined,
           tx
         );
+        await orderRepository.restoreStock([order_id], tx);
         if (order.batch_id) {
           return batchRepository.adjustCollectiveTotal(
             order.batch_id,
@@ -504,11 +514,12 @@ export async function batchUpdateOrderStatusAction({
         status === "CANCELLED" ? ordersToUpdate.filter((o) => o.batch_id) : [];
 
       if (ordersToUpdate.length > 0) {
-        await prisma.$transaction([
-          ...ordersToUpdate.map((o) =>
-            prisma.order.update({
-              where: { id: o.id },
-              data: {
+        await prisma.$transaction(async (tx) => {
+          for (const o of ordersToUpdate) {
+            await orderRepository.updateIfStatus(
+              o.id,
+              o.order_status,
+              {
                 order_status: status,
                 payment_status: paymentStatusForTransition(
                   status,
@@ -518,17 +529,24 @@ export async function batchUpdateOrderStatusAction({
                 actual_delivery_time:
                   status === "COMPLETED" ? new Date() : undefined,
               },
-            })
-          ),
-          ...batchedOrders.map((o) =>
-            prisma.batch.update({
+              tx
+            );
+          }
+          for (const o of batchedOrders) {
+            await tx.batch.update({
               where: { id: o.batch_id! },
               data: {
                 collective_total: { decrement: Number(o.item_total) },
               },
-            })
-          ),
-        ]);
+            });
+          }
+          if (status === "CANCELLED") {
+            await orderRepository.restoreStock(
+              ordersToUpdate.map((o) => o.id),
+              tx
+            );
+          }
+        });
 
         const affectedBatchIds = [
           ...new Set(batchedOrders.map((o) => o.batch_id!)),

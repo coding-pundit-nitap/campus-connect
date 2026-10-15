@@ -1,11 +1,14 @@
-// Rule-based tests for Batch.collective_total (spec:
+// Tests for Batch.collective_total (spec:
 // docs/superpowers/specs/2026-09-14-batch-collective-minimum-order-design.md,
 // "Order placement / cancellation" and "Error handling & correctness").
 // Invariant under test: collective_total == sum(item_total) of the batch's
 // orders that are not CANCELLED.
 import { describe, expect, it } from "vitest";
 
-import { updateOrderStatusAdminAction } from "../../../../src/actions/admin/order-actions";
+import {
+  updateOrderStatusAdminAction,
+  updatePaymentStatusAction,
+} from "../../../../src/actions/admin/order-actions";
 import {
   batchUpdateOrderStatusAction,
   cancelOrderAction,
@@ -28,7 +31,7 @@ import { asUser } from "../../../setup/auth";
 import { testPrisma } from "../../../setup/integration-setup";
 
 describe("collective_total increments on placement", () => {
-  it("RULE B1: a batch created by the first order snapshots the shop threshold and starts its total from that order only", async () => {
+  it("a batch created by the first order snapshots the shop threshold and starts its total from that order only", async () => {
     const { shop, at } = await seedBatchShop({ min: 750 });
     const { order } = await placeOrder(shop.id, at, { price: 120 });
 
@@ -38,7 +41,7 @@ describe("collective_total increments on placement", () => {
     expect(batch.status).toBe("OPEN");
   });
 
-  it("RULE B2: placing an order adds its item_total (not delivery/platform fees) to the batch total", async () => {
+  it("placing an order adds its item_total (not delivery/platform fees) to the batch total", async () => {
     const { shop, at } = await seedBatchShop({ min: 1000, deliveryFee: 25 });
     const a = await placeOrder(shop.id, at, { price: 150, quantity: 2 });
     const b = await placeOrder(shop.id, at, { price: 80 });
@@ -50,7 +53,7 @@ describe("collective_total increments on placement", () => {
     expect(await totalOf(a.order.batch_id!)).toBe(300 + 80);
   });
 
-  it("RULE B17: an order is accepted even though the batch is still below its collective minimum", async () => {
+  it("an order is accepted even though the batch is still below its collective minimum", async () => {
     const { shop, at } = await seedBatchShop({ min: 100_000 });
     const { order } = await placeOrder(shop.id, at, { price: 50 });
 
@@ -71,7 +74,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     return { ...ctx, keep, target, batchId: target.order.batch_id! };
   }
 
-  it("RULE B6: a user cancelling their own order decrements the batch total by its item_total", async () => {
+  it("a user cancelling their own order decrements the batch total by its item_total", async () => {
     const { target, batchId } = await twoOrderBatch();
     asUser(target.user);
     const res = await cancelOrderAction(target.order.id);
@@ -81,7 +84,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(await liveItemSum(batchId));
   });
 
-  it("RULE B7: the shop owner cancelling an order decrements the batch total", async () => {
+  it("the shop owner cancelling an order decrements the batch total", async () => {
     const { owner, target, batchId } = await twoOrderBatch();
     asUser(owner);
     const res = await updateOrderStatusAction({
@@ -93,7 +96,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(70);
   });
 
-  it("RULE B8: the shop owner rejecting an order decrements the batch total", async () => {
+  it("the shop owner rejecting an order decrements the batch total", async () => {
     const { owner, target, batchId } = await twoOrderBatch("ONLINE");
     asUser(owner);
     const res = await rejectOrderAction(target.order.id, "out of stock");
@@ -107,7 +110,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(70);
   });
 
-  it("RULE B9: the owner bulk-cancelling orders decrements the batch total once per order", async () => {
+  it("the owner bulk-cancelling orders decrements the batch total once per order", async () => {
     const { owner, keep, target, batchId } = await twoOrderBatch();
     asUser(owner);
     const res = await batchUpdateOrderStatusAction({
@@ -119,7 +122,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(0);
   });
 
-  it("RULE B10: an admin cancelling an order decrements the batch total", async () => {
+  it("an admin cancelling an order decrements the batch total", async () => {
     const { target, batchId } = await twoOrderBatch();
     const admin = await createUser({ role: "ADMIN" });
     asUser(admin);
@@ -132,7 +135,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(70);
   });
 
-  it("RULE B11: an admin status override that reinstates a cancelled order adds it back to the total", async () => {
+  it("an admin status override that reinstates a cancelled order adds it back to the total", async () => {
     const { target, batchId } = await twoOrderBatch();
     const admin = await createUser({ role: "ADMIN" });
     asUser(admin);
@@ -151,7 +154,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(await liveItemSum(batchId));
   });
 
-  it("RULE B11: an admin override between two active statuses leaves the total unchanged", async () => {
+  it("an admin override between two active statuses leaves the total unchanged", async () => {
     const { target, batchId } = await twoOrderBatch();
     const admin = await createUser({ role: "ADMIN" });
     asUser(admin);
@@ -162,7 +165,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(await totalOf(batchId)).toBe(200);
   });
 
-  it("RULE B12: cancelling a batch removes every cancelled order from its total", async () => {
+  it("cancelling a batch removes every cancelled order from its total", async () => {
     const { owner, batchId } = await twoOrderBatch();
     await testPrisma.batch.update({
       where: { id: batchId },
@@ -178,7 +181,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
     expect(Number(batch.collective_total)).toBe(await liveItemSum(batchId));
   });
 
-  it("RULE B35: cancelling a batch publishes its new progress on the shop's channel", async () => {
+  it("cancelling a batch publishes its new progress on the shop's channel", async () => {
     const { shop, owner, batchId } = await twoOrderBatch();
     await testPrisma.batch.update({
       where: { id: batchId },
@@ -198,11 +201,23 @@ describe("collective_total decrements on every cancel/refund path", () => {
     });
   });
 
-  it.todo(
-    "RULE B13: marking an order's payment FAILED removes it from the batch total — code currently leaves the order NEW and counted (src/actions/admin/order-actions.ts:273, updatePaymentStatusAction only writes payment_status); needs product decision + CROSS-SCOPE fix"
-  );
+  it("marking an order's payment FAILED keeps the order active and counted; only an explicit cancel removes it", async () => {
+    const { target, batchId } = await twoOrderBatch();
+    const admin = await createUser({ role: "ADMIN" });
+    asUser(admin);
+    await updatePaymentStatusAction({
+      order_id: target.order.id,
+      payment_status: "FAILED",
+    });
 
-  it("RULE B14: a second cancellation of the same order does not decrement again", async () => {
+    const order = await testPrisma.order.findUniqueOrThrow({
+      where: { id: target.order.id },
+    });
+    expect(order.order_status).toBe("NEW");
+    expect(await totalOf(batchId)).toBe(200);
+  });
+
+  it("a second cancellation of the same order does not decrement again", async () => {
     const { owner, target, batchId } = await twoOrderBatch();
     asUser(target.user);
     await cancelOrderAction(target.order.id);
@@ -229,7 +244,7 @@ describe("collective_total decrements on every cancel/refund path", () => {
 });
 
 describe("concurrency", () => {
-  it("RULE B15: concurrent placements into one batch lose no increments", async () => {
+  it("concurrent placements into one batch lose no increments", async () => {
     const { shop, at } = await seedBatchShop({ min: 5000 });
     // First order creates the batch; the rest race into it.
     const first = await placeOrder(shop.id, at, { price: 10 });
@@ -264,7 +279,7 @@ describe("concurrency", () => {
     expect(await totalOf(batchId)).toBe(Number(placed._sum.item_total));
   });
 
-  it("RULE B16: concurrent cancellations of different orders in one batch lose no decrements", async () => {
+  it("concurrent cancellations of different orders in one batch lose no decrements", async () => {
     const { shop, at } = await seedBatchShop({ min: 5000 });
     const placed = [];
     for (const price of [10, 20, 30, 40, 50, 60]) {

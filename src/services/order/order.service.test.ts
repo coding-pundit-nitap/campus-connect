@@ -393,7 +393,7 @@ describe("OrderService", () => {
       );
     });
 
-    it("RULE O12: accepts stock exactly equal to the requested quantity", async () => {
+    it("accepts stock exactly equal to the requested quantity", async () => {
       prisma.product.findUnique.mockResolvedValue(
         buildProduct({ stock_quantity: 2 })
       );
@@ -401,7 +401,7 @@ describe("OrderService", () => {
       await expect(direct()).resolves.toMatchObject({ id: "order-1" });
     });
 
-    it("RULE O10: accepts a cart total equal to the shop minimum", async () => {
+    it("accepts a cart total equal to the shop minimum", async () => {
       prisma.shop.findFirst.mockResolvedValue(
         buildShop({ min_order_value: 200 })
       );
@@ -409,7 +409,7 @@ describe("OrderService", () => {
       await expect(direct()).resolves.toMatchObject({ id: "order-1" });
     });
 
-    it("RULE O10: rejects a cart total one paisa below the shop minimum", async () => {
+    it("rejects a cart total one paisa below the shop minimum", async () => {
       prisma.shop.findFirst.mockResolvedValue(
         buildShop({ min_order_value: 200.01 })
       );
@@ -636,7 +636,7 @@ describe("OrderService", () => {
       [0.5, "NITAP-550000"],
       [0.999999, "NITAP-999999"],
     ])(
-      "RULE O20: random fallback id spans 100000..999999 (random=%s)",
+      "random fallback id spans 100000..999999 (random=%s)",
       async (random, expected) => {
         const spy = vi.spyOn(Math, "random").mockReturnValue(random);
         const fail = () => {
@@ -769,7 +769,7 @@ describe("OrderService", () => {
       expect(publishBatchProgress).toHaveBeenCalled();
     });
 
-    it("RULE: batch orders store is_direct_delivery false even when the flag is omitted", async () => {
+    it("batch orders store is_direct_delivery false even when the flag is omitted", async () => {
       await service.createOrderFromCart(
         "user-1",
         "shop-1",
@@ -782,7 +782,7 @@ describe("OrderService", () => {
       expect(createdOrder().is_direct_delivery).toBe(false);
     });
 
-    it("RULE: looks up active slots and an existing batch with exact queries", async () => {
+    it("looks up active slots and an existing batch with exact queries", async () => {
       await byTime();
 
       expect(prisma.batchSlot.findMany).toHaveBeenCalledWith({
@@ -799,7 +799,7 @@ describe("OrderService", () => {
       );
     });
 
-    it("RULE: matches slots on hour*60+minute (14:30 IST)", async () => {
+    it("matches slots on hour*60+minute (14:30 IST)", async () => {
       const slot1430 = new Date("2030-01-01T09:00:00Z");
       prisma.batchSlot.findMany.mockResolvedValue([
         { id: "slot-1430", cutoff_time_minutes: 14 * 60 + 30, sort_order: 0 },
@@ -812,7 +812,7 @@ describe("OrderService", () => {
       );
     });
 
-    it("RULE: without a created or found batch the order has no batch and keeps the requested time", async () => {
+    it("without a created or found batch the order has no batch and keeps the requested time", async () => {
       prisma.batch.create.mockResolvedValue(undefined);
 
       await byTime();
@@ -824,7 +824,7 @@ describe("OrderService", () => {
     });
 
     it.each([undefined, null])(
-      "RULE: snapshots null when batch_min_order_value is %s",
+      "snapshots null when batch_min_order_value is %s",
       async (value) => {
         prisma.shop.findFirst.mockResolvedValue(
           buildShop({ batch_min_order_value: value })
@@ -881,6 +881,8 @@ describe("OrderService", () => {
     const LOCKED_MSG =
       "This batch has already been locked. Please pick another slot or use direct delivery.";
     const CANCELLED_MSG = "This batch slot is no longer available (Cancelled).";
+    const REVIEW_MSG =
+      "This batch is awaiting the shop's decision. Please pick another slot or use direct delivery.";
 
     it.each([
       [
@@ -927,6 +929,16 @@ describe("OrderService", () => {
         SLOT_TIME,
         LOCKED_MSG,
       ],
+      [
+        "the existing batch awaits the shop's decision",
+        () =>
+          prisma.batch.findFirst.mockResolvedValue({
+            id: "b",
+            status: "PENDING_REVIEW",
+          }),
+        SLOT_TIME,
+        REVIEW_MSG,
+      ],
     ])("rejects when %s", async (_label, arrange, time, message) => {
       arrange();
 
@@ -945,6 +957,11 @@ describe("OrderService", () => {
         "been locked",
         [{ id: "b", status: "LOCKED", cutoff_time: SLOT_TIME }],
         LOCKED_MSG,
+      ],
+      [
+        "gone to review",
+        [{ id: "b", status: "PENDING_REVIEW", cutoff_time: SLOT_TIME }],
+        REVIEW_MSG,
       ],
     ])(
       "rejects an open batch that has %s by lock time",

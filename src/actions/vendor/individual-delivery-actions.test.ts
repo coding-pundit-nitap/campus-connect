@@ -1,8 +1,13 @@
 import { type PrismaMock } from "@tests/helpers";
-import { buildOrder } from "@tests/helpers/actions-user/builders";
+import { buildBatch, buildOrder } from "@tests/helpers/actions-user/builders";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { batchService, notificationService } from "@/di/container";
+import {
+  batchRepository,
+  batchService,
+  notificationService,
+} from "@/di/container";
+import { publishBatchProgress } from "@/lib/batch-progress-publisher";
 import { UnauthorizedError, ValidationError } from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 import authUtils from "@/lib/utils/auth.utils.server";
@@ -18,6 +23,9 @@ vi.mock("@/di/container", async () =>
 vi.mock("@/lib/utils/auth.utils.server", async () =>
   (await import("@tests/helpers")).authUtilsModule()
 );
+vi.mock("@/lib/batch-progress-publisher", () => ({
+  publishBatchProgress: vi.fn(),
+}));
 vi.mock("@/lib/prisma", async () => ({
   prisma: (await import("@tests/helpers")).createPrismaMock(),
 }));
@@ -31,6 +39,7 @@ describe("individual-delivery-actions", () => {
     vi.resetAllMocks();
     auth.getOwnedShopId.mockResolvedValue("shop-1");
     notify.mockResolvedValue();
+    db.order.updateMany.mockResolvedValue({ count: 1 });
   });
 
   describe("startIndividualDeliveryAction", () => {
@@ -39,7 +48,7 @@ describe("individual-delivery-actions", () => {
         buildOrder({ order_status: "RESCHEDULED" })
       );
       await startIndividualDeliveryAction("order-1");
-      expect(db.order.update).toHaveBeenCalled();
+      expect(db.order.updateMany).toHaveBeenCalled();
     });
 
     it("marks the order out for delivery with a fresh OTP and notifies", async () => {
@@ -49,9 +58,11 @@ describe("individual-delivery-actions", () => {
 
       const res = await startIndividualDeliveryAction("order-1");
 
-      const { data } = db.order.update.mock.calls[0][0] as {
+      const { where, data } = db.order.updateMany.mock.calls[0][0] as {
+        where: object;
         data: { delivery_otp: string };
       };
+      expect(where).toEqual({ id: "order-1", order_status: "BATCHED" });
       expect(data).toEqual({
         order_status: "OUT_FOR_DELIVERY",
         delivery_otp: expect.stringMatching(/^\d{4}$/),
@@ -82,6 +93,8 @@ describe("individual-delivery-actions", () => {
           delivery_otp: true,
           user_id: true,
           display_id: true,
+          batch_id: true,
+          item_total: true,
         },
       });
     });
@@ -110,7 +123,7 @@ describe("individual-delivery-actions", () => {
       await expect(startIndividualDeliveryAction("order-1")).rejects.toThrow(
         new ValidationError("This order can’t be delivered.")
       );
-      expect(db.order.update).not.toHaveBeenCalled();
+      expect(db.order.updateMany).not.toHaveBeenCalled();
     });
 
     it("reuses an existing OTP", async () => {
@@ -120,10 +133,56 @@ describe("individual-delivery-actions", () => {
 
       await startIndividualDeliveryAction("order-1");
 
-      expect(db.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
+      expect(db.order.updateMany).toHaveBeenCalledWith({
+        where: { id: "order-1", order_status: "BATCHED" },
         data: { order_status: "OUT_FOR_DELIVERY", delivery_otp: "4321" },
       });
+      expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+    });
+
+    it("takes a batch order out of its batch as a direct delivery", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({
+          order_status: "BATCHED",
+          batch_id: "batch-1",
+          delivery_otp: "4321",
+        })
+      );
+      vi.mocked(batchRepository.adjustCollectiveTotal).mockResolvedValue(
+        buildBatch() as never
+      );
+
+      await startIndividualDeliveryAction("order-1");
+
+      expect(db.order.updateMany).toHaveBeenCalledWith({
+        where: { id: "order-1", order_status: "BATCHED" },
+        data: {
+          order_status: "OUT_FOR_DELIVERY",
+          delivery_otp: "4321",
+          batch_id: null,
+          is_direct_delivery: true,
+        },
+      });
+      expect(batchRepository.adjustCollectiveTotal).toHaveBeenCalledWith(
+        "batch-1",
+        -200,
+        db
+      );
+      expect(publishBatchProgress).toHaveBeenCalledWith(
+        expect.objectContaining({ batchId: "batch-1" })
+      );
+    });
+
+    it("rejects when the order changed after it was read", async () => {
+      db.order.findUnique.mockResolvedValue(
+        buildOrder({ order_status: "BATCHED" })
+      );
+      db.order.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(
+        startIndividualDeliveryAction("order-1")
+      ).rejects.toBeInstanceOf(ValidationError);
+      expect(notify).not.toHaveBeenCalled();
     });
 
     it("succeeds without notifying a guest or when notifying fails", async () => {
@@ -150,7 +209,7 @@ describe("individual-delivery-actions", () => {
         db.order.findUnique.mockResolvedValue(order);
 
         await expect(startIndividualDeliveryAction("order-1")).rejects.toThrow(
-          new ValidationError("Order not found or unauthorized")
+          new UnauthorizedError("Order not found or unauthorized")
         );
       }
     );
@@ -162,7 +221,7 @@ describe("individual-delivery-actions", () => {
       "DELIVERY_FAILED",
       "OUT_FOR_DELIVERY",
     ])(
-      "rejects a %s order (RULE O26: only statuses that may go OUT_FOR_DELIVERY)",
+      "rejects a %s order (only statuses that may go OUT_FOR_DELIVERY)",
       async (status) => {
         db.order.findUnique.mockResolvedValue(
           buildOrder({ order_status: status })
@@ -171,7 +230,7 @@ describe("individual-delivery-actions", () => {
         await expect(startIndividualDeliveryAction("order-1")).rejects.toThrow(
           "This order can’t be delivered."
         );
-        expect(db.order.update).not.toHaveBeenCalled();
+        expect(db.order.updateMany).not.toHaveBeenCalled();
       }
     );
 

@@ -47,6 +47,7 @@ describe("reorderAction", () => {
     db.order.findUnique.mockResolvedValue(pastOrder());
     db.shop.findUnique.mockResolvedValue({ is_active: true, deleted_at: null });
     db.cart.findUnique.mockResolvedValue({ id: "cart-1" });
+    db.cartItem.findMany.mockResolvedValue([]);
   });
 
   it("adds the available items to the existing cart, capped by stock", async () => {
@@ -67,7 +68,7 @@ describe("reorderAction", () => {
     expect(db.cartItem.upsert).toHaveBeenCalledTimes(2);
     expect(db.cartItem.upsert).toHaveBeenCalledWith({
       where: { cart_id_product_id: { cart_id: "cart-1", product_id: "p2" } },
-      update: { quantity: { increment: 3 } },
+      update: { quantity: 3 },
       create: { cart_id: "cart-1", product_id: "p2", quantity: 3 },
     });
     expect(res).toMatchObject({
@@ -104,6 +105,40 @@ describe("reorderAction", () => {
     expect(db.cart.findUnique).toHaveBeenCalledWith({
       where: { user_id_shop_id: { user_id: "user-1", shop_id: "shop-1" } },
     });
+    expect(db.cartItem.findMany).toHaveBeenCalledWith({
+      where: { cart_id: "cart-1" },
+      select: { product_id: true, quantity: true },
+    });
+  });
+
+  it.each([
+    ["tops an existing line up to the stock cap", 2, 2, 3, 3],
+    ["adds to an existing line below the cap", 1, 2, 10, 3],
+  ])("%s", async (_n, inCart, reordered, stock, expected) => {
+    db.cartItem.findMany.mockResolvedValue([
+      { product_id: "p1", quantity: inCart },
+    ]);
+    db.order.findUnique.mockResolvedValue(
+      pastOrder({ items: [item("p1", reordered, { stock_quantity: stock })] })
+    );
+
+    await reorderAction("order-1");
+
+    expect(db.cartItem.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ update: { quantity: expected } })
+    );
+  });
+
+  it("skips a line already at the stock cap", async () => {
+    db.cartItem.findMany.mockResolvedValue([{ product_id: "p1", quantity: 2 }]);
+    db.order.findUnique.mockResolvedValue(
+      pastOrder({ items: [item("p1", 2, { stock_quantity: 2 })] })
+    );
+
+    await expect(reorderAction("order-1")).rejects.toBeInstanceOf(
+      ValidationError
+    );
+    expect(db.cartItem.upsert).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -119,7 +154,7 @@ describe("reorderAction", () => {
 
     expect(db.cartItem.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
-        update: { quantity: { increment: expected } },
+        update: { quantity: expected },
         create: { cart_id: "cart-1", product_id: "p1", quantity: expected },
       })
     );

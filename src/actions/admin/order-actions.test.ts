@@ -8,12 +8,18 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  auditService,
   batchRepository,
   notificationService,
   orderRepository,
 } from "@/di/container";
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
-import { BadRequestError, NotFoundError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/custom-error";
 import { prisma } from "@/lib/prisma";
 
 import {
@@ -140,14 +146,6 @@ describe("admin order actions", () => {
       "Failed to update order status."
     );
 
-    beforeEach(() => {
-      tx.order.update.mockImplementation(async ({ data }) => ({
-        id: "order-1",
-        display_id: "D-1",
-        order_status: data.order_status,
-      }));
-    });
-
     it("updates the status and notifies the customer", async () => {
       orders.findById.mockResolvedValue(order());
 
@@ -156,10 +154,12 @@ describe("admin order actions", () => {
         order_status: "BATCHED",
       });
 
-      expect(tx.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: { order_status: "BATCHED" },
-      });
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "NEW",
+        { order_status: "BATCHED" },
+        tx
+      );
       expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
       expect(publishBatchProgress).not.toHaveBeenCalled();
       expect(notify).toHaveBeenCalledWith("user-1", {
@@ -186,13 +186,15 @@ describe("admin order actions", () => {
         estimated_delivery_time: eta,
       });
 
-      expect(tx.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: {
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "NEW",
+        {
           order_status: "OUT_FOR_DELIVERY",
           estimated_delivery_time: eta,
         },
-      });
+        tx
+      );
     });
 
     it("ignores a missing ETA when going out for delivery", async () => {
@@ -203,10 +205,12 @@ describe("admin order actions", () => {
         order_status: "OUT_FOR_DELIVERY",
       });
 
-      expect(tx.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: { order_status: "OUT_FOR_DELIVERY" },
-      });
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "NEW",
+        { order_status: "OUT_FOR_DELIVERY" },
+        tx
+      );
     });
 
     it("stamps the delivery time and sends a success notice on completion", async () => {
@@ -217,13 +221,15 @@ describe("admin order actions", () => {
         order_status: "COMPLETED",
       });
 
-      expect(tx.order.update).toHaveBeenCalledWith({
-        where: { id: "order-1" },
-        data: {
+      expect(orders.updateIfStatus).toHaveBeenCalledWith(
+        "order-1",
+        "NEW",
+        {
           order_status: "COMPLETED",
           actual_delivery_time: expect.any(Date),
         },
-      });
+        tx
+      );
       expect(notify).toHaveBeenCalledWith(
         "user-1",
         expect.objectContaining({ type: "SUCCESS" })
@@ -406,10 +412,11 @@ describe("admin order actions", () => {
           order_status: status,
         });
 
-        expect(tx.order.update).toHaveBeenCalledWith(
-          expect.objectContaining({
-            data: expect.objectContaining({ payment_status: expected }),
-          })
+        expect(orders.updateIfStatus).toHaveBeenCalledWith(
+          "order-1",
+          "NEW",
+          expect.objectContaining({ payment_status: expected }),
+          tx
         );
       }
     );
@@ -453,7 +460,7 @@ describe("admin order actions", () => {
           order_status: status,
         });
 
-        const { data } = tx.order.update.mock.calls[0][0] as { data: object };
+        const data = orders.updateIfStatus.mock.calls[0][2];
         expect(data).not.toHaveProperty("payment_status");
       }
     );
@@ -467,8 +474,83 @@ describe("admin order actions", () => {
         estimated_delivery_time: new Date("2026-05-01T10:00:00Z"),
       });
 
-      const { data } = tx.order.update.mock.calls[0][0] as { data: object };
+      const data = orders.updateIfStatus.mock.calls[0][2];
       expect(data).not.toHaveProperty("estimated_delivery_time");
+    });
+
+    it.each([
+      [
+        "cancelling restores stock",
+        "NEW",
+        "CANCELLED",
+        "restoreStock",
+        ["order-1"],
+      ],
+      [
+        "reinstating takes stock again",
+        "CANCELLED",
+        "NEW",
+        "reserveStock",
+        "order-1",
+      ],
+    ] as const)("%s", async (_n, from, to, method, arg) => {
+      orders.findById.mockResolvedValue(order({ order_status: from }));
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: to,
+      });
+
+      expect(orders[method]).toHaveBeenCalledWith(arg, tx);
+    });
+
+    it.each([
+      ["BATCHED", "OUT_FOR_DELIVERY"],
+      ["CANCELLED", "CANCELLED"],
+    ] as const)("%s -> %s leaves stock alone", async (from, to) => {
+      orders.findById.mockResolvedValue(order({ order_status: from }));
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: to,
+      });
+
+      expect(orders.restoreStock).not.toHaveBeenCalled();
+      expect(orders.reserveStock).not.toHaveBeenCalled();
+    });
+
+    it("writes an audit row with the status change", async () => {
+      asAdmin("admin-9");
+      orders.findById.mockResolvedValue(order({ order_status: "BATCHED" }));
+
+      await updateOrderStatusAdminAction({
+        order_id: "order-1",
+        order_status: "CANCELLED",
+      });
+
+      expect(auditService.log).toHaveBeenCalledWith(
+        "admin-9",
+        "ORDER_STATUS_OVERRIDE",
+        "ORDER",
+        "order-1",
+        { display_id: "D-1", from: "BATCHED", to: "CANCELLED" }
+      );
+    });
+
+    it.each([
+      ["a concurrent change", new ConflictError("changed")],
+      ["too little stock to reinstate", new ValidationError("no stock")],
+    ])("surfaces %s unchanged and writes no audit row", async (_n, err) => {
+      orders.findById.mockResolvedValue(order({ order_status: "CANCELLED" }));
+      orders.reserveStock.mockRejectedValueOnce(err);
+
+      await expect(
+        updateOrderStatusAdminAction({
+          order_id: "order-1",
+          order_status: "NEW",
+        })
+      ).rejects.toBe(err);
+      expect(auditService.log).not.toHaveBeenCalled();
     });
 
     it("reports the new status in the success message", async () => {

@@ -4,13 +4,19 @@ import z from "zod";
 
 import { paymentStatusForTransition } from "@/actions/orders/order-status";
 import {
+  auditService,
   batchRepository,
   notificationService,
   orderRepository,
 } from "@/di/container";
 import { OrderStatus, PaymentStatus, Prisma } from "@/generated/client";
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
-import { BadRequestError, NotFoundError } from "@/lib/custom-error";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/custom-error";
 import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getPeriodRange } from "@/lib/utils/earnings";
@@ -120,9 +126,9 @@ export async function updateOrderStatusAdminAction(
     {
       label: "UPDATE ORDER STATUS ERROR:",
       fallback: "Failed to update order status.",
-      passthrough: [NotFoundError],
+      passthrough: [NotFoundError, ConflictError, ValidationError],
     },
-    async () => {
+    async (admin_id) => {
       const parsedData = updateOrderSchema.safeParse(data);
       if (!parsedData.success) {
         throw new BadRequestError("Invalid Input.");
@@ -182,23 +188,26 @@ export async function updateOrderStatusAdminAction(
             ? itemTotal
             : 0;
 
-      const { result: updatedOrder, updatedBatch } = await prisma.$transaction(
-        async (tx) => {
-          const result = await tx.order.update({
-            where: { id: order_id },
-            data: updateData,
-          });
-          const updatedBatch =
-            batchDelta !== 0 && order.batch_id
-              ? await batchRepository.adjustCollectiveTotal(
-                  order.batch_id,
-                  batchDelta,
-                  tx
-                )
-              : null;
-          return { result, updatedBatch };
+      const updatedBatch = await prisma.$transaction(async (tx) => {
+        await orderRepository.updateIfStatus(
+          order_id,
+          order.order_status,
+          updateData,
+          tx
+        );
+        if (isCancelled && !wasCancelled) {
+          await orderRepository.restoreStock([order_id], tx);
+        } else if (wasCancelled && !isCancelled) {
+          await orderRepository.reserveStock(order_id, tx);
         }
-      );
+        return batchDelta !== 0 && order.batch_id
+          ? batchRepository.adjustCollectiveTotal(
+              order.batch_id,
+              batchDelta,
+              tx
+            )
+          : null;
+      });
 
       if (updatedBatch) {
         await publishBatchProgress({
@@ -212,6 +221,12 @@ export async function updateOrderStatusAdminAction(
               : null,
         });
       }
+
+      auditService.log(admin_id, "ORDER_STATUS_OVERRIDE", "ORDER", order_id, {
+        display_id: order.display_id,
+        from: order.order_status,
+        to: order_status,
+      });
 
       const statusMessages: Record<OrderStatus, string> = {
         NEW: "has been received",
@@ -240,11 +255,11 @@ export async function updateOrderStatusAdminAction(
 
       return createSuccessResponse(
         {
-          id: updatedOrder.id,
-          display_id: updatedOrder.display_id,
-          order_status: updatedOrder.order_status,
+          id: order_id,
+          display_id: order.display_id,
+          order_status,
         },
-        `Successfully updated order #${updatedOrder.display_id} status to ${order_status}`
+        `Successfully updated order #${order.display_id} status to ${order_status}`
       );
     }
   );
