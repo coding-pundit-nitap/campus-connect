@@ -46,21 +46,72 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     });
   });
 
-  it("falls back to the shop minimum when the batch has no snapshot", async () => {
+  // Snapshot immutability: a batch created with the feature off keeps no
+  // requirement even if the shop enables one later (the cutoff auto-locks it).
+  it("ignores the shop's current minimum when the batch has no snapshot", async () => {
     batches.findOpenBatchByShopId.mockResolvedValue(
       openBatch({ min_order_value_snapshot: null, cutoff_time: null }) as never
     );
 
     expect(await expectSuccess(await get())).toMatchObject({
-      minRequired: 100,
+      minRequired: null,
       isMet: true,
       cutoffTime: null,
     });
   });
 
+  it("uses the shop's minimum when no batch exists yet", async () => {
+    batches.findOpenBatchByShopId.mockResolvedValue(null as never);
+    batches.findFirst.mockResolvedValue(null as never);
+
+    expect(await expectSuccess(await get())).toMatchObject({
+      batchId: null,
+      collectiveTotal: 0,
+      minRequired: 100,
+      isMet: false,
+    });
+  });
+
+  it("isMet is true exactly at the minimum", async () => {
+    batches.findOpenBatchByShopId.mockResolvedValue(
+      openBatch({ collective_total: "200.00" }) as never
+    );
+
+    expect(await expectSuccess(await get())).toMatchObject({
+      collectiveTotal: 200,
+      minRequired: 200,
+      isMet: true,
+    });
+  });
+
+  it("falls back to the latest in-flight batch when none is OPEN", async () => {
+    batches.findOpenBatchByShopId.mockResolvedValue(null as never);
+    batches.findFirst.mockResolvedValue(
+      openBatch({ id: "b2", status: "PENDING_REVIEW" }) as never
+    );
+
+    expect(await expectSuccess(await get())).toMatchObject({
+      batchId: "b2",
+      status: "PENDING_REVIEW",
+      collectiveTotal: 150,
+      minRequired: 200,
+      isMet: false,
+    });
+    expect(batches.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          shop_id: "s1",
+          status: { in: ["PENDING_REVIEW", "LOCKED", "IN_TRANSIT"] },
+        },
+        orderBy: { cutoff_time: "desc" },
+      })
+    );
+  });
+
   it("reports an empty, met batch when there is no open batch or minimum", async () => {
     shops.findById.mockResolvedValue({ batch_min_order_value: null } as never);
     batches.findOpenBatchByShopId.mockResolvedValue(null as never);
+    batches.findFirst.mockResolvedValue(null as never);
 
     expect(await expectSuccess(await get())).toEqual({
       batchId: null,

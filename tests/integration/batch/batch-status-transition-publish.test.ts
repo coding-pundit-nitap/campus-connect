@@ -129,7 +129,8 @@ describe("batch status-transition methods publish realtime progress", () => {
       batchId: batch.id,
       shopId: shop.id,
       status: "CANCELLED",
-      collectiveTotal: 250,
+      // Both orders were counted, so cancelling the batch removes them.
+      collectiveTotal: 0,
       minRequired: null,
     });
   });

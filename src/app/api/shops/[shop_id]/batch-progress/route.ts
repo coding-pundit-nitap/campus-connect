@@ -35,24 +35,34 @@ export async function GET(
       return jsonResponse(createErrorResponse("Shop not found"), 404);
     }
 
-    const openBatch = await batchRepository.findOpenBatchByShopId(shopId, {
-      select: {
-        id: true,
-        status: true,
-        collective_total: true,
-        min_order_value_snapshot: true,
-        cutoff_time: true,
-      },
-    });
+    // The shop's current batch: its OPEN batch if one exists (so a rollover
+    // shows the new batch), else its latest batch still in flight
+    // (PENDING_REVIEW, LOCKED, IN_TRANSIT). CANCELLED/COMPLETED never count.
+    const select = {
+      id: true,
+      status: true,
+      collective_total: true,
+      min_order_value_snapshot: true,
+      cutoff_time: true,
+    } as const;
+    const openBatch =
+      (await batchRepository.findOpenBatchByShopId(shopId, { select })) ??
+      (await batchRepository.findFirst({
+        where: {
+          shop_id: shopId,
+          status: { in: ["PENDING_REVIEW", "LOCKED", "IN_TRANSIT"] },
+        },
+        orderBy: { cutoff_time: "desc" },
+        select,
+      }));
 
+    // A batch's requirement is its snapshot, fixed at creation; the shop's
+    // current setting only applies when no batch exists yet.
+    const rawMin = openBatch
+      ? openBatch.min_order_value_snapshot
+      : shop.batch_min_order_value;
     const minRequired =
-      openBatch?.min_order_value_snapshot !== null &&
-      openBatch?.min_order_value_snapshot !== undefined
-        ? Number(openBatch.min_order_value_snapshot)
-        : shop.batch_min_order_value !== null &&
-            shop.batch_min_order_value !== undefined
-          ? Number(shop.batch_min_order_value)
-          : null;
+      rawMin !== null && rawMin !== undefined ? Number(rawMin) : null;
     const collectiveTotal = openBatch ? Number(openBatch.collective_total) : 0;
 
     const data: BatchProgressResponse = {

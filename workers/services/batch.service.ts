@@ -10,6 +10,12 @@ import { getShopOrderUrl } from "../lib/url.utils.js";
 import { NotificationService } from "./notification.service.js";
 const log = loggers.batch;
 
+/** Rupee amount for user-facing copy: whole rupees, or paise when present. */
+export function formatRupees(amount: number): string {
+  const cents = Math.round(amount * 100);
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2);
+}
+
 export interface BatchSummaryItem {
   product_id: string;
   name: string;
@@ -65,248 +71,148 @@ export class BatchService {
     private readonly prismaClient: typeof prisma = prisma,
     private readonly reminderGate: ReminderGate = createRedisReminderGate()
   ) {}
+  /**
+   * Cutoff for every expired OPEN batch: a batch whose snapshot is null, or
+   * whose collective_total has reached it, is LOCKED and its NEW orders
+   * BATCHED; one below its snapshot goes to PENDING_REVIEW with its orders
+   * untouched, and the owner is told the shortfall. Then warns owners about
+   * LOCKED batches left idle past the threshold.
+   */
   async autoCloseExpiredBatches(): Promise<void> {
-    const now = new Date();
+    await this.closeExpiredBatches();
+    await this.remindStaleBatches();
+  }
 
+  private async closeExpiredBatches(): Promise<void> {
     const expiredBatches = await this.prismaClient.batch.findMany({
-      where: {
-        status: "OPEN",
-        cutoff_time: { lt: now },
-      },
+      where: { status: "OPEN", cutoff_time: { lt: new Date() } },
       select: {
         id: true,
         shop_id: true,
-        shop: {
-          select: {
-            name: true,
-            user: { select: { id: true } },
-          },
-        },
-        orders: {
-          where: { order_status: "NEW" },
-          select: { id: true },
-        },
+        shop: { select: { name: true, user: { select: { id: true } } } },
+        orders: { where: { order_status: "NEW" }, select: { id: true } },
       },
     });
 
-    if (expiredBatches.length > 0) {
-      log.info(`🔒 Found ${expiredBatches.length} expired batches. Locking...`);
+    if (expiredBatches.length === 0) {
+      return;
+    }
+    log.info(`🔒 Found ${expiredBatches.length} expired batches. Closing...`);
 
-      const batchIds = expiredBatches.map((b: { id: string }) => b.id).sort();
+    const outcomes = await this.prismaClient.$transaction(
+      async (
+        tx: Omit<
+          typeof prisma,
+          | "$connect"
+          | "$disconnect"
+          | "$on"
+          | "$transaction"
+          | "$use"
+          | "$extends"
+        >
+      ) => {
+        const ids = expiredBatches.map((b: { id: string }) => b.id).sort();
+        const rows: {
+          id: string;
+          collective_total: string;
+          min_order_value_snapshot: string | null;
+        }[] = await tx.$queryRaw`
+          SELECT id, collective_total, min_order_value_snapshot FROM "Batch"
+          WHERE id IN (${Prisma.join(ids)}) AND status = 'OPEN'
+          ORDER BY id
+          FOR UPDATE
+        `;
 
-      const {
-        lockedBatchIds,
-        pendingReviewBatchIds,
-        countMap,
-        shortfallMap,
-        progressSnapshotMap,
-      } = await this.prismaClient.$transaction(
-        async (
-          tx: Omit<
-            typeof prisma,
-            | "$connect"
-            | "$disconnect"
-            | "$on"
-            | "$transaction"
-            | "$use"
-            | "$extends"
-          >
-        ) => {
-          const locked: {
-            id: string;
-            status: string;
-            collective_total: string;
-            min_order_value_snapshot: string | null;
-          }[] = await tx.$queryRaw`
-            SELECT id, status, collective_total, min_order_value_snapshot FROM "Batch"
-            WHERE id IN (${Prisma.join(batchIds)}) AND status = 'OPEN'
-            ORDER BY id
-            FOR UPDATE
-          `;
+        const results = rows.map((row) => {
+          const collectiveTotal = Number(row.collective_total);
+          const minRequired =
+            row.min_order_value_snapshot === null
+              ? null
+              : Number(row.min_order_value_snapshot);
+          const status: BatchStatus =
+            minRequired !== null && collectiveTotal < minRequired
+              ? "PENDING_REVIEW"
+              : "LOCKED";
+          return { id: row.id, status, collectiveTotal, minRequired };
+        });
 
-          const lockedBatchIds: string[] = [];
-          const pendingReviewBatchIds: string[] = [];
-          const shortfallMap = new Map<string, number>();
-          const progressSnapshotMap = new Map<
-            string,
-            { collectiveTotal: number; minRequired: number | null }
-          >();
+        const idsWith = (status: BatchStatus) =>
+          results.filter((r) => r.status === status).map((r) => r.id);
+        const pendingIds = idsWith("PENDING_REVIEW");
+        const lockedIds = idsWith("LOCKED");
 
-          for (const row of locked) {
-            const minRequired =
-              row.min_order_value_snapshot !== null
-                ? Number(row.min_order_value_snapshot)
-                : null;
-            const collectiveTotal = Number(row.collective_total);
-            progressSnapshotMap.set(row.id, { collectiveTotal, minRequired });
-            if (minRequired !== null && collectiveTotal < minRequired) {
-              pendingReviewBatchIds.push(row.id);
-              shortfallMap.set(row.id, minRequired - collectiveTotal);
-            } else {
-              lockedBatchIds.push(row.id);
-            }
-          }
-
-          if (pendingReviewBatchIds.length > 0) {
-            await tx.batch.updateMany({
-              where: { id: { in: pendingReviewBatchIds } },
-              data: { status: "PENDING_REVIEW" },
-            });
-          }
-
-          if (lockedBatchIds.length === 0) {
-            return {
-              lockedBatchIds: [],
-              pendingReviewBatchIds,
-              countMap: new Map<string, number>(),
-              shortfallMap,
-              progressSnapshotMap,
-            };
-          }
-
+        if (pendingIds.length > 0) {
           await tx.batch.updateMany({
-            where: { id: { in: lockedBatchIds } },
+            where: { id: { in: pendingIds } },
+            data: { status: "PENDING_REVIEW" },
+          });
+        }
+        if (lockedIds.length > 0) {
+          await tx.batch.updateMany({
+            where: { id: { in: lockedIds } },
             data: { status: "LOCKED" },
           });
-
           await tx.$executeRaw`
             UPDATE "Order"
             SET order_status = 'BATCHED',
                 delivery_otp = FLOOR(RANDOM() * 9000 + 1000)::text,
                 updated_at = NOW()
-            WHERE batch_id = ANY(${lockedBatchIds}::text[]) AND order_status = 'NEW'
+            WHERE batch_id = ANY(${lockedIds}::text[]) AND order_status = 'NEW'
           `;
-
-          const orderCounts = await tx.order.groupBy({
-            by: ["batch_id"],
-            where: {
-              batch_id: { in: lockedBatchIds },
-              order_status: "BATCHED",
-            },
-            _count: { id: true },
-          });
-          const countMap = new Map(
-            orderCounts.map(
-              (c: { batch_id: string | null; _count: { id: number } }) => [
-                c.batch_id ?? "",
-                c._count.id,
-              ]
-            )
-          );
-
-          return {
-            lockedBatchIds,
-            pendingReviewBatchIds,
-            countMap,
-            shortfallMap,
-            progressSnapshotMap,
-          };
         }
-      );
-
-      const shopIdByBatchId = new Map(
-        expiredBatches.map((b: { id: string; shop_id: string }) => [
-          b.id,
-          b.shop_id,
-        ])
-      );
-
-      const publishProgressFor = async (
-        ids: string[],
-        status: BatchStatus
-      ): Promise<void> => {
-        await Promise.all(
-          ids.map((id) => {
-            const snapshot = progressSnapshotMap.get(id);
-            const shopId = shopIdByBatchId.get(id);
-            if (!snapshot || !shopId) {
-              return Promise.resolve();
-            }
-            return publishBatchProgress({
-              batchId: id,
-              shopId,
-              status,
-              collectiveTotal: snapshot.collectiveTotal,
-              minRequired: snapshot.minRequired,
-            });
-          })
-        );
-      };
-
-      await publishProgressFor(lockedBatchIds, "LOCKED");
-      await publishProgressFor(pendingReviewBatchIds, "PENDING_REVIEW");
-
-      if (lockedBatchIds.length > 0) {
-        log.info(`✅ Successfully LOCKED ${lockedBatchIds.length} batches.`);
-
-        const processedBatches = expiredBatches.filter((b: { id: string }) =>
-          lockedBatchIds.includes(b.id)
-        );
-
-        for (const batch of processedBatches) {
-          const activeOrderCount = countMap.get(batch.id) ?? 0;
-          if (batch.shop.user && activeOrderCount > 0) {
-            const firstOrderId = batch.orders[0]?.id;
-            try {
-              await this.notificationService.publishNotification(
-                batch.shop.user.id,
-                {
-                  title: "🚀 Batch Ready!",
-                  message: `Batch for ${batch.shop.name} is ready with ${activeOrderCount} orders. Start preparing!`,
-                  type: "SUCCESS",
-                  category: "ORDER",
-                  action_url: firstOrderId
-                    ? getShopOrderUrl(firstOrderId)
-                    : `/owner-shops`,
-                }
-              );
-            } catch (notifError) {
-              log.error(
-                { err: notifError, batchId: batch.id },
-                "Failed to publish batch notification"
-              );
-            }
-          }
-        }
+        return results;
       }
+    );
 
-      if (pendingReviewBatchIds.length > 0) {
-        log.info(
-          `⏸️ ${pendingReviewBatchIds.length} batches fell short of their collective minimum. Awaiting owner decision.`
-        );
+    for (const outcome of outcomes) {
+      const batch = expiredBatches.find(
+        (b: { id: string }) => b.id === outcome.id
+      )!;
+      await publishBatchProgress({
+        batchId: outcome.id,
+        shopId: batch.shop_id,
+        status: outcome.status,
+        collectiveTotal: outcome.collectiveTotal,
+        minRequired: outcome.minRequired,
+      });
 
-        const processedBatches = expiredBatches.filter((b: { id: string }) =>
-          pendingReviewBatchIds.includes(b.id)
-        );
-
-        for (const batch of processedBatches) {
-          const shortfall = shortfallMap.get(batch.id) ?? 0;
-          if (batch.shop.user) {
-            const firstOrderId = batch.orders[0]?.id;
-            try {
-              await this.notificationService.publishNotification(
-                batch.shop.user.id,
-                {
-                  title: "⚠️ Batch Below Minimum",
-                  message: `Batch for ${batch.shop.name} is ₹${shortfall.toFixed(0)} short of its collective minimum. Decide whether to proceed or cancel.`,
-                  type: "WARNING",
-                  category: "ORDER",
-                  action_url: firstOrderId
-                    ? getShopOrderUrl(firstOrderId)
-                    : `/owner-shops`,
-                }
-              );
-            } catch (notifError) {
-              log.error(
-                { err: notifError, batchId: batch.id },
-                "Failed to publish pending-review notification"
-              );
+      const ownerId = batch.shop.user?.id;
+      const orderCount = batch.orders.length;
+      if (!ownerId || (outcome.status === "LOCKED" && orderCount === 0)) {
+        continue;
+      }
+      const notification =
+        outcome.status === "LOCKED"
+          ? {
+              title: "🚀 Batch Ready!",
+              message: `Batch for ${batch.shop.name} is ready with ${orderCount} orders. Start preparing!`,
+              type: "SUCCESS" as const,
             }
-          }
-        }
+          : {
+              title: "⚠️ Batch Below Minimum",
+              message: `Batch for ${batch.shop.name} is ₹${formatRupees(
+                outcome.minRequired! - outcome.collectiveTotal
+              )} short of its collective minimum. Decide whether to proceed or cancel.`,
+              type: "WARNING" as const,
+            };
+      try {
+        await this.notificationService.publishNotification(ownerId, {
+          ...notification,
+          category: "ORDER",
+          action_url: batch.orders[0]
+            ? getShopOrderUrl(batch.orders[0].id)
+            : "/owner-shops",
+        });
+      } catch (notifError) {
+        log.error(
+          { err: notifError, batchId: batch.id },
+          "Failed to publish cutoff notification"
+        );
       }
     }
+  }
 
+  private async remindStaleBatches(): Promise<void> {
     const IDLE_THRESHOLD_MINUTES = 30;
     // The scheduler ticks every minute; remind the owner once per interval
     // per batch instead of on every tick.
@@ -334,7 +240,8 @@ export class BatchService {
     });
 
     for (const batch of staleBatches) {
-      if (batch.shop.user && batch.orders.length > 0) {
+      // The query only returns batches with at least one BATCHED order.
+      if (batch.shop.user) {
         const minutesLate = Math.round(
           (Date.now() - batch.cutoff_time.getTime()) / 60000
         );

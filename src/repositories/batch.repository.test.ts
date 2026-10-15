@@ -168,39 +168,29 @@ describe("BatchRepository", () => {
   });
 
   describe("adjustCollectiveTotal", () => {
-    it("returns null and writes nothing when the batch is missing", async () => {
-      prisma.batch.findUnique.mockResolvedValueOnce(null);
+    // The adjustment is a single atomic UPDATE ... RETURNING (no
+    // read-then-write), so concurrent adjustments cannot lose updates.
+    // Arithmetic and the zero clamp are exercised against Postgres in
+    // tests/integration/batch/adjust-collective-total.test.ts.
+    it("returns null when no batch row was updated", async () => {
+      prisma.$queryRaw.mockResolvedValueOnce([]);
       await expect(repo.adjustCollectiveTotal("b1", 10)).resolves.toBeNull();
-      expect(prisma.batch.findUnique).toHaveBeenCalledWith({
-        where: { id: "b1" },
-        select: { collective_total: true },
-      });
+      expect(prisma.batch.findUnique).not.toHaveBeenCalled();
       expect(prisma.batch.update).not.toHaveBeenCalled();
     });
 
-    it.each([
-      ["adds and rounds to cents", "10.10", 0.205, 10.31],
-      ["subtracts", 50, -20, 30],
-      ["clamps at zero", 5, -20, 0],
-    ])("%s", async (_label, current, delta, expected) => {
-      prisma.batch.findUnique.mockResolvedValueOnce({
-        collective_total: current,
-      });
-      prisma.batch.update.mockResolvedValueOnce({ id: "b1" });
-
-      await expect(repo.adjustCollectiveTotal("b1", delta)).resolves.toEqual({
+    it("returns the updated row and rounds the delta to cents", async () => {
+      prisma.$queryRaw.mockResolvedValueOnce([{ id: "b1" }]);
+      await expect(repo.adjustCollectiveTotal("b1", 0.205)).resolves.toEqual({
         id: "b1",
       });
-      expect(prisma.batch.update).toHaveBeenCalledWith({
-        where: { id: "b1" },
-        data: { collective_total: expected },
-      });
+      const values = prisma.$queryRaw.mock.calls[0].slice(1);
+      expect(values).toEqual([0.21, "b1"]);
     });
 
     it("uses the transaction client when given", async () => {
       const tx = createPrismaMock();
-      tx.batch.findUnique.mockResolvedValueOnce({ collective_total: 1 });
-      tx.batch.update.mockResolvedValueOnce({ id: "b1" });
+      tx.$queryRaw.mockResolvedValueOnce([{ id: "b1" }]);
 
       await repo.adjustCollectiveTotal(
         "b1",
@@ -208,12 +198,8 @@ describe("BatchRepository", () => {
         tx as unknown as Prisma.TransactionClient
       );
 
-      expect(tx.batch.update).toHaveBeenCalledWith({
-        where: { id: "b1" },
-        data: { collective_total: 2 },
-      });
-      expect(prisma.batch.findUnique).not.toHaveBeenCalled();
-      expect(prisma.batch.update).not.toHaveBeenCalled();
+      expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
+      expect(prisma.$queryRaw).not.toHaveBeenCalled();
     });
   });
 

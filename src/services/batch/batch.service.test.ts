@@ -19,7 +19,7 @@ import {
 } from "vitest";
 
 import { publishBatchProgress } from "@/lib/batch-progress-publisher";
-import { NotFoundError } from "@/lib/custom-error";
+import { BadRequestError, NotFoundError } from "@/lib/custom-error";
 import { BatchRepository } from "@/repositories/batch.repository";
 import { OrderRepository } from "@/repositories/order.repository";
 import { ProductRepository } from "@/repositories/product.repository";
@@ -80,6 +80,7 @@ describe("BatchService", () => {
       async (id, status) => buildBatchRow({ id, status }) as never
     );
     orderRepository.findMany.mockResolvedValue([] as never);
+    prisma.batch.findMany.mockResolvedValue([]);
   });
 
   afterEach(() => vi.useRealTimers());
@@ -103,12 +104,12 @@ describe("BatchService", () => {
 
       const result = await service.getBatchSlotsWithAvailability("shop-1");
 
-      expect(batchRepository.findMany).toHaveBeenCalledWith(
+      expect(prisma.batch.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
-            shop_id: "shop-1",
             status: "OPEN",
             cutoff_time: { lt: NOW },
+            shop_id: "shop-1",
           },
         })
       );
@@ -269,23 +270,43 @@ describe("BatchService", () => {
   });
 
   describe("autoLockExpiredBatches", () => {
-    it("locks each expired batch and keeps going when one fails", async () => {
-      batchRepository.findMany.mockResolvedValue([
-        { id: "b1" },
-        { id: "b2" },
-      ] as never);
-      batchRepository.findById
-        .mockResolvedValueOnce(null as never)
-        .mockResolvedValueOnce({
-          id: "b2",
+    it("runs the snapshot-aware cutoff scoped to the shop", async () => {
+      prisma.batch.findMany.mockResolvedValueOnce([
+        {
+          id: "b1",
           shop_id: "shop-1",
-          status: "OPEN",
-        } as never);
+          shop: { name: "S", user: null },
+          orders: [],
+        },
+      ]);
+      prisma.$queryRaw.mockResolvedValue([
+        { id: "b1", collective_total: "10", min_order_value_snapshot: "100" },
+      ]);
 
       await service.autoLockExpiredBatches("shop-1");
 
-      expect(batchRepository.updateStatus).toHaveBeenCalledTimes(1);
-      expect(batchRepository.updateStatus).toHaveBeenCalledWith("b2", "LOCKED");
+      expect(prisma.batch.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            status: "OPEN",
+            cutoff_time: { lt: NOW },
+            shop_id: "shop-1",
+          },
+        })
+      );
+      expect(prisma.batch.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["b1"] } },
+        data: { status: "PENDING_REVIEW" },
+      });
+      expect(batchRepository.updateStatus).not.toHaveBeenCalled();
+    });
+
+    it("swallows cutoff failures so the read path keeps working", async () => {
+      prisma.batch.findMany.mockRejectedValueOnce(new Error("db down"));
+
+      await expect(
+        service.autoLockExpiredBatches("shop-1")
+      ).resolves.toBeUndefined();
     });
   });
 
@@ -807,30 +828,44 @@ describe("BatchService", () => {
   });
 
   describe("cancelBatch", () => {
+    const order = (
+      id: string,
+      payment_method: "ONLINE" | "CASH",
+      user_id: string | null,
+      order_status = "BATCHED",
+      item_total = "100"
+    ) => ({
+      id,
+      user_id,
+      display_id: `D-${id}`,
+      payment_method,
+      order_status,
+      item_total,
+    });
+
+    beforeEach(() => {
+      prisma.batch.update.mockResolvedValue(
+        buildBatchRow({ id: "b1", status: "CANCELLED" })
+      );
+      batchRepository.adjustCollectiveTotal.mockResolvedValue(
+        buildBatchRow({
+          id: "b1",
+          status: "CANCELLED",
+          collective_total: 0,
+        }) as never
+      );
+    });
+
     it.each(["LOCKED", "IN_TRANSIT", "PENDING_REVIEW"])(
-      "cancels a %s batch, refunds online orders and notifies customers",
+      "cancels a %s batch, refunds online orders, removes them from the total and notifies customers",
       async (status) => {
         batchRepository.findById.mockResolvedValue({
           status,
           orders: [
-            {
-              id: "o1",
-              user_id: "u1",
-              display_id: "D1",
-              payment_method: "ONLINE",
-            },
-            {
-              id: "o2",
-              user_id: null,
-              display_id: "D2",
-              payment_method: "CASH",
-            },
-            {
-              id: "o3",
-              user_id: "u3",
-              display_id: "D3",
-              payment_method: "CASH",
-            },
+            order("o1", "ONLINE", "u1", "BATCHED", "120.50"),
+            order("o2", "CASH", null),
+            order("o3", "CASH", "u3"),
+            order("o4", "CASH", "u4", "CANCELLED", "999"),
           ],
         } as never);
         notificationService.publishNotification
@@ -840,37 +875,98 @@ describe("BatchService", () => {
         const result = await service.cancelBatch("b1", "rain");
 
         expect(result).toEqual({ cancelled_orders: 3 });
-        expect(batchRepository.updateStatus).toHaveBeenCalledWith(
+        expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+        expect(prisma.batch.update).toHaveBeenCalledWith({
+          where: { id: "b1" },
+          data: { status: "CANCELLED" },
+        });
+        expect(batchRepository.adjustCollectiveTotal).toHaveBeenCalledWith(
           "b1",
-          "CANCELLED"
+          -320.5,
+          expect.anything()
         );
         expect(publishBatchProgress).toHaveBeenCalledWith(
-          expect.objectContaining({ status: "CANCELLED" })
+          expect.objectContaining({ status: "CANCELLED", collectiveTotal: 0 })
         );
-        expect(orderRepository.update).toHaveBeenCalledWith("o1", {
-          order_status: "CANCELLED",
-          payment_status: "REFUNDED",
-          delivery_otp: null,
-        });
-        expect(orderRepository.update).toHaveBeenCalledWith("o2", {
-          order_status: "CANCELLED",
-          payment_status: "CANCELLED",
-          delivery_otp: null,
-        });
+        expect(orderRepository.update).toHaveBeenCalledTimes(3);
+        expect(orderRepository.update).toHaveBeenCalledWith(
+          "o1",
+          {
+            order_status: "CANCELLED",
+            payment_status: "REFUNDED",
+            delivery_otp: null,
+          },
+          undefined,
+          expect.anything()
+        );
+        expect(orderRepository.update).toHaveBeenCalledWith(
+          "o2",
+          {
+            order_status: "CANCELLED",
+            payment_status: "CANCELLED",
+            delivery_otp: null,
+          },
+          undefined,
+          expect.anything()
+        );
+        expect(orderRepository.update).not.toHaveBeenCalledWith(
+          "o4",
+          expect.anything(),
+          undefined,
+          expect.anything()
+        );
         expect(notificationService.publishNotification).toHaveBeenCalledTimes(
           2
+        );
+        expect(notificationService.publishNotification).toHaveBeenCalledWith(
+          "u1",
+          expect.objectContaining({
+            title: "❌ Order Batch Cancelled",
+            action_url: "/orders/o1",
+          })
         );
       }
     );
 
-    it("returns zero for a batch without orders", async () => {
+    it("leaves the total alone when nothing counted is left to cancel", async () => {
+      batchRepository.findById.mockResolvedValue({
+        status: "LOCKED",
+        orders: [order("o1", "CASH", "u1", "CANCELLED")],
+      } as never);
+
+      await expect(service.cancelBatch("b1", "")).resolves.toEqual({
+        cancelled_orders: 0,
+      });
+      expect(batchRepository.adjustCollectiveTotal).not.toHaveBeenCalled();
+      expect(publishBatchProgress).toHaveBeenCalledWith(
+        expect.objectContaining({ batchId: "b1", status: "CANCELLED" })
+      );
+      expect(notificationService.publishNotification).not.toHaveBeenCalled();
+    });
+
+    it("loads each order's status and item_total so counted orders can be decremented", async () => {
       batchRepository.findById.mockResolvedValue({
         status: "LOCKED",
         orders: [],
       } as never);
 
-      await expect(service.cancelBatch("b1", "")).resolves.toEqual({
-        cancelled_orders: 0,
+      await service.cancelBatch("b1", "");
+
+      expect(batchRepository.findById).toHaveBeenCalledWith("b1", {
+        include: {
+          orders: {
+            select: {
+              id: true,
+              user_id: true,
+              payment_status: true,
+              display_id: true,
+              payment_method: true,
+              order_status: true,
+              item_total: true,
+            },
+          },
+          shop: { select: { name: true } },
+        },
       });
     });
 
@@ -880,10 +976,342 @@ describe("BatchService", () => {
         { status: "OPEN", orders: [] },
         "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches",
       ],
+      [
+        { status: "COMPLETED", orders: [] },
+        "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches",
+      ],
+      [
+        { status: "CANCELLED", orders: [] },
+        "Can only cancel LOCKED, IN_TRANSIT, or PENDING_REVIEW batches",
+      ],
     ])("rejects batch %j", async (batch, message) => {
       batchRepository.findById.mockResolvedValue(batch as never);
 
       await expect(service.cancelBatch("b1", "")).rejects.toThrow(message);
+      expect(prisma.$transaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("cancelled orders are never revived by lifecycle transitions", () => {
+    const notCancelled = {
+      where: { batch_id: "b1", order_status: { not: "CANCELLED" } },
+      select: { id: true },
+    };
+
+    it("lock/force-lock only batch and OTP the batch's non-cancelled orders", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "shop-1",
+        status: "PENDING_REVIEW",
+      } as never);
+
+      await service.forceLockBatch("b1", "shop-1");
+
+      expect(orderRepository.findMany).toHaveBeenCalledTimes(2);
+      expect(orderRepository.findMany).toHaveBeenNthCalledWith(1, notCancelled);
+      expect(orderRepository.findMany).toHaveBeenNthCalledWith(2, notCancelled);
+    });
+
+    it("unlock only resets non-cancelled orders", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        status: "LOCKED",
+      } as never);
+
+      await service.unlockBatch("b1");
+
+      expect(orderRepository.findMany).toHaveBeenCalledWith(notCancelled);
+    });
+
+    it("start delivery only dispatches non-cancelled orders", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        status: "LOCKED",
+        orders: [],
+      } as never);
+
+      await service.startDelivery("b1");
+
+      expect(batchRepository.findById).toHaveBeenCalledWith("b1", {
+        include: {
+          orders: {
+            where: { order_status: { not: "CANCELLED" } },
+            select: {
+              id: true,
+              user_id: true,
+              display_id: true,
+              delivery_otp: true,
+            },
+          },
+        },
+      });
+    });
+
+    it("force-lock of a non-PENDING_REVIEW batch is a BadRequestError", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "shop-1",
+        status: "OPEN",
+      } as never);
+
+      await expect(
+        service.forceLockBatch("b1", "shop-1")
+      ).rejects.toBeInstanceOf(BadRequestError);
+      expect(batchRepository.updateStatus).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("query and message contracts", () => {
+    it("lockBatch and forceLockBatch load only what the guards need", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "shop-1",
+        status: "OPEN",
+      } as never);
+      await service.lockBatch("b1", "shop-1");
+      expect(batchRepository.findById).toHaveBeenLastCalledWith("b1", {
+        select: { id: true, shop_id: true, status: true, cutoff_time: true },
+      });
+
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "shop-1",
+        status: "PENDING_REVIEW",
+      } as never);
+      await service.forceLockBatch("b1", "shop-1");
+      expect(batchRepository.findById).toHaveBeenLastCalledWith("b1", {
+        select: { id: true, shop_id: true, status: true },
+      });
+    });
+
+    it("lockBatch rejects another shop's batch and a non-OPEN batch", async () => {
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "other",
+        status: "OPEN",
+      } as never);
+      await expect(service.lockBatch("b1", "shop-1")).rejects.toThrow(
+        "Unauthorized: Batch does not belong to your shop"
+      );
+      batchRepository.findById.mockResolvedValue({
+        id: "b1",
+        shop_id: "shop-1",
+        status: "PENDING_REVIEW",
+      } as never);
+      await expect(service.lockBatch("b1", "shop-1")).rejects.toThrow(
+        "Only OPEN batches can be locked"
+      );
+      expect(batchRepository.updateStatus).not.toHaveBeenCalled();
+    });
+
+    it("not-found errors carry their user-facing message", async () => {
+      batchRepository.findById.mockResolvedValue(null as never);
+      await expect(service.getBatchSummary("b1")).rejects.toThrow(
+        "Batch not found"
+      );
+      shopRepository.findById.mockResolvedValue(null as never);
+      await expect(service.getNextSlot("shop-1")).rejects.toThrow(
+        "Shop not found"
+      );
+    });
+
+    it("getNextSlot skips a slot whose cutoff is exactly now and queries batches by id/status", async () => {
+      shopRepository.findById.mockResolvedValue({
+        id: "shop-1",
+        is_active: true,
+        accepting_orders: true,
+      } as never);
+      // NOW is 05:30 IST.
+      batchRepository.findActiveSlots.mockResolvedValue([
+        slot(330),
+        slot(600),
+      ] as never);
+      batchRepository.findFirst.mockResolvedValue(null as never);
+      batchRepository.findOpenBatchByCutoff.mockResolvedValue(null as never);
+
+      const result = await service.getNextSlot("shop-1");
+
+      expect(result).toMatchObject({ cutoff_time: ist(10) });
+      expect(shopRepository.findById).toHaveBeenCalledWith("shop-1", {
+        select: { id: true, is_active: true, accepting_orders: true },
+      });
+      expect(batchRepository.findFirst).toHaveBeenCalledTimes(1);
+      expect(batchRepository.findFirst).toHaveBeenCalledWith({
+        where: { shop_id: "shop-1", cutoff_time: ist(10) },
+        select: { id: true, status: true },
+      });
+      expect(batchRepository.findOpenBatchByCutoff).toHaveBeenCalledWith(
+        "shop-1",
+        ist(10),
+        { select: { id: true } }
+      );
+    });
+
+    it("ensureNextOpenBatch links the slot matching the chosen cutoff", async () => {
+      batchRepository.findActiveSlots.mockResolvedValue([
+        slot(600, "s1000"),
+        slot(855, "s1415"),
+      ] as never);
+      batchRepository.findFirst
+        .mockResolvedValueOnce({ id: "b", status: "LOCKED" } as never)
+        .mockResolvedValue(null as never);
+      batchRepository.findOpenBatchByCutoff.mockResolvedValue(null as never);
+      shopRepository.findById.mockResolvedValue({
+        batch_min_order_value: null,
+      } as never);
+
+      await service.ensureNextOpenBatch("shop-1");
+
+      expect(batchRepository.findOpenBatchByCutoff).toHaveBeenCalledWith(
+        "shop-1",
+        ist(14, 15),
+        { select: { id: true } }
+      );
+      expect(shopRepository.findById).toHaveBeenCalledWith("shop-1", {
+        select: { batch_min_order_value: true },
+      });
+      expect(
+        callArg<{ data: { slot_id: string } }>(batchRepository.create).data
+          .slot_id
+      ).toBe("s1415");
+    });
+
+    it("ensureNextOpenBatch leaves slot_id unset when no slot matches", async () => {
+      batchRepository.findActiveSlots.mockResolvedValue([slot(600)] as never);
+      batchRepository.findFirst.mockResolvedValue({
+        id: "b",
+        status: "LOCKED",
+      } as never);
+      batchRepository.findOpenBatchByCutoff.mockResolvedValue(null as never);
+      shopRepository.findById.mockResolvedValue(null as never);
+
+      await service.ensureNextOpenBatch("shop-1");
+
+      // Every candidate day is locked, so the fallback is tomorrow 10:00,
+      // which matches the slot.
+      expect(
+        callArg<{ data: { slot_id?: string } }>(batchRepository.create).data
+          .slot_id
+      ).toBe("slot-600");
+    });
+
+    it("getVendorDashboard loads the order fields the dashboard shows", async () => {
+      batchRepository.findActiveSlots.mockResolvedValue([] as never);
+      batchRepository.findOpenBatches.mockResolvedValue([] as never);
+      batchRepository.findActiveBatches.mockResolvedValue([] as never);
+
+      await service.getVendorDashboard("shop-1");
+
+      const orderSelect = {
+        id: true,
+        display_id: true,
+        order_status: true,
+        item_total: true,
+        delivery_fee: true,
+        platform_fee: true,
+        user: { select: { phone: true } },
+        delivery_address: {
+          select: {
+            hostel_block: true,
+            label: true,
+            building: true,
+            room_number: true,
+          },
+        },
+      };
+      expect(batchRepository.findOpenBatches).toHaveBeenCalledWith("shop-1", {
+        include: { orders: { select: orderSelect } },
+      });
+      expect(batchRepository.findActiveBatches).toHaveBeenCalledWith("shop-1", {
+        include: { orders: { select: orderSelect } },
+      });
+      expect(orderRepository.findMany).toHaveBeenCalledWith({
+        where: {
+          shop_id: "shop-1",
+          order_status: { notIn: ["COMPLETED", "CANCELLED"] },
+          OR: [{ is_direct_delivery: true }, { batch_id: null }],
+        },
+        select: { ...orderSelect, created_at: true },
+        orderBy: { created_at: "asc" },
+      });
+    });
+
+    it("verifyOrderOtp loads the guard fields and sends the delivered notice", async () => {
+      orderRepository.getOrderById.mockResolvedValue({
+        id: "o1",
+        delivery_otp: "1234",
+        order_status: "OUT_FOR_DELIVERY",
+        shop_id: "shop-1",
+        payment_method: "CASH",
+        user_id: "u1",
+        display_id: "D1",
+      } as never);
+
+      await service.verifyOrderOtp("o1", "1234", "shop-1");
+
+      expect(orderRepository.getOrderById).toHaveBeenCalledWith("o1", {
+        select: {
+          id: true,
+          delivery_otp: true,
+          order_status: true,
+          shop_id: true,
+          batch_id: true,
+          payment_method: true,
+          user_id: true,
+          display_id: true,
+        },
+      });
+      expect(notificationService.publishNotification).toHaveBeenCalledWith(
+        "u1",
+        {
+          title: "🎉 Order Delivered!",
+          message: "Your order D1 was successfully delivered. Thank you!",
+          type: "SUCCESS",
+          category: "ORDER",
+          action_url: "/orders/o1",
+        }
+      );
+    });
+
+    it("cancelBatch tells each customer the run was cancelled and a refund is coming", async () => {
+      prisma.batch.update.mockResolvedValue(
+        buildBatchRow({ id: "b1", status: "CANCELLED" })
+      );
+      batchRepository.findById.mockResolvedValue({
+        status: "LOCKED",
+        orders: [
+          {
+            id: "o1",
+            user_id: "u1",
+            display_id: "D1",
+            payment_method: "ONLINE",
+            order_status: "BATCHED",
+            item_total: "0",
+          },
+        ],
+      } as never);
+
+      await service.cancelBatch("b1", "");
+
+      expect(notificationService.publishNotification).toHaveBeenCalledWith(
+        "u1",
+        {
+          title: "❌ Order Batch Cancelled",
+          message:
+            "Your order D1 was cancelled because the delivery run was cancelled. A refund has been initiated if you paid online.",
+          type: "ERROR",
+          category: "ORDER",
+          action_url: "/orders/o1",
+        }
+      );
+    });
+
+    it("formatRupees shows whole rupees plainly and paise to two places", async () => {
+      const { formatRupees } = await import("./batch.service");
+      expect(formatRupees(1800)).toBe("1800");
+      expect(formatRupees(180.004)).toBe("180");
+      expect(formatRupees(0.4)).toBe("0.40");
+      expect(formatRupees(150.39999999999998)).toBe("150.40");
     });
   });
 
@@ -941,29 +1369,31 @@ describe("BatchService", () => {
     });
     const lockRow = (id: string, total: string, min: string | null) => ({
       id,
-      status: "OPEN",
       collective_total: total,
       min_order_value_snapshot: min,
     });
-
     const arrange = (opts: {
       expired?: Expired[];
       locked?: ReturnType<typeof lockRow>[];
-      counts?: { batch_id: string | null; _count: { id: number } }[];
-      stale?: unknown[];
     }) => {
-      prisma.batch.findMany
-        .mockResolvedValueOnce(opts.expired ?? [])
-        .mockResolvedValueOnce(opts.stale ?? []);
+      prisma.batch.findMany.mockResolvedValueOnce(opts.expired ?? []);
       prisma.$queryRaw.mockResolvedValue(opts.locked ?? []);
-      prisma.order.groupBy.mockResolvedValue(opts.counts ?? []);
     };
 
-    it("does nothing when no batches are expired or stale", async () => {
+    it("does nothing when no batches are expired", async () => {
       arrange({});
 
       await service.autoCloseExpiredBatches();
 
+      expect(prisma.batch.findMany).toHaveBeenCalledWith({
+        where: { status: "OPEN", cutoff_time: { lt: NOW } },
+        select: {
+          id: true,
+          shop_id: true,
+          shop: { select: { name: true, user: { select: { id: true } } } },
+          orders: { where: { order_status: "NEW" }, select: { id: true } },
+        },
+      });
       expect(prisma.$transaction).not.toHaveBeenCalled();
       expect(notificationService.publishNotification).not.toHaveBeenCalled();
     });
@@ -971,8 +1401,8 @@ describe("BatchService", () => {
     it("locks batches meeting their minimum and parks short ones for review", async () => {
       arrange({
         expired: [
-          expired("b-ok"),
-          expired("b-nomin", { orders: [] }),
+          expired("b-ok", { orders: [{ id: "b-ok-o1" }, { id: "b-ok-o2" }] }),
+          expired("b-nomin"),
           expired("b-short"),
           expired("b-gone"),
         ],
@@ -981,15 +1411,15 @@ describe("BatchService", () => {
           lockRow("b-nomin", "50", null),
           lockRow("b-short", "120", "300"),
         ],
-        counts: [
-          { batch_id: "b-ok", _count: { id: 2 } },
-          { batch_id: "b-nomin", _count: { id: 1 } },
-          { batch_id: null, _count: { id: 9 } },
-        ],
       });
 
       await service.autoCloseExpiredBatches();
 
+      expect(callArg(prisma.$queryRaw, 0, 1)).toEqual(
+        expect.objectContaining({
+          values: ["b-gone", "b-nomin", "b-ok", "b-short"],
+        })
+      );
       expect(prisma.batch.updateMany).toHaveBeenCalledWith({
         where: { id: { in: ["b-short"] } },
         data: { status: "PENDING_REVIEW" },
@@ -999,12 +1429,24 @@ describe("BatchService", () => {
         data: { status: "LOCKED" },
       });
       expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
+      const sql = (prisma.$executeRaw.mock.calls[0][0] as string[]).join("?");
+      expect(sql).toContain(`SET order_status = 'BATCHED'`);
+      expect(sql).toContain(`AND order_status = 'NEW'`);
+      expect(prisma.$executeRaw.mock.calls[0][1]).toEqual(["b-ok", "b-nomin"]);
+      expect(publishBatchProgress).toHaveBeenCalledTimes(3);
       expect(publishBatchProgress).toHaveBeenCalledWith({
         batchId: "b-ok",
         shopId: "shop-1",
         status: "LOCKED",
         collectiveTotal: 500,
         minRequired: 300,
+      });
+      expect(publishBatchProgress).toHaveBeenCalledWith({
+        batchId: "b-nomin",
+        shopId: "shop-1",
+        status: "LOCKED",
+        collectiveTotal: 50,
+        minRequired: null,
       });
       expect(publishBatchProgress).toHaveBeenCalledWith({
         batchId: "b-short",
@@ -1025,13 +1467,6 @@ describe("BatchService", () => {
       );
       expect(notificationService.publishNotification).toHaveBeenCalledWith(
         "owner-1",
-        expect.objectContaining({
-          title: "🚀 Batch Ready!",
-          action_url: "/owner-shops",
-        })
-      );
-      expect(notificationService.publishNotification).toHaveBeenCalledWith(
-        "owner-1",
         {
           title: "⚠️ Batch Below Minimum",
           message:
@@ -1043,58 +1478,92 @@ describe("BatchService", () => {
       );
     });
 
-    it("skips lock notifications for ownerless shops or batches without active orders", async () => {
+    it.each([
+      ["exactly at", "300", "300", "LOCKED"],
+      ["one paisa below", "299.99", "300", "PENDING_REVIEW"],
+      ["a zero minimum with a zero total", "0", "0", "LOCKED"],
+      ["no minimum with a zero total", "0", null, "LOCKED"],
+    ])("a batch %s its minimum ends up %s", async (_l, total, min, status) => {
+      arrange({
+        expired: [expired("b1")],
+        locked: [lockRow("b1", total, min)],
+      });
+
+      await service.autoCloseExpiredBatches();
+
+      expect(prisma.batch.updateMany).toHaveBeenCalledTimes(1);
+      expect(prisma.batch.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["b1"] } },
+        data: { status },
+      });
+      expect(prisma.$executeRaw).toHaveBeenCalledTimes(
+        status === "LOCKED" ? 1 : 0
+      );
+    });
+
+    it("states a fractional shortfall in paise", async () => {
+      arrange({
+        expired: [expired("b1")],
+        locked: [lockRow("b1", "299.6", "300")],
+      });
+
+      await service.autoCloseExpiredBatches();
+
+      expect(notificationService.publishNotification).toHaveBeenCalledWith(
+        "owner-1",
+        expect.objectContaining({
+          message: expect.stringContaining("₹0.40 short"),
+        })
+      );
+    });
+
+    it("skips owner notices for ownerless shops and for locked batches with no orders", async () => {
       arrange({
         expired: [
           expired("b-1", { shop: { name: "S", user: null } }),
-          expired("b-2"),
+          expired("b-2", { orders: [] }),
+          expired("b-3", { shop: { name: "S", user: null } }),
         ],
-        locked: [lockRow("b-1", "1", null), lockRow("b-2", "1", null)],
-        counts: [{ batch_id: "b-1", _count: { id: 3 } }],
+        locked: [
+          lockRow("b-1", "1", null),
+          lockRow("b-2", "1", null),
+          lockRow("b-3", "1", "100"),
+        ],
       });
 
       await service.autoCloseExpiredBatches();
 
       expect(notificationService.publishNotification).not.toHaveBeenCalled();
+      expect(publishBatchProgress).toHaveBeenCalledTimes(3);
     });
 
-    it("only parks batches when none meet their minimum", async () => {
+    it("still warns about a short batch with no NEW orders, linking the dashboard", async () => {
       arrange({
-        expired: [
-          expired("b-short", { orders: [] }),
-          expired("b-ownerless", { shop: { name: "S", user: null } }),
-        ],
-        locked: [
-          lockRow("b-short", "10", "100"),
-          lockRow("b-ownerless", "10", "100"),
-        ],
+        expired: [expired("b-short", { orders: [] })],
+        locked: [lockRow("b-short", "10", "100")],
       });
 
       await service.autoCloseExpiredBatches();
 
       expect(prisma.batch.updateMany).toHaveBeenCalledTimes(1);
       expect(prisma.$executeRaw).not.toHaveBeenCalled();
-      expect(prisma.order.groupBy).not.toHaveBeenCalled();
-      expect(notificationService.publishNotification).toHaveBeenCalledTimes(1);
       expect(notificationService.publishNotification).toHaveBeenCalledWith(
         "owner-1",
-        expect.objectContaining({ action_url: "/owner-shops" })
+        expect.objectContaining({
+          title: "⚠️ Batch Below Minimum",
+          message: expect.stringContaining("₹90 short"),
+          action_url: "/owner-shops",
+        })
       );
     });
 
-    it("skips the review update when every batch meets its minimum", async () => {
-      arrange({
-        expired: [expired("b-ok")],
-        locked: [lockRow("b-ok", "500", "100")],
-        counts: [{ batch_id: "b-ok", _count: { id: 1 } }],
-      });
+    it("does nothing when another run already closed every batch", async () => {
+      arrange({ expired: [expired("b1")], locked: [] });
 
       await service.autoCloseExpiredBatches();
 
-      expect(prisma.batch.updateMany).toHaveBeenCalledTimes(1);
-      expect(prisma.batch.updateMany).toHaveBeenCalledWith(
-        expect.objectContaining({ data: { status: "LOCKED" } })
-      );
+      expect(prisma.batch.updateMany).not.toHaveBeenCalled();
+      expect(publishBatchProgress).not.toHaveBeenCalled();
     });
 
     it("logs and continues when owner notifications fail", async () => {
@@ -1102,66 +1571,10 @@ describe("BatchService", () => {
       arrange({
         expired: [expired("b-ok"), expired("b-short")],
         locked: [lockRow("b-ok", "500", null), lockRow("b-short", "1", "100")],
-        counts: [{ batch_id: "b-ok", _count: { id: 1 } }],
-        stale: [
-          {
-            id: "s1",
-            cutoff_time: new Date(NOW.getTime() - 45 * 60_000),
-            shop: { name: "S", user: { id: "owner-1" } },
-            orders: [{ id: "so1" }],
-          },
-        ],
       });
 
       await expect(service.autoCloseExpiredBatches()).resolves.toBeUndefined();
-      expect(notificationService.publishNotification).toHaveBeenCalledTimes(3);
-    });
-
-    it("warns owners about stale locked batches", async () => {
-      arrange({
-        stale: [
-          {
-            id: "s1",
-            cutoff_time: new Date(NOW.getTime() - 45 * 60_000),
-            shop: { name: "S", user: { id: "owner-1" } },
-            orders: [{ id: "so1" }, { id: "so2" }],
-          },
-          {
-            id: "s2",
-            cutoff_time: NOW,
-            shop: { name: "S", user: null },
-            orders: [{ id: "x" }],
-          },
-          {
-            id: "s3",
-            cutoff_time: NOW,
-            shop: { name: "S", user: { id: "o" } },
-            orders: [],
-          },
-        ],
-      });
-
-      await service.autoCloseExpiredBatches();
-
-      expect(
-        callArg<{ where: object }>(prisma.batch.findMany, 1).where
-      ).toEqual({
-        status: "LOCKED",
-        cutoff_time: { lt: new Date(NOW.getTime() - 30 * 60_000) },
-        orders: { some: { order_status: "BATCHED" } },
-      });
-      expect(notificationService.publishNotification).toHaveBeenCalledTimes(1);
-      expect(notificationService.publishNotification).toHaveBeenCalledWith(
-        "owner-1",
-        {
-          title: "⚠️ Orders Waiting!",
-          message:
-            "You have 2 orders waiting for 45 mins! Start delivery NOW or they will be cancelled.",
-          type: "WARNING",
-          category: "ORDER",
-          action_url: "/owner-shops/orders/so1",
-        }
-      );
+      expect(notificationService.publishNotification).toHaveBeenCalledTimes(2);
     });
   });
 });

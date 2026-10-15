@@ -253,21 +253,18 @@ export class BatchRepository extends BaseRepository<
     tx?: Prisma.TransactionClient
   ): Promise<Batch | null> {
     const client = tx ?? this.prismaClient;
-    const existing = await client.batch.findUnique({
-      where: { id: batchId },
-      select: { collective_total: true },
-    });
-    if (!existing) {
-      return null;
-    }
-    const nextTotal = Math.max(
-      0,
-      Math.round((Number(existing.collective_total) + delta) * 100) / 100
-    );
-    return client.batch.update({
-      where: { id: batchId },
-      data: { collective_total: nextTotal },
-    });
+    const cents = Math.round(delta * 100) / 100;
+    // Single atomic statement: a read-then-write here loses updates when two
+    // transactions adjust the same batch concurrently (both read the same
+    // starting total). Clamped at zero - the total is money, never negative.
+    const rows = await client.$queryRaw<Batch[]>`
+      UPDATE "Batch"
+      SET collective_total = GREATEST(0, collective_total + ${cents}::numeric),
+          updated_at = NOW()
+      WHERE id = ${batchId}
+      RETURNING *
+    `;
+    return rows[0] ?? null;
   }
 
   async update<T extends Prisma.BatchUpdateArgs>(

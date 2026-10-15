@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { publishBatchProgress } from "../lib/batch-progress-publisher.js";
 import { loggers } from "../lib/logger.js";
 import { prisma } from "../lib/prisma.js";
-import { BatchService } from "./batch.service.js";
+import { BatchService, formatRupees } from "./batch.service.js";
 import type { NotificationService } from "./notification.service.js";
 
 vi.mock("../lib/logger.js", async () =>
@@ -117,12 +117,13 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
 
   it("locks batches that met (or have no) minimum, batches their orders and notifies owners", async () => {
     const { service, tx, notifications } = setup({
-      expiredBatches: [expired("b2"), expired("b1")],
-      locked: [row("b1", 500, null), row("b2", 800, 600)],
-      counts: [
-        { batch_id: "b1", _count: { id: 2 } },
-        { batch_id: "b2", _count: { id: 5 } },
+      expiredBatches: [
+        expired("b2", {
+          orders: [1, 2, 3, 4, 5].map((n) => ({ id: `order-b2-${n}` })),
+        }),
+        expired("b1", { orders: [{ id: "order-b1" }, { id: "order-b1-2" }] }),
       ],
+      locked: [row("b1", 500, null), row("b2", 800, 600)],
     });
 
     await service.autoCloseExpiredBatches();
@@ -133,11 +134,11 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
       data: { status: "LOCKED" },
     });
     expect(tx.$executeRaw).toHaveBeenCalledTimes(1);
-    expect(tx.order.groupBy).toHaveBeenCalledWith({
-      by: ["batch_id"],
-      where: { batch_id: { in: ["b1", "b2"] }, order_status: "BATCHED" },
-      _count: { id: true },
-    });
+    const sql = (tx.$executeRaw.mock.calls[0][0] as string[]).join("?");
+    expect(sql).toContain(`SET order_status = 'BATCHED'`);
+    expect(sql).toContain("delivery_otp");
+    expect(sql).toContain(`AND order_status = 'NEW'`);
+    expect(tx.$executeRaw.mock.calls[0][1]).toEqual(["b1", "b2"]);
     expect(notifications.publishNotification).toHaveBeenCalledWith("owner-b1", {
       title: "🚀 Batch Ready!",
       message: "Batch for Shop b1 is ready with 2 orders. Start preparing!",
@@ -150,6 +151,90 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
       expect.objectContaining({
         message: "Batch for Shop b2 is ready with 5 orders. Start preparing!",
       })
+    );
+  });
+
+  it("looks up expired OPEN batches with their shop owner and NEW orders", async () => {
+    const { service, db } = setup();
+
+    await service.autoCloseExpiredBatches();
+
+    expect(db.batch.findMany).toHaveBeenNthCalledWith(1, {
+      where: { status: "OPEN", cutoff_time: { lt: NOW } },
+      select: {
+        id: true,
+        shop_id: true,
+        shop: { select: { name: true, user: { select: { id: true } } } },
+        orders: { where: { order_status: "NEW" }, select: { id: true } },
+      },
+    });
+  });
+
+  it("auto-locks a batch whose total is exactly its minimum", async () => {
+    const { service, tx } = setup({
+      expiredBatches: [expired("b1")],
+      locked: [row("b1", 500, 500)],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(tx.batch.updateMany).toHaveBeenCalledTimes(1);
+    expect(tx.batch.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["b1"] } },
+      data: { status: "LOCKED" },
+    });
+    expect(publishBatchProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "LOCKED", minRequired: 500 })
+    );
+  });
+
+  it("parks a batch one paisa short of its minimum and states the paise", async () => {
+    const { service, tx, notifications } = setup({
+      expiredBatches: [expired("b1")],
+      locked: [row("b1", 499.99, 500)],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(tx.batch.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: ["b1"] } },
+      data: { status: "PENDING_REVIEW" },
+    });
+    expect(notifications.publishNotification).toHaveBeenCalledWith(
+      "owner-b1",
+      expect.objectContaining({
+        message: expect.stringContaining("₹0.01 short"),
+      })
+    );
+  });
+
+  it("treats a null snapshot as no requirement: locks even a zero total and reports minRequired null", async () => {
+    const { service } = setup({
+      expiredBatches: [expired("b1")],
+      locked: [row("b1", 0, null)],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(publishBatchProgress).toHaveBeenCalledWith({
+      batchId: "b1",
+      shopId: "shop-b1",
+      status: "LOCKED",
+      collectiveTotal: 0,
+      minRequired: null,
+    });
+  });
+
+  it("treats a zero snapshot as a met requirement", async () => {
+    const { service } = setup({
+      expiredBatches: [expired("b1")],
+      locked: [row("b1", 0, 0)],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(publishBatchProgress).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "LOCKED", minRequired: 0 })
     );
   });
 
@@ -208,7 +293,7 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
     expect(notifications.publishNotification).toHaveBeenCalledWith("owner-b1", {
       title: "⚠️ Batch Below Minimum",
       message:
-        "Batch for Shop b1 is ₹150 short of its collective minimum. Decide whether to proceed or cancel.",
+        "Batch for Shop b1 is ₹150.40 short of its collective minimum. Decide whether to proceed or cancel.",
       type: "WARNING",
       category: "ORDER",
       action_url: "/owner-shops/orders/order-b1",
@@ -242,22 +327,10 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
     expect(notifications.publishNotification).not.toHaveBeenCalled();
   });
 
-  it("skips progress for locked rows it cannot map to a shop", async () => {
-    const { service } = setup({
-      expiredBatches: [expired("b1")],
-      locked: [row("ghost", 1, null)],
-    });
-
-    await service.autoCloseExpiredBatches();
-
-    expect(publishBatchProgress).not.toHaveBeenCalled();
-  });
-
   it("does not notify for locked batches without active orders", async () => {
     const { service, notifications } = setup({
-      expiredBatches: [expired("b1")],
+      expiredBatches: [expired("b1", { orders: [] })],
       locked: [row("b1", 0, null)],
-      counts: [{ batch_id: null, _count: { id: 3 } }],
     });
 
     await service.autoCloseExpiredBatches();
@@ -280,10 +353,7 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
     expect(notifications.publishNotification).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ["locked", row("b1", 10, null)],
-    ["pending-review", row("b1", 1, 10)],
-  ])(
+  it.each([["pending-review", row("b1", 1, 10)]])(
     "links %s notifications to the shop dashboard when the batch has no NEW orders",
     async (_l, r) => {
       const { service, notifications } = setup({
@@ -302,11 +372,11 @@ describe("BatchService.autoCloseExpiredBatches — expired OPEN batches", () => 
   );
 
   it.each([
-    ["locked", row("b1", 10, null), "Failed to publish batch notification"],
+    ["locked", row("b1", 10, null), "Failed to publish cutoff notification"],
     [
       "pending-review",
       row("b1", 1, 10),
-      "Failed to publish pending-review notification",
+      "Failed to publish cutoff notification",
     ],
   ])(
     "logs %s notification failures and keeps going",
@@ -451,5 +521,68 @@ describe("BatchService defaults", () => {
     await service.autoCloseExpiredBatches();
 
     expect(prisma.batch.findMany).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("cutoff contracts", () => {
+  it("formatRupees shows whole rupees plainly and paise to two places", () => {
+    expect(formatRupees(1800)).toBe("1800");
+    expect(formatRupees(180.004)).toBe("180");
+    expect(formatRupees(0.4)).toBe("0.40");
+  });
+
+  it("states a whole-rupee shortfall without paise", async () => {
+    const { service, notifications } = setup({
+      expiredBatches: [expired("b1")],
+      locked: [row("b1", 3200, 5000)],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(notifications.publishNotification).toHaveBeenCalledWith(
+      "owner-b1",
+      expect.objectContaining({
+        message: expect.stringContaining("is ₹1800 short"),
+      })
+    );
+  });
+
+  it("queries stale LOCKED batches with the owner and their BATCHED orders", async () => {
+    const { service, db } = setup();
+
+    await service.autoCloseExpiredBatches();
+
+    expect(db.batch.findMany).toHaveBeenNthCalledWith(2, {
+      where: {
+        status: "LOCKED",
+        cutoff_time: { lt: new Date(NOW.getTime() - 30 * 60_000) },
+        orders: { some: { order_status: "BATCHED" } },
+      },
+      select: {
+        id: true,
+        cutoff_time: true,
+        shop: { select: { name: true, user: { select: { id: true } } } },
+        orders: { where: { order_status: "BATCHED" }, select: { id: true } },
+      },
+    });
+  });
+
+  it("skips an ownerless stale batch without attempting a send", async () => {
+    const { service, notifications, gate } = setup({
+      stale: [
+        {
+          id: "s1",
+          cutoff_time: new Date(NOW.getTime() - 45 * 60_000),
+          shop: { name: "x", user: null },
+          orders: [{ id: "o1" }],
+        },
+      ],
+    });
+
+    await service.autoCloseExpiredBatches();
+
+    expect(gate.tryAcquire).not.toHaveBeenCalled();
+    expect(notifications.publishNotification).not.toHaveBeenCalled();
+    expect(loggers.batch.error).not.toHaveBeenCalled();
   });
 });
