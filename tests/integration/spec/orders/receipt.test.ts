@@ -1,4 +1,4 @@
-// RULE O3c: the PDF receipt's subtotal + fees = the total it prints.
+// the PDF receipt's subtotal + fees = the total it prints.
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -34,7 +34,7 @@ type Receipt = {
 };
 
 describe("orders spec: receipt", () => {
-  it("RULE O3c: the receipt lines and subtotal equal the order's item_total, and subtotal + fees = total", async () => {
+  it("the receipt lines and subtotal equal the order's item_total, and subtotal + fees = total", async () => {
     const s = await seedCheckout({
       lines: [
         { price: 120, discount: 25, quantity: 2 },

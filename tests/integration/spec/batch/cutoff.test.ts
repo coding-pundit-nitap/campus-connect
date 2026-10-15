@@ -1,4 +1,4 @@
-// Rule-based tests for cutoff branching (spec: "Cutoff handling"). Production
+// Tests for cutoff branching (spec: "Cutoff handling"). Production
 // runs the cutoff in the worker (workers/services/batch.service.ts via
 // workers/batch/batch-closer.ts), so that copy is exercised against the real
 // DB. Its notification queue is replaced by a recorder; nothing else is faked.
@@ -60,7 +60,7 @@ async function orderStatuses(batchId: string) {
 }
 
 describe("worker cutoff branching", () => {
-  it("RULE B18: a batch with no threshold snapshot auto-locks at cutoff", async () => {
+  it("a batch with no threshold snapshot auto-locks at cutoff", async () => {
     const { batchId } = await expiredBatchWith(null, [40]);
     const { service } = workerService();
     await service.autoCloseExpiredBatches();
@@ -69,7 +69,7 @@ describe("worker cutoff branching", () => {
     expect(await orderStatuses(batchId)).toEqual(["BATCHED"]);
   });
 
-  it("RULE B19: a batch exactly at its threshold auto-locks", async () => {
+  it("a batch exactly at its threshold auto-locks", async () => {
     const { batchId } = await expiredBatchWith(300, [100, 200]);
     const { service } = workerService();
     await service.autoCloseExpiredBatches();
@@ -78,7 +78,7 @@ describe("worker cutoff branching", () => {
     expect(await orderStatuses(batchId)).toEqual(["BATCHED", "BATCHED"]);
   });
 
-  it("RULE B19: a batch above its threshold auto-locks and the owner gets the normal 'Batch Ready' notice", async () => {
+  it("a batch above its threshold auto-locks and the owner gets the normal 'Batch Ready' notice", async () => {
     const { owner, batchId } = await expiredBatchWith(250, [100, 200]);
     const { service, sent } = workerService();
     await service.autoCloseExpiredBatches();
@@ -88,7 +88,7 @@ describe("worker cutoff branching", () => {
     expect(sent[0].title).toMatch(/ready/i);
   });
 
-  it("RULE B20: a batch below its threshold goes to PENDING_REVIEW, keeps its orders, and the owner is told the shortfall", async () => {
+  it("a batch below its threshold goes to PENDING_REVIEW, keeps its orders, and the owner is told the shortfall", async () => {
     const { owner, batchId } = await expiredBatchWith(5000, [1200, 2000]);
     const { service, sent } = workerService();
     await service.autoCloseExpiredBatches();
@@ -103,7 +103,7 @@ describe("worker cutoff branching", () => {
     expect(toOwner[0].message).toContain("1800");
   });
 
-  it("RULE B21: a fractional shortfall is stated as a non-zero amount", async () => {
+  it("a fractional shortfall is stated as a non-zero amount", async () => {
     const { owner, batchId } = await expiredBatchWith(500, [499.6]);
     const { service, sent } = workerService();
     await service.autoCloseExpiredBatches();
@@ -114,7 +114,7 @@ describe("worker cutoff branching", () => {
     expect(msg).toContain("0.40");
   });
 
-  it("RULE B20: cutoff never auto-cancels an under-threshold batch", async () => {
+  it("cutoff never auto-cancels an under-threshold batch", async () => {
     const { batchId } = await expiredBatchWith(5000, [10]);
     const { service } = workerService();
     await service.autoCloseExpiredBatches();
@@ -126,7 +126,7 @@ describe("worker cutoff branching", () => {
 });
 
 describe("on-read cutoff (next-slot lookup)", () => {
-  it("RULE B22: an expired under-threshold batch is not force-locked when a client asks for the next slot", async () => {
+  it("an expired under-threshold batch is not force-locked when a client asks for the next slot", async () => {
     const { shop, batchId } = await expiredBatchWith(5000, [100]);
     const res = await getNextSlot(
       new NextRequest(`http://localhost/api/shops/${shop.id}/next-slot`),
@@ -138,7 +138,7 @@ describe("on-read cutoff (next-slot lookup)", () => {
     expect(await orderStatuses(batchId)).toEqual(["NEW"]);
   });
 
-  it("RULE B22: an expired batch with no threshold still auto-locks on the next-slot lookup", async () => {
+  it("an expired batch with no threshold still auto-locks on the next-slot lookup", async () => {
     const { shop, batchId } = await expiredBatchWith(null, [100]);
     await getNextSlot(
       new NextRequest(`http://localhost/api/shops/${shop.id}/next-slot`),

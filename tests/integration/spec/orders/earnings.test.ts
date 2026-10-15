@@ -1,4 +1,4 @@
-// Rule-based vendor earnings tests (O36-O40).
+// Vendor earnings tests.
 import { describe, expect, it } from "vitest";
 
 import {
@@ -40,7 +40,7 @@ async function seedShop() {
 }
 
 describe("orders spec: vendor earnings", () => {
-  it("RULE O36: vendor earnings = item_total + delivery_fee; the platform fee is on top (customersPaid = earnings + platformFee)", async () => {
+  it("vendor earnings = item_total + delivery_fee; the platform fee is on top (customersPaid = earnings + platformFee)", async () => {
     const { shop, owner, buyer } = await seedShop();
     const now = new Date();
     await createOrderRow({
@@ -76,7 +76,7 @@ describe("orders spec: vendor earnings", () => {
     expect(d.orderCount).toBe(2);
   });
 
-  it("RULE O37: only COMPLETED orders of the caller's own shop delivered in the period count", async () => {
+  it("only COMPLETED orders of the caller's own shop delivered in the period count", async () => {
     const { shop, owner, buyer } = await seedShop();
     const other = await createShop();
     const now = new Date();
@@ -122,7 +122,7 @@ describe("orders spec: vendor earnings", () => {
     expect(paise(body.data.vendorEarnings)).toBe(paise(counted.item_total));
   });
 
-  it("RULE O38: cash in drawer = cash earnings + platform fee owed = what cash customers paid; online earnings exclude the fee; counts add up", async () => {
+  it("cash in drawer = cash earnings + platform fee owed = what cash customers paid; online earnings exclude the fee; counts add up", async () => {
     const { shop, owner, buyer } = await seedShop();
     const now = new Date();
     const cash = await createOrderRow({
@@ -160,7 +160,7 @@ describe("orders spec: vendor earnings", () => {
     );
   });
 
-  it("RULE O39: an order placed at checkout and delivered via OTP shows up in earnings with exactly its own totals", async () => {
+  it("an order placed at checkout and delivered via OTP shows up in earnings with exactly its own totals", async () => {
     const s = await seedCheckout({
       lines: [
         { price: 33.33, discount: 10, quantity: 3 },
@@ -186,15 +186,11 @@ describe("orders spec: vendor earnings", () => {
     expect(paise(d.platformFee)).toBe(paise(order.platform_fee));
   });
 
-  it("RULE O40: earnings require a signed-in shop owner", async () => {
+  it("earnings require a signed-in shop owner", async () => {
     asAnonymous();
     expect((await getEarnings()).status).toBe(401);
     asUser(await createUser());
     const res = await getEarnings();
     expect([401, 403]).toContain(res.status);
   });
-
-  it.todo(
-    "RULE O36b: the admin platform-fee card says the fee 'will be deducted from vendor earnings' while checkout and the vendor earnings page add it to the customer's bill - CROSS-SCOPE copy fix in src/components/admin/settings/platform-fee-card.tsx"
-  );
 });

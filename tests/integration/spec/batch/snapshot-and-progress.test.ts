@@ -1,4 +1,4 @@
-// Rule-based tests for threshold snapshot immutability and the
+// Tests for threshold snapshot immutability and the
 // GET /api/shops/[shop_id]/batch-progress contract (spec: "Data model",
 // "Threshold snapshot immutability", "Realtime progress").
 import { NextRequest } from "next/server";
@@ -32,7 +32,7 @@ function worker() {
 }
 
 describe("threshold snapshot immutability", () => {
-  it("RULE B3: raising the shop threshold mid-batch leaves the open batch's snapshot and cutoff outcome unchanged", async () => {
+  it("raising the shop threshold mid-batch leaves the open batch's snapshot and cutoff outcome unchanged", async () => {
     const { shop, at } = await seedBatchShop({ min: 200 });
     const { order } = await placeOrder(shop.id, at, { price: 250 });
     await testPrisma.shop.update({
@@ -52,7 +52,7 @@ describe("threshold snapshot immutability", () => {
     expect((await batchOf(batch.id)).status).toBe("LOCKED");
   });
 
-  it("RULE B4: a batch created after the threshold change snapshots the new value", async () => {
+  it("a batch created after the threshold change snapshots the new value", async () => {
     const first = await seedBatchShop({ min: 200, offsetMinutes: 120 });
     const a = await placeOrder(first.shop.id, first.at);
     await testPrisma.shop.update({
@@ -86,7 +86,7 @@ describe("threshold snapshot immutability", () => {
     ).toBe(200);
   });
 
-  it("RULE B5: enabling a threshold mid-batch does not retroactively apply it to a batch created with the feature off", async () => {
+  it("enabling a threshold mid-batch does not retroactively apply it to a batch created with the feature off", async () => {
     const { shop, at } = await seedBatchShop({ min: null });
     const { order } = await placeOrder(shop.id, at, { price: 50 });
     await testPrisma.shop.update({
@@ -108,7 +108,7 @@ describe("threshold snapshot immutability", () => {
 });
 
 describe("GET /api/shops/[shop_id]/batch-progress", () => {
-  it("RULE B30: with the feature off it returns minRequired null and isMet true", async () => {
+  it("with the feature off it returns minRequired null and isMet true", async () => {
     const { shop, at } = await seedBatchShop({ min: null });
     const { order } = await placeOrder(shop.id, at, { price: 80 });
     const { status, body } = await progress(shop.id);
@@ -123,7 +123,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     });
   });
 
-  it("RULE B31: returns the documented shape; isMet is false below and true at the threshold", async () => {
+  it("returns the documented shape; isMet is false below and true at the threshold", async () => {
     const { shop, at } = await seedBatchShop({ min: 300 });
     const { order } = await placeOrder(shop.id, at, { price: 120 });
     let { body } = await progress(shop.id);
@@ -151,7 +151,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     expect(body.data).toMatchObject({ collectiveTotal: 300, isMet: true });
   });
 
-  it("RULE B32: a PENDING_REVIEW batch is still the shop's current batch", async () => {
+  it("a PENDING_REVIEW batch is still the shop's current batch", async () => {
     const { shop, at } = await seedBatchShop({ min: 1000 });
     const { order } = await placeOrder(shop.id, at, { price: 100 });
     await testPrisma.batch.update({
@@ -169,7 +169,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     });
   });
 
-  it("RULE B32: CANCELLED and COMPLETED batches are never reported as current", async () => {
+  it("CANCELLED and COMPLETED batches are never reported as current", async () => {
     const shop = await createShop({ batch_min_order_value: 500 });
     for (const status of ["CANCELLED", "COMPLETED"] as const) {
       await testPrisma.batch.create({
@@ -193,7 +193,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     });
   });
 
-  it("RULE B32: after a rollover the new OPEN batch is reported, not the just-closed one", async () => {
+  it("after a rollover the new OPEN batch is reported, not the just-closed one", async () => {
     const shop = await createShop({ batch_min_order_value: 500 });
     await testPrisma.batch.create({
       data: {
@@ -218,7 +218,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     expect(body.data).toMatchObject({ batchId: open.id, collectiveTotal: 40 });
   });
 
-  it("RULE B33: progress is isolated per shop", async () => {
+  it("progress is isolated per shop", async () => {
     const a = await seedBatchShop({ min: 1000 });
     const b = await seedBatchShop({ min: 2000 });
     const oa = await placeOrder(a.shop.id, a.at, { price: 300 });
@@ -235,7 +235,7 @@ describe("GET /api/shops/[shop_id]/batch-progress", () => {
     expect(pb).toMatchObject({ collectiveTotal: 50, minRequired: 2000 });
   });
 
-  it("RULE B34: an unknown shop is a 404", async () => {
+  it("an unknown shop is a 404", async () => {
     const { status, body } = await progress("no-such-shop");
     expect(status).toBe(404);
     expect(body.success).toBe(false);

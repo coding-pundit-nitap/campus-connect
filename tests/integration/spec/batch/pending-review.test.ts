@@ -1,4 +1,4 @@
-// Rule-based tests for resolving PENDING_REVIEW batches and for batch status
+// Tests for resolving PENDING_REVIEW batches and for batch status
 // gating new orders (spec: "Cutoff handling" owner actions, "No new orders on
 // PENDING_REVIEW/LOCKED").
 import { describe, expect, it } from "vitest";
@@ -51,7 +51,7 @@ async function settle<T>(fn: () => Promise<T>) {
 }
 
 describe("forceLock", () => {
-  it("RULE B23: force-locking a PENDING_REVIEW batch locks it and moves its orders into the normal delivery flow", async () => {
+  it("force-locking a PENDING_REVIEW batch locks it and moves its orders into the normal delivery flow", async () => {
     const { owner, batchId } = await pendingReviewBatch();
     asUser(owner);
     const res = await forceLockBatchAction(batchId);
@@ -66,7 +66,7 @@ describe("forceLock", () => {
     expect(await totalOf(batchId)).toBe(250);
   });
 
-  it("RULE B24: force-lock is refused for a batch that is not PENDING_REVIEW", async () => {
+  it("force-lock is refused for a batch that is not PENDING_REVIEW", async () => {
     const { shop, owner, at } = await seedBatchShop({ min: 1000 });
     const { order } = await placeOrder(shop.id, at);
     asUser(owner);
@@ -77,7 +77,7 @@ describe("forceLock", () => {
     expect((await batchOf(order.batch_id!)).status).toBe("OPEN");
   });
 
-  it("RULE B25: another shop's owner cannot force-lock or cancel the batch", async () => {
+  it("another shop's owner cannot force-lock or cancel the batch", async () => {
     const { batchId } = await pendingReviewBatch();
     const other = await seedBatchShop();
     asUser(other.owner);
@@ -90,7 +90,7 @@ describe("forceLock", () => {
 });
 
 describe("cancelling a PENDING_REVIEW batch", () => {
-  it("RULE B27: cancels the batch and every order; online payments are refunded", async () => {
+  it("cancels the batch and every order; online payments are refunded", async () => {
     const { owner, cash, online, batchId } = await pendingReviewBatch();
     asUser(owner);
     const res = await cancelBatchAction(batchId);
@@ -110,7 +110,7 @@ describe("cancelling a PENDING_REVIEW batch", () => {
     expect(await totalOf(batchId)).toBe(0);
   });
 
-  it("RULE B27: an order already cancelled before the batch cancel is not decremented twice", async () => {
+  it("an order already cancelled before the batch cancel is not decremented twice", async () => {
     const { owner, cash, batchId } = await pendingReviewBatch();
     asUser(cash.user);
     await cancelOrderAction(cash.order.id);
@@ -123,7 +123,7 @@ describe("cancelling a PENDING_REVIEW batch", () => {
 });
 
 describe("lifecycle transitions never revive a cancelled order", () => {
-  it("RULE B26: force-locking keeps an order cancelled during review CANCELLED", async () => {
+  it("force-locking keeps an order cancelled during review CANCELLED", async () => {
     const { owner, cash, batchId } = await pendingReviewBatch();
     asUser(cash.user);
     await cancelOrderAction(cash.order.id);
@@ -138,7 +138,7 @@ describe("lifecycle transitions never revive a cancelled order", () => {
     expect(await totalOf(batchId)).toBe(await liveItemSum(batchId));
   });
 
-  it("RULE B26: unlocking and starting delivery keep a cancelled order CANCELLED", async () => {
+  it("unlocking and starting delivery keep a cancelled order CANCELLED", async () => {
     const { owner, cash, online, batchId } = await pendingReviewBatch();
     asUser(owner);
     await forceLockBatchAction(batchId);
@@ -176,7 +176,7 @@ describe("lifecycle transitions never revive a cancelled order", () => {
 
 describe("no new orders into a batch that isn't OPEN", () => {
   for (const status of ["PENDING_REVIEW", "LOCKED"] as const) {
-    it(`RULE ${status === "PENDING_REVIEW" ? "B28" : "B29"}: an order for a ${status} batch's slot is rejected with a clear error and nothing changes`, async () => {
+    it(`an order for a ${status} batch's slot is rejected with a clear error and nothing changes`, async () => {
       const { shop, at, batchId } = await pendingReviewBatch();
       await testPrisma.batch.update({
         where: { id: batchId },
@@ -204,7 +204,7 @@ describe("no new orders into a batch that isn't OPEN", () => {
       ).toBe(1);
     });
 
-    it(`RULE ${status === "PENDING_REVIEW" ? "B28" : "B29"}: an order naming a ${status} batch by id is rejected with a clear error`, async () => {
+    it(`an order naming a ${status} batch by id is rejected with a clear error`, async () => {
       const { shop, batchId } = await pendingReviewBatch();
       await testPrisma.batch.update({
         where: { id: batchId },

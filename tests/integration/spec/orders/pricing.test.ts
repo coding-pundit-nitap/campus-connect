@@ -1,4 +1,4 @@
-// Rule-based pricing tests (O1-O9). Rules are derived from the schema,
+// Pricing tests. Expectations are derived from the schema,
 // the checkout / cart UI and money invariants - not from order.service.ts.
 import { describe, expect, it } from "vitest";
 
@@ -28,7 +28,7 @@ async function setPlatformFee(fee: number) {
 }
 
 describe("orders spec: pricing", () => {
-  it("RULE O1: an item's unit price is price minus a PERCENT discount (25% off 120 = 90)", async () => {
+  it("an item's unit price is price minus a PERCENT discount (25% off 120 = 90)", async () => {
     const s = await seedCheckout({
       lines: [{ price: 120, discount: 25, quantity: 1 }],
     });
@@ -36,7 +36,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.item_total)).toBe(9000);
   });
 
-  it("RULE O2: item_total is the sum of discounted unit price x quantity over all lines", async () => {
+  it("item_total is the sum of discounted unit price x quantity over all lines", async () => {
     const s = await seedCheckout({
       lines: [
         { price: 120, discount: 25, quantity: 2 },
@@ -47,7 +47,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.item_total)).toBe(26000);
   });
 
-  it("RULE O3: the stored order lines (unit price x quantity) add up to item_total", async () => {
+  it("the stored order lines (unit price x quantity) add up to item_total", async () => {
     const s = await seedCheckout({
       lines: [
         { price: 33.33, discount: 10, quantity: 3 },
@@ -65,11 +65,7 @@ describe("orders spec: pricing", () => {
     expect(linesPaise).toBe(paise(order.item_total));
   });
 
-  it.todo(
-    "RULE O3b: the per-line totals the order UI shows (order-details-items.tsx, owner order page, order-card.tsx) add up to item_total - code currently stores the DISCOUNTED unit price in OrderItem.price and the UI subtracts product.discount again (double discount); CROSS-SCOPE (src/components/orders/*, src/app/owner-shops/orders/[order_id]/page.tsx)"
-  );
-
-  it("RULE O4: a direct-delivery order is charged the shop's direct_delivery_fee", async () => {
+  it("a direct-delivery order is charged the shop's direct_delivery_fee", async () => {
     const s = await seedCheckout({
       lines: [{ price: 100, quantity: 1 }],
       shop: SHOP_FEES,
@@ -79,7 +75,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.delivery_fee)).toBe(3000);
   });
 
-  it("RULE O4: a batch-delivery order is charged the shop's default_delivery_fee", async () => {
+  it("a batch-delivery order is charged the shop's default_delivery_fee", async () => {
     const s = await seedCheckout({
       lines: [{ price: 100, quantity: 1 }],
       shop: SHOP_FEES,
@@ -93,7 +89,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.delivery_fee)).toBe(1000);
   });
 
-  it("RULE O5: the platform fee is the global PlatformSettings fee, snapshotted onto the order", async () => {
+  it("the platform fee is the global PlatformSettings fee, snapshotted onto the order", async () => {
     await setPlatformFee(7.5);
     const s = await seedCheckout({ lines: [{ price: 100, quantity: 1 }] });
     const order = await placeDirectOrder(s);
@@ -106,7 +102,7 @@ describe("orders spec: pricing", () => {
     expect(paise(reread.platform_fee)).toBe(750);
   });
 
-  it("RULE O6: total_price = item_total + delivery_fee + platform_fee", async () => {
+  it("total_price = item_total + delivery_fee + platform_fee", async () => {
     await setPlatformFee(5);
     const s = await seedCheckout({
       lines: [
@@ -119,7 +115,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.total_price)).toBe(26000 + 3000 + 500);
   });
 
-  it("RULE O6: the amounts the checkout page shows (getCartData) are exactly the amounts the order is charged", async () => {
+  it("the amounts the checkout page shows (getCartData) are exactly the amounts the order is charged", async () => {
     await setPlatformFee(4.99);
     const s = await seedCheckout({
       lines: [
@@ -142,7 +138,7 @@ describe("orders spec: pricing", () => {
     expect(shownTotal.toFixed(2)).toBe(Number(order.total_price).toFixed(2));
   });
 
-  it("RULE O7: every stored money amount has at most 2 decimals", async () => {
+  it("every stored money amount has at most 2 decimals", async () => {
     await setPlatformFee(3.33);
     const s = await seedCheckout({
       lines: [
@@ -172,7 +168,7 @@ describe("orders spec: pricing", () => {
     }
   });
 
-  it("RULE O8: checkout uses the product price in the DB at checkout time, not the price when it was added to the cart", async () => {
+  it("checkout uses the product price in the DB at checkout time, not the price when it was added to the cart", async () => {
     const s = await seedCheckout({ lines: [{ price: 100, quantity: 2 }] });
     await testPrisma.product.update({
       where: { id: s.products[0].id },
@@ -182,7 +178,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.item_total)).toBe(30000);
   });
 
-  it("RULE O8: money fields sent by the client are ignored by createOrderAction", async () => {
+  it("money fields sent by the client are ignored by createOrderAction", async () => {
     const s = await seedCheckout({ lines: [{ price: 100, quantity: 1 }] });
     asUser(s.buyer);
     const res = await createOrderAction({
@@ -209,7 +205,7 @@ describe("orders spec: pricing", () => {
     );
   });
 
-  it("RULE O9: money never goes negative - a discount above 100% cannot produce a negative price or total", async () => {
+  it("money never goes negative - a discount above 100% cannot produce a negative price or total", async () => {
     await setPlatformFee(0);
     const s = await seedCheckout({
       lines: [
@@ -232,7 +228,7 @@ describe("orders spec: pricing", () => {
     expect(paise(order.item_total)).toBe(5000);
   });
 
-  it("RULE O4: a batch order placed via requested_delivery_time is charged the batch fee, not the direct fee", async () => {
+  it("a batch order placed via requested_delivery_time is charged the batch fee, not the direct fee", async () => {
     const s = await seedCheckout({
       lines: [{ price: 100, quantity: 1 }],
       shop: SHOP_FEES,
