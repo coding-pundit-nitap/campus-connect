@@ -179,7 +179,7 @@ services:
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=30d"
       - "--web.enable-lifecycle"
-      - "--web.external-url=https://grafana.connect.nitap.ac.in/prometheus"
+      - "--web.external-url=https://grafana.con.nitap.ac.in/prometheus"
       - "--web.route-prefix=/"
     secrets:
       - metrics_token
@@ -218,7 +218,7 @@ services:
     command:
       - "--config.file=/etc/alertmanager/alertmanager.yml"
       - "--storage.path=/alertmanager"
-      - "--web.external-url=https://grafana.connect.nitap.ac.in/alertmanager"
+      - "--web.external-url=https://grafana.con.nitap.ac.in/alertmanager"
       - "--web.route-prefix=/"
     volumes:
       - alertmanager_data:/alertmanager
@@ -258,7 +258,7 @@ services:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=https://grafana.connect.nitap.ac.in/grafana
+      - GF_SERVER_ROOT_URL=https://grafana.con.nitap.ac.in/grafana
       - GF_SERVER_SERVE_FROM_SUB_PATH=true
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
     volumes:
