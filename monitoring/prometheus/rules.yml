@@ -96,7 +96,7 @@ groups:
           description: "Container {{ $labels.name }} is restarting frequently."
 
       - alert: ContainerHighMemory
-        expr: (container_memory_usage_bytes{name!=""} / container_spec_memory_limit_bytes{name!=""}) * 100 > 90
+        expr: (container_memory_usage_bytes{name!=""} / (container_spec_memory_limit_bytes{name!=""} > 0)) * 100 > 90
         for: 5m
         labels:
           severity: warning
@@ -136,7 +136,7 @@ groups:
   - name: redis_alerts
     rules:
       - alert: RedisMemoryHigh
-        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 85
+        expr: (redis_memory_used_bytes / (redis_memory_max_bytes > 0)) * 100 > 85
         for: 5m
         labels:
           severity: warning
@@ -145,7 +145,7 @@ groups:
           description: "Redis is using {{ $value }}% of its configured max memory."
 
       - alert: RedisMemoryCritical
-        expr: (redis_memory_used_bytes / redis_memory_max_bytes) * 100 > 95
+        expr: (redis_memory_used_bytes / (redis_memory_max_bytes > 0)) * 100 > 95
         for: 2m
         labels:
           severity: critical

@@ -105,6 +105,8 @@ services:
       --appendonly yes
       --save 900 1
       --save 300 10
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
     expose:
       - "6379"
     volumes:
@@ -116,6 +118,8 @@ services:
       retries: 5
     networks:
       - campus_connect_net
+    # Headroom above maxmemory for the AOF-rewrite/RDB fork (copy-on-write).
+    mem_limit: 512m
     cpus: "0.5"
     security_opt:
       - no-new-privileges:true
